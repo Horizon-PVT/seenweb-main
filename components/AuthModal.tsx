@@ -38,9 +38,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                // GỌI HÀM LOGIN TỪ CONTEXT
-                login(result.token, result.plan, email);
-                onClose(); 
+    // GỌI HÀM LOGIN TỪ CONTEXT
+    await login(email, password); // ✅ chỉ cần 2 tham số
+    onClose();
 
             } else {
                 setMessage({ 

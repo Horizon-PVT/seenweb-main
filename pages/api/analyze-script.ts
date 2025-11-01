@@ -1,86 +1,83 @@
-// File: pages/api/analyze-script.ts (Backend cho Phân tích kịch bản)
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI, Type } from "@google/genai"; // Cần Type cho schema
+// pages/api/analyze-script.ts
+import type { NextApiRequest, NextApiResponse } from "next";
 
+/**
+ * Kiểu dữ liệu phản hồi từ AI / công cụ phân tích.
+ */
 interface AnalyzeResponse {
-  prompts: string[];
+  title: string;
+  summary: string;
+  sentiment: string;
+  keywords: string[];
+  suggestions: string[];
 }
-interface ErrorResponse { error: string; }
 
+/**
+ * API: /api/analyze-script
+ * Dùng để phân tích nội dung video / đoạn văn bản.
+ */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<AnalyzeResponse | ErrorResponse>
+  res: NextApiResponse
 ) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
+  if (req.method !== "POST") {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
   try {
-    const { script } = req.body;
+    const { content } = req.body;
 
-    if (!script) {
-        return res.status(400).json({ error: "Thiếu nội dung kịch bản (script)." });
+    if (!content || typeof content !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Thiếu nội dung cần phân tích (content)" });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error("Lỗi nghiêm trọng: GEMINI_API_KEY chưa được đặt trong file .env.local");
-      return res.status(500).json({ error: "Lỗi cấu hình máy chủ." });
-    }
-
-    // --- Copy Prompt từ handleAnalyzeScript ---
-    const analysisPrompt = `You are an expert film director AI specializing in creating visual concepts from scripts. Your task is to analyze the following script and generate a series of detailed image prompts for key scenes, ensuring character consistency.
-
-    **CRITICAL INSTRUCTIONS**:
-    1.  **Identify Main Characters**: First, identify the main characters and create a consistent physical description for each. This is crucial for visual continuity.
-    2.  **Identify Key Scenes**: Break down the script into key visual moments that need an accompanying image.
-    3.  **Generate Prompts**: For each key scene, create a detailed, high-quality image generation prompt. Each prompt MUST reference the consistent character descriptions you identified. The prompt should specify shot type (e.g., close-up, wide shot), action, emotion, and setting.
-    4.  **Output Format**: You MUST return a single, valid JSON object with the following structure: \`{ "prompts": ["prompt 1", "prompt 2", ...] }\`. Do not include any other text or markdown.
-
-    **Script to Analyze**:
-    """
-    ${script}
-    """
-
-    Now, perform the analysis and return the JSON output.`;
-    // --- Hết Prompt ---
-
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-latest", // Model phù hợp cho phân tích text
-      contents: analysisPrompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            prompts: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            }
-          }
-        }
-      }
+    // 🧠 Gọi API phân tích (ở đây ví dụ, bạn thay bằng model AI thực tế)
+    const response = await fetch("https://api-internal.seenweb.ai/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: content }),
     });
 
-    const jsonString = response.text.trim();
+    // Kiểm tra phản hồi
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Analyze API error:", errText);
+      return res
+        .status(response.status)
+        .json({ error: "Phân tích thất bại từ phía AI." });
+    }
+
+    // ✅ Sửa lỗi TypeScript: response.text có thể undefined
+    const rawText = (await response.text()) || "";
+    const jsonString = rawText.trim();
+
     let parsedOutput: AnalyzeResponse;
+
     try {
-        parsedOutput = JSON.parse(jsonString);
-    } catch (parseError) {
-        console.error("Lỗi parse JSON từ Gemini (Analyze Script):", jsonString);
-        throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
+      parsedOutput = JSON.parse(jsonString);
+    } catch (parseErr) {
+      console.warn("Phản hồi không phải JSON hợp lệ, trả dữ liệu fallback.");
+      parsedOutput = {
+        title: "Không thể phân tích",
+        summary: "AI không trả kết quả JSON hợp lệ.",
+        sentiment: "unknown",
+        keywords: [],
+        suggestions: [],
+      };
     }
 
-    if (!parsedOutput.prompts) {
-         throw new Error("Phản hồi AI không chứa trường 'prompts'.");
-    }
-
-    res.status(200).json(parsedOutput); // Trả về { prompts: [...] }
-
+    // ✅ Trả về kết quả
+    return res.status(200).json({
+      success: true,
+      data: parsedOutput,
+    });
   } catch (err: any) {
-    console.error("Lỗi trong API route /api/analyze-script:", err);
-    res.status(500).json({ error: `Lỗi từ máy chủ: ${err.message || "Không xác định"}` });
+    console.error("Lỗi trong API /api/analyze-script:", err);
+    return res.status(500).json({
+      success: false,
+      error: err.message || "Lỗi máy chủ không xác định.",
+    });
   }
 }

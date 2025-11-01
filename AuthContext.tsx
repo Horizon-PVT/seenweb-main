@@ -1,18 +1,21 @@
-// AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-type User = { id: string; email: string };
+type User = { id: string; email: string; plan?: string };
+
 type AuthState = {
   isLoggedIn: boolean;
   user: User | null;
+  plan: string | null;
   loading: boolean;
   error?: string | null;
+  successMessage?: string | null;
 };
 
 type AuthContextType = AuthState & {
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  setSuccessMessage: (msg: string | null) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AuthState>({
     isLoggedIn: false,
     user: null,
+    plan: null,
     loading: true,
   });
 
@@ -29,12 +33,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const res = await fetch("/api/me");
       const data = await res.json();
       if (data.isLoggedIn) {
-        setState({ isLoggedIn: true, user: data.user, loading: false });
+        setState({
+          isLoggedIn: true,
+          user: data.user,
+          plan: data.user?.plan || null,
+          loading: false,
+          successMessage: null,
+        });
       } else {
-        setState({ isLoggedIn: false, user: null, loading: false });
+        setState({
+          isLoggedIn: false,
+          user: null,
+          plan: null,
+          loading: false,
+          successMessage: null,
+        });
       }
     } catch {
-      setState({ isLoggedIn: false, user: null, loading: false, error: "Không thể tải user" });
+      setState({
+        isLoggedIn: false,
+        user: null,
+        plan: null,
+        loading: false,
+        error: "Không thể tải user",
+      });
     }
   }
 
@@ -51,13 +73,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        setState((s) => ({ ...s, error: err.error || "Đăng nhập thất bại" }));
+        setState((s) => ({
+          ...s,
+          error: err.error || "Đăng nhập thất bại",
+          successMessage: null,
+        }));
         return false;
       }
-      await refreshMe();
+      const data = await res.json();
+      setState({
+        isLoggedIn: true,
+        user: { id: data.userId || "unknown", email, plan: data.plan || "EXPLORER" },
+        plan: data.plan || "EXPLORER",
+        loading: false,
+        successMessage: "Đăng nhập thành công!",
+      });
       return true;
     } catch {
-      setState((s) => ({ ...s, error: "Lỗi mạng khi đăng nhập" }));
+      setState((s) => ({
+        ...s,
+        error: "Lỗi mạng khi đăng nhập",
+        successMessage: null,
+      }));
       return false;
     }
   }
@@ -71,23 +108,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        setState((s) => ({ ...s, error: err.error || "Đăng ký thất bại" }));
+        setState((s) => ({
+          ...s,
+          error: err.error || "Đăng ký thất bại",
+          successMessage: null,
+        }));
         return false;
       }
+      setState((s) => ({
+        ...s,
+        successMessage: "Đăng ký thành công!",
+        error: null,
+      }));
       return true;
     } catch {
-      setState((s) => ({ ...s, error: "Lỗi mạng khi đăng ký" }));
+      setState((s) => ({
+        ...s,
+        error: "Lỗi mạng khi đăng ký",
+        successMessage: null,
+      }));
       return false;
     }
   }
 
   async function logout() {
     await fetch("/api/logout", { method: "POST" });
-    setState({ isLoggedIn: false, user: null, loading: false });
+    setState({
+      isLoggedIn: false,
+      user: null,
+      plan: null,
+      loading: false,
+      successMessage: null,
+    });
+  }
+
+  function setSuccessMessage(msg: string | null) {
+    setState((s) => ({ ...s, successMessage: msg }));
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ ...state, login, register, logout, setSuccessMessage }}
+    >
       {children}
     </AuthContext.Provider>
   );
