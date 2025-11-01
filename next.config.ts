@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
@@ -24,7 +23,6 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "geolocation=(), microphone=()" },
           {
             key: "Content-Security-Policy",
-            // nếu sau này bạn dùng script/CDN khác, mình sẽ mở thêm đúng domain
             value:
               "default-src 'self'; img-src * blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';",
           },
