@@ -25,12 +25,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!user) {
+      console.warn("⚠️ Không tìm thấy user:", email);
       return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
     }
 
     // 2️⃣ So sánh mật khẩu (bcrypt)
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) {
+    console.log("🧩 CHECK LOGIN:");
+    console.log("Email:", email);
+    console.log("Plain password:", password);
+    console.log("Stored hash:", user.passwordHash);
+
+    const compareResult = await bcrypt.compare(password, user.passwordHash);
+    console.log("COMPARE RESULT:", compareResult);
+
+    if (!compareResult) {
+      console.warn("❌ Sai mật khẩu hoặc hash không hợp lệ cho:", email);
       return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
     }
 
@@ -55,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     // 5️⃣ Trả kết quả thành công
+    console.log("✅ Đăng nhập thành công cho:", email);
     return res.status(200).json({
       success: true,
       message: "Đăng nhập thành công!",
