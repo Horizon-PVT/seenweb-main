@@ -1,7 +1,5 @@
-// next.config.ts
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
@@ -13,10 +11,10 @@ const nextConfig: NextConfig = {
     ],
   },
   eslint: { ignoreDuringBuilds: true }, // ✅ tránh lỗi ESLint khi build
-  typescript: { ignoreBuildErrors: true }, // ✅ tránh crash vì type lặt vặt
+  typescript: { ignoreBuildErrors: true }, // ✅ tránh crash vì type nhỏ
   experimental: {
     turbo: { rules: {} },
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

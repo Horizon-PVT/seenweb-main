@@ -1,24 +1,39 @@
-// pages/api/me.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { jwtVerify } from "jose";
+import jwt from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";
 
-function getSecretKey() {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) throw new Error("NEXTAUTH_SECRET chưa được cấu hình");
-  return new TextEncoder().encode(secret);
-}
+const COOKIE_NAME = "session";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    const token = req.cookies?.session;
-    if (!token) return res.status(200).json({ isLoggedIn: false });
+  const cookies = req.headers.cookie || "";
+  const cookieMap = Object.fromEntries(
+    cookies.split(";").map((c) => {
+      const [k, ...v] = c.trim().split("=");
+      return [k, v.join("=")];
+    })
+  );
 
-    const { payload } = await jwtVerify(token, getSecretKey());
+  const token = cookieMap[COOKIE_NAME];
+  if (!token) return res.status(200).json({ isLoggedIn: false });
+
+  try {
+    const secret = process.env.NEXTAUTH_SECRET || "seenyt-secret";
+    const payload = jwt.verify(token, secret) as { id: string; email: string };
+
+    const user = await prisma.user.findUnique({ where: { id: payload.id } });
+    if (!user) return res.status(200).json({ isLoggedIn: false });
+
     return res.status(200).json({
       isLoggedIn: true,
-      user: { id: payload.sub, email: payload.email },
+      user: {
+        id: user.id,
+        email: user.email,
+        plan: user.plan,
+        dailyUsage: user.dailyUsage,
+        maxDailyUsage: user.maxDailyUsage
+      }
     });
-  } catch (err) {
+  } catch {
     return res.status(200).json({ isLoggedIn: false });
   }
 }
