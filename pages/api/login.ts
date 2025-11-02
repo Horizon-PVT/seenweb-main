@@ -20,9 +20,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
+    if (!user) {
+      console.warn("❌ Không tìm thấy user:", email);
+      return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
+    }
 
-    // So sánh hash
     console.log("🧩 CHECK LOGIN:");
     console.log("Email:", email);
     console.log("Plain password:", password);
@@ -54,6 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ success: true, message: "Đăng nhập thành công!" });
   } catch (err: any) {
     console.error("LOGIN_ERROR:", err);
-    return res.status(500).json({ error: "Lỗi máy chủ khi đăng nhập." });
+    return res.status(500).json({
+      error: "Lỗi máy chủ khi đăng nhập.",
+      detail: err.message || "Không rõ lỗi (có thể do Prisma hoặc JWT).",
+    });
   }
 }

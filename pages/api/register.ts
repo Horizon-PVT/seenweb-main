@@ -33,10 +33,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    console.log(`[AUTH] User registered: ${email}. Plan: EXPLORER.`);
+    console.log(`[AUTH] ✅ User registered: ${email}. Plan: EXPLORER.`);
     return res.status(201).json({ success: true, user: newUser });
   } catch (err: any) {
     console.error("REGISTER_ERROR:", err);
-    return res.status(500).json({ error: "Lỗi máy chủ khi đăng ký." });
+    return res.status(500).json({
+      error: "Lỗi máy chủ khi đăng ký.",
+      detail: err.message || "Không rõ lỗi (có thể do Prisma hoặc DB).",
+    });
   }
 }
