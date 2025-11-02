@@ -13,20 +13,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { email, password } = req.body || {};
+
   if (!email || !password) {
     return res.status(400).json({ error: "Thiếu email hoặc mật khẩu." });
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
+    // 1️⃣ Tìm user trong database
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-    const isOk = await bcrypt.compare(password, user.passwordHash);
-    if (!isOk) return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
+    if (!user) {
+      return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
+    }
 
+    // 2️⃣ So sánh mật khẩu (bcrypt)
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
+    }
+
+    // 3️⃣ Tạo JWT token
     const secret = process.env.NEXTAUTH_SECRET || "seenyt-secret";
-    const token = jwt.sign({ id: user.id, email: user.email }, secret, { expiresIn: "7d" });
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      secret,
+      { expiresIn: "7d" }
+    );
 
+    // 4️⃣ Set cookie session
     res.setHeader(
       "Set-Cookie",
       cookie.serialize(COOKIE_NAME, token, {
@@ -34,17 +50,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: 7 * 24 * 60 * 60
+        maxAge: 7 * 24 * 60 * 60, // 7 ngày
       })
     );
 
+    // 5️⃣ Trả kết quả thành công
     return res.status(200).json({
       success: true,
       message: "Đăng nhập thành công!",
-      user: { email: user.email, plan: user.plan }
+      user: {
+        id: user.id,
+        email: user.email,
+        plan: user.plan,
+      },
     });
-  } catch (e: any) {
-    console.error("LOGIN_ERROR:", e);
-    return res.status(500).json({ error: "Lỗi máy chủ khi đăng nhập." });
+  } catch (err: any) {
+    console.error("LOGIN_ERROR:", err);
+    return res.status(500).json({
+      error: `Lỗi máy chủ trong quá trình đăng nhập: ${err.message || "Không xác định"}`,
+    });
   }
 }
