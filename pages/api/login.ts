@@ -19,39 +19,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // 1️⃣ Tìm user trong database
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
 
-    if (!user) {
-      console.warn("⚠️ Không tìm thấy user:", email);
-      return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
-    }
-
-    // 2️⃣ So sánh mật khẩu (bcrypt)
+    // So sánh hash
     console.log("🧩 CHECK LOGIN:");
     console.log("Email:", email);
     console.log("Plain password:", password);
     console.log("Stored hash:", user.passwordHash);
 
-    const compareResult = await bcrypt.compare(password, user.passwordHash);
-    console.log("COMPARE RESULT:", compareResult);
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    console.log("COMPARE RESULT:", isMatch);
 
-    if (!compareResult) {
-      console.warn("❌ Sai mật khẩu hoặc hash không hợp lệ cho:", email);
+    if (!isMatch) {
+      console.warn("❌ Sai mật khẩu cho:", email);
       return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
     }
 
-    // 3️⃣ Tạo JWT token
     const secret = process.env.NEXTAUTH_SECRET || "seenyt-secret";
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      secret,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: user.id, email: user.email }, secret, { expiresIn: "7d" });
 
-    // 4️⃣ Set cookie session
     res.setHeader(
       "Set-Cookie",
       cookie.serialize(COOKIE_NAME, token, {
@@ -59,25 +46,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: 7 * 24 * 60 * 60, // 7 ngày
+        maxAge: 7 * 24 * 60 * 60,
       })
     );
 
-    // 5️⃣ Trả kết quả thành công
-    console.log("✅ Đăng nhập thành công cho:", email);
-    return res.status(200).json({
-      success: true,
-      message: "Đăng nhập thành công!",
-      user: {
-        id: user.id,
-        email: user.email,
-        plan: user.plan,
-      },
-    });
+    console.log("✅ Đăng nhập thành công:", email);
+    return res.status(200).json({ success: true, message: "Đăng nhập thành công!" });
   } catch (err: any) {
     console.error("LOGIN_ERROR:", err);
-    return res.status(500).json({
-      error: `Lỗi máy chủ trong quá trình đăng nhập: ${err.message || "Không xác định"}`,
-    });
+    return res.status(500).json({ error: "Lỗi máy chủ khi đăng nhập." });
   }
 }

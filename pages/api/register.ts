@@ -8,37 +8,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: `Method ${req.method} not allowed` });
   }
 
-  const { email, password } = req.body || {};
+  const { email, password } = req.body;
 
-  if (!email || !password || String(password).length < 6) {
-    return res.status(400).json({ error: "Email/mật khẩu không hợp lệ (mật khẩu ≥ 6 ký tự)." });
+  if (!email || !password) {
+    return res.status(400).json({ error: "Thiếu email hoặc mật khẩu." });
   }
 
   try {
-    const existed = await prisma.user.findUnique({ where: { email } });
-    if (existed) {
-      return res.status(409).json({ error: "Email đã tồn tại. Vui lòng đăng nhập." });
+    // Kiểm tra email tồn tại
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ error: "Email này đã được đăng ký." });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    // Hash mật khẩu
+    const hash = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    // Tạo user mới
+    const newUser = await prisma.user.create({
       data: {
         email,
-        passwordHash,
+        passwordHash: hash,
         plan: "EXPLORER",
-        dailyUsage: 0,
-        maxDailyUsage: 2
-      }
+      },
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "Đăng ký thành công!",
-      user: { id: user.id, email: user.email, plan: user.plan }
-    });
-  } catch (e: any) {
-    console.error("REGISTER_ERROR:", e);
+    console.log(`[AUTH] User registered: ${email}. Plan: EXPLORER.`);
+    return res.status(201).json({ success: true, user: newUser });
+  } catch (err: any) {
+    console.error("REGISTER_ERROR:", err);
     return res.status(500).json({ error: "Lỗi máy chủ khi đăng ký." });
   }
 }
