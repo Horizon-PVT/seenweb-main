@@ -1,3 +1,4 @@
+// File: pages/api/logout.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import cookie from "cookie";
 
@@ -16,9 +17,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 0
+      expires: new Date(0),
     })
   );
 
-  res.status(200).json({ success: true, message: "Đã đăng xuất." });
+  return res.status(200).json({ success: true, message: "Đăng xuất thành công" });
 }
