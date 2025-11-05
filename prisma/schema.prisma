@@ -16,3 +16,17 @@ model User {
   maxDailyUsage  Int      @default(2)
   createdAt      DateTime @default(now())
 }
+
+model PaymentRequest {
+  id          String   @id @default(cuid())
+  plan        String
+  email       String
+  txn         String
+  status      String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt   DateTime @default(now())
+
+  // 🟢 Các trường quản trị thêm vào
+  approvedAt  DateTime?
+  approvedBy  String?
+  note        String?
+}
