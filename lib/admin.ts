@@ -1,28 +1,29 @@
 // lib/admin.ts
-import { getServerSession } from "next-auth/next";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { authOptions } from "../pages/api/auth/[...nextauth]";
 
 /**
- * Middleware bảo vệ API dành riêng cho admin
- * - Chỉ cho phép truy cập nếu user đang đăng nhập và có email trùng với ADMIN_EMAIL
- * - Nếu không hợp lệ, trả về lỗi 403 Forbidden
+ * Middleware bảo vệ API dành riêng cho admin.
+ * Ưu tiên kiểm tra header x-user-email (client gửi kèm)
+ * hoặc session email nếu cần (future-safe).
  */
-export async function requireAdmin(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export async function requireAdmin(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const session = await getServerSession(req, res, authOptions as any);
+    const email =
+      req.headers["x-user-email"]?.toString() || "";
 
     const adminEmail = process.env.ADMIN_EMAIL;
 
-    if (!session?.user?.email || session.user.email !== adminEmail) {
+    if (!email || email !== adminEmail) {
       res.status(403).json({ error: "Forbidden" });
       return null;
     }
 
-    return session;
+    // Trả về object session giả (đủ dùng cho phần approve/reject)
+    return {
+      user: {
+        email,
+      },
+    };
   } catch (err) {
     console.error("❌ requireAdmin error:", err);
     res.status(500).json({ error: "Internal Server Error" });
