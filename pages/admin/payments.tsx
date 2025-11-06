@@ -1,4 +1,3 @@
-// pages/admin/payments.tsx
 import React, { useEffect, useMemo, useState } from "react";
 
 /** Nếu dự án anh đã có useAuth() thì import vào; nếu không có cũng không sao,
@@ -63,7 +62,12 @@ export default function AdminPaymentsPage() {
       const params = new URLSearchParams();
       params.set("status", status);
       if (q) params.set("q", q);
-      const r = await fetch(`/api/admin/payments?${params.toString()}`);
+
+      const email = await getCurrentEmail(user?.email);
+      const r = await fetch(`/api/admin/payments?${params.toString()}`, {
+        headers: { "x-user-email": email || "" },
+      });
+
       const j = await r.json();
       setItems(j?.payments || []);
     } catch (e) {
@@ -78,7 +82,11 @@ export default function AdminPaymentsPage() {
   const loadStats = async () => {
     try {
       setLoadingStats(true);
-      const r = await fetch(`/api/admin/payments/stats`);
+      const email = await getCurrentEmail(user?.email);
+      const r = await fetch(`/api/admin/payments/stats`, {
+        headers: { "x-user-email": email || "" },
+      });
+
       const j = await r.json();
       setStats({
         revenueApproved: j?.revenueApproved || 0,
@@ -117,21 +125,18 @@ export default function AdminPaymentsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-email": email, // server check ADMIN_EMAIL dựa vào header này
+          "x-user-email": email,
         },
         body: JSON.stringify({ id, userId, plan, note }),
       });
       const data = await res.json();
 
       if (!res.ok || data?.error || data?.success === false) {
-        // rollback nếu fail
         setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status: "PENDING" } : i)));
         throw new Error(data?.error || "Lỗi không xác định");
       }
 
-      // Chờ DB Neon sync xong để các API khác đọc thấy (tránh 'unknown')
-      await new Promise((r) => setTimeout(r, 500));
-
+      await new Promise((r) => setTimeout(r, 400));
       alert("✅ Đã duyệt & nâng gói thành công!");
       await load();
       await loadStats();
@@ -149,7 +154,6 @@ export default function AdminPaymentsPage() {
 
       const email = await getCurrentEmail(user?.email);
 
-      // Optimistic UI: chuyển dòng thành "REJECTED" ngay
       setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status: "REJECTED", approvedBy: email } : i)));
 
       const res = await fetch("/api/admin/payments/reject", {
@@ -163,7 +167,6 @@ export default function AdminPaymentsPage() {
       const data = await res.json();
 
       if (!res.ok || data?.error || data?.success === false) {
-        // rollback nếu fail
         setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status: "PENDING" } : i)));
         throw new Error(data?.error || "Lỗi không xác định");
       }
