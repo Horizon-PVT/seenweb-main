@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+
+# *
+User-agent: *
+Disallow: /admin
+Disallow: /api
+
+# Host
+Host: https://seenweb-main.vercel.app
+
+# Sitemaps
+Sitemap: https://seenweb-main.vercel.app/sitemap.xml
