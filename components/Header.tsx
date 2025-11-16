@@ -1,36 +1,27 @@
 // File: components/Header.tsx
-import React, { useState, useEffect } from 'react';
-import AuthModal from './AuthModal';
+import React, { useState } from "react";
+import AuthModal from "./AuthModal";
+import { useAuth } from "../AuthContext";
 
 const Header: React.FC = () => {
+  const { user, isLoggedIn, logout } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
 
-  // Khi component load, kiểm tra xem user đã đăng nhập chưa
-  useEffect(() => {
-    fetch("/api/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.isLoggedIn) {
-          setUser(data.user);
-        }
-      })
-      .catch(() => setUser(null));
-  }, []);
-
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    targetId: string
+  ) => {
     e.preventDefault();
     const targetElement = document.querySelector(targetId);
-    if (targetElement) targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (targetElement)
+      targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const handleLogout = async () => {
-    await fetch("/api/logout", { method: "POST" });
-    setUser(null);
-    window.location.reload(); // reload để cập nhật giao diện
+    await logout();
   };
 
   return (
@@ -42,15 +33,35 @@ const Header: React.FC = () => {
         </div>
 
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#about" onClick={(e) => handleNavClick(e, '#about')} className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold">THÔNG TIN</a>
-          <a href="#tools" onClick={(e) => handleNavClick(e, '#tools')} className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold">10 CÔNG CỤ</a>
-          <a href="#pricing" onClick={(e) => handleNavClick(e, '#pricing')} className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold">BẢNG GIÁ</a>
+          <a
+            href="#about"
+            onClick={(e) => handleNavClick(e, "#about")}
+            className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold"
+          >
+            THÔNG TIN
+          </a>
+          <a
+            href="#tools"
+            onClick={(e) => handleNavClick(e, "#tools")}
+            className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold"
+          >
+            10 CÔNG CỤ
+          </a>
+          <a
+            href="#pricing"
+            onClick={(e) => handleNavClick(e, "#pricing")}
+            className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold"
+          >
+            BẢNG GIÁ
+          </a>
         </nav>
 
         <div className="flex items-center space-x-4">
-          {user ? (
+          {isLoggedIn && user ? (
             <div className="flex items-center gap-3">
-              <span className="text-[#00b3b3] font-semibold">👋 {user.email}</span>
+              <span className="text-[#00b3b3] font-semibold">
+                👋 {user.email}
+              </span>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 px-4 py-2 rounded-sm text-white hover:bg-red-600 transition-all duration-300"
@@ -60,7 +71,12 @@ const Header: React.FC = () => {
             </div>
           ) : (
             <>
-              <button onClick={openModal} className="text-gray-300 hover:text-white transition-colors">ĐĂNG NHẬP</button>
+              <button
+                onClick={openModal}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                ĐĂNG NHẬP
+              </button>
               <button
                 onClick={openModal}
                 className="bg-[#008080] text-white font-bold py-2 px-5 border border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] hover:shadow-[0_0_15px_#008080]"

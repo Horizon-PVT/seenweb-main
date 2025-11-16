@@ -1,5 +1,8 @@
+// File: pages/api/register.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { serialize } from "cookie";
 import { prisma } from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -33,13 +36,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    console.log(`[AUTH] ✅ User registered: ${email}. Plan: EXPLORER.`);
+    // 🔥 TẠO JWT GIỐNG API LOGIN
+    const token = jwt.sign(
+      {
+        id: newUser.id,
+        email: newUser.email,
+      },
+      process.env.NEXTAUTH_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    // 🔥 SET COOKIE SESSION ĐỂ TỰ ĐĂNG NHẬP NGAY
+    res.setHeader(
+      "Set-Cookie",
+      serialize("session", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      })
+    );
+
+    console.log(`[AUTH] ✅ User registered & auto-login: ${email}`);
+
     return res.status(201).json({ success: true, user: newUser });
   } catch (err: any) {
     console.error("REGISTER_ERROR:", err);
     return res.status(500).json({
       error: "Lỗi máy chủ khi đăng ký.",
-      detail: err.message || "Không rõ lỗi (có thể do Prisma hoặc DB).",
+      detail: err.message || "Không rõ lỗi.",
     });
   }
 }

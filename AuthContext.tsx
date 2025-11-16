@@ -15,6 +15,7 @@ type AuthContextType = AuthState & {
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  refreshMe: () => Promise<void>;
   setSuccessMessage: (msg: string | null) => void;
 };
 
@@ -26,44 +27,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user: null,
     plan: null,
     loading: true,
+    error: null,
+    successMessage: null,
   });
 
+  // 🔥 Hàm load user theo cookie session thật từ backend
   async function refreshMe() {
     try {
-      const res = await fetch("/api/me");
+      const res = await fetch("/api/me", { cache: "no-store" });
       const data = await res.json();
+
       if (data.isLoggedIn) {
-        setState({
+        setState((prev) => ({
+          ...prev,
           isLoggedIn: true,
           user: data.user,
           plan: data.user?.plan || null,
           loading: false,
-          successMessage: null,
-        });
+          error: null,
+        }));
       } else {
-        setState({
+        setState((prev) => ({
+          ...prev,
           isLoggedIn: false,
           user: null,
           plan: null,
           loading: false,
-          successMessage: null,
-        });
+          error: null,
+        }));
       }
-    } catch {
-      setState({
+    } catch (e) {
+      setState((prev) => ({
+        ...prev,
         isLoggedIn: false,
         user: null,
         plan: null,
         loading: false,
-        error: "Không thể tải user",
-      });
+        error: "Không thể tải thông tin người dùng",
+      }));
     }
   }
 
+  // 🔥 Khi load app lần đầu → sync session
   useEffect(() => {
     refreshMe();
   }, []);
 
+  // 🔥 LOGIN: gọi API login → cookie được set → sau đó refreshMe()
   async function login(email: string, password: string) {
     try {
       const res = await fetch("/api/login", {
@@ -71,27 +81,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setState((s) => ({
-          ...s,
-          error: err.error || "Đăng nhập thất bại",
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setState((prev) => ({
+          ...prev,
+          error: data.error || "Đăng nhập thất bại",
           successMessage: null,
         }));
         return false;
       }
-      const data = await res.json();
-      setState({
-        isLoggedIn: true,
-        user: { id: data.userId || "unknown", email, plan: data.plan || "EXPLORER" },
-        plan: data.plan || "EXPLORER",
-        loading: false,
+
+      // 🔥 Đồng bộ lại user thực từ API
+      await refreshMe();
+
+      setState((prev) => ({
+        ...prev,
         successMessage: "Đăng nhập thành công!",
-      });
+        error: null,
+      }));
+
       return true;
     } catch {
-      setState((s) => ({
-        ...s,
+      setState((prev) => ({
+        ...prev,
         error: "Lỗi mạng khi đăng nhập",
         successMessage: null,
       }));
@@ -99,6 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  // 🔥 REGISTER: backend auto-login → chỉ cần refreshMe()
   async function register(email: string, password: string) {
     try {
       const res = await fetch("/api/register", {
@@ -106,24 +121,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setState((s) => ({
-          ...s,
-          error: err.error || "Đăng ký thất bại",
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setState((prev) => ({
+          ...prev,
+          error: data.error || "Đăng ký thất bại",
           successMessage: null,
         }));
         return false;
       }
-      setState((s) => ({
-        ...s,
+
+      // 🔥 BACKEND đã set cookie → chỉ cần load lại user
+      await refreshMe();
+
+      setState((prev) => ({
+        ...prev,
         successMessage: "Đăng ký thành công!",
         error: null,
       }));
+
       return true;
     } catch {
-      setState((s) => ({
-        ...s,
+      setState((prev) => ({
+        ...prev,
         error: "Lỗi mạng khi đăng ký",
         successMessage: null,
       }));
@@ -138,17 +160,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user: null,
       plan: null,
       loading: false,
+      error: null,
       successMessage: null,
     });
   }
 
   function setSuccessMessage(msg: string | null) {
-    setState((s) => ({ ...s, successMessage: msg }));
+    setState((prev) => ({ ...prev, successMessage: msg }));
   }
 
   return (
     <AuthContext.Provider
-      value={{ ...state, login, register, logout, setSuccessMessage }}
+      value={{ ...state, login, register, logout, refreshMe, setSuccessMessage }}
     >
       {children}
     </AuthContext.Provider>

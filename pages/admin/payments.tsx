@@ -1,4 +1,3 @@
-// pages/admin/payments.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/AuthContext";
 
@@ -44,7 +43,7 @@ export default function AdminPaymentsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
-  // ===== LOAD LIST =====
+  // =============================== LOAD LIST ===============================
   const load = async () => {
     if (!user?.email) return;
     setLoading(true);
@@ -61,7 +60,7 @@ export default function AdminPaymentsPage() {
     if (user?.email) load();
   }, [status, user]);
 
-  // ===== LOAD STATS =====
+  // =============================== LOAD STATS ===============================
   const loadStats = async () => {
     if (!user?.email) return;
     setLoadingStats(true);
@@ -77,10 +76,11 @@ export default function AdminPaymentsPage() {
     if (user?.email) loadStats();
   }, [range, user]);
 
-  // ===== APPROVE =====
+  // =============================== APPROVE (FIXED) ===============================
   const approve = async (id: string, userId: string, plan: string) => {
     if (!confirm(`Duyệt đơn #${id} và nâng user lên ${plan}?`)) return;
     const note = prompt("Ghi chú (tuỳ chọn):") || "";
+
     const r = await fetch("/api/admin/payments/approve", {
       method: "POST",
       headers: {
@@ -89,8 +89,11 @@ export default function AdminPaymentsPage() {
       },
       body: JSON.stringify({ id, userId, plan, note }),
     });
+
     const data = await r.json();
-    if (data.success) {
+
+    // *** FIX CHÍNH: API TRẢ approved, KHÔNG PHẢI success ***
+    if (data.approved) {
       alert("✅ Đã duyệt & nâng gói!");
       load();
       loadStats();
@@ -99,10 +102,11 @@ export default function AdminPaymentsPage() {
     }
   };
 
-  // ===== REJECT =====
+  // =============================== REJECT (FIXED) ===============================
   const reject = async (id: string) => {
     const note = prompt("Nhập lý do từ chối (tuỳ chọn):", "") || "";
     if (!confirm(`Xác nhận từ chối đơn #${id}?`)) return;
+
     const r = await fetch("/api/admin/payments/reject", {
       method: "POST",
       headers: {
@@ -111,8 +115,11 @@ export default function AdminPaymentsPage() {
       },
       body: JSON.stringify({ id, note }),
     });
+
     const data = await r.json();
-    if (data.success) {
+
+    // *** FIX CHÍNH: API TRẢ rejected, KHÔNG PHẢI success ***
+    if (data.rejected) {
       alert("🚫 Đơn đã bị từ chối");
       load();
       loadStats();
@@ -121,10 +128,10 @@ export default function AdminPaymentsPage() {
     }
   };
 
-  // ===== CHART DATA =====
+  // =============================== CHART DATA ===============================
   const chartData = useMemo(() => {
     const src = stats?.byPlan || {};
-    const plans = ["ARCHIVE", "MAGISTRATE", "TOÀN TRI"];
+    const plans = ["ARCHIVE", "MAGISTRATE", "TOANTRI"];
     return plans.map((p) => ({
       plan: p,
       revenue: src[p]?.revenue || 0,
@@ -132,7 +139,7 @@ export default function AdminPaymentsPage() {
     }));
   }, [stats]);
 
-  // ===== RENDER =====
+  // =============================== RENDER ===============================
   return (
     <div className="min-h-screen bg-black text-white p-6">
       <h1 className="text-3xl font-bold mb-6 text-[#CDAD5A]">
@@ -140,32 +147,28 @@ export default function AdminPaymentsPage() {
       </h1>
 
       {!user?.email ? (
-        <p className="text-gray-400">
-          🔒 Vui lòng đăng nhập bằng tài khoản quản trị viên để xem dữ liệu.
-        </p>
+        <p className="text-gray-400">🔒 Vui lòng đăng nhập quản trị viên.</p>
       ) : (
         <>
-          {/* ===== DASHBOARD CARDS ===== */}
-          <div className="flex flex-wrap gap-4 mb-4 items-center">
-            <div className="flex gap-2">
-              {["week", "month", "all"].map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRange(r as any)}
-                  className={`px-3 py-2 rounded border ${
-                    range === r
-                      ? "border-[#CDAD5A] text-[#CDAD5A]"
-                      : "border-gray-700 text-gray-300"
-                  }`}
-                >
-                  {r === "week"
-                    ? "Tuần này"
-                    : r === "month"
-                    ? "Tháng này"
-                    : "Tất cả"}
-                </button>
-              ))}
-            </div>
+          {/* FILTER RANGE */}
+          <div className="flex gap-2 mb-6">
+            {["week", "month", "all"].map((r) => (
+              <button
+                key={r}
+                onClick={() => setRange(r as any)}
+                className={`px-3 py-2 rounded border ${
+                  range === r
+                    ? "border-[#CDAD5A] text-[#CDAD5A]"
+                    : "border-gray-700 text-gray-300"
+                }`}
+              >
+                {r === "week"
+                  ? "Tuần này"
+                  : r === "month"
+                  ? "Tháng này"
+                  : "Tất cả"}
+              </button>
+            ))}
 
             <button
               onClick={() => {
@@ -178,7 +181,7 @@ export default function AdminPaymentsPage() {
             </button>
           </div>
 
-          {/* KPI Cards */}
+          {/* KPI CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             {[
               ["Doanh thu (đã duyệt)", `${formatVND(stats?.totals.totalRevenue || 0)} đ`],
@@ -195,7 +198,7 @@ export default function AdminPaymentsPage() {
             ))}
           </div>
 
-          {/* Mini bar chart */}
+          {/* MINI CHART */}
           <div className="bg-[#0f0f0f] border border-gray-800 rounded p-4 mb-8">
             <div className="text-gray-300 mb-3">Doanh thu theo gói</div>
             <div className="flex gap-6 items-end">
@@ -226,7 +229,7 @@ export default function AdminPaymentsPage() {
             </div>
           </div>
 
-          {/* ===== FILTER + TABLE ===== */}
+          {/* TABLE FILTER */}
           <div className="flex gap-3 items-center mb-3">
             <select
               value={status}
@@ -237,12 +240,14 @@ export default function AdminPaymentsPage() {
               <option value="APPROVED">ĐÃ DUYỆT</option>
               <option value="REJECTED">TỪ CHỐI</option>
             </select>
+
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Tìm theo email / mã giao dịch"
               className="bg-gray-900 border border-gray-700 rounded px-3 py-2 min-w-[320px]"
             />
+
             <button
               onClick={load}
               className="bg-[#00BFFF] text-black px-4 py-2 rounded hover:opacity-90"
@@ -251,6 +256,7 @@ export default function AdminPaymentsPage() {
             </button>
           </div>
 
+          {/* DATA TABLE */}
           <div className="overflow-auto border border-gray-800 rounded">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-900">
@@ -263,6 +269,7 @@ export default function AdminPaymentsPage() {
                   <th className="p-3 text-left">Hành động</th>
                 </tr>
               </thead>
+
               <tbody>
                 {loading ? (
                   <tr>
@@ -278,13 +285,17 @@ export default function AdminPaymentsPage() {
                   </tr>
                 ) : (
                   items.map((it) => (
-                    <tr key={it.id} className="border-t border-gray-800">
+                    <tr
+                      key={it.id}
+                      className="border-t border-gray-800"
+                    >
                       <td className="p-3">
                         {new Date(it.createdAt).toLocaleString("vi-VN")}
                       </td>
                       <td className="p-3">{it.email}</td>
                       <td className="p-3">{it.plan}</td>
                       <td className="p-3">{it.txn}</td>
+
                       <td
                         className={`p-3 font-semibold ${
                           it.status === "APPROVED"
@@ -296,6 +307,7 @@ export default function AdminPaymentsPage() {
                       >
                         {it.status}
                       </td>
+
                       <td className="p-3 flex gap-2">
                         {it.status === "PENDING" ? (
                           <>
@@ -307,6 +319,7 @@ export default function AdminPaymentsPage() {
                             >
                               Duyệt
                             </button>
+
                             <button
                               onClick={() => reject(it.id)}
                               className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
