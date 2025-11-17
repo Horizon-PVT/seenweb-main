@@ -6,7 +6,7 @@ const AboutUs: React.FC = () => {
             <div className="container mx-auto px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-4xl font-playfair text-[#CDAD5A] mb-4">Sứ Mệnh Khai Sáng</h2>
-                    <p className="text-xl text-gray-400">Về SeenYT - Một sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế VTC</p>
+                    <p className="text-xl text-gray-400">Về SeenYT - Một sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
