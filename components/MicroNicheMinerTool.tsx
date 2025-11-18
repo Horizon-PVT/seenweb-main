@@ -139,7 +139,7 @@ const MicroNicheMinerTool: React.FC<MicroNicheMinerToolProps> = ({ onBack, onToo
         }
     };
 
-    // --- HÀM handleSubmit MỚI (Gọi Backend /api/micro-niche-miner) ---
+    // --- HÀM handleSubmit MỚI (Gọi Backend /api/youtube với tool: 'micro') ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!macroNiche) { //
@@ -153,31 +153,29 @@ const MicroNicheMinerTool: React.FC<MicroNicheMinerToolProps> = ({ onBack, onToo
         setError('');
         setOutput(null);
 
-        // Không cần tạo prompt ở đây nữa
-
         try {
-            // Gọi backend /api/micro-niche-miner
-            const response = await fetch('/api/micro-niche-miner', {
+            const response = await fetch('/api/youtube', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    tool: 'micro',
                     macroNiche,
-                    competition, // Gửi giá trị number
-                    searchVolume, // Gửi giá trị number
-                    monetization, // Gửi giá trị number
+                    competition,
+                    searchVolume,
+                    monetization,
                     outputLanguage,
                 }),
             });
 
-            const result: any = await response.json(); // Backend trả JSON
-
             if (!response.ok) {
-                throw new Error(result.error || `Lỗi ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(errorText || `Lỗi ${response.status}`);
             }
 
-            // Kiểm tra cấu trúc cơ bản
+            const result = await response.json();
+
             if (!result.topNiches || !result.saturatedNichesWarning) {
                 throw new Error("Phản hồi AI không tuân theo cấu trúc JSON được yêu cầu.");
             }
@@ -186,7 +184,7 @@ const MicroNicheMinerTool: React.FC<MicroNicheMinerToolProps> = ({ onBack, onToo
 
         } catch (err: any) { //
             setError(`Lỗi: ${err.message || "Không thể khai thác. Vui lòng thử lại."}`);
-            console.error("Lỗi gọi API /api/micro-niche-miner:", err); //
+            console.error("Lỗi gọi API /api/youtube:", err); //
         } finally {
             setIsLoading(false); //
         }
@@ -219,11 +217,11 @@ const MicroNicheMinerTool: React.FC<MicroNicheMinerToolProps> = ({ onBack, onToo
                                 <label>Mức độ Cạnh tranh: <span className="font-mono text-lg text-[#CDAD5A]">{competition <= 25 ? "Rất Thấp" : "Thấp"}</span></label> {/* */}
                                 <input type="range" min="0" max="50" value={competition} onChange={e => setCompetition(parseInt(e.target.value))} className="w-full obsidian-slider bronze" />
                            </div>
-                            <div> {/* */}
+                            <div>
                                 <label>Lượng tìm kiếm Tiềm năng: <span className="font-mono text-lg text-[#CDAD5A]">{searchVolume < 60 ? "Trung bình" : "Cao"}</span></label> {/* */}
                                 <input type="range" min="30" max="100" value={searchVolume} onChange={e => setSearchVolume(parseInt(e.target.value))} className="w-full obsidian-slider bronze" />
                            </div>
-                            <div> {/* */}
+                            <div>
                                 <label>Khả năng Kiếm tiền: <span className="font-mono text-lg text-[#CDAD5A]">{monetization < 60 ? "Thấp" : "Cao"}</span></label> {/* */}
                                 <input type="range" min="30" max="100" value={monetization} onChange={e => setMonetization(parseInt(e.target.value))} className="w-full obsidian-slider bronze" />
                            </div>

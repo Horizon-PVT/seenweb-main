@@ -90,7 +90,7 @@ const RivalScannerTool: React.FC<RivalScannerToolProps> = ({ onBack, onToolSelec
         }
     };
 
-    // --- Hàm handleSubmit đã sửa ---
+    // --- HÀM handleSubmit MỚI (Gọi Backend /api/youtube với tool: 'rival') ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!targetUrl) {
@@ -106,26 +106,26 @@ const RivalScannerTool: React.FC<RivalScannerToolProps> = ({ onBack, onToolSelec
         setSaveSuccess('');
 
         try {
-            const response = await fetch('/api/rival-scanner', {
+            const response = await fetch('/api/youtube', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    tool: 'rival',
                     targetUrl,
                     scanScope,
                     outputLanguage,
                 }),
             });
 
-            // Sử dụng kiểu 'any' tạm thời hoặc định nghĩa kiểu chi tiết hơn
-            const result: any = await response.json();
-
             if (!response.ok) {
-                throw new Error(result.error || `Lỗi ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(errorText || `Lỗi ${response.status}`);
             }
 
-            // Kiểm tra cấu trúc cơ bản trước khi ép kiểu
+            const result = await response.json();
+
             if (!result.competitorProfile || !result.strategicWeaknesses) {
                 throw new Error("Dữ liệu trả về từ API không đúng cấu trúc.");
             }
@@ -134,14 +134,13 @@ const RivalScannerTool: React.FC<RivalScannerToolProps> = ({ onBack, onToolSelec
 
         } catch (err: any) {
             setError(`Lỗi: ${err.message || "Không thể giải mã. Vui lòng thử lại."}`);
-            console.error("Lỗi gọi API /api/rival-scanner:", err);
+            console.error("Lỗi gọi API /api/youtube:", err);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // --- Phần JSX return ---
-    // Đảm bảo phần này giống hệt file gốc components/RivalScannerTool.tsx
+    // --- Phần JSX return giữ nguyên ---
     return (
         <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 digital-flow-bg bg-black/50">
             <div className="flex justify-between items-center">
@@ -258,5 +257,4 @@ const RivalScannerTool: React.FC<RivalScannerToolProps> = ({ onBack, onToolSelec
     );
 }; // <--- Kết thúc component
 
-// THÊM DÒNG NÀY VÀO CUỐI
 export default RivalScannerTool;

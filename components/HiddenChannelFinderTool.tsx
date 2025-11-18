@@ -86,12 +86,12 @@ const HiddenChannelFinderTool: React.FC<HiddenChannelFinderToolProps> = ({ onBac
         } //
     };
 
-    // --- HÀM handleSubmit MỚI (Gọi Backend /api/hidden-channel-finder) ---
+    // --- HÀM handleSubmit MỚI (Gọi Backend /api/youtube với tool: 'hidden') ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!seedQuery) { //
+        if (!seedQuery) {
             setError("Vui lòng nhập Từ Khóa Gốc.");
-            return; //
+            return;
         }
         buttonRef.current?.classList.add('animate-emerald-pulse-strong');
         setTimeout(() => buttonRef.current?.classList.remove('animate-emerald-pulse-strong'), 1000);
@@ -102,41 +102,41 @@ const HiddenChannelFinderTool: React.FC<HiddenChannelFinderToolProps> = ({ onBac
         setSaveSuccess('');
 
         try {
-            // Gọi backend /api/hidden-channel-finder
-            const response = await fetch('/api/hidden-channel-finder', {
+            const response = await fetch('/api/youtube', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    tool: 'hidden',
                     seedQuery,
                     minSubs,
                     maxSubs,
                     minVideos,
                     growthVelocity,
-                    nicheCompetition, // Gửi giá trị number (0 hoặc 1)
+                    nicheCompetition,
                     outputLanguage,
                 }),
             });
 
-            const result: any = await response.json();
-
             if (!response.ok) {
-                throw new Error(result.error || `Lỗi ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(errorText || `Lỗi ${response.status}`);
             }
 
-            // Kiểm tra cấu trúc cơ bản
+            const result = await response.json();
+
             if (!result.risingChannels || !result.trendingVideos || !result.upcomingTrends) {
-                throw new Error("Phản hồi AI không tuân theo cấu trúc JSON được yêu cầu.");
+                throw new Error("Phản hồi không tuân theo cấu trúc JSON được yêu cầu.");
             }
 
             setOutput(result as OutputData);
 
-        } catch (err: any) { //
+        } catch (err: any) {
             setError(`Lỗi: ${err.message || "Không thể truy cập Cổng Gnosis."}`);
-            console.error("Lỗi gọi API /api/hidden-channel-finder:", err); //
+            console.error("Lỗi gọi API /api/youtube:", err);
         } finally {
-            setIsLoading(false); //
+            setIsLoading(false);
         }
     };
 
@@ -229,7 +229,7 @@ const HiddenChannelFinderTool: React.FC<HiddenChannelFinderToolProps> = ({ onBac
                                             <p className="font-bold text-lg text-emerald-400 emerald-glow">{channel.growthMetric}</p>
                                         </div> {/* */}
                                          <div className="flex gap-4 text-xs text-gray-400 mt-1">
-                                            <span><strong className="text-gray-300">Subs:</strong> {channel.subscribers}</span> {/* */}
+                                            <span><strong className="text-gray-300">Subs:</strong> {channel.subscribers}</span>
                                             <span><strong className="text-gray-300">Videos:</strong> {channel.videoCount}</span>
                                         </div>
                                         <p className="text-xs text-gray-400 mt-2">Ưu điểm cốt lõi:</p> {/* */}
@@ -256,7 +256,7 @@ const HiddenChannelFinderTool: React.FC<HiddenChannelFinderToolProps> = ({ onBac
                                         <ul className="list-disc list-inside text-xs text-gray-300 pl-2"> {/* */}
                                              {video.viralStructure.map((s, idx) => <li key={idx}>{s}</li>)}
                                         </ul> {/* */}
-                                        <button onClick={() => alert("Chuyển sang công cụ VIẾT LẠI KỊCH BẢN - Đang xây dựng")} className="text-xs mt-2 px-3 py-1 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm">TÁI CẤU TRÚC Ý TƯỞỞNG</button>
+                                        <button onClick={() => alert("Chuyển sang công cụ VIẾT LẠI KỊCH BẢN - Đang xây dựng")} className="text-xs mt-2 px-3 py-1 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm">TÁI CẤU TRÚC Ý TƯỞNG</button>
                                     </div> //
                                 ))}
                                 </div>
