@@ -42,6 +42,16 @@ interface OutputData {
 }
 
 
+// --- Component Loader (fix not defined) ---
+const Loader: React.FC = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center">
+        <div className="w-32 h-32 text-[#008080]">
+            <PhiIcon />
+        </div>
+        <p className="mt-4 text-sm font-semibold text-[#CDAD5A] tracking-widest animate-pulse">ĐANG DÒ TÍN HIỆU...</p>
+    </div>
+);
+
 // --- Component CopyButton tái sử dụng ---
 const CopyButton: React.FC<{ textToCopy: string, onCopy: () => void, disabled?: boolean }> = ({ textToCopy, onCopy, disabled }) => (
   <button
@@ -52,7 +62,6 @@ const CopyButton: React.FC<{ textToCopy: string, onCopy: () => void, disabled?: 
     }}
     title="Sao chép"
     disabled={disabled}
-    // Thu nhỏ nút copy một chút
     className="ml-2 text-[10px] px-1.5 py-0.5 bg-gray-700 border border-gray-600 hover:bg-gray-600 hover:border-gray-500 transition-colors rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
   >
     Copy
@@ -66,63 +75,130 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => { //
     const [error, setError] = useState(''); //
     const [output, setOutput] = useState<OutputData | null>(null);
     const [coreIdea, setCoreIdea] = useState('');
-    const [useGrounding, setUseGrounding] = useState(true); //
     const [targetAudience, setTargetAudience] = useState('YouTuber mới');
     const [seoGoal, setSeoGoal] = useState('Watch Time');
     const buttonRef = useRef<HTMLButtonElement>(null);
-    const [copySuccessTitle, setCopySuccessTitle] = useState('');
+    const [copySuccessTitle, setCopySuccessTitle] = useState<string[]>([]); // Per title
     const [copySuccessDesc, setCopySuccessDesc] = useState('');
     const [copySuccessTags, setCopySuccessTags] = useState('');
+    const [copySuccessThumbnail, setCopySuccessThumbnail] = useState<string[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);  // Ref for file input
 
-    // --- Các hàm helper ---
-    const showCopySuccess = (setter: React.Dispatch<React.SetStateAction<string>>) => {
-        setter('✓ Copied!');
-        setTimeout(() => setter(''), 1500);
+    // --- Hàm helper sao chép ---
+    const handleCopyTitle = (index: number, text: string) => {
+        navigator.clipboard.writeText(text);
+        const newSuccess = [...copySuccessTitle];
+        newSuccess[index] = 'Đã copy!';
+        setCopySuccessTitle(newSuccess);
+        setTimeout(() => {
+            newSuccess[index] = '';
+            setCopySuccessTitle([...newSuccess]);
+        }, 2000);
+    }; //
+
+    const handleCopyDesc = () => {
+        const fullDesc = [output?.description?.mainHashtags.slice(0, 5).join(' '), output?.description?.body, output?.description?.secondaryHashtags.slice(0, 10).join(' ')].filter(Boolean).join('\n');
+        navigator.clipboard.writeText(fullDesc);
+        setCopySuccessDesc('Đã copy!');
+        setTimeout(() => setCopySuccessDesc(''), 2000);
+    }; //
+
+    const handleCopyTags = () => {
+        navigator.clipboard.writeText(output?.tags?.map(t => t.text).join(', ') || '');
+        setCopySuccessTags('Đã copy!');
+        setTimeout(() => setCopySuccessTags(''), 2000);
+    }; //
+
+    const handleCopyThumbnail = (index: number, text: string) => {
+        navigator.clipboard.writeText(text);
+        const newSuccess = [...copySuccessThumbnail];
+        newSuccess[index] = 'Đã copy!';
+        setCopySuccessThumbnail(newSuccess);
+        setTimeout(() => {
+            newSuccess[index] = '';
+            setCopySuccessThumbnail([...newSuccess]);
+        }, 2000);
     };
 
-    // --- Hàm handleSubmit (Gọi Backend /api/seo-tool) ---
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!coreIdea) { setError("Vui lòng nhập Ý TƯỞNG VIDEO."); return; } //
-        buttonRef.current?.classList.add('animate-emerald-pulse-strong');
-        setTimeout(() => buttonRef.current?.classList.remove('animate-emerald-pulse-strong'), 1000);
-        setIsLoading(true); setError(''); setOutput(null);
-        setCopySuccessTitle(''); setCopySuccessDesc(''); setCopySuccessTags('');
-        try {
-            const response = await fetch('/api/seo-tool', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }, //
-                body: JSON.stringify({ coreIdea, useGrounding, targetAudience, seoGoal }),
-            });
-            const result: any = await response.json(); //
-            if (!response.ok) { throw new Error(result.error || `Lỗi ${response.status}`); } //
-            if (!result.titles || !result.description || !result.tags) { throw new Error("Dữ liệu trả về từ API không đầy đủ cấu trúc."); } //
-            setOutput(result as OutputData); //
-        } catch (err: any) {
-            setError(`Lỗi: ${err.message || "Không thể tạo phản hồi."}`); //
-            console.error("Lỗi gọi API /api/seo-tool:", err); //
-        } finally {
-            setIsLoading(false); //
+    // --- Hàm xử lý file kịch bản (read and set to coreIdea) ---
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target?.result as string;
+                setCoreIdea(prev => prev + (prev ? '\n' : '') + content);  // Append to textarea if have
+            };
+            if (file.type === 'text/plain') {
+                reader.readAsText(file);
+            } else if (file.type === 'application/pdf') {
+                alert('PDF support coming soon – dán text từ PDF vào textarea tạm thời.');
+            } else {
+                alert('Only TXT or PDF supported');
+            }
         }
     };
 
-    // --- Hàm highlightKeywords ---
-    const highlightKeywords = (text: string, keywords: string[] = []) => {
-         if (!keywords || !keywords.length) return text;
-         const regex = new RegExp(`(${keywords.map(kw => kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi'); //
-         return text.split(regex).map((part, i) =>
-             keywords.some(kw => new RegExp(`^${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i').test(part))
-                 ? <span key={i} className="text-[#CDAD5A] font-bold">{part}</span>
-                 : part
-         ); //
-     };
+    // --- Hàm submit (giữ nguyên, bỏ real-time, auto detect language for 10 popular) ---
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!coreIdea) {
+            setError("Vui lòng nhập Ý Tưởng Video hoặc Kịch Bản.");
+            return;
+        }
+        buttonRef.current?.classList.add('animate-emerald-pulse-strong');
+        setTimeout(() => buttonRef.current?.classList.remove('animate-emerald-pulse-strong'), 1000);
 
-    // --- Phần JSX return ---
+        setIsLoading(true);
+        setError('');
+        setOutput(null);
+        setCopySuccessTitle([]);
+        setCopySuccessDesc('');
+        setCopySuccessTags('');
+        setCopySuccessThumbnail([]);
+
+        try {
+            // Auto detect language for 10 popular (fix regex)
+            let language = 'English';  // Default
+            if (/[àáâãäåæçèéêëìíîïđñòóôõöøùúûüýþÿ]/.test(coreIdea)) language = 'Tiếng Việt';
+            else if (/[ぁ-ゟァ-ヿ]/.test(coreIdea)) language = 'Japanese';  // Fix range
+            else if (/[가-힣]/.test(coreIdea)) language = 'Korean';
+            else if (/[\u4e00-\u9fff]/.test(coreIdea)) language = 'Chinese';
+            else if (/[ñáéíóúü]/.test(coreIdea)) language = 'Spanish';
+            else if (/[àâéèêëîïôûùüçœæ]/.test(coreIdea)) language = 'French';
+            else if (/[äöüß]/.test(coreIdea)) language = 'German';
+            else if (/[а-яА-ЯёЁ]/.test(coreIdea)) language = 'Russian';
+            else if (/[ًٌٍَُِْ]/.test(coreIdea)) language = 'Arabic';
+
+            const response = await fetch('/api/seo-tool', {  // Assume backend endpoint, anh adjust if different
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    coreIdea,  // Now can be script
+                    targetAudience,
+                    seoGoal,
+                    outputLanguage: language,  // Auto set
+                }),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Lỗi server');
+
+            setOutput(result as OutputData);
+        } catch (err: any) {
+            setError(`Lỗi: ${err.message || "Không thể dò tín hiệu. Vui lòng thử lại."}`);
+            console.error("Lỗi gọi API:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // --- Phần JSX return (bỏ LÕI DỮ LIỆU, outputLanguage, thumbnail only copy) ---
     return (
-        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 bg-[#000000] bg-opacity-30" style={{backgroundImage: 'linear-gradient(rgba(0,128,128,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(128,128,128,0.02) 1px, transparent 1px)', backgroundSize: '2rem 2rem'}}>
+        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 bg-[#1a1a08] seo-tuner-bg">
             {/* Header */}
             <div className="flex justify-between items-center">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#008080] tracking-wider">II. SEO YOUTUBE (SIGNAL TUNER)</h2>
+                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#CDAD5A] tracking-wider">II. SEO YOUTUBE (SIGNAL TUNER)</h2>
                 <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2">&times; Trở Về</button>
             </div>
 
@@ -130,193 +206,141 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => { //
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 flex-grow min-h-0">
                 {/* LEFT COLUMN - Form */}
                 <form onSubmit={handleSubmit} className="lg:col-span-3 flex flex-col space-y-4 pr-2 overflow-y-auto">
-                   {/* Input Fields - Giống file gốc */}
-                   <div>
-                       <label className="text-sm font-bold text-[#CDAD5A] font-playfair">Ý TƯỞNG VIDEO</label>
-                       <textarea value={coreIdea} onChange={e => setCoreIdea(e.target.value)} placeholder="Mô tả ý tưởng video và từ khóa chính cần SEO..." className="w-full h-32 obsidian-textarea focus:border-[#008080]"></textarea>
-                   </div>
-                   <div>
-                       <label className="text-sm font-bold text-[#008080]">LÕI DỮ LIỆU</label>
-                       <div className="flex items-center justify-between p-2 bg-[#0A0A0A] border border-[#4A4A4A] rounded-sm">
-                           <span className="text-gray-300 text-xs">Sử dụng dữ liệu thời gian thực (Google Search)</span>
-                           <label className="relative inline-flex items-center cursor-pointer">
-                             <input type="checkbox" checked={useGrounding} onChange={() => setUseGrounding(!useGrounding)} className="sr-only peer" />
-                             <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#008080]"></div>
-                           </label>
-                       </div>
-                   </div>
+                    {/* Input Core Idea / Script */}
                     <div>
-                       <label className="text-sm font-bold text-[#CDAD5A] font-playfair">ĐỐI TƯỢNG MỤC TIÊU</label>
-                       <input type="text" value={targetAudience} onChange={e => setTargetAudience(e.target.value)} className="w-full obsidian-input focus:border-[#008080]" />
-                   </div>
-                   <div>
-                       <label className="text-xs font-bold text-[#CDAD5A]">MỤC TIÊU SEO</label>
-                       <select value={seoGoal} onChange={e => setSeoGoal(e.target.value)} className="w-full obsidian-select">
-                           <option>CTR</option>
-                           <option>Watch Time</option>
-                           <option>Subscribe</option>
-                       </select>
-                   </div>
-                   {/* Submit Button */}
-                   <button ref={buttonRef} type="submit" disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow disabled:bg-gray-600 disabled:cursor-not-allowed">
-                       {isLoading ? "ĐANG DÒ TÌM TÍN HIỆU..." : "TINH CHẾ TÍN HIỆU"}
-                   </button>
-                   {/* Error Message */}
-                   {error && <p className="text-red-500 text-center text-xs">{error}</p>}
+                        <label className="text-sm font-bold text-[#CDAD5A] font-playfair">Y TƯỞNG VIDEO / KỊCH BẢN</label>
+                        <textarea value={coreIdea} onChange={e => setCoreIdea(e.target.value)} placeholder="Nhập ý tưởng video, từ khóa chính, or dán kịch bản đầy đủ..." className="w-full h-24 obsidian-textarea focus:border-[#008080]"></textarea>
+                        <input type="file" ref={fileInputRef} accept=".txt,.pdf" onChange={handleFileUpload} style={{display: 'none'}} />
+                        <button type="button" onClick={() => fileInputRef.current?.click()} className="mt-2 text-xs px-3 py-1 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm">Nhập File Kịch Bản</button>
+                    </div>
+                    {/* Target Audience */}
+                    <div>
+                        <label className="text-sm font-bold text-[#008080]">ĐỐI TƯỢNG MỤC TIÊU</label>
+                        <select value={targetAudience} onChange={e => setTargetAudience(e.target.value)} className="w-full obsidian-select">
+                            <option>YouTuber mới</option>
+                            <option>YouTuber chuyên nghiệp</option>
+                            {/* Add more if needed */}
+                        </select>
+                    </div>
+                    {/* SEO Goal */}
+                    <div>
+                        <label className="text-sm font-bold text-[#008080]">MỤC TIÊU SEO</label>
+                        <select value={seoGoal} onChange={e => setSeoGoal(e.target.value)} className="w-full obsidian-select">
+                            <option>Watch Time</option>
+                            <option>Click Rate</option>
+                            {/* Add more if needed */}
+                        </select>
+                    </div>
+                    {/* Submit Button */}
+                    <button ref={buttonRef} type="submit" disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow disabled:bg-gray-600 disabled:cursor-not-allowed">
+                        {isLoading ? "ĐANG DÒ..." : "DÒ TÍN HIỆU"}
+                    </button>
+                    {error && <p className="text-red-500 text-center text-xs">{error}</p>}
                 </form>
 
                 {/* RIGHT COLUMN - Output */}
                 <div className="lg:col-span-7 flex flex-col space-y-3 min-h-0 overflow-y-auto pr-2">
                     {/* Loading State */}
-                    {isLoading && (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                            <div className="w-24 h-24 text-[#008080] relative">
-                                <PhiIcon /> {/* */}
-                                <div className="absolute inset-0 border-2 border-[#008080]/50 rounded-full animate-radar-ping"></div>
-                                <div className="absolute inset-0 border-2 border-[#008080]/30 rounded-full animate-radar-ping" style={{animationDelay: '0.5s'}}></div> {/* */}
-                            </div>
-                            <p className="mt-4 text-sm font-semibold text-[#008080] tracking-widest animate-pulse">ĐANG DÒ TÌM TÍN HIỆU...</p>
+                    {isLoading && <Loader />}
+                    {/* Initial State */}
+                    {!isLoading && !output && (
+                        <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
+                            <div className="w-24 h-24 opacity-20"><PhiIcon /></div>
+                            <p className="mt-4">Signal Tuner đang chờ lệnh...</p>
                         </div>
                     )}
-
-                    {/* Output Display State */}
+                    {/* Output Display */}
                     {output && !isLoading && (
                         <>
-                            {/* Performance Score Section */}
-                            {output.performanceScore && (
-                                <div className="p-4 border-2 border-[#CDAD5A] bg-gradient-to-br from-[#CDAD5A]/10 to-black rounded-sm bronze-glow"> {/* */}
-                                    <h3 className="text-sm font-bold text-white mb-2">BẢNG ĐÁNH GIÁ CHẤT LƯỢNG SEO</h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center"> {/* */}
-                                        <div>
-                                            <p className="text-3xl font-bold text-[#CDAD5A]">{output.performanceScore.overall}/100</p>
-                                            <p className="text-xs text-gray-400">Điểm Tối Ưu</p> {/* */}
-                                        </div>
-                                        <div>
-                                            <p className="text-3xl font-bold text-[#008080] flex items-center justify-center gap-1">✅ {output.performanceScore.keywordRepetition}/5</p>
-                                            <p className="text-xs text-gray-400">Từ khóa Lặp lại</p> {/* */}
-                                        </div>
-                                        <div>
-                                            <p className="text-3xl font-bold text-[#008080] flex items-center justify-center gap-1">✅ {output.performanceScore.highVolumeTags}/5</p>
-                                            <p className="text-xs text-gray-400">Tags (High Volume)</p> {/* */}
-                                        </div>
-                                        <div>
-                                            <p className="text-3xl font-bold text-[#008080] flex items-center justify-center gap-1">✅ {output.performanceScore.rankingTags}/5</p>
-                                            <p className="text-xs text-gray-400">Tags (Ranking)</p> {/* */}
-                                        </div>
-                                    </div>
+                            {/* Performance Score */}
+                            <div>
+                                <h3 className="text-lg font-bold text-white mb-2 font-playfair">ĐIỂM HIỆU SUẤT</h3>
+                                <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm space-y-2">
+                                    <p><strong className="text-[#CDAD5A]">Tổng quan:</strong> {output.performanceScore?.overall || 0}/100</p>
+                                    <p><strong className="text-[#CDAD5A]">Tần suất từ khóa:</strong> {output.performanceScore?.keywordRepetition || 0}/100</p>
+                                    <p><strong className="text-[#CDAD5A]">Từ khóa có lưu lượng cao:</strong> {output.performanceScore?.highVolumeTags || 0}/100</p>
+                                    <p><strong className="text-[#CDAD5A]">Từ khóa xếp hạng:</strong> {output.performanceScore?.rankingTags || 0}/100</p>
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Titles Section */}
-                            {output.titles && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="text-sm font-bold text-white flex items-center">
-                                            KẾT QUẢ TIÊU ĐỀ (TITLE - MAX SPEC)
-                                            <CopyButton
-                                                textToCopy={output.titles.map(t => t.text).join('\n')}
-                                                onCopy={() => showCopySuccess(setCopySuccessTitle)}
-                                                disabled={isLoading}
-                                            />
-                                            <span className="text-xs text-[#008080] w-20 text-right ml-1">{copySuccessTitle}</span>
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-2"> {/* */}
-                                        {output.titles.map((title, i) => ( //
-                                            <div key={i} className={`p-3 border rounded-sm transition-all ${title.score > 90 ? 'border-[#008080] bg-[#008080]/10 animate-title-pulse' : 'border-gray-700'}`}> {/* */}
-                                                <div className="flex justify-between items-start">
-                                                    <p className="font-semibold text-gray-200 pr-4">{highlightKeywords(title.text, title.keywords)}</p> {/* */}
-                                                    <span className="text-lg font-bold text-[#008080]">{title.score}</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                            {/* Titles */}
+                            <div>
+                                <h3 className="text-lg font-bold text-white mb-2 font-playfair">Y TƯỞNG TITLE</h3>
+                                <div className="space-y-2">
+                                    {output.titles?.map((title, i) => (
+                                        <div key={i} className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm animate-decode" style={{animationDelay: `${i*100}ms`}}>
+                                            <p className="font-semibold text-base text-gray-200">{title.text} <span className="text-gray-400">({title.score}/100)</span></p>
+                                            <p className="text-xs text-gray-400 mt-1">Từ khóa: {title.keywords.join(', ')}</p>
+                                            <CopyButton textToCopy={title.text} onCopy={() => handleCopyTitle(i, title.text)} />
+                                            {copySuccessTitle[i] && <p className="text-xs text-green-400 mt-1">{copySuccessTitle[i]}</p>}
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Description Section */}
-                            {output.description && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="text-sm font-bold text-white flex items-center">
-                                            KẾT QUẢ MÔ TẢ (DESCRIPTION - MAX SPEC)
-                                             <CopyButton
-                                                textToCopy={`${output.description.mainHashtags.join(' ')}\n\n${output.description.body}\n\n${output.description.secondaryHashtags.join(' ')}`}
-                                                onCopy={() => showCopySuccess(setCopySuccessDesc)}
-                                                disabled={isLoading}
-                                            />
-                                             <span className="text-xs text-[#008080] w-20 text-right ml-1">{copySuccessDesc}</span>
-                                        </h3>
-                                    </div>
-                                    <div className="p-3 border border-gray-700 rounded-sm bg-[#0A0A0A] text-gray-300 text-xs font-mono">
-                                        <p className="text-[#008080]">{output.description.mainHashtags.join(' ')}</p>
-                                        <div className="my-4 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: output.description.body.replace(/\n/g, '<br />') }} /> {/* */}
-                                        <p className="text-[#008080]">{output.description.secondaryHashtags.join(' ')}</p>
-                                    </div>
+                            {/* Description */}
+                            <div>
+                                <h3 className="text-lg font-bold text-white mb-2 font-playfair">Y TƯỞNG DESCRIPTION</h3>
+                                <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm">
+                                    <p className="text-xs text-gray-300 whitespace-pre-line">{output.description?.mainHashtags.slice(0, 5).join(' ')}</p>
+                                    <p className="text-xs text-gray-300 whitespace-pre-line mt-2">{output.description?.body}</p>
+                                    <p className="text-xs text-gray-400 mt-2">{output.description?.secondaryHashtags.slice(0, 10).join(' ')}</p>
+                                    {copySuccessDesc && <p className="text-xs text-green-400">{copySuccessDesc}</p>}
+                                    <CopyButton textToCopy={[output?.description?.mainHashtags.slice(0, 5).join(' '), output?.description?.body, output?.description?.secondaryHashtags.slice(0, 10).join(' ')].filter(Boolean).join('\n')} onCopy={handleCopyDesc} />
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Tags Section */}
-                            {output.tags && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="text-sm font-bold text-white flex items-center">
-                                            KẾT QUẢ THẺ TAGS (TAGS - MAX SPEC) {/* */}
-                                            <CopyButton
-                                                textToCopy={output.tags.map(t => t.text).join(', ')}
-                                                onCopy={() => showCopySuccess(setCopySuccessTags)}
-                                                disabled={isLoading}
-                                            />
-                                             <span className="text-xs text-[#008080] w-20 text-right ml-1">{copySuccessTags}</span>
-                                        </h3>
-                                    </div>
-                                    <div className="p-3 border border-gray-700 rounded-sm bg-[#0A0A0A] flex flex-wrap gap-2"> {/* */}
-                                        {output.tags.map((tag, i) => ( //
-                                            <span key={i} className={`text-xs px-2 py-1 rounded-full cursor-pointer transition-colors ${tag.strength === 'Good' ? 'bg-emerald-800/50 text-emerald-300 hover:bg-emerald-700/50' : 'bg-yellow-800/50 text-yellow-300 hover:bg-yellow-700/50'}`}> {/* */}
+                            {/* Tags */}
+                            <div>
+                                <h3 className="text-lg font-bold text-white mb-2 font-playfair">Y TƯỞNG TAGS</h3>
+                                <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm">
+                                    <div className="flex flex-wrap gap-2">
+                                        {output.tags?.map((tag, i) => (
+                                            <span key={i} className={`px-3 py-1 rounded-full text-xs font-semibold ${tag.strength === 'Good' ? 'bg-[#008080]/50 text-[#008080]' : 'bg-[#CDAD5A]/50 text-[#CDAD5A]'}`}>
                                                 {tag.text}
                                             </span>
                                         ))}
                                     </div>
+                                    {copySuccessTags && <p className="text-xs text-green-400 mt-2">{copySuccessTags}</p>}
+                                    <CopyButton textToCopy={output?.tags?.map(t => t.text).join(', ') || ''} onCopy={handleCopyTags} />
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Thumbnail Ideas Section */}
-                            {output.thumbnailIdeas && ( //
-                                <div>
-                                    <h3 className="text-sm font-bold text-white mb-2">Ý TƯỞNG THUMBNAIL (A/B Test)</h3> {/* */}
-                                    <div className="grid md:grid-cols-3 gap-3 text-xs">
-                                        {output.thumbnailIdeas.map((idea, i) => ( //
-                                            <div key={i} className="p-3 border border-gray-700 rounded-sm bg-[#0A0A0A] space-y-2 flex flex-col">
-                                                <p><strong className="text-[#CDAD5A]">Concept:</strong> {idea.concept}</p>
-                                                <p><strong className="text-[#CDAD5A]">Mục tiêu:</strong> {idea.emotion}</p> {/* */}
-                                                <p><strong className="text-[#CDAD5A]">Bố cục:</strong> {idea.composition}</p>
-                                                <p><strong className="text-[#CDAD5A]">Text:</strong> "{idea.thumbnailText}" <span className="text-gray-400">({idea.fontSuggestion})</span></p> {/* */}
-                                                <p><strong className="text-[#CDAD5A]">Màu sắc:</strong> {idea.colors}</p>
-                                                <p><strong className="text-[#CDAD5A]">Chi tiết:</strong> {idea.facialExpression} & {idea.objects}</p> {/* */}
-                                                <button onClick={() => alert("Chức năng đang được xây dựng để kết nối với công cụ TẠO ẢNH.")} className="mt-auto text-xs p-1 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm w-full">Tạo Ảnh</button> {/* */}
+                            {/* Thumbnail Ideas (3 Columns, Only Copy) */}
+                            <div>
+                                <h3 className="text-lg font-bold text-white mb-2 font-playfair">Y TƯỞNG THUMBNAIL (A/B Test)</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    {output.thumbnailIdeas?.map((idea, i) => (
+                                        <div key={i} className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm animate-decode" style={{animationDelay: `${(i+5)*100}ms`}}>
+                                            <div className="flex justify-between items-start">
+                                                <span className="font-semibold text-base text-gray-200 pr-4">{idea.thumbnailText}</span>
                                             </div>
-                                        ))}
-                                    </div>
+                                            <p className="text-xs text-gray-400 mt-1">Cấu trúc Thumbnail:</p>
+                                            <ul className="list-disc list-inside text-xs text-gray-300 pl-2">
+                                                <li>Concept: {idea.concept}</li>
+                                                <li>Emotion: {idea.emotion}</li>
+                                                <li>Colors: {idea.colors}</li>
+                                                <li>Facial Expression: {idea.facialExpression}</li>
+                                                <li>Objects: {idea.objects}</li>
+                                                <li>Font Suggestion: {idea.fontSuggestion}</li>
+                                                <li>Composition: {idea.composition}</li>
+                                            </ul>
+                                            <div className="flex gap-2 mt-2">
+                                                <CopyButton textToCopy={idea.thumbnailText} onCopy={() => handleCopyThumbnail(i, idea.thumbnailText)} />
+                                            </div>
+                                            {copySuccessThumbnail[i] && <p className="text-xs text-green-400 mt-1">{copySuccessThumbnail[i]}</p>}
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
-                            {/* Nút lưu log */}
-                             <div className="flex items-center gap-4 pt-4 sticky bottom-0 bg-black/80 backdrop-blur-sm">
-                                {/* Bỏ nút Copy All nếu không cần */}
-                                {/* <button onClick={handleCopyAll} className="...">COPY ALL</button> */}
-                                <button onClick={() => alert("Chức năng đang được xây dựng!")} className="flex-grow bg-transparent text-[#CDAD5A] font-bold py-2 px-5 border-2 border-[#CDAD5A] rounded-sm transition-all hover:bg-[#CDAD5A] hover:text-black">LƯU VÀO ARCHIVE LOG</button> {/* */}
-                                {/* Giữ khoảng trống để căn chỉnh nếu cần */}
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-4 pt-4 sticky bottom-0 bg-[#1a1a08]/80 backdrop-blur-sm"> {/* */}
+                                <button onClick={() => alert('Đang phát triển...')} className="flex-grow bg-[#008080] text-white font-bold py-2 px-5 border-2 border-[#008080] rounded-sm transition-all hover:bg-transparent hover:text-[#008080]">LƯU VÀO ARCHIVE LOG</button>
                                 <span className="w-24"></span>
                             </div>
                         </>
                     )}
-
-                    {/* Placeholder khi không loading và không có output */}
-                     {!isLoading && !output && (
-                         <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
-                             <div className="w-24 h-24 opacity-20"><PhiIcon /></div>
-                             <p className="mt-4">Sẵn sàng dò tìm tín hiệu...</p>
-                         </div>
-                     )}
                 </div>
             </div>
         </div>
