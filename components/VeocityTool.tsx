@@ -1,21 +1,23 @@
-// File: components/VeocityTool.tsx (Hoàn Chỉnh - Đã sửa lỗi JSX và giữ logic backend)
+// File: components/VeocityTool.tsx (Hoàn Chỉnh - Đã dán link Extension)
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { GearIcon } from './AnimatedIcons';
 
 interface VeocityToolProps {
   onBack: () => void;
 }
 
-type Phase = 'setup' | 'timeline' | 'output';
+type Phase = 'setup' |
+'timeline' | 'output'; // Giữ phase output để hiển thị prompts
 
 interface Scene {
   id: number;
   originalText: string;
   prompt: string;
-  emotion: 'Default' | 'Vui vẻ' | 'Sốc' | 'Trầm tư' | 'Kịch tính';
+  emotion: 'Default' | 'Vui vẻ' |
+'Sốc' | 'Trầm tư' | 'Kịch tính';
   status: 'pending' | 'rendering' | 'completed' | 'failed';
-  videoUrl?: string; // Should be base64 data URL
+  videoUrl?: string; // Giữ lại cho tính năng mockup nếu cần
   error?: string;
 }
 
@@ -27,27 +29,24 @@ const Loader: React.FC<{text: string}> = ({text}) => (
         <p className="mt-4 text-sm font-semibold text-[#CDAD5A] tracking-widest animate-pulse">{text}</p>
     </div>
 );
-
 // Hàm helper để sleep
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 const VeocityTool: React.FC<VeocityToolProps> = ({ onBack }) => {
     const [phase, setPhase] = useState<Phase>('setup');
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState('');
-
+    
     // Phase 1: Setup
-    const [userApiKey, setUserApiKey] = useState(''); // State mới cho BYOK
     const [script, setScript] = useState('');
     const [masterCharacterPrompt, setMasterCharacterPrompt] = useState('');
     const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
     const [style, setStyle] = useState('Cinematic');
     const [extraNotes, setExtraNotes] = useState('');
-
+    
     // Phase 2 & 3: Timeline & Output
     const [scenes, setScenes] = useState<Scene[]>([]);
-    const [isRendering, setIsRendering] = useState(false);
+    const [isRendering, setIsRendering] = useState(false); // Đã bị loại bỏ trong logic mới
 
     // --- HÀM handleAnalyzeScript (Gọi Backend /api/veocity-analyze) ---
     const handleAnalyzeScript = async () => {
@@ -55,21 +54,23 @@ const VeocityTool: React.FC<VeocityToolProps> = ({ onBack }) => {
             setError("Vui lòng nhập kịch bản.");
             return;
         }
+        // KHÔNG còn cần API Key của người dùng nữa
         setIsLoading(true);
-        setLoadingMessage("PHÂN TÍCH KỊCH BẢN & NHÂN VẬT...");
+        setLoadingMessage("AI ĐANG PHÂN TÍCH & TỐI ƯU HÓA PROMPT...");
         setError('');
-
         try {
+            // **Quan trọng:** API này vẫn gọi backend để Gemini AI chia cảnh và đồng nhất nhân vật
             const response = await fetch('/api/veocity-analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     script,
-                    userApiKey: userApiKey || undefined, // Gửi key của người dùng nếu có
+                    // KHÔNG GỬI userApiKey
                 }),
             });
             const result: any = await response.json();
-            if (!response.ok) { throw new Error(result.error || `Lỗi ${response.status}`); }
+            if (!response.ok) { throw new Error(result.error || `Lỗi ${response.status}`);
+            }
 
             setMasterCharacterPrompt(result.masterCharacterPrompt);
             setScenes(result.scenes.map((s: any, i: number) => ({
@@ -77,136 +78,66 @@ const VeocityTool: React.FC<VeocityToolProps> = ({ onBack }) => {
                 originalText: s.originalText,
                 prompt: s.prompt,
                 emotion: 'Default',
-                status: 'pending',
+                status: 'pending', // Giữ pending để hiển thị
             })));
 
             setPhase('timeline');
 
         } catch (err: any) {
             setError(`Lỗi phân tích: ${err.message}`);
-            if (err.message.includes("API key") || err.message.includes("401") || err.message.includes("not found")) {
-                setError("Lỗi API Key. Vui lòng kiểm tra lại Key của bạn (nếu có) hoặc API Key của hệ thống.");
-            }
         } finally {
             setIsLoading(false);
         }
     };
-
-    // --- HÀM generateSingleScene (Logic Polling) ---
-    const generateSingleScene = async (sceneId: number) => {
-        const sceneIndex = scenes.findIndex(s => s.id === sceneId);
-        if (sceneIndex === -1) return;
-
-        const currentScene = scenes[sceneIndex];
-        setScenes(prev => prev.map(s => s.id === sceneId ? { ...s, status: 'rendering', error: undefined } : s));
-
-        try {
+    
+    // --- HÀM XUẤT PROMPTS CHO EXTENSION ---
+    const exportPromptsForFlow = () => {
+        // Tạo Prompt đầy đủ: Master Prompt + Scene Prompt + Global Settings
+        const fullPrompts = scenes.map(scene => {
             const finalPrompt = `
                 ${masterCharacterPrompt}.
-                ${currentScene.prompt}.
-                Emotion: ${currentScene.emotion}.
+                ${scene.prompt}.
+                Emotion: ${scene.emotion}.
                 Style: ${style}.
+                Aspect Ratio: ${aspectRatio}.
                 ${extraNotes}
-            `.trim();
+            `.trim().replace(/\n\s+/g, ' '); // Xóa khoảng trắng thừa và xuống dòng
+            return finalPrompt;
+        });
 
-            // 1. Bắt đầu tác vụ
-            const startResponse = await fetch('/api/veocity-start-generation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    finalPrompt,
-                    aspectRatio,
-                    userApiKey: userApiKey || undefined,
-                }),
-            });
-            const startResult: any = await startResponse.json();
-            if (!startResponse.ok) { throw new Error(startResult.error || `Lỗi ${startResponse.status}`); }
-
-            const { operationName } = startResult;
-
-            // 2. Bắt đầu Polling
-            let isDone = false;
-            let videoUrl = '';
-            let attempts = 0;
-            const maxAttempts = 60; // Timeout sau 10 phút (60 attempts * 10s)
-
-            while (!isDone && attempts < maxAttempts) {
-                await sleep(10000); // Chờ 10 giây
-                attempts++;
-
-                const checkResponse = await fetch('/api/veocity-check-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        operationName,
-                        userApiKey: userApiKey || undefined,
-                    }),
-                });
-                const checkResult: any = await checkResponse.json();
-
-                if (!checkResponse.ok) {
-                    throw new Error(checkResult.error || `Lỗi check status ${checkResponse.status}`);
-                }
-
-                if (checkResult.done) {
-                    isDone = true;
-                    videoUrl = checkResult.videoUrl; // Backend đã trả về base64 data URL
-                }
-            }
-
-            if (!isDone) {
-                throw new Error("Quá trình render quá lâu và đã bị timeout.");
-            }
-
-            setScenes(prev => prev.map(s => s.id === sceneId ? { ...s, status: 'completed', videoUrl } : s));
-
-        } catch (err: any) {
-            console.error(`Lỗi render cảnh ${sceneId}:`, err);
-            setScenes(prev => prev.map(s => s.id === sceneId ? { ...s, status: 'failed', error: err.message } : s));
-             if (err.message.includes("API key") || err.message.includes("401") || err.message.includes("not found")) {
-                setError("Lỗi API Key. Vui lòng kiểm tra lại Key của bạn.");
-                setIsRendering(false); // Stop batch rendering
-            }
-        }
+        const promptsText = fullPrompts.join('\n\n---\n\n'); // Tách các prompts bằng dòng "---\n\n"
+        
+        // Tạo file TXT để người dùng tải về (Bước chuyển giao dữ liệu)
+        const blob = new Blob([promptsText], {type: 'text/plain;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Kodaflow_Veocity_Prompts_${new Date().toISOString().slice(0, 10)}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Chuyển sang phase output để hiển thị hướng dẫn
+        setPhase('output');
     };
 
-    // --- Hàm handleRenderAll ---
-    const handleRenderAll = async () => {
-        setIsRendering(true);
-        setPhase('output'); // Move to output phase to see progress
-        for (const scene of scenes) {
-            // Chỉ render những cảnh chưa hoàn thành hoặc bị lỗi
-            if (scene.status === 'pending' || scene.status === 'failed') {
-                await generateSingleScene(scene.id);
-                 // Nếu có lỗi API Key, dừng ngay lập tức
-                if (error.includes("Lỗi API Key")) {
-                    break;
-                }
-            }
-        }
-        setIsRendering(false);
-    };
-
-    const totalCost = scenes.length * 8 * 0.15; // Giữ nguyên tính toán này
-
-    // --- JSX renderSetupPhase ---
+    // --- JSX renderSetupPhase (ĐÃ SỬA GIAO DIỆN VÀ DÁN LINK) ---
     const renderSetupPhase = () => (
         <div className="animate-phase-shift lg:col-span-3 flex flex-col space-y-4 pr-2 overflow-y-auto">
-            <div className="p-3 border-2 border-red-700 bg-red-900/50 rounded-sm shadow-lg shadow-red-900/50">
-                <h3 className="text-red-400 font-bold text-base">CẢNH BÁO CHI PHÍ QUAN TRỌNG</h3>
-                <p className="text-gray-200 text-xs font-mono mt-2">VIỆC SỬ DỤNG CÔNG CỤ NÀY SẼ ĐƯỢC TÍNH PHÍ <strong className="text-white">≈ $0.15 USD/giây</strong>. MỖI CẢNH QUAY CÓ GIỚI HẠN <strong className="text-white">8 GIÂY</strong>.</p>
+            <div className="p-3 border-2 border-[#CDAD5A] bg-[#CDAD5A]/30 rounded-sm shadow-lg shadow-[#CDAD5A]/50">
+                <h3 className="text-yellow-400 font-bold text-base">HƯỚNG DẪN TỰ ĐỘNG HÓA</h3>
+                <p className="text-gray-200 text-xs font-mono mt-2">
+                    CÔNG CỤ NÀY DÙNG AI ĐỂ TỐI ƯU PROMPT. VIỆC TẠO VIDEO (GENERATION) SẼ ĐƯỢC THỰC HIỆN TỰ ĐỘNG BẰNG 
+                    <strong className="text-white"> EXTENSION FLOW</strong>, SỬ DỤNG CREDIT/QUOTA TỪ TÀI KHOẢN CỦA BẠN. 
+                </p>
+                {/* ĐÃ DÁN LINK EXTENSION VÀO ĐÂY */}
+                <a href="https://chromewebstore.google.com/detail/auto-flow-t%E1%BB%B1-%C4%91%E1%BB%99ng-h%C3%B3a-cho/lhcmnhdbddgagibbbgppakocflbnknoa" target="_blank" rel="noopener noreferrer" className="text-xs text-[#00ffc8] mt-1 font-bold block hover:underline">
+                    👉 BẤM VÀO ĐÂY ĐỂ CÀI ĐẶT EXTENSION FLOW
+                </a>
             </div>
-            <div>
-                <label className="text-sm font-bold text-[#CDAD5A] font-playfair">API KEY (Tùy chọn - BYOK)</label>
-                <input
-                    type="password"
-                    value={userApiKey}
-                    onChange={e => setUserApiKey(e.target.value)}
-                    placeholder="Dán Google AI API Key của bạn (Gói Magistrate)"
-                    className="w-full obsidian-input bronze !p-2"
-                />
-                 <p className="text-xs text-gray-400 mt-1">Nếu để trống, hệ thống sẽ sử dụng credit của gói TOÀN TRI (nếu có).</p>
-            </div>
+            
+            {/* KHÔNG CÒN TRƯỜNG API KEY BYOK */}
+
              <div>
                 <label className="text-sm font-bold text-[#CDAD5A] font-playfair">NGUỒN KỊCH BẢN</label>
                 <textarea value={script} onChange={e => setScript(e.target.value)} placeholder="Dán kịch bản vào đây..." className="w-full h-32 obsidian-textarea focus:border-[#CDAD5A] bronze"></textarea>
@@ -226,30 +157,34 @@ const VeocityTool: React.FC<VeocityToolProps> = ({ onBack }) => {
                 </div>
                  <input type="text" value={extraNotes} onChange={e => setExtraNotes(e.target.value)} placeholder="Chú thích phụ (VD: 'Không dùng ánh sáng đêm')" className="w-full obsidian-input mt-2" />
             </div>
-            <button onClick={handleAnalyzeScript} disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow-strong disabled:bg-gray-600">
-                {isLoading ? loadingMessage : "PHÂN TÍCH & TẠO DÒNG THỜI GIAN"}
+            <button onClick={handleAnalyzeScript} disabled={isLoading} className="w-full mt-auto bg-[#CDAD5A] text-black font-bold py-3 px-5 
+             border-2 border-[#CDAD5A] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#CDAD5A] active:scale-95 bronze-glow-strong disabled:bg-gray-600">
+                {isLoading ?
+                 loadingMessage : "PHÂN TÍCH & CHIA CẢNH BẰNG AI"}
             </button>
         </div>
     );
-
-    // --- JSX renderTimelinePhase ---
+    
+    // --- JSX renderTimelinePhase (ĐÃ SỬA NÚT) ---
     const renderTimelinePhase = () => (
         <>
             <div className="animate-phase-shift lg:col-span-3 flex flex-col space-y-3 pr-2 overflow-y-auto">
                 <h3 className="text-lg font-bold text-[#CDAD5A] font-playfair">ĐỒNG NHẤT NHÂN VẬT</h3>
                 <textarea value={masterCharacterPrompt} onChange={e => setMasterCharacterPrompt(e.target.value)} className="w-full h-24 obsidian-textarea bronze"></textarea>
-                <button disabled className="text-xs text-gray-500 w-full p-2 border border-gray-600 rounded-sm">🔒 KHÓA KHUÔN MẶT (TẢI LÊN)</button>
+                <p className="text-xs text-gray-400">Prompt này được AI tạo ra để đảm bảo nhân vật chính nhất quán giữa các cảnh.</p>
+             
             </div>
              <div className="animate-phase-shift lg:col-span-7 flex flex-col space-y-4">
-                <h3 className="text-lg font-bold text-white font-playfair">DÒNG THỜI GIAN SẢN XUẤT</h3>
+                <h3 className="text-lg font-bold text-white font-playfair">PROMPT TỐI ƯU CỦA KODAFLOW</h3>
                 <div className="flex-grow overflow-y-auto pr-2 relative timeline pl-10">
                     {scenes.map((scene, i) => (
                         <div key={scene.id} className={`mb-4 relative timeline-item ${scene.status}`}>
-                            <h4 className="font-bold text-white">Cảnh {i+1} <span className="text-xs text-gray-400">(~8 giây)</span></h4>
+                            <h4 className="font-bold text-white">Cảnh {i+1} <span className="text-xs text-gray-400">(Tối ưu Prompt Veocity)</span></h4>
                             <div className="p-3 bg-black/40 border border-gray-700 rounded-sm space-y-2">
                                 <div className="flex items-start gap-2">
                                     <span title="Prompt Đồng nhất được áp dụng" className="text-xl text-yellow-400 mt-1">🔒</span>
-                                    <textarea value={scene.prompt} onChange={e => setScenes(scenes.map(s => s.id === scene.id ? { ...s, prompt: e.target.value } : s))} className="w-full h-16 obsidian-textarea text-xs"></textarea>
+                                    <textarea value={scene.prompt} onChange={e => setScenes(scenes.map(s => s.id === scene.id ?
+                                    { ...s, prompt: e.target.value } : s))} className="w-full h-16 obsidian-textarea text-xs"></textarea>
                                 </div>
                                 <select value={scene.emotion} onChange={e => setScenes(scenes.map(s => s.id === scene.id ? { ...s, emotion: e.target.value as any } : s))} className="w-full obsidian-select text-xs">
                                     <option>Default</option><option>Vui vẻ</option><option>Sốc</option><option>Trầm tư</option><option>Kịch tính</option>
@@ -259,86 +194,56 @@ const VeocityTool: React.FC<VeocityToolProps> = ({ onBack }) => {
                     ))}
                 </div>
                 <div className="border-t border-gray-700 pt-3">
-                    <p className="text-center text-sm text-red-400 font-bold mb-2">TỔNG CHI PHÍ DỰ KIẾN: ~${totalCost.toFixed(2)} USD</p>
-                    <button onClick={handleRenderAll} disabled={isRendering} className="w-full bg-[#00ffc8] text-black font-bold py-3 px-5 border-2 border-[#00ffc8] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#00ffc8] active:scale-95 emerald-glow-strong disabled:bg-gray-600">
-                        {isRendering ? "ĐANG RENDER..." : `TẠO TẤT CẢ (${scenes.length} CẢNH)`}
+                    <p className="text-center text-sm text-[#00ffc8] font-bold mb-2">QUÁ TRÌNH TẠO VIDEO ĐÃ CHUYỂN QUA EXTENSION</p>
+                    {/* NÚT HÀNH ĐỘNG MỚI */}
+                    <button onClick={exportPromptsForFlow} className="w-full bg-[#00ffc8] text-black font-bold py-3 px-5 border-2 border-[#00ffc8] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#00ffc8] active:scale-95 emerald-glow-strong">
+                        XUẤT PROMPT TỐI ƯU VÀ KÍCH HOẠT FLOW
                     </button>
                 </div>
             </div>
         </>
     );
-
-    // --- JSX renderOutputPhase ---
+    
+    // --- JSX renderOutputPhase (ĐÃ SỬA HIỂN THỊ HƯỚNG DẪN) ---
     const renderOutputPhase = () => (
          <div className="animate-phase-shift lg:col-span-10 flex flex-col space-y-4">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-white font-playfair">THƯ VIỆN & HẬU KỲ</h3>
-                <div className="text-right">
-                    <p className="text-xs text-gray-400">Trạng thái: <span className={`font-bold ${isRendering ? 'text-yellow-400 animate-pulse' : 'text-emerald-400'}`}>{isRendering ? 'Đang Render...' : 'Hoàn tất'}</span></p>
-                    <p className="text-xs text-gray-400">Tổng chi phí: <span className="font-bold text-red-400">${totalCost.toFixed(2)} USD</span></p>
-                </div>
+                <h3 className="text-lg font-bold text-white font-playfair">XUẤT BẢN VÀ HẬU KỲ</h3>
             </div>
-            <div className="flex-grow grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto p-2 bg-black/20">
-                {scenes.map((scene, i) => (
-                    <div key={scene.id} className="aspect-video bg-black border border-gray-700 rounded-sm flex flex-col items-center justify-center text-center">
-                        {scene.status === 'completed' && scene.videoUrl ? (
-                             <video src={scene.videoUrl} controls className="w-full h-full object-cover"></video>
-                        ) : scene.status === 'rendering' ? (
-                             <div className="p-2 animate-pulse"><p className="text-xs text-yellow-400">Đang render cảnh {i+1}...</p></div>
-                        ) : scene.status === 'failed' ? (
-                            <div className="p-2 text-red-400">
-                                <p className="text-xs font-bold">Cảnh {i+1} Thất bại</p>
-                                <p className="text-[10px] mt-1 opacity-70 break-all">{scene.error}</p>
-                                {/* Nút Re-render cho lỗi */}
-                                <button onClick={() => generateSingleScene(scene.id)} disabled={isRendering} className="mt-1 w-full text-xs py-1 bg-[#CDAD5A] text-black hover:bg-opacity-80 disabled:bg-gray-600">
-                                    Re-render
-                                </button>
-                            </div>
-                        ) : (
-                             <p className="text-xs text-gray-500">Cảnh {i+1} đang chờ</p>
-                        )}
-                        {/* Nút Re-render chung (chỉ hiển thị nếu đã hoàn thành) */}
-                        {scene.status === 'completed' && (
-                           <button onClick={() => generateSingleScene(scene.id)} disabled={isRendering} className="absolute bottom-1 right-1 text-[10px] px-1 py-0.5 bg-[#CDAD5A]/70 text-black hover:bg-opacity-100 disabled:bg-gray-600 rounded-sm backdrop-blur-sm">
-                                Re-render
-                           </button>
-                        )}
-                         {/* Nút Re-render cho pending (nếu cần render lẻ) */}
-                         {scene.status === 'pending' && (
-                           <button onClick={() => generateSingleScene(scene.id)} disabled={isRendering} className="mt-1 w-full text-xs py-1 bg-gray-600 text-white hover:bg-gray-500 disabled:bg-gray-800">
-                                Render Cảnh Này
-                           </button>
-                        )}
-                    </div>
-                ))}
-            </div>
-            <div className="flex gap-4">
-                <button onClick={() => alert("Chức năng 'Gộp cảnh & Xuất Final' đang được phát triển.")} className="flex-grow bg-[#00ffc8] text-black font-bold py-3 px-5 border-2 border-[#00ffc8] rounded-sm transition-all hover:bg-transparent hover:text-[#00ffc8] disabled:bg-gray-600" disabled={isRendering || scenes.some(s => s.status !== 'completed')}>
-                    GỘP CẢNH & XUẤT FINAL
-                </button>
-                 <button onClick={() => setPhase('timeline')} className="bg-gray-700 text-white font-bold py-3 px-5 rounded-sm hover:bg-gray-600" disabled={isRendering}>
-                    QUAY LẠI TIMELINE
+            <div className="p-6 bg-black/40 border-2 border-[#00ffc8] rounded-sm shadow-lg shadow-[#00ffc8]/50 flex flex-col items-center justify-center text-center space-y-4">
+                <p className="text-xl text-[#00ffc8] font-bold">🎉 PROMPTS ĐÃ ĐƯỢC XUẤT THÀNH CÔNG!</p>
+                <p className="text-base text-gray-300 max-w-2xl">
+                    File **`Kodaflow_Veocity_Prompts.txt`** đã được tải về máy tính của bạn.
+                    Bây giờ, bạn cần sử dụng Extension **Auto Flow** để tự động hóa quá trình tạo từng cảnh quay trên Veo3.
+                </p>
+                <ol className="text-left list-decimal list-inside text-gray-400 space-y-2">
+                    <li><a href="https://chromewebstore.google.com/detail/auto-flow-t%E1%BB%B1-%C4%91%E1%BB%99ng-h%C3%B3a-cho/lhcmnhdbddgagibbbgppakocflbnknoa" target="_blank" rel="noopener noreferrer" className="text-[#00ffc8] font-bold hover:underline">Mở Veo3</a> và kích hoạt Extension **Auto Flow**.</li>
+                    <li>Trong Extension, chọn **Import file (.txt)** và tải lên file Prompts vừa tải về.</li>
+                    <li>Extension sẽ tự động tạo video bằng credit/quota Veo3 của bạn.</li>
+                    <li>Sau khi hoàn tất, bạn tải về các clip và tự ghép chúng lại (Ghép nối, thêm nhạc nền, v.v.) bằng phần mềm chỉnh sửa chuyên dụng.</li>
+                </ol>
+                <button onClick={() => setPhase('timeline')} className="mt-4 bg-gray-700 text-white font-bold py-3 px-5 rounded-sm hover:bg-gray-600">
+                    QUAY LẠI CHỈNH SỬA PROMPT
                 </button>
             </div>
          </div>
     );
-
+    
     // --- JSX return chính ---
     return (
         <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-2 veocity-bg relative">
             {/* Banner */}
             <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-r from-[#CDAD5A]/50 via-black/50 to-[#CDAD5A]/50 text-center text-xs font-bold text-black backdrop-blur-sm z-20">
-              SỨC MẠNH VEOCITY ĐỈNH CAO CHỈ DÀNH CHO GÓI TOÀN TRI.
+              CÔNG CỤ TỐI ƯU HÓA PROMPT VEOCITY CỦA KODAFLOW
             </div>
 
             {/* Header */}
             <div className="flex justify-between items-center pt-6">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#E0E0E0] tracking-wider">VI. TẠO VIDEO (VEOCITY)</h2>
+                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#E0E0E0] tracking-wider">VI. CHUẨN BỊ KỊCH BẢN (VEOCITY)</h2>
                 <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2 z-10">&times; Trở Về</button>
             </div>
 
             {/* Content Area */}
-            {/* ĐOẠN CODE JSX ĐÃ SỬA LỖI */}
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 flex-grow min-h-0">
                 {/* Loader khi đang tải ở phase setup */}
                 {isLoading && phase === 'setup' && <div className="lg:col-span-10"><Loader text={loadingMessage}/></div>}
@@ -351,8 +256,7 @@ const VeocityTool: React.FC<VeocityToolProps> = ({ onBack }) => {
                         {phase === 'timeline' && renderTimelinePhase()}
                         {phase === 'output' && renderOutputPhase()}
 
-                        {/* Hiển thị lỗi nếu có và không đang loading */}
-                        {/* Cập nhật để lỗi hiển thị rõ ràng hơn */}
+                        {/* Hiển thị lỗi nếu có */}
                         {error && !isLoading && (
                             <div className="lg:col-span-10 p-4 mt-4 border border-red-500 bg-red-900/30 rounded-sm text-center">
                                 <p className="font-bold text-red-400">Đã xảy ra lỗi:</p>
@@ -362,7 +266,6 @@ const VeocityTool: React.FC<VeocityToolProps> = ({ onBack }) => {
                     </>
                 )}
             </div>
-            {/* KẾT THÚC ĐOẠN CODE JSX ĐÃ SỬA LỖI */}
         </div>
     );
 };
