@@ -17,11 +17,9 @@ import ChatbotWidget from "../components/ChatbotWidget";
 
 const siteUrl = "https://seenweb-main.vercel.app";
 const ogImage = `${siteUrl}/thumbnail.jpg`;
-
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
+useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       document.documentElement.style.setProperty("--mouse-x", `${e.clientX}px`);
       document.documentElement.style.setProperty("--mouse-y", `${e.clientY}px`);
@@ -30,32 +28,34 @@ export default function HomePage() {
     setIsClient(true);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
-
-  return (
-    <div className="font-montserrat bg-black reflective-glare-bg">
+return (
+    <div className="font-montserrat bg-[#0A1929] reflective-glare-bg"> {/* ĐÃ SỬA: Dark Navy */}
       <Head>
-        <title>SeenWeb — Sáng phẳng cuộc chơi YouTube bằng sức mạnh AI</title>
+        <title>SeenWeb — San phẳng cuộc chơi YouTube bằng sức mạnh AI</title>
         <meta
           name="description"
           content="SeenWeb giúp sáng tạo nội dung YouTube dễ dàng hơn với công cụ AI mạnh mẽ, hỗ trợ viết kịch bản, SEO, phân tích kênh và tối ưu video."
         />
-        <link rel="canonical" href={siteUrl} />
+    
+    <link rel="canonical" href={siteUrl} />
 
         {/* Open Graph */}
-        <meta property="og:title" content="SeenWeb — Sáng phẳng cuộc chơi YouTube bằng sức mạnh AI" />
+        <meta property="og:title" content="SeenWeb — San phẳng cuộc chơi YouTube bằng sức mạnh AI" />
         <meta
           property="og:description"
           content="Nền tảng AI giúp YouTuber sáng tạo nội dung và phát triển kênh nhanh hơn bao giờ hết."
         />
-        <meta property="og:image" content={ogImage} />
+        
+<meta property="og:image" content={ogImage} />
         <meta property="og:url" content={siteUrl} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="SeenWeb — Sáng phẳng cuộc chơi YouTube bằng sức mạnh AI" />
+        <meta name="twitter:title" content="SeenWeb — San phẳng cuộc chơi YouTube bằng sức mạnh AI" />
         <meta
           name="twitter:description"
-          content="AI đồng hành cùng YouTuber. Viết, phân tích, tối ưu video hiệu quả."
+          content="AI đồng hành cùng YouTuber.
+Viết, phân tích, tối ưu video hiệu quả."
         />
         <meta name="twitter:image" content={ogImage} />
 
@@ -65,12 +65,14 @@ export default function HomePage() {
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "WebSite",
+     
+           "@type": "WebSite",
               name: "SeenWeb",
               url: siteUrl,
               description:
                 "SeenWeb là nền tảng AI giúp sáng tạo nội dung và phát triển kênh YouTube nhanh hơn.",
-              publisher: {
+              
+ publisher: {
                 "@type": "Organization",
                 name: "SeenWeb",
                 logo: `${siteUrl}/thumbnail.jpg`,
@@ -78,6 +80,7 @@ export default function HomePage() {
             }),
           }}
         />
+    
       </Head>
 
       {isClient ? (
@@ -88,7 +91,8 @@ export default function HomePage() {
             <AboutUs />
             <TechPillars />
             <ToolsGrid />
-            <Partners />
+         
+           <Partners />
             <Projects />
             <Testimonials />
             <PricingTable />
@@ -96,10 +100,11 @@ export default function HomePage() {
             <FinalCTA />
           </main>
           <Footer />
-          <ChatbotWidget />
+          
+ <ChatbotWidget />
         </>
       ) : (
-        <div className="min-h-screen bg-black flex items-center justify-center text-[#CDAD5A]">
+        <div className="min-h-screen bg-[#0A1929] flex items-center justify-center text-[#CDAD5A]"> {/* ĐÃ SỬA: Dark Navy */}
           Đang tải giao diện...
         </div>
       )}
