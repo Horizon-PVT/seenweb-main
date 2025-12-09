@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import AuthModal from "./AuthModal";
 import { useAuth } from "../AuthContext";
+import Image from 'next/image';
 
 const Header: React.FC = () => {
   const { user, isLoggedIn, logout } = useAuth();
@@ -27,7 +28,14 @@ const Header: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-sm border-b border-gray-800/50">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="relative text-2xl font-playfair font-bold text-[#CDAD5A] tracking-widest cursor-pointer">
+        <div className="relative flex items-center text-2xl font-playfair font-bold text-[#CDAD5A] tracking-widest cursor-pointer">
+          <Image 
+            src="/logo.png" // Đường dẫn đến file logo trong folder public
+            alt="Logo SeenYT"
+            width={40} // Điều chỉnh kích thước width (có thể thay đổi tùy logo)
+            height={40} // Điều chỉnh kích thước height
+            className="mr-2" // Khoảng cách bên phải để cách chữ
+          />
           SeenYT
           <span className="absolute top-0 left-0 w-full h-full animate-metallic-sheen"></span>
         </div>
