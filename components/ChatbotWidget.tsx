@@ -6,7 +6,6 @@ interface Message {
   text: string;
 }
 
-
 const ChatbotWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
