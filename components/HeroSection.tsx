@@ -1,6 +1,5 @@
-// File: components/HeroSection.tsx (ĐÃ KHẮC PHỤC LỖI HYDRATION)
+// File: components/HeroSection.tsx (ĐÃ KHẮC PHỤC LỖI HYDRATION VÀ CẬP NHẬT CTA)
 import React from 'react';
-
 const CrushedIcon: React.FC = () => (
   <div className="w-1/2 h-1/2 animate-glitch">
     <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-red-600/50" viewBox="0 0 24 24" fill="currentColor">
@@ -9,7 +8,6 @@ const CrushedIcon: React.FC = () => (
     </svg>
   </div>
 );
-
 const HeroSection: React.FC = () => {
   return (
     <section id="hero" className="min-h-screen flex flex-col justify-center items-center text-center pt-24 pb-12 relative overflow-hidden">
@@ -19,21 +17,23 @@ const HeroSection: React.FC = () => {
       </div>
       
       <div className="absolute inset-0 flex items-center justify-center [perspective:1000px]">
-          <div className="relative w-56 h-56 md:w-72 md:h-72 [transform-style:preserve-3d] animate-[spin_40s_linear_infinite]">
+          <div className="relative w-56 h-56 md:w-72 md:h-72 [transform-style:preserve-3d] 
+animate-[spin_40s_linear_infinite]">
               {[0, 60, 120, 180, 240, 300].map(deg => (
                 <div key={deg} className="absolute inset-0 border border-[#CDAD5A]/30 bg-black/50 flex items-center justify-center" style={{transform: `rotateY(${deg}deg) translateZ(128px)`}}>
                   <CrushedIcon />
                 </div>
               ))}
+  
           </div>
       </div>
       
-            <div className="relative z-10 p-6">
+      <div className="relative z-50 p-6"> {/* Đã cập nhật z-10 thành z-50 */}
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-black text-white leading-tight drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
           <span className="animate-liquid-pulse">SAN PHẲNG</span> CUỘC CHƠI <span className="animate-liquid-pulse" style={{ animationDelay: '0.3s' }}>YOUTUBE</span>
         </h1>
         
-        {/* ĐOẠN MỚI – nút xuống thật thấp */}
+        {/* BẮT ĐẦU ĐOẠN MÃ MỚI */}
         <div className="mt-32 md:mt-48">
           <a 
             href="https://zalo.me/g/lhxazc331" 
@@ -44,6 +44,7 @@ const HeroSection: React.FC = () => {
             CỘNG ĐỒNG SEENYT
           </a>
         </div>
+        {/* KẾT THÚC ĐOẠN MÃ MỚI */}
       </div>
     </section>
   );
