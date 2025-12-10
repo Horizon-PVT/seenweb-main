@@ -1,4 +1,4 @@
-// File: components/HeroSection.tsx (ĐÃ KHẮC PHỤC LỖI HYDRATION VÀ CẬP NHẬT CTA)
+// File: components/HeroSection.tsx (ĐÃ KHẮC PHỤC LỖI HYDRATION)
 import React from 'react';
 const CrushedIcon: React.FC = () => (
   <div className="w-1/2 h-1/2 animate-glitch">
@@ -28,12 +28,12 @@ animate-[spin_40s_linear_infinite]">
           </div>
       </div>
       
-      <div className="relative z-50 p-6"> {/* Đã cập nhật z-10 thành z-50 */}
+      <div className="relative z-10 p-6">
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-black text-white leading-tight drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
           <span className="animate-liquid-pulse">SAN PHẲNG</span> CUỘC CHƠI <span className="animate-liquid-pulse" style={{ animationDelay: '0.3s' }}>YOUTUBE</span>
         </h1>
         
-        {/* BẮT ĐẦU ĐOẠN MÃ MỚI */}
+  
         <div className="mt-32 md:mt-48">
           <a 
             href="https://zalo.me/g/lhxazc331" 
@@ -44,7 +44,6 @@ animate-[spin_40s_linear_infinite]">
             CỘNG ĐỒNG SEENYT
           </a>
         </div>
-        {/* KẾT THÚC ĐOẠN MÃ MỚI */}
       </div>
     </section>
   );
