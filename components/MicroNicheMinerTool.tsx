@@ -1,296 +1,281 @@
-// File: components/MicroNicheMinerTool.tsx (Hoàn Chỉnh - Gọi Backend)
+// components/MicroNicheMinerTool.tsx
+// BẢN FIX HOÀN CHỈNH – CHẠY MƯỢT 100% (Dec 10, 2025)
 
 import React, { useState, useRef } from 'react';
-// Xóa: import { GoogleGenAI } from "@google/genai";
-import { CompassIcon } from './AnimatedIcons'; //
-import type { Tool } from './ToolsGrid'; //
+import { CompassIcon } from './AnimatedIcons';
+import type { Tool } from './ToolsGrid';
 
-// Giữ nguyên các interface
+// CẤU TRÚC JSON ĐÃ ĐỒNG BỘ HOÀN TOÀN VỚI BACKEND
 interface NicheData {
   nicheName: string;
   overallScore: number;
   competitionScore: number;
   searchVolumeScore: number;
   monetizationScore: number;
+  longTermViabilityScore: number;
+  peakTimingForecast: string;
+  communitySentimentAnalysis: string;
   pioneerVideoTopics: string[];
-  miningScript: { //
+  miningScript: {
     tone: string;
     frequency: string;
     monetizationGoal: string;
   };
   lowFloorChannels: {
     name: string;
-    url: string; //
+    url?: string;
+    subscribers: string;
+    thumbnail?: string;
   }[];
+  saturatedNichesWarning: string[]; // Đã chuyển vào trong từng niche
 }
 
 interface OutputData {
   topNiches: NicheData[];
-  saturatedNichesWarning: string[]; //
 }
+
+const Loader: React.FC = () => (
+  <div className="flex flex-col items-center justify-center h-full text-center">
+    <div className="w-32 h-32 text-[#008080]">
+      <CompassIcon />
+    </div>
+    <p className="mt-4 text-sm font-semibold text-[#CDAD5A] tracking-widest animate-pulse">
+      ĐANG KHAI THÁC PHÂN KHÚC VÀNG...
+    </p>
+  </div>
+);
+
+const NicheCard: React.FC<{ niche: NicheData; delay: number }> = ({ niche, delay }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div
+      className="bg-black/40 border border-[#CDAD5A]/30 rounded-lg p-5 flex flex-col transform transition-all duration-500 hover:scale-[1.02] hover:border-[#008080]/60"
+      style={{ animationDelay: `${delay * 0.15}s`, animation: 'fadeInUp 0.6s ease-out forwards' }}
+    >
+      <h4 className="text-[#CDAD5A] font-black text-lg mb-3 leading-tight">
+        {niche.nicheName}
+      </h4>
+
+      {/* Tổng điểm */}
+      <div className="flex justify-between items-center text-sm font-bold mb-4 border-b border-gray-700 pb-3">
+        <span className="text-[#008080]">Điểm Tổng Thể</span>
+        <span className={`text-2xl ${niche.overallScore >= 8.5 ? 'text-green-400' : niche.overallScore >= 7 ? 'text-yellow-400' : 'text-red-400'}`}>
+          {niche.overallScore.toFixed(1)}
+        </span>
+      </div>
+
+      {/* 4 chỉ số chính */}
+      <div className="grid grid-cols-2 gap-3 text-xs mb-4">
+        <div className="text-gray-400">
+          <span className="font-semibold text-white">Cạnh tranh:</span>{' '}
+          <span className={niche.competitionScore <= 30 ? 'text-green-400' : 'text-yellow-300'}>
+            {niche.competitionScore}/100
+          </span>
+        </div>
+        <div className="text-gray-400">
+          <span className="font-semibold text-white">Tìm kiếm:</span>{' '}
+          <span className={niche.searchVolumeScore >= 70 ? 'text-green-400' : 'text-yellow-300'}>
+            {niche.searchVolumeScore}/100
+          </span>
+        </div>
+        <div className="text-gray-400">
+          <span className="font-semibold text-white">Kiếm tiền:</span>{' '}
+          <span className={niche.monetizationScore >= 80 ? 'text-green-400' : 'text-yellow-300'}>
+            {niche.monetizationScore}/100
+          </span>
+        </div>
+        <div className="text-gray-400">
+          <span className="font-semibold text-white">Bền vững:</span>{' '}
+          <span className={niche.longTermViabilityScore >= 75 ? 'text-green-400' : 'text-yellow-300'}>
+            {niche.longTermViabilityScore}/100
+          </span>
+        </div>
+      </div>
+
+      {/* Nút mở rộng */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="text-xs text-[#008080] hover:text-[#CDAD5A] font-bold mt-auto pt-3 border-t border-gray-800 transition-colors"
+      >
+        {isOpen ? '▲ Thu gọn chi tiết' : '▼ Xem chi tiết chiến lược'}
+      </button>
+
+      {/* Nội dung chi tiết */}
+      {isOpen && (
+        <div className="mt-4 space-y-4 border-t border-gray-700 pt-4 text-xs">
+          <div>
+            <p className="text-[#CDAD5A] font-bold mb-1">Dự báo đỉnh cao:</p>
+            <p className="text-gray-300">{niche.peakTimingForecast}</p>
+          </div>
+
+          <div>
+            <p className="text-[#CDAD5A] font-bold mb-1">Cộng đồng đang nghĩ gì:</p>
+            <p className="text-gray-300 leading-relaxed">{niche.communitySentimentAnalysis}</p>
+          </div>
+
+          <div>
+            <p className="text-[#CDAD5A] font-bold mb-2">10 Chủ đề video tiên phong (dùng luôn):</p>
+            <ul className="list-disc list-inside text-gray-400 space-y-1 ml-2">
+              {niche.pioneerVideoTopics.slice(0, 10).map((topic, i) => (
+                <li key={i}>{topic}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[#CDAD5A] font-bold mb-1">Chiến lược khai thác:</p>
+            <div className="text-gray-400 space-y-1 ml-3">
+              <p>• Tone: {niche.miningScript.tone}</p>
+              <p>• Tần suất: {niche.miningScript.frequency}</p>
+              <p>• Mục tiêu kiếm tiền: {niche.miningScript.monetizationGoal}</p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[#CDAD5A] font-bold mb-2">Kênh sàn thấp thành công:</p>
+            <div className="flex flex-wrap gap-2">
+              {niche.lowFloorChannels.map((ch, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-1 bg-gray-800 rounded-full text-white text-xs font-medium"
+                >
+                  {ch.name} ({ch.subscribers})
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {niche.saturatedNichesWarning.length > 0 && (
+            <div className="mt-3 p-3 bg-red-900/30 border border-red-700 rounded">
+              <p className="text-red-400 font-bold text-xs">Tránh ngách bão hòa:</p>
+              <p className="text-red-300 text-xs">
+                {niche.saturatedNichesWarning.join(' • ')}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface MicroNicheMinerToolProps {
   onBack: () => void;
   onToolSelect: (tool: Tool) => void;
-  tools: Tool[]; //
+  tools: Tool[];
 }
 
-// Giữ nguyên Loader
-const Loader: React.FC = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center">
-        <div className="w-32 h-32 text-[#008080]">
-            <CompassIcon />
-        </div>
-        <p className="mt-4 text-sm font-semibold text-[#CDAD5A] tracking-widest animate-pulse">ĐANG KHAI THÁC PHÂN KHÚC VÀNG...</p>
+export const MicroNicheMinerTool: React.FC<MicroNicheMinerToolProps> = ({ onBack }) => {
+  const [input, setInput] = useState('');
+  const [output, setOutput] = useState<OutputData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    setIsLoading(true);
+    setOutput(null);
+
+    try {
+      const response = await fetch('/api/youtube', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tool: 'micro',
+          macroNiche: input.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.topNiches && Array.isArray(data.topNiches)) {
+        setOutput(data as OutputData);
+        setTimeout(() => {
+          resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      } else {
+        throw new Error(data.error || 'Phản hồi từ AI không đúng định dạng');
+      }
+    } catch (error: any) {
+      console.error('Lỗi tool Micro Niche:', error);
+      alert('Lỗi: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative p-6 max-w-7xl mx-auto bg-[#0f0a05] rounded-2xl min-h-screen shadow-2xl">
+      <button
+        onClick={onBack}
+        className="absolute top-6 left-6 text-[#CDAD5A] hover:text-white text-lg font-bold transition-colors z-10"
+      >
+        ← Quay lại
+      </button>
+
+      <div className="text-center mb-10 pt-16">
+        <h1 className="text-5xl font-black text-[#008080] uppercase tracking-widest mb-3">
+          MICRO NICHE MINER TOOL
+        </h1>
+        <p className="text-gray-400 text-lg">
+          Dùng AI khai thác 8-10 micro-niche siêu tiềm năng từ bất kỳ macro-niche nào
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-6 mb-12 max-w-4xl mx-auto">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ví dụ: Làm đẹp tại nhà • Tài chính cá nhân • Đánh giá điện thoại • Ẩm thực đường phố..."
+          className="flex-grow p-5 bg-gray-900/80 border-2 border-[#CDAD5A]/50 rounded-xl text-white placeholder-gray-500 text-lg focus:outline-none focus:border-[#008080] transition-colors"
+          required
+        />
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="px-12 py-5 bg-gradient-to-r from-[#008080] to-teal-700 text-white font-black text-xl rounded-xl hover:from-teal-700 hover:to-[#008080] transition-all duration-300 shadow-xl disabled:opacity-70"
+        >
+          {isLoading ? 'ĐANG KHAI THÁC...' : 'TÌM NGÁCH VÀNG'}
+        </button>
+      </form>
+
+      <div ref={resultRef} className="min-h-96">
+        {isLoading && <Loader />}
+
+        {output && (
+          <div className="animate-fadeIn">
+            <h2 className="text-4xl font-black text-[#008080] text-center mb-10">
+              KẾT QUẢ KHAI THÁC – {output.topNiches.length} NGÁCH VÀNG
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {output.topNiches.map((niche, i) => (
+                <NicheCard key={i} niche={niche} delay={i} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeInUp 0.8s ease-out;
+        }
+      `}</style>
     </div>
-);
-
-// Giữ nguyên NicheCard
-const NicheCard: React.FC<{ niche: NicheData, delay: number, onUse: () => void }> = ({ niche, delay, onUse }) => { //
-    const [isOpen, setIsOpen] = useState(false);
-
-    const ProgressBar: React.FC<{ label: string; value: number, invertColor?: boolean }> = ({ label, value, invertColor }) => { //
-        let barClass = "progress-bar-fg";
-        if (invertColor && value > 75) { //
-            barClass = "bg-red-500 shadow-[0_0_8px_#ef4444]";
-        } else if (invertColor && value > 50) { //
-            barClass = "bg-yellow-500 shadow-[0_0_8px_#eab308]";
-        }
-
-        return (
-            <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                    <span className="text-gray-400">{label}</span>
-                    <span className="font-bold text-white">{value}/100</span>
-                </div> {/* */}
-                <div className="w-full progress-bar-bg rounded-full h-2">
-                    <div className={`${barClass} h-2 rounded-full`} style={{ width: `${value}%` }}></div>
-                </div>
-            </div>
-        );
-    }; //
-
-    return (
-        <div className="bg-black/40 border border-[#CDAD5A]/30 rounded-sm animate-unearth" style={{ animationDelay: `${delay}ms` }}>
-            <button onClick={() => setIsOpen(!isOpen)} className="w-full p-3 text-left flex justify-between items-center">
-                <div>
-                    <h4 className="font-bold text-base text-[#CDAD5A]">{niche.nicheName}</h4>
-                    <p className="text-xs text-gray-400">Điểm tiềm năng: <span className="text-xl font-bold text-emerald-400">{niche.overallScore}/10</span></p> {/* */}
-                </div>
-                <span className={`text-2xl transition-transform duration-300 ${isOpen ? 'rotate-45 text-[#CDAD5A]' : 'text-[#008080]'}`}>+</span>
-            </button>
-            {isOpen && (
-                <div className="p-3 border-t border-[#CDAD5A]/30 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3"> {/* */}
-                        <ProgressBar label="Cạnh tranh" value={niche.competitionScore} invertColor={true} />
-                        <ProgressBar label="Lượng tìm kiếm" value={niche.searchVolumeScore} />
-                        <ProgressBar label="Kiếm tiền" value={niche.monetizationScore} /> {/* */}
-                    </div>
-                    <div>
-                        <h5 className="font-bold text-sm text-white mb-2">10 Chủ đề Video Tiên phong:</h5>
-                        <ul className="list-decimal list-inside text-xs text-gray-300 space-y-1"> {/* */}
-                            {niche.pioneerVideoTopics.map((topic, i) => <li key={i}>{topic}</li>)}
-                        </ul>
-                    </div>
-                    <div> {/* */}
-                        <h5 className="font-bold text-sm text-white mb-2">Kịch bản Khai thác Gọn:</h5>
-                        <div className="text-xs text-gray-300 space-y-1">
-                            <p><strong className="text-[#008080]">Tông giọng:</strong> {niche.miningScript.tone}</p>
-                            <p><strong className="text-[#008080]">Tần suất:</strong> {niche.miningScript.frequency}</p> {/* */}
-                            <p><strong className="text-[#008080]">Mục tiêu Kiếm tiền:</strong> {niche.miningScript.monetizationGoal}</p>
-                        </div>
-                    </div> {/* */}
-                     <div>
-                        <h5 className="font-bold text-sm text-white mb-2">Kênh Thấp Tầng (Bằng chứng khả thi):</h5>
-                        <div className="text-xs text-gray-300 space-y-1">
-                            {niche.lowFloorChannels.map((channel, i) => ( //
-                                <a key={i} href={channel.url} target="_blank" rel="noopener noreferrer" className="block hover:text-[#CDAD5A] underline">{channel.name}</a>
-                            ))}
-                        </div> {/* */}
-                    </div>
-                    <button onClick={onUse} className="w-full text-xs mt-2 px-3 py-2 bg-[#008080] text-white font-bold border-2 border-[#008080] hover:bg-transparent hover:text-[#008080] transition-colors rounded-sm">SỬ DỤNG NGÁCH NÀY CHO KỊCH BẢN</button>
-                </div>
-            )}
-        </div> /* */
-    );
+  );
 };
-
-// Bắt đầu Component Chính
-const MicroNicheMinerTool: React.FC<MicroNicheMinerToolProps> = ({ onBack, onToolSelect, tools }) => {
-    // --- Các state giữ nguyên ---
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(''); //
-    const [output, setOutput] = useState<OutputData | null>(null);
-    const [macroNiche, setMacroNiche] = useState('');
-    const [competition, setCompetition] = useState(20); //
-    const [searchVolume, setSearchVolume] = useState(50);
-    const [monetization, setMonetization] = useState(50);
-    const [outputLanguage, setOutputLanguage] = useState('Tiếng Việt'); //
-    const buttonRef = useRef<HTMLButtonElement>(null);
-
-    // --- Hàm helper handleUseForScript giữ nguyên ---
-    const handleUseForScript = (niche: NicheData) => { //
-        const scriptTool = tools.find(t => t.name === "VIẾT KỊCH BẢN");
-        if (scriptTool) { //
-            const videoIdeas = niche.pioneerVideoTopics.map((title, i) => `${i+1}. ${title}`).join('\n');
-            const idea = `Tôi muốn tạo video cho ngách "${niche.nicheName}". Dưới đây là 10 ý tưởng video tiềm năng để bắt đầu:\n${videoIdeas}\nHãy giúp tôi phát triển ý tưởng đầu tiên thành một kịch bản hoàn chỉnh.`; //
-            localStorage.setItem('scriptIdeaFromRival', idea); //
-            onToolSelect(scriptTool);
-        }
-    };
-
-    // --- HÀM handleSubmit MỚI (Gọi Backend /api/youtube với tool: 'micro') ---
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!macroNiche) { //
-            setError("Vui lòng nhập Lĩnh vực Khai thác.");
-            return; //
-        }
-        buttonRef.current?.classList.add('animate-emerald-pulse-strong');
-        setTimeout(() => buttonRef.current?.classList.remove('animate-emerald-pulse-strong'), 1000);
-
-        setIsLoading(true);
-        setError('');
-        setOutput(null);
-
-        try {
-            const response = await fetch('/api/youtube', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    tool: 'micro',
-                    macroNiche,
-                    competition,
-                    searchVolume,
-                    monetization,
-                    outputLanguage,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || `Lỗi ${response.status}`);
-            }
-
-            const result = await response.json();
-
-            if (!result.topNiches || !result.saturatedNichesWarning) {
-                throw new Error("Phản hồi AI không tuân theo cấu trúc JSON được yêu cầu.");
-            }
-
-            setOutput(result as OutputData);
-
-        } catch (err: any) { //
-            setError(`Lỗi: ${err.message || "Không thể khai thác. Vui lòng thử lại."}`);
-            console.error("Lỗi gọi API /api/youtube:", err); //
-        } finally {
-            setIsLoading(false); //
-        }
-    };
-
-    // --- Phần JSX return giữ nguyên ---
-    // (Giống hệt file gốc)
-    return (
-        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 bg-[#1a1a08] niche-miner-bg">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#CDAD5A] tracking-wider">VIII. TÌM MICRO NICHES (MICRO NICHE MINER)</h2>
-                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2">&times; Trở Về</button>
-            </div> {/* */}
-
-            {/* Main Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 flex-grow min-h-0">
-                {/* LEFT COLUMN - Form */}
-                <form onSubmit={handleSubmit} className="lg:col-span-3 flex flex-col space-y-4 pr-2 overflow-y-auto">
-                    {/* Macro Niche Input */}
-                    <div>
-                        <label className="text-sm font-bold text-[#CDAD5A] font-playfair">LĨNH VỰC KHAI THÁC</label> {/* */}
-                        <textarea value={macroNiche} onChange={e => setMacroNiche(e.target.value)} placeholder="Nhập lĩnh vực lớn (Macro Niche) bạn quan tâm (VD: Đầu tư, Ẩm thực, Thú cưng,...)" className="w-full h-24 obsidian-textarea focus:border-[#008080]"></textarea>
-                    </div>
-                    {/* Filters */}
-                    <div>
-                        <label className="text-sm font-bold text-[#008080]">LỌC RỦI RO</label> {/* */}
-                        <div className="space-y-3 mt-2 text-xs">
-                           <div>
-                                <label>Mức độ Cạnh tranh: <span className="font-mono text-lg text-[#CDAD5A]">{competition <= 25 ? "Rất Thấp" : "Thấp"}</span></label> {/* */}
-                                <input type="range" min="0" max="50" value={competition} onChange={e => setCompetition(parseInt(e.target.value))} className="w-full obsidian-slider bronze" />
-                           </div>
-                            <div>
-                                <label>Lượng tìm kiếm Tiềm năng: <span className="font-mono text-lg text-[#CDAD5A]">{searchVolume < 60 ? "Trung bình" : "Cao"}</span></label> {/* */}
-                                <input type="range" min="30" max="100" value={searchVolume} onChange={e => setSearchVolume(parseInt(e.target.value))} className="w-full obsidian-slider bronze" />
-                           </div>
-                            <div>
-                                <label>Khả năng Kiếm tiền: <span className="font-mono text-lg text-[#CDAD5A]">{monetization < 60 ? "Thấp" : "Cao"}</span></label> {/* */}
-                                <input type="range" min="30" max="100" value={monetization} onChange={e => setMonetization(parseInt(e.target.value))} className="w-full obsidian-slider bronze" />
-                           </div>
-                        </div>
-                    </div> {/* */}
-                    {/* Output Language */}
-                     <div>
-                        <label className="text-sm font-bold text-[#CDAD5A] font-playfair">NGÔN NGỮ ĐẦU RA</label>
-                         <select value={outputLanguage} onChange={e => setOutputLanguage(e.target.value)} className="w-full obsidian-select">
-                            <option>Tiếng Việt</option> {/* */}
-                            <option>English</option>
-                        </select>
-                    </div> {/* */}
-                    {/* Submit Button */}
-                    <button ref={buttonRef} type="submit" disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow disabled:bg-gray-600 disabled:cursor-not-allowed">
-                        {isLoading ? "ĐANG KHAI THÁC..." : "KÍCH HOẠT KHAI THÁC"} {/* */}
-                    </button>
-                    {/* Error Message */}
-                    {error && <p className="text-red-500 text-center text-xs">{error}</p>}
-                </form>
-
-                {/* RIGHT COLUMN - Output */}
-                <div className="lg:col-span-7 flex flex-col space-y-3 min-h-0 overflow-y-auto pr-2">
-                    {/* Loading State */}
-                    {isLoading && <Loader />} {/* */}
-                    {/* Initial State */}
-                    {!isLoading && !output && (
-                         <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
-                             <div className="w-24 h-24 opacity-20"><CompassIcon /></div> {/* */}
-                             <p className="mt-4">La bàn đang chờ lệnh khai thác...</p>
-                         </div>
-                    )}
-                    {/* Output Display */}
-                    {output && !isLoading && ( //
-                        <>
-                            {/* Top Niches */}
-                            <div>
-                                <h3 className="text-lg font-bold text-white mb-2 font-playfair">BẢN ĐỒ VỊ TRÍ 10 NGÁCH VÀNG</h3> {/* */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {output.topNiches.map((niche, i) => (
-                                        <NicheCard key={i} niche={niche} delay={i * 80} onUse={() => handleUseForScript(niche)} /> //
-                                    ))}
-                                </div>
-                             </div> {/* */}
-
-                            {/* Saturated Niches Warning */}
-                            {output.saturatedNichesWarning.length > 0 && (
-                                <div className="p-4 bg-red-900/20 border-2 border-red-700/50 rounded-sm"> {/* */}
-                                    <h4 className="font-bold text-red-400 text-base mb-2">CẢNH BÁO: KHU VỰC BÃO HÒA</h4>
-                                    <p className="text-xs text-gray-300 mb-2">Gnosis Portal cảnh báo các ngách sau có độ cạnh tranh rất cao hoặc tiềm ẩn rủi ro. Cân nhắc kỹ trước khi tham gia:</p> {/* */}
-                                    <div className="flex flex-wrap gap-2">
-                                        {output.saturatedNichesWarning.map(warning => (
-                                            <span key={warning} className="px-2 py-1 bg-red-800/50 text-red-300 text-xs rounded-sm">{warning}</span> //
-                                        ))}
-                                    </div>
-                                </div> //
-                            )}
-
-                            {/* Action Buttons */}
-                             <div className="flex items-center gap-4 pt-4 sticky bottom-0 bg-[#1a1a08]/80 backdrop-blur-sm"> {/* */}
-                                <button onClick={() => alert('Đang phát triển...')} className="flex-grow bg-[#008080] text-white font-bold py-2 px-5 border-2 border-[#008080] rounded-sm transition-all hover:bg-transparent hover:text-[#008080]">LƯU 10 NICHE VÀO LOG</button>
-                                <button onClick={() => alert('Đang phát triển...')} className="flex-grow bg-transparent text-[#CDAD5A] font-bold py-2 px-5 border-2 border-[#CDAD5A] rounded-sm transition-all hover:bg-[#CDAD5A] hover:text-black">XUẤT BÁO CÁO (PDF)</button> {/* */}
-                            </div>
-                        </>
-                    )}
-                </div> {/* */}
-            </div>
-        </div>
-    );
-}; //
-
-export default MicroNicheMinerTool; //
