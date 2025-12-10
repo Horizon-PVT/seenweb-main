@@ -28,14 +28,22 @@ const HeroSection: React.FC = () => {
           </div>
       </div>
       
-      <div className="relative z-10 p-6">
+            <div className="relative z-10 p-6">
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-black text-white leading-tight drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
           <span className="animate-liquid-pulse">SAN PHẲNG</span> CUỘC CHƠI <span className="animate-liquid-pulse" style={{ animationDelay: '0.3s' }}>YOUTUBE</span>
         </h1>
         
-        <button className="bg-[#008080] text-white font-bold py-4 px-10 text-lg border-2 border-[#008080] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow hover:emerald-glow-strong mt-12">
-          KHAI SÁNG BÍ PHÁP CỦA BẠN
-        </button>
+        {/* ĐOẠN MỚI – nút xuống thật thấp */}
+        <div className="mt-32 md:mt-48">
+          <a 
+            href="https://zalo.me/g/lhxazc331" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block bg-[#008080] text-white font-bold py-4 px-10 text-lg border-2 border-[#008080] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow hover:emerald-glow-strong no-underline"
+          >
+            CỘNG ĐỒNG SEENYT
+          </a>
+        </div>
       </div>
     </section>
   );
