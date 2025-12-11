@@ -1,14 +1,14 @@
-// pages/_app.tsx
-import "@/styles/globals.css";
+// File: pages/_app.tsx (thay toàn bộ bằng cái này - FULL HOÀN CHỈNH)
+import "@/styles/globals.css";  // Giữ nguyên import CSS của anh
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { AuthProvider } from "@/AuthContext";
+import { SessionProvider } from "next-auth/react";  // Chỉ dùng NextAuth
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
-    <AuthProvider>
+    <SessionProvider session={session}>
       <Head>
-        {/* 🧠 SEO cơ bản áp dụng cho toàn site */}
+        {/* 🧠 SEO cơ bản áp dụng cho toàn site - giữ nguyên của anh */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta httpEquiv="Content-Language" content="vi" />
@@ -46,6 +46,6 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
 
       <Component {...pageProps} />
-    </AuthProvider>
+    </SessionProvider>
   );
 }

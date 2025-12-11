@@ -1,10 +1,12 @@
-// File: components/Header.tsx
+// File: components/Header.tsx (bản full đã sửa - dùng NextAuth)
 import React, { useState } from "react";
 import AuthModal from "./AuthModal";
-import { useAuth } from "../AuthContext";
+import { useSession, signOut } from "next-auth/react";
 
 const Header: React.FC = () => {
-  const { user, isLoggedIn, logout } = useAuth();
+  const { data: session, status } = useSession();  // Check user từ NextAuth
+  const isLoggedIn = !!session;  // True nếu đã đăng nhập
+  const user = session?.user;  // Lấy info user (email, name, role)
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleNavClick = (
@@ -21,7 +23,7 @@ const Header: React.FC = () => {
   const closeModal = () => setIsModalOpen(false);
 
   const handleLogout = async () => {
-    await logout();
+    await signOut({ callbackUrl: "/" });  // Đăng xuất an toàn, quay về home
   };
 
   return (

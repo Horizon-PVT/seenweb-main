@@ -18,7 +18,7 @@ import ImageForgeTool from './ImageForgeTool'; // Giả sử tồn tại
 import StoryStudioTool from './StoryStudioTool'; // Giả sử tồn tại
 import TextToSpeechTool from './TextToSpeechTool'; // Giả sử tồn tại
 import VeocityTool from './VeocityTool'; // Giả sử tồn tại
-import { useAuth } from '../AuthContext'; // Import Auth Context
+import { useSession } from 'next-auth/react';
 
 export interface Tool {
   id?: string; // Thêm id nếu cần (từ bản trước)
@@ -120,7 +120,8 @@ const ToolButton: React.FC<{ tool: Tool; onClick: () => void; isSelected: boolea
 
 const ToolsGrid: React.FC = () => {
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
-  const { plan } = useAuth(); // Lấy gói dịch vụ hiện tại
+   const { data: session } = useSession();
+  const plan = (session?.user as any)?.role || 'FREE'; // Lấy role từ Google login
 
   // --- LOGIC KIỂM SOÁT QUYỀN TRUY CẬP (Dựa trên cấu trúc 2/3/8/10 công cụ đã chốt) ---
   const checkAccess = (toolName: string) => {
