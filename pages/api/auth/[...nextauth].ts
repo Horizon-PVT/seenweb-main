@@ -1,47 +1,51 @@
+// pages/api/auth/[...nextauth].ts
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
-import type { NextApiRequest, NextApiResponse } from "next"
 
-// Đây là file cũ (pages/api), nên phải dùng kiểu NextApiHandler
-const handler = (req: NextApiRequest, res: NextApiResponse) =>
-  NextAuth(req, res, {
-    providers: [
-      GoogleProvider({
-        clientId: process.env.GOOGLE_CLIENT_ID as string,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      }),
-    ],
-    secret: process.env.NEXTAUTH_SECRET,
+export default NextAuth({
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
 
-    // Nếu anh có trang login riêng thì để vậy, không có thì để "/login" cũng được
-    pages: {
-      signIn: "/login", // hoặc "/" cũng được
-      error: "/login",   // khi lỗi sẽ quay về đây
+  // BẮT BUỘC phải có 3 dòng này ở production
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+  },
+
+  // QUAN TRỌNG NHẤT: force NextAuth dùng đúng domain production
+  // nếu không có dòng này thì Vercel sẽ sinh ra redirect_uri kiểu *.vercel.app → bị Google chặn
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Cho phép redirect về chính domain của mình
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Cho phép callback từ Google
+      else if (url.startsWith(baseUrl)) return url
+      return baseUrl
     },
 
-    // Để session dùng JWT (khuyên dùng cho serverless Vercel)
-    session: {
-      strategy: "jwt",
+    async jwt({ token, account, profile }) {
+      if (account) token.accessToken = account.access_token
+      if (profile) {
+        token.name = (profile as any).name
+        token.picture = (profile as any).picture
+      }
+      return token
     },
 
-    // Lưu thông tin Google vào database (nếu anh dùng Prisma)
-    callbacks: {
-      async jwt({ token, account, profile }) {
-        if (account) {
-          token.accessToken = account.access_token
-        }
-        if (profile) {
-          token.name = profile.name
-          token.email = profile.email
-          token.picture = profile.picture
-        }
-        return token
-      },
-      async session({ session, token }) {
-        session.user.id = token.sub
-        return session
-      },
+    async session({ session, token }) {
+      if (token.sub) session.user.id = token.sub
+      if (token.picture) session.user.image = token.picture as string
+      return session
     },
-  })
+  },
 
-export default handler
+  // Tuỳ chọn: nếu anh muốn trang login đẹp hơn
+  pages: {
+    signIn: "/", // về trang chủ luôn
+    error: "/",  // lỗi cũng về trang chủ
+  },
+})
