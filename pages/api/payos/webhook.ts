@@ -1,4 +1,4 @@
-// pages/api/payos/webhook.ts - FIXED: QUERY PAYMENTREQUEST BY ORDERCODE + UPDATE USER
+// pages/api/payos/webhook.ts - FIXED ASYNC PROMISE + TIMEOUT PRISMA
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { PayOS } from '@payos/node';
@@ -12,59 +12,69 @@ const payos = new PayOS(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    console.log('PayOS GET validate OK');
     return res.status(200).json({ message: 'Webhook ready' });
   }
 
   if (req.method === 'POST') {
+    let prismaDisconnected = false;
     try {
       const webhookData = payos.webhooks.verify(req.body);
-      console.log('PayOS Webhook verified:', webhookData);
+      console.log('PayOS Webhook verified OK:', { code: webhookData.code, orderCode: webhookData.orderCode });
 
       if (webhookData.code === '00' && webhookData.status === 'PAID') {
         const orderCode = webhookData.orderCode.toString();
+        console.log('Processing PAID order:', orderCode);
 
-        // ✅ QUERY PAYMENTREQUEST BY ORDERCODE
-        const paymentReq = await prisma.paymentRequest.findUnique({
-          where: { orderCode: orderCode },
-          include: { user: true }  // Nếu có relation
-        });
+        // TIMEOUT PRISMA QUERY (5s max)
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Prisma timeout')), 5000));
+        const paymentReq = await Promise.race([prisma.paymentRequest.findUnique({ where: { orderCode } }), timeoutPromise]);
 
         if (!paymentReq) {
-          console.error('No PaymentRequest for orderCode:', orderCode);
+          console.error('No PaymentRequest found for orderCode:', orderCode);
           return res.status(400).json({ error: 'Order not found' });
         }
 
         const userEmail = paymentReq.email;
-        const targetRole = paymentReq.role;  // CREATIVE/SUPER từ create
+        const targetRole = paymentReq.role;
         const creditsIncrement = targetRole === 'SUPER' ? 1000 : 100;
 
-        // ✅ UPDATE USER ROLE + CREDITS
-        await prisma.user.updateMany({
-          where: { email: userEmail },
-          data: {
-            role: targetRole,
-            credits: {  // Giả định User có field credits, nếu chưa add vào schema
-              increment: creditsIncrement
-            },
-            maxDailyUsage: targetRole === 'SUPER' ? 100 : 20  // Tăng limit
-          }
-        });
+        console.log('Updating user:', { email: userEmail, role: targetRole, increment: creditsIncrement });
 
-        // ✅ UPDATE PAYMENTREQUEST STATUS
+        // UPDATE USER WITH TIMEOUT
+        await Promise.race([
+          prisma.user.updateMany({
+            where: { email: userEmail },
+            data: {
+              role: targetRole,
+              credits: { increment: creditsIncrement },
+              maxDailyUsage: targetRole === 'SUPER' ? 100 : 20
+            }
+          }),
+          timeoutPromise
+        ]);
+
+        // UPDATE PAYMENT STATUS
         await prisma.paymentRequest.update({
-          where: { orderCode: orderCode },
+          where: { orderCode },
           data: { status: 'SUCCESS', paidAt: new Date() }
         });
 
-        console.log(`PAYOS UPGRADE SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits, Order: ${orderCode})`);
+        console.log(`PAYOS UPGRADE FULL SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits)`);
+      } else {
+        console.log('Non-PAID event:', webhookData.code, webhookData.status);
       }
 
       return res.status(200).json({ success: true });
+
     } catch (error: any) {
-      console.error('Webhook ERROR:', error);
-      return res.status(400).json({ error: 'Invalid webhook' });
+      console.error('Webhook FULL ERROR:', error.message || error);
+      return res.status(400).json({ error: 'Webhook failed' });
     } finally {
-      await prisma.$disconnect();
+      if (!prismaDisconnected) {
+        await prisma.$disconnect();
+        prismaDisconnected = true;
+      }
     }
   }
 
