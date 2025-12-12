@@ -1,7 +1,8 @@
-// pages/api/payos/webhook.ts - FIXED ASYNC PROMISE + TIMEOUT PRISMA
+// pages/api/payos/webhook.ts - FIXED: RAW BODY + SIGNATURE VERIFY + PRISMA UPDATE
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { PayOS } from '@payos/node';
+import { IncomingMessage } from 'http';  // For raw-body
 
 const prisma = new PrismaClient();
 const payos = new PayOS(
@@ -9,6 +10,22 @@ const payos = new PayOS(
   process.env.PAYOS_API_KEY!,
   process.env.PAYOS_CHECKSUM_KEY!
 );
+
+// Middleware to get raw body (PayOS verify cần raw string)
+async function getRawBody(req: IncomingMessage): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+export const config = {
+  api: {
+    bodyParser: false,  // Disable auto-parse để lấy raw body
+  },
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -19,16 +36,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     let prismaDisconnected = false;
     try {
-      const webhookData = payos.webhooks.verify(req.body);
-      console.log('PayOS Webhook verified OK:', { code: webhookData.code, orderCode: webhookData.orderCode });
+      // ✅ RAW BODY + SIGNATURE FROM HEADERS
+      const rawBody = await getRawBody(req as IncomingMessage);
+      const bodyString = rawBody.toString('utf8');
+      const signature = req.headers['x-payos-signature'] as string;
+
+      if (!signature) {
+        console.error('Missing x-payos-signature header');
+        return res.status(400).json({ error: 'Missing signature' });
+      }
+
+      console.log('Webhook raw body length:', bodyString.length, 'Signature:', signature.substring(0, 10) + '...');
+
+      // ✅ VERIFY WITH RAW BODY + SIGNATURE (SDK docs: sync method)
+      const webhookData = payos.webhooks.verify(bodyString, signature);
+      console.log('PayOS Webhook verified OK:', { code: webhookData.code, orderCode: webhookData.orderCode, desc: webhookData.desc });
 
       if (webhookData.code === '00' && webhookData.status === 'PAID') {
         const orderCode = webhookData.orderCode.toString();
         console.log('Processing PAID order:', orderCode);
 
-        // TIMEOUT PRISMA QUERY (5s max)
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Prisma timeout')), 5000));
-        const paymentReq = await Promise.race([prisma.paymentRequest.findUnique({ where: { orderCode } }), timeoutPromise]);
+        // ✅ QUERY PAYMENTREQUEST
+        const paymentReq = await prisma.paymentRequest.findUnique({
+          where: { orderCode },
+        });
 
         if (!paymentReq) {
           console.error('No PaymentRequest found for orderCode:', orderCode);
@@ -41,26 +72,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         console.log('Updating user:', { email: userEmail, role: targetRole, increment: creditsIncrement });
 
-        // UPDATE USER WITH TIMEOUT
-        await Promise.race([
-          prisma.user.updateMany({
-            where: { email: userEmail },
-            data: {
-              role: targetRole,
-              credits: { increment: creditsIncrement },
-              maxDailyUsage: targetRole === 'SUPER' ? 100 : 20
-            }
-          }),
-          timeoutPromise
-        ]);
+        // ✅ UPDATE USER
+        const updateResult = await prisma.user.updateMany({
+          where: { email: userEmail },
+          data: {
+            role: targetRole,
+            credits: { increment: creditsIncrement },
+            maxDailyUsage: targetRole === 'SUPER' ? 100 : 20
+          }
+        });
 
-        // UPDATE PAYMENT STATUS
+        if (updateResult.count === 0) {
+          console.warn('No user updated for email:', userEmail);
+        }
+
+        // ✅ UPDATE PAYMENT STATUS
         await prisma.paymentRequest.update({
           where: { orderCode },
           data: { status: 'SUCCESS', paidAt: new Date() }
         });
 
-        console.log(`PAYOS UPGRADE FULL SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits)`);
+        console.log(`PAYOS UPGRADE FULL SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits, updated ${updateResult.count} users)`);
       } else {
         console.log('Non-PAID event:', webhookData.code, webhookData.status);
       }
@@ -73,7 +105,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } finally {
       if (!prismaDisconnected) {
         await prisma.$disconnect();
-        prismaDisconnected = true;
       }
     }
   }
