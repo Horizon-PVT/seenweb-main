@@ -8,7 +8,7 @@ interface PricingTableProps {
 const featuresMap = {
   FREE: [
     "Chỉ sử dụng 2 công cụ: Viết kịch bản + SEO YouTube",
-    "Giới hạn: 2 lần/ngày",
+    "Giới hạn: 2 lần sử dụng công cụ",
     "Không được sử dụng các công cụ khác",
   ],
   CREATIVE: [
@@ -27,6 +27,7 @@ const featuresMap = {
   ],
   VIP: [
     "Hỗ trợ chuyên sâu trực tiếp từ chuyên gia",
+    "Được cấp tài khoản sử dụng SeenYT max riêng",
     "Zoom riêng + đào tạo 1VS1 đến khi kiếm tiền YouTube/Affiliate",
     "Hướng dẫn kiếm tiền trên KDP Amazon",
     "Liên hệ: https://zalo.me/0789284078",
@@ -147,7 +148,7 @@ export default function PricingTable({ setSelectedPlan }: PricingTableProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
             <PricingCard plan="KHÁM PHÁ" price="FREE" features={featuresMap.FREE} color="#00D4FF" glow="0 0 25px #00D4FF" isFree isYearly={isYearly} onUpgrade={handleUpgrade} />
             <PricingCard plan="SÁNG TẠO" price={isYearly ? "3.500.000đ" : "349.000đ"} features={featuresMap.CREATIVE} color="#22C55E" glow="0 0 35px #22C55E" isYearly={isYearly} onUpgrade={handleUpgrade} />
-            <PricingCard plan="VƯỢT TRỢI" price={isYearly ? "6.500.000đ" : "649.000đ"} features={featuresMap.SUPER} color="#FBBF24" glow="0 0 50px #FBBF24" isFeatured isYearly={isYearly} onUpgrade={handleUpgrade} />
+            <PricingCard plan="VƯỢT TRỘI" price={isYearly ? "6.500.000đ" : "649.000đ"} features={featuresMap.SUPER} color="#FBBF24" glow="0 0 50px #FBBF24" isFeatured isYearly={isYearly} onUpgrade={handleUpgrade} />
             <PricingCard plan="CHUYÊN SÂU 1VS1" price="LIÊN HỆ" features={featuresMap.VIP} color="#A855F7" glow="0 0 40px #A855F7" isVip isYearly={isYearly} onUpgrade={handleUpgrade} />
           </div>
         </div>
