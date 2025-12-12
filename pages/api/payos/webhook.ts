@@ -1,4 +1,4 @@
-// pages/api/payos/webhook.ts - FIXED RAW BODY + SIGNATURE HEADER VERIFY (12/2025)
+// pages/api/payos/webhook.ts - FIXED FROM DOCUMENT + RAW BODY FOR VERIFY
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { PayOS } from '@payos/node';
@@ -34,9 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'POST') {
-    let disconnected = false;
     try {
-      // ✅ LẤY RAW BODY + SIGNATURE HEADER
+      // ✅ RAW BODY + SIGNATURE HEADER (fix từ document)
       const rawBody = await getRawBody(req as IncomingMessage);
       const signature = req.headers['x-payos-signature'] as string;
 
@@ -45,33 +44,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Missing signature' });
       }
 
-      console.log('Webhook raw body length:', rawBody.length, 'Signature preview:', signature.substring(0, 10) + '...');
+      console.log('Webhook raw body preview:', rawBody.substring(0, 50) + '...');
+      console.log('Signature preview:', signature.substring(0, 10) + '...');
 
-      // ✅ VERIFY VỚI RAW BODY + SIGNATURE (SDK method đúng)
+      // ✅ VERIFY VỚI RAW BODY + SIGNATURE (SDK docs)
       const webhookData = payos.webhooks.verify(rawBody, signature);
-      console.log('PayOS Webhook verified full:', { code: webhookData.code, orderCode: webhookData.orderCode, desc: webhookData.desc });
+      console.log('PayOS Webhook verified:', { code: webhookData.code, orderCode: webhookData.orderCode, desc: webhookData.desc });
 
       if (webhookData.code === '00' && webhookData.status === 'PAID') {
-        const orderCode = webhookData.orderCode.toString();
-        console.log('Processing PAID order:', orderCode);
-
-        // ✅ QUERY PAYMENTREQUEST BY ORDERCODE
-        const paymentReq = await prisma.paymentRequest.findUnique({
-          where: { orderCode },
-        });
-
-        if (!paymentReq) {
-          console.error('No PaymentRequest found for orderCode:', orderCode);
-          return res.status(400).json({ error: 'Order not found' });
+        // ✅ EXTRACT EMAIL TỪ DESC (như document: SeenYT-ST-email)
+        let userEmail = webhookData.userEmail;
+        if (!userEmail) {
+          const desc = webhookData.desc || '';
+          const emailMatch = desc.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+          userEmail = emailMatch ? emailMatch[1] : null;
         }
 
-        const userEmail = paymentReq.email;
-        const targetRole = paymentReq.role;
+        if (!userEmail) {
+          console.error('No email in webhook:', webhookData.desc);
+          return res.status(200).json({ success: true, error: 'No user email' });  // Return 200 để tránh retry
+        }
+
+        // ✅ XÁC ĐỊNH PLAN TỪ DESC (ST=CREATIVE, VT=SUPER)
+        const desc = webhookData.desc || '';
+        const planMatch = desc.match(/ST|VT/i);
+        const targetRole = planMatch ? (planMatch[0].toUpperCase() === 'ST' ? 'CREATIVE' : 'SUPER') : 'CREATIVE';
         const creditsIncrement = targetRole === 'SUPER' ? 1000 : 100;
 
-        console.log('Updating user details:', { email: userEmail, role: targetRole, increment: creditsIncrement });
+        console.log('Updating user:', { email: userEmail, role: targetRole, increment: creditsIncrement });
 
-        // ✅ UPDATE USER ROLE + CREDITS
+        // ✅ UPDATE PRISMA USER (như document)
         const updateResult = await prisma.user.updateMany({
           where: { email: userEmail },
           data: {
@@ -81,28 +83,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         });
 
-        console.log('User update result:', updateResult.count, 'users affected');
+        console.log('Prisma update result:', updateResult.count, 'users affected');
 
-        // ✅ UPDATE PAYMENT STATUS
-        await prisma.paymentRequest.update({
-          where: { orderCode },
-          data: { status: 'SUCCESS', paidAt: new Date() }
-        });
-
-        console.log(`PAYOS UPGRADE SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits, Order: ${orderCode})`);
+        console.log(`Webhook: Đã cập nhật User ${userEmail} lên ${targetRole} thành công!`);
       } else {
-        console.log('Non-PAID event:', webhookData.code, webhookData.status);
+        console.log('Non-success event:', webhookData.code, webhookData.status);
       }
 
+      // ✅ LUÔN RETURN 200 OK (như document, tránh PayOS retry)
       return res.status(200).json({ success: true });
 
     } catch (error: any) {
-      console.error('Webhook ERROR full:', error.message || error);
-      return res.status(400).json({ error: 'Webhook failed' });
+      console.error('Webhook error:', error.message || error);
+      return res.status(200).json({ success: true, error: 'Internal processing error' });  // 200 OK dù error
     } finally {
-      if (!disconnected) {
-        await prisma.$disconnect();
-      }
+      await prisma.$disconnect();
     }
   }
 
