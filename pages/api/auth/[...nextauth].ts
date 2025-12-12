@@ -1,4 +1,4 @@
-// pages/api/auth/[...nextauth].ts - FIXED DEFAULT EXPORT FOR PAGES ROUTER + ROLE PERSIST
+// pages/api/auth/[...nextauth].ts - FIXED DEFAULT EXPORT FOR PAGES ROUTER (no GET/POST)
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
@@ -41,7 +41,7 @@ const authOptions: NextAuthOptions = {
   },
 };
 
-// ✅ DEFAULT EXPORT HANDLER (cho pages router)
+// ✅ DEFAULT EXPORT CHO PAGES ROUTER (không GET/POST, Next.js tự handle methods)
 export default NextAuth(authOptions);
 
 // ✅ NAMED EXPORT CHO IMPORT Ở CREATE-PAYMENT (fix warning)
