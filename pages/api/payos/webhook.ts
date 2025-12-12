@@ -1,8 +1,8 @@
-// pages/api/payos/webhook.ts - FIXED: RAW BODY + SIGNATURE VERIFY + PRISMA UPDATE
+// pages/api/payos/webhook.ts - FIXED RAW BODY + SIGNATURE HEADER VERIFY (12/2025)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { PayOS } from '@payos/node';
-import { IncomingMessage } from 'http';  // For raw-body
+import { IncomingMessage } from 'http';
 
 const prisma = new PrismaClient();
 const payos = new PayOS(
@@ -11,12 +11,12 @@ const payos = new PayOS(
   process.env.PAYOS_CHECKSUM_KEY!
 );
 
-// Middleware to get raw body (PayOS verify cần raw string)
-async function getRawBody(req: IncomingMessage): Promise<Buffer> {
+// Middleware lấy raw body (PayOS cần raw string cho verify)
+async function getRawBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     req.on('data', (chunk) => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     req.on('error', reject);
   });
 }
@@ -34,11 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'POST') {
-    let prismaDisconnected = false;
+    let disconnected = false;
     try {
-      // ✅ RAW BODY + SIGNATURE FROM HEADERS
+      // ✅ LẤY RAW BODY + SIGNATURE HEADER
       const rawBody = await getRawBody(req as IncomingMessage);
-      const bodyString = rawBody.toString('utf8');
       const signature = req.headers['x-payos-signature'] as string;
 
       if (!signature) {
@@ -46,17 +45,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Missing signature' });
       }
 
-      console.log('Webhook raw body length:', bodyString.length, 'Signature:', signature.substring(0, 10) + '...');
+      console.log('Webhook raw body length:', rawBody.length, 'Signature preview:', signature.substring(0, 10) + '...');
 
-      // ✅ VERIFY WITH RAW BODY + SIGNATURE (SDK docs: sync method)
-      const webhookData = payos.webhooks.verify(bodyString, signature);
-      console.log('PayOS Webhook verified OK:', { code: webhookData.code, orderCode: webhookData.orderCode, desc: webhookData.desc });
+      // ✅ VERIFY VỚI RAW BODY + SIGNATURE (SDK method đúng)
+      const webhookData = payos.webhooks.verify(rawBody, signature);
+      console.log('PayOS Webhook verified full:', { code: webhookData.code, orderCode: webhookData.orderCode, desc: webhookData.desc });
 
       if (webhookData.code === '00' && webhookData.status === 'PAID') {
         const orderCode = webhookData.orderCode.toString();
         console.log('Processing PAID order:', orderCode);
 
-        // ✅ QUERY PAYMENTREQUEST
+        // ✅ QUERY PAYMENTREQUEST BY ORDERCODE
         const paymentReq = await prisma.paymentRequest.findUnique({
           where: { orderCode },
         });
@@ -70,9 +69,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const targetRole = paymentReq.role;
         const creditsIncrement = targetRole === 'SUPER' ? 1000 : 100;
 
-        console.log('Updating user:', { email: userEmail, role: targetRole, increment: creditsIncrement });
+        console.log('Updating user details:', { email: userEmail, role: targetRole, increment: creditsIncrement });
 
-        // ✅ UPDATE USER
+        // ✅ UPDATE USER ROLE + CREDITS
         const updateResult = await prisma.user.updateMany({
           where: { email: userEmail },
           data: {
@@ -82,9 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         });
 
-        if (updateResult.count === 0) {
-          console.warn('No user updated for email:', userEmail);
-        }
+        console.log('User update result:', updateResult.count, 'users affected');
 
         // ✅ UPDATE PAYMENT STATUS
         await prisma.paymentRequest.update({
@@ -92,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           data: { status: 'SUCCESS', paidAt: new Date() }
         });
 
-        console.log(`PAYOS UPGRADE FULL SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits, updated ${updateResult.count} users)`);
+        console.log(`PAYOS UPGRADE SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits, Order: ${orderCode})`);
       } else {
         console.log('Non-PAID event:', webhookData.code, webhookData.status);
       }
@@ -100,10 +97,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ success: true });
 
     } catch (error: any) {
-      console.error('Webhook FULL ERROR:', error.message || error);
+      console.error('Webhook ERROR full:', error.message || error);
       return res.status(400).json({ error: 'Webhook failed' });
     } finally {
-      if (!prismaDisconnected) {
+      if (!disconnected) {
         await prisma.$disconnect();
       }
     }
