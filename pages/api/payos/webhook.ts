@@ -1,79 +1,72 @@
-// pages/api/payos/webhook.ts - FIXED FULL WEBHOOK HANDLER (12/2025)
+// pages/api/payos/webhook.ts - FIXED: QUERY PAYMENTREQUEST BY ORDERCODE + UPDATE USER
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
-import { PayOS } from '@payos/node';  // SDK PayOS v2+
+import { PayOS } from '@payos/node';
 
 const prisma = new PrismaClient();
 const payos = new PayOS(
   process.env.PAYOS_CLIENT_ID!,
   process.env.PAYOS_API_KEY!,
-  process.env.PAYOS_CHECKSUM_KEY!  // Dùng checksum để verify webhook signature
+  process.env.PAYOS_CHECKSUM_KEY!
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // ✅ HANDLE GET: PayOS test/validate URL (trả 200 ngay)
   if (req.method === 'GET') {
-    console.log('PayOS webhook validated: GET request OK');
-    return res.status(200).json({ message: 'Webhook ready for PayOS' });
+    return res.status(200).json({ message: 'Webhook ready' });
   }
 
-  // ✅ HANDLE POST: Xử lý webhook thực từ PayOS
   if (req.method === 'POST') {
     try {
-      // VERIFY SIGNATURE TỰ ĐỘNG QUA SDK (dùng CHECKSUM_KEY)
-      const webhookData = payos.webhooks.verify(req.body);  // Method đúng từ docs
-      console.log('PayOS Webhook received & verified:', webhookData);  // Log để debug Vercel
+      const webhookData = payos.webhooks.verify(req.body);
+      console.log('PayOS Webhook verified:', webhookData);
 
-      // KIỂM TRA THÀNH CÔNG (code '00' + status 'PAID')
       if (webhookData.code === '00' && webhookData.status === 'PAID') {
-        // EXTRACT EMAIL AN TOÀN (từ userEmail hoặc desc)
-        let userEmail = webhookData.userEmail;  // Ưu tiên từ payload
-        if (!userEmail) {
-          // Fallback: Parse từ desc (giả định format "OrderCode-ST/VT-email@domain.com")
-          const desc = webhookData.desc || webhookData.description || '';
-          const emailMatch = desc.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-          userEmail = emailMatch ? emailMatch[1] : null;
-        }
-        if (!userEmail) {
-          console.error('No email found in webhook:', webhookData);
-          return res.status(400).json({ error: 'Missing user email' });
-        }
+        const orderCode = webhookData.orderCode.toString();
 
-        // XÁC ĐỊNH PLAN TỪ DESC (ST=CREATIVE, VT=SUPER)
-        const desc = webhookData.desc || '';
-        const planMatch = desc.match(/ST|VT/i);
-        const plan = planMatch ? (planMatch[0].toUpperCase() === 'ST' ? 'CREATIVE' : 'SUPER') : 'CREATIVE';
-
-        // ✅ AUTO UPDATE ROLE TRONG PRISMA (cộng credits/role nếu cần)
-        const updatedUser = await prisma.user.updateMany({
-          where: { email: userEmail },
-          data: { 
-            role: plan,  // Update role
-            // Bonus: Cộng credits nếu plan SUPER (customize theo anh)
-            credits: {
-              increment: plan === 'SUPER' ? 1000 : 100  // Ví dụ: SUPER +1000, CREATIVE +100
-            }
-          },
+        // ✅ QUERY PAYMENTREQUEST BY ORDERCODE
+        const paymentReq = await prisma.paymentRequest.findUnique({
+          where: { orderCode: orderCode },
+          include: { user: true }  // Nếu có relation
         });
 
-        if (updatedUser.count > 0) {
-          console.log(`PAYOS SUCCESS → Updated user ${userEmail} to ${plan} (+${plan === 'SUPER' ? 1000 : 100} credits)`);
-        } else {
-          console.warn(`No user found for email: ${userEmail}`);
+        if (!paymentReq) {
+          console.error('No PaymentRequest for orderCode:', orderCode);
+          return res.status(400).json({ error: 'Order not found' });
         }
-      } else {
-        console.log('PayOS Webhook: Non-success event', webhookData.code, webhookData.status);
+
+        const userEmail = paymentReq.email;
+        const targetRole = paymentReq.role;  // CREATIVE/SUPER từ create
+        const creditsIncrement = targetRole === 'SUPER' ? 1000 : 100;
+
+        // ✅ UPDATE USER ROLE + CREDITS
+        await prisma.user.updateMany({
+          where: { email: userEmail },
+          data: {
+            role: targetRole,
+            credits: {  // Giả định User có field credits, nếu chưa add vào schema
+              increment: creditsIncrement
+            },
+            maxDailyUsage: targetRole === 'SUPER' ? 100 : 20  // Tăng limit
+          }
+        });
+
+        // ✅ UPDATE PAYMENTREQUEST STATUS
+        await prisma.paymentRequest.update({
+          where: { orderCode: orderCode },
+          data: { status: 'SUCCESS', paidAt: new Date() }
+        });
+
+        console.log(`PAYOS UPGRADE SUCCESS → ${userEmail} to ${targetRole} (+${creditsIncrement} credits, Order: ${orderCode})`);
       }
 
-      // ✅ TRẢ 200 OK NGAY (PayOS yêu cầu nhanh, xử lý async sau)
-      return res.status(200).json({ success: true, received: true });
-
+      return res.status(200).json({ success: true });
     } catch (error: any) {
-      console.error('PayOS Webhook ERROR:', error.message || error);  // Log chi tiết
-      return res.status(400).json({ error: 'Invalid webhook signature or data' });
+      console.error('Webhook ERROR:', error);
+      return res.status(400).json({ error: 'Invalid webhook' });
+    } finally {
+      await prisma.$disconnect();
     }
   }
 
-  // Không phải GET/POST → 405
   return res.status(405).json({ error: 'Method not allowed' });
 }

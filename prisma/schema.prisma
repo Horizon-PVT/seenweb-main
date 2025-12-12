@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"] // ← FIX: Cho Postgres trên Vercel, query-engine OK
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"] // Cho Postgres trên Vercel, query-engine OK
 }
 
 datasource db {
@@ -14,30 +14,37 @@ model User {
   name          String?
   image         String?
   passwordHash  String?
-  role          String   @default("FREE") // ← ĐỔI TỪ plan → role + default FREE
+  role          String   @default("FREE") // FREE | CREATIVE | SUPER
   dailyUsage    Int      @default(0)
-  maxDailyUsage Int      @default(2)       // FREE: 2 lần/ngày
+  maxDailyUsage Int      @default(2)      // FREE: 2 lần/ngày, CREATIVE: 20, SUPER: 100
+  credits       Int      @default(0)      // ✅ THÊM: Credits để webhook increment (e.g., +100 CREATIVE)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  paymentRequests PaymentRequest[]  // Relation 1-n với PaymentRequest (optional)
 
   @@map("users")
 }
 
 model PaymentRequest {
-  id          String   @id @default(cuid())
-  userId      String?
-  email       String
-  role        String   // FREE | CREATIVE | SUPER | VIP
-  amount      Int      // đơn vị: VND (349000, 649000)
-  txn         String   // mã giao dịch VNPAY
-  status      String   @default("PENDING") // PENDING | SUCCESS | FAILED
-  createdAt   DateTime @default(now())
+  id          String      @id @default(cuid())
+  orderCode   String      @unique  // ✅ THÊM: Unique orderCode từ PayOS cho webhook query
+  userId      String?     // FK to User.id
+  email       String      // Full email để fallback update
+  role        String      // Target role: CREATIVE | SUPER
+  amount      Int         // VND (349000, 649000)
+  txn         String?     // Mã giao dịch PayOS
+  status      String      @default("PENDING") // PENDING | SUCCESS | FAILED
+  createdAt   DateTime    @default(now())
   paidAt      DateTime?
 
   // Quản trị
   approvedAt  DateTime?
   approvedBy  String?
   note        String?
+
+  // Relation với User (optional, để query full)
+  user        User?       @relation(fields: [userId], references: [id])
 
   @@map("payment_requests")
 }
