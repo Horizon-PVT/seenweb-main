@@ -1,5 +1,5 @@
-// components/PricingTable.tsx - BẢN FIX 100% KHÔNG LỖI (12/2025) + PAYOS SIÊU MƯỢT
-import React, { useState, useRef, useEffect } from "react";
+// components/PricingTable.tsx - BẢN FIX QR URL TRỰC TIẾP + DEBUG (12/2025)
+import React, { useState } from "react";
 
 interface PricingTableProps {
   setSelectedPlan?: (plan: string) => void;
@@ -103,6 +103,8 @@ export default function PricingTable({ setSelectedPlan }: PricingTableProps) {
       });
 
       const data = await res.json();
+      console.log('DEBUG QR DATA:', data); // ← DEBUG: Mở F12 → Console xem qrCode có giá trị gì (URL or base64?)
+      
       if (data.qrCode && data.checkoutUrl) {
         setQrData({ qrCode: data.qrCode, checkoutUrl: data.checkoutUrl });
         setShowQR(true);
@@ -151,12 +153,23 @@ export default function PricingTable({ setSelectedPlan }: PricingTableProps) {
         </div>
       </section>
 
-      {/* MODAL QR ĐẸP LUNG LINH */}
+      {/* MODAL QR FIX BROKEN IMAGE – HIỆN ĐẸP TO ĐÙNG, FALLBACK NẾU BROKEN */}
       {showQR && qrData && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" onClick={() => setShowQR(false)}>
           <div className="bg-white p-10 rounded-3xl text-center max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-3xl font-black mb-6 text-gray-800">Quét QR để nâng cấp ngay!</h3>
-            <img src={qrData.qrCode} alt="QR PayOS" className="mx-auto w-80 h-80 border-8 border-gray-200 rounded-2xl" />
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=450x450&data=${encodeURIComponent(qrData.qrCode)}`}
+              alt="QR PayOS" 
+              className="mx-auto w-80 h-80 border-8 border-gray-200 rounded-2xl" 
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'; // Ẩn img nếu broken
+                e.currentTarget.nextSibling.style.display = 'block'; // Hiện fallback
+              }}
+            />
+            <div style={{ display: 'none' }} className="mx-auto w-80 h-80 border-8 border-gray-200 rounded-2xl flex items-center justify-center bg-gray-100">
+              <p className="text-gray-500">QR không tải được, bấm link bên dưới!</p>
+            </div>
             <p className="mt-6 text-lg text-gray-700">
               Hoặc mở link thanh toán:{" "}
               <a href={qrData.checkoutUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold underline">
