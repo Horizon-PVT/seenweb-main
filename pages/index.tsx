@@ -14,73 +14,57 @@ import AffiliateSection from "../components/AffiliateSection";
 import FinalCTA from "../components/FinalCTA";
 import Footer from "../components/Footer";
 import ChatbotWidget from "../components/ChatbotWidget";
+import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 
-const siteUrl = "https://seenweb-main.vercel.app";
-const ogImage = `${siteUrl}/thumbnail.jpg`;
-
-export default function HomePage() {
+export default function Home() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      document.documentElement.style.setProperty("--mouse-x", `${e.clientX}px`);
-      document.documentElement.style.setProperty("--mouse-y", `${e.clientY}px`);
-    };
-    window.addEventListener("mousemove", handleMouseMove);
     setIsClient(true);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+    // Không redirect tự động về /dashboard nữa – để user ở lại trang chủ trải nghiệm
+    // if (status === "authenticated") {
+    //   router.push("/dashboard");
+    // }
+  }, [status, router]);
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://seenyt.net";
+  const title = "SeenYT - Công cụ tối ưu YouTube & kiếm tiền AI";
+  const description =
+    "SeenYT cung cấp 10 công cụ độc quyền giúp bạn tối ưu YouTube, tìm ngách kiếm tiền với AI.";
 
   return (
-    <div className="font-montserrat bg-[#0A1929] reflective-glare-bg"> {/* ĐÃ SỬA: Dark Navy */}
+    <div className="min-h-screen bg-[#0A1929]">
       <Head>
-        <title>SeenWeb — San phẳng cuộc chơi YouTube bằng sức mạnh AI</title>
-        <meta
-          name="description"
-          content="SeenWeb giúp sáng tạo nội dung YouTube dễ dàng hơn với công cụ AI mạnh mẽ, hỗ trợ viết kịch bản, SEO, phân tích kênh và tối ưu video."
-        />
-    
-        <link rel="canonical" href={siteUrl} />
-
-        {/* Open Graph */}
-        <meta property="og:title" content="SeenWeb — San phẳng cuộc chơi YouTube bằng sức mạnh AI" />
-        <meta
-          property="og:description"
-          content="Nền tảng AI giúp YouTuber sáng tạo nội dung và phát triển kênh nhanh hơn bao giờ hết."
-        />
-        
-        <meta property="og:image" content={ogImage} />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={`${siteUrl}/thumbnail.jpg`} />
         <meta property="og:url" content={siteUrl} />
-
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="SeenWeb — San phẳng cuộc chơi YouTube bằng sức mạnh AI" />
-        <meta
-          name="twitter:description"
-          content="AI đồng hành cùng YouTuber. Viết, phân tích, tối ưu video hiệu quả."
-        />
-        <meta name="twitter:image" content={ogImage} />
-
-        {/* JSON-LD Schema cho homepage */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: "SeenWeb",
-              url: siteUrl,
-              description:
-                "SeenWeb là nền tảng AI giúp sáng tạo nội dung và phát triển kênh YouTube nhanh hơn.",
-              publisher: {
-                "@type": "Organization",
-                name: "SeenWeb",
-                logo: `${siteUrl}/thumbnail.jpg`,
-              },
-            }),
-          }}
-        />
-    
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={`${siteUrl}/thumbnail.jpg`} />
+        <link rel="canonical" href={siteUrl} />
+        {process.env.NODE_ENV === "production" && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                url: siteUrl,
+                name: title,
+                description: description,
+                image: `${siteUrl}/thumbnail.jpg`,
+              }),
+            }}
+          />
+        )}
       </Head>
 
       {isClient ? (
@@ -102,7 +86,7 @@ export default function HomePage() {
           <ChatbotWidget />
         </>
       ) : (
-        <div className="min-h-screen bg-[#0A1929] flex items-center justify-center text-[#CDAD5A]"> {/* ĐÃ SỬA: Dark Navy */}
+        <div className="min-h-screen bg-[#0A1929] flex items-center justify-center text-[#CDAD5A]">
           Đang tải giao diện...
         </div>
       )}

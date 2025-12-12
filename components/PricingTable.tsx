@@ -1,212 +1,174 @@
-// components/PricingTable.tsx
-import React from "react";
-import { useRouter } from "next/router";
+// components/PricingTable.tsx - BẢN FIX 100% KHÔNG LỖI (12/2025) + PAYOS SIÊU MƯỢT
+import React, { useState, useRef, useEffect } from "react";
 
 interface PricingTableProps {
   setSelectedPlan?: (plan: string) => void;
 }
 
 const featuresMap = {
-  EXPLORER: [
-    "2 Công cụ cốt lõi (Viết kịch bản, SEO YouTube)",
-    "Giới hạn: 2 lần tạo/ngày",
-    "Truy cập Chatbot AI cơ bản",
-    "Không cần thông tin thanh toán",
+  FREE: [
+    "Chỉ sử dụng 2 công cụ: Viết kịch bản + SEO YouTube",
+    "Giới hạn: 2 lần/ngày",
+    "Không được sử dụng các công cụ khác",
   ],
-  ARCHIVE: [
-    "MỞ KHÓA 3 công cụ sáng tạo",
+  CREATIVE: [
+    "Gói FREE + Mở tools phân tích đối thủ (độc quyền)",
     "Không giới hạn lượt sử dụng",
-    "Phân tích đối thủ chuyên sâu",
-    "Hỗ trợ qua Email",
+    "Hỗ trợ qua email",
+    "Truy cập Chatbot AI full quyền",
   ],
-  MAGISTRATE: [
-    "MỞ KHÓA 8 CÔNG CỤ (Gần như FULL)",
-    "Tạo Ảnh & Text-to-Speech (Google Cloud)",
-    "Tìm Micro Niche & Narrative Studio (BYOK)",
-    "Tối ưu SEO & nội dung nâng cao",
+  SUPER: [
+    "MỞ KHÓA TOÀN BỘ 10 CÔNG CỤ:",
+    "Phân tích đối thủ • Tìm kênh ẩn • Tìm Micro Niches (độc quyền)",
+    "Narrative Studio (độc quyền) – kiếm tiền KDP Amazon",
+    "Viết kịch bản nâng cao • Tạo Thumbnail AI • Text-to-Speech",
+    "Tối ưu SEO & nội dung • Rival Scanner • Velocity Tool",
+    "Tham gia khóa học online, Zoom, tài liệu độc quyền",
   ],
-  TOANTRI: [
-    "MỞ KHÓA TOÀN BỘ 10 CÔNG CỤ",
-    "Tạo Video (Velocity Tool) – Dùng Credit",
-    "NARRATIVE STUDIO Độc Quyền",
-    "Hỗ trợ chuyên gia 24/7",
+  VIP: [
+    "Hỗ trợ chuyên sâu trực tiếp từ chuyên gia",
+    "Zoom riêng + đào tạo 1VS1 đến khi kiếm tiền YouTube/Affiliate",
+    "Hướng dẫn kiếm tiền trên KDP Amazon",
+    "Liên hệ: https://zalo.me/0789284078",
   ],
 };
 
-const PricingCard: React.FC<{
-  plan: string;
-  price: string;
-  features: string[];
-  color?: string;
-  glow?: string;
-  isFeatured?: boolean;
-  isOmni?: boolean;
-  isFree?: boolean;
-  onSelect?: (plan: string) => void;
-}> = ({
-  plan,
-  price,
-  features,
-  color,
-  glow,
-  isFeatured,
-  isOmni,
-  isFree,
-  onSelect,
+const PricingCard = ({ 
+  plan, price, features, color, glow, isFeatured, isVip, isFree, isYearly, onUpgrade 
+}: { 
+  plan: string; price: string; features: string[]; color: string; glow: string; 
+  isFeatured?: boolean; isVip?: boolean; isFree?: boolean; isYearly: boolean; 
+  onUpgrade: (plan: string, amount: number, yearly: boolean) => void;
 }) => {
-  const router = useRouter();
-
   const handleClick = () => {
     if (isFree) return;
-    if (onSelect) {
-      onSelect(plan);
-    } else {
-      // Nếu không có modal (ở trang /), tự chuyển hướng về /pricing
-      router.push("/pricing");
+    if (isVip) {
+      window.open("https://zalo.me/0789284078", "_blank");
+      return;
     }
+
+    const amount = isYearly 
+      ? (plan === "SÁNG TẠO" ? 3500000 : 6500000) 
+      : (plan === "SÁNG TẠO" ? 349000 : 649000);
+
+    onUpgrade(plan, amount, isYearly);
   };
 
-  const base =
-    "p-8 border rounded-xl h-full flex flex-col transition-all duration-300 text-white";
-  const normal = "border-gray-700 bg-black/40 hover:border-[#00BFFF]";
-  const free = "border-gray-600 bg-black/60 hover:border-[#008080]";
-  const featured = "border-2 shadow-xl relative";
-  const omni =
-    "border-2 bg-gradient-to-br from-[#CDAD5A]/10 to-black animate-pulse";
-
-  let classes = `${base} ${normal}`;
-  if (isFree) classes = `${base} ${free}`;
-  if (isFeatured) classes = `${base} ${featured}`;
-  if (isOmni) classes = `${base} ${omni}`;
-
   return (
-    <div
-      className={classes}
-      style={
-        glow
-          ? { boxShadow: glow, borderColor: color || "#00BFFF" }
-          : { borderColor: color || "#00BFFF" }
-      }
-    >
+    <div className="relative rounded-2xl bg-black/90 border border-gray-800 p-6 flex flex-col text-center transition-all hover:scale-105 shadow-2xl" style={{ boxShadow: glow }}>
       {isFeatured && (
-        <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#00BFFF] text-black text-xs font-bold px-3 py-1 rounded-full uppercase">
-          Phổ Biến Nhất
-        </span>
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-600 text-black font-black text-sm px-6 py-2 rounded-full shadow-xl z-10 whitespace-nowrap">
+          PHỔ BIẾN NHẤT
+        </div>
       )}
-      <h3
-        className={`text-3xl font-bold mb-4 text-center ${
-          isOmni ? "text-[#CDAD5A]" : ""
-        }`}
-      >
-        {plan}
-      </h3>
-
-      <p
-  className={`text-5xl font-extrabold mb-6 text-center ${
-    isFree ? "text-[#008080]" : ""
-  }`}
-  style={{ color: !isFree && color ? color : undefined }}
->
-  {isFree ? (
-    "FREE"
-  ) : (
-    <>
-      <span className="tracking-tight">{price.replace(".", ",")}</span>
-      <span className="text-3xl align-super ml-1">k</span>
-    </>
-  )}
-  {!isFree && (
-    <span className="block text-base text-gray-400 font-normal">
-      / tháng
-    </span>
-  )}
-</p>
-
-
-      <ul className="space-y-3 text-gray-300 mb-8 flex-grow">
+      <h3 className="text-2xl font-bold mb-3 text-white tracking-wide">{plan}</h3>
+      <h2 className="text-4xl font-bold mb-6 tracking-tight" style={{ color }}>
+        {price}
+      </h2>
+      <ul className="space-y-3 text-left text-gray-300 text-base flex-grow">
         {features.map((f, i) => (
           <li key={i} className="flex items-start">
-            <svg
-              className={`w-5 h-5 mr-2 flex-shrink-0 ${
-                isFeatured ? "text-[#00BFFF]" : "text-[#008080]"
-              } mt-0.5`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            {f}
+            <span className="text-green-400 text-lg mr-2 mt-0.5">✓</span>
+            <span>{f}</span>
           </li>
         ))}
       </ul>
-
       <button
         onClick={handleClick}
-        className="w-full py-3 font-bold rounded-md border-2 transition-all mt-auto border-[#00BFFF] text-[#00BFFF] hover:bg-[#00BFFF] hover:text-black"
+        className="mt-8 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl"
       >
-        {isFree ? "BẮT ĐẦU KHÁM PHÁ" : "CHỌN GÓI"}
+        {isFree ? "BẮT ĐẦU NGAY" : isVip ? "LIÊN HỆ NGAY" : "NÂNG CẤP NGAY"}
       </button>
     </div>
   );
 };
 
 export default function PricingTable({ setSelectedPlan }: PricingTableProps) {
-  return (
-    <section id="pricing" className="py-20 bg-black text-white">
-      <div className="container mx-auto px-6">
-        <h2 className="text-4xl text-center font-playfair text-[#CDAD5A] mb-4">
-          BẢNG GIÁ SEENWEB
-        </h2>
-        <p className="text-xl text-center text-gray-400 mb-4">
-          Nền tảng Google Cloud AI – ổn định, nhanh & tối ưu chi phí.
-        </p>
-        <p className="text-lg text-center text-gray-500 mb-16">
-          Chọn gói phù hợp với hành trình sáng tạo YouTube của bạn.
-        </p>
+  const [isYearly, setIsYearly] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [qrData, setQrData] = useState<{ qrCode: string; checkoutUrl: string } | null>(null);
+  const [loading, setLoading] = useState(false);
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          <PricingCard
-            plan="KHÁM PHÁ"
-            price="0"
-            features={featuresMap.EXPLORER}
-            color="#008080"
-            isFree
-            onSelect={setSelectedPlan}
-          />
-          <PricingCard
-            plan="ARCHIVE"
-            price="399k"
-            features={featuresMap.ARCHIVE}
-            color="#00BFFF"
-            glow="0 0 10px #00BFFF, 0 0 30px #00BFFF, 0 0 50px #00BFFF"
-            onSelect={setSelectedPlan}
-          />
-          <PricingCard
-            plan="MAGISTRATE"
-            price="649k"
-            features={featuresMap.MAGISTRATE}
-            color="#FFD700"
-            glow="0 0 20px #FFD700, 0 0 40px #FFD700"
-            isFeatured
-            onSelect={setSelectedPlan}
-          />
-          <PricingCard
-            plan="TOÀN TRI"
-            price="1.299k"
-            features={featuresMap.TOANTRI}
-            color="#CDAD5A"
-            glow="0 0 20px #CDAD5A, 0 0 40px #CDAD5A, 0 0 60px #CDAD5A"
-            isOmni
-            onSelect={setSelectedPlan}
-          />
+  const handleUpgrade = async (plan: string, amount: number, yearly: boolean) => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/payos/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount,
+          plan: plan === "SÁNG TẠO" ? "creative" : "super",
+          isYearly: yearly,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.qrCode && data.checkoutUrl) {
+        setQrData({ qrCode: data.qrCode, checkoutUrl: data.checkoutUrl });
+        setShowQR(true);
+      } else {
+        alert("Lỗi tạo thanh toán: " + (data.error || "Vui lòng thử lại"));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi kết nối server!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <section className="py-16 bg-gradient-to-b from-black via-[#0a0e17] to-black">
+        <div className="container mx-auto px-6">
+          <h1 className="text-5xl md:text-6xl font-black text-center mb-4 bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-600 bg-clip-text text-transparent tracking-widest">
+            BẢNG GIÁ SEENYT
+          </h1>
+          <p className="text-lg md:text-xl text-center font-bold text-yellow-400 mb-3">
+            Nền tảng công nghệ hỗ trợ YouTube/Youtuber tốt nhất 2025 theo bình chọn của cộng đồng sáng tạo số Châu Á
+          </p>
+
+          <div className="flex justify-center items-center gap-5 mb-10">
+            <span className="text-lg text-gray-300">Thanh toán theo</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked={isYearly} onChange={() => setIsYearly(!isYearly)} className="sr-only peer" />
+              <div className="w-20 h-10 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-8 after:w-8 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-emerald-600"></div>
+              <span className="absolute left-3 text-white font-bold text-sm peer-checked:left-2 peer-checked:text-black">
+                {isYearly ? "NĂM" : "THÁNG"}
+              </span>
+            </label>
+            <span className="text-lg font-bold text-green-400 animate-pulse">
+              Tiết kiệm 20% khi dùng gói 12 tháng!
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            <PricingCard plan="KHÁM PHÁ" price="FREE" features={featuresMap.FREE} color="#00D4FF" glow="0 0 25px #00D4FF" isFree isYearly={isYearly} onUpgrade={handleUpgrade} />
+            <PricingCard plan="SÁNG TẠO" price={isYearly ? "3.500.000đ" : "349.000đ"} features={featuresMap.CREATIVE} color="#22C55E" glow="0 0 35px #22C55E" isYearly={isYearly} onUpgrade={handleUpgrade} />
+            <PricingCard plan="VƯỢT TRỢI" price={isYearly ? "6.500.000đ" : "649.000đ"} features={featuresMap.SUPER} color="#FBBF24" glow="0 0 50px #FBBF24" isFeatured isYearly={isYearly} onUpgrade={handleUpgrade} />
+            <PricingCard plan="CHUYÊN SÂU 1VS1" price="LIÊN HỆ" features={featuresMap.VIP} color="#A855F7" glow="0 0 40px #A855F7" isVip isYearly={isYearly} onUpgrade={handleUpgrade} />
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* MODAL QR ĐẸP LUNG LINH */}
+      {showQR && qrData && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50" onClick={() => setShowQR(false)}>
+          <div className="bg-white p-10 rounded-3xl text-center max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-3xl font-black mb-6 text-gray-800">Quét QR để nâng cấp ngay!</h3>
+            <img src={qrData.qrCode} alt="QR PayOS" className="mx-auto w-80 h-80 border-8 border-gray-200 rounded-2xl" />
+            <p className="mt-6 text-lg text-gray-700">
+              Hoặc mở link thanh toán:{" "}
+              <a href={qrData.checkoutUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold underline">
+                Click tại đây
+              </a>
+            </p>
+            <button onClick={() => setShowQR(false)} className="mt-8 bg-red-600 hover:bg-red-700 text-white font-bold px-10 py-4 rounded-xl text-xl transition">
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

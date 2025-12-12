@@ -8,25 +8,35 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  passwordHash   String
-  plan           String   @default("EXPLORER")
-  dailyUsage     Int      @default(0)
-  maxDailyUsage  Int      @default(2)
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  image         String?
+  passwordHash  String?
+  role          String   @default("FREE") // ← ĐỔI TỪ plan → role + default FREE
+  dailyUsage    Int      @default(0)
+  maxDailyUsage Int      @default(2)       // FREE: 2 lần/ngày
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
 }
 
 model PaymentRequest {
   id          String   @id @default(cuid())
-  plan        String
+  userId      String?
   email       String
-  txn         String
-  status      String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  role        String   // FREE | CREATIVE | SUPER | VIP
+  amount      Int      // đơn vị: VND (349000, 649000)
+  txn         String   // mã giao dịch VNPAY
+  status      String   @default("PENDING") // PENDING | SUCCESS | FAILED
   createdAt   DateTime @default(now())
+  paidAt      DateTime?
 
-  // 🟢 Các trường quản trị thêm vào
+  // Quản trị
   approvedAt  DateTime?
   approvedBy  String?
   note        String?
+
+  @@map("payment_requests")
 }
