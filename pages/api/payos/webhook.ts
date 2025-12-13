@@ -1,4 +1,4 @@
-// pages/api/payos/webhook.ts - FINAL (role + maxDailyUsage, unlimited paid)
+// pages/api/payos/webhook.ts - MERGED FIX: Verify đúng + Fallback DB + Unlimited Usage (KHÔNG Credit)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { PayOS } from '@payos/node';
@@ -11,7 +11,7 @@ const payos = new PayOS(
   process.env.PAYOS_CHECKSUM_KEY!
 );
 
-// Middleware lấy raw body
+// Middleware lấy raw body (BẮT BUỘC cho PayOS verify)
 async function getRawBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -23,83 +23,118 @@ async function getRawBody(req: IncomingMessage): Promise<string> {
 
 export const config = {
   api: {
-    bodyParser: false,  // Disable auto-parse để lấy raw body (fix signature)
+    bodyParser: false,  // BẮT BUỘC: Tắt auto-parse để lấy raw body
   },
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    return res.status(200).json({ message: 'Webhook ready' });
+    return res.status(200).json({ message: 'PayOS Webhook ready & listening!' });
   }
 
-  if (req.method === 'POST') {
-    try {
-      const rawBody = await getRawBody(req as IncomingMessage);
-      const signature = req.headers['x-payos-signature'] as string;
+  if (req.method !== 'POST') {
+    return res.status(405).end();
+  }
 
-      console.log('Webhook signature:', signature ? signature.substring(0, 10) + '...' : 'MISSING');
+  let prismaDisconnected = false;
+  try {
+    const rawBody = await getRawBody(req as IncomingMessage);
+    const signature = req.headers['x-payos-signature'] as string;
 
-      if (!signature) {
-        console.error('Missing x-payos-signature header');
-        return res.status(200).json({ success: true, error: 'Missing signature' });
-      }
+    // Log masked để debug (không leak data)
+    console.log('Webhook received:', {
+      timestamp: new Date().toISOString(),
+      signature: signature ? signature.substring(0, 10) + '...' : 'MISSING',
+      rawBodyLength: rawBody.length,
+      maskedBody: rawBody.substring(0, 50) + (rawBody.length > 50 ? '...' : ''),
+    });
 
-      const webhookData = payos.webhooks.verify(rawBody, signature);
-      console.log('PayOS Webhook verified:', { code: webhookData.code, orderCode: webhookData.orderCode, description: webhookData.description });
+    if (!signature) {
+      console.error('🚨 Missing x-payos-signature header');
+      return res.status(200).json({ success: true, error: 'Missing signature - ignored' });
+    }
 
-      if (webhookData.code === '00' && webhookData.status === 'PAID') {
-        let userEmail = webhookData.userEmail || webhookData.accountNumber;
-        if (!userEmail) {
-          const description = webhookData.description || webhookData.desc || '';
-          const emailMatch = description.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-          userEmail = emailMatch ? emailMatch[1] : null;
-        }
+    // 1. XÁC THỰC CHỮ KÝ (ĐÚNG API: Trên rawBody, KHÔNG parse trước)
+    const webhookDataRaw = payos.webhooks.verify(rawBody, signature);  // Trả về parsed data nếu valid
+    console.log('✅ Webhook verified:', { code: webhookDataRaw.code, orderCode: webhookDataRaw.orderCode });
 
-        if (!userEmail) {
-          console.error('No email in webhook description:', webhookData.description);
-          return res.status(200).json({ success: true, error: 'No user email' });
-        }
+    // Parse chỉ sau verify (an toàn)
+    const data = webhookDataRaw;  // Đã parsed từ library
+    if (!data || !data.data) {
+      console.error('Webhook: Invalid Payload Structure');
+      return res.status(200).json({ success: false, message: 'Invalid Payload Structure' });
+    }
 
-        const description = webhookData.description || '';
-        const planMatch = description.match(/ST|VT/i);  // ST=SÁNG TẠO, VT=VƯỢT TRỘI
-        const targetRole = planMatch ? (planMatch[0].toUpperCase() === 'ST' ? 'CREATIVE' : 'SUPER') : 'CREATIVE';
+    const webhookData = data.data;
 
-        console.log('Updating user:', { email: userEmail, role: targetRole });
+    // 2. XỬ LÝ TRẠNG THÁI THÀNH CÔNG ('00' là PAID)
+    if (webhookData.code === '00') {
+      const description = webhookData.description || '';
+      console.log('Webhook SUCCESS received. Description:', description);
 
-        // ✅ UPDATE PRISMA USER (role + maxDailyUsage unlimited for paid)
-        const updateResult = await prisma.user.updateMany({
-          where: { email: userEmail },
-          data: {
-            role: targetRole,
-            maxDailyUsage: 9999  // Unlimited for CREATIVE/SUPER (2 tools for FREE)
-          }
-        });
+      // 3. TRÍCH XUẤT EMAIL (Merged: Regex + Fallback DB)
+      const userEmailMatch = description.match(/(\S+@\S+\.\S+)$/);
+      let userEmail = userEmailMatch ? userEmailMatch[1].toLowerCase().trim() : null;
+      const orderCode = webhookData.orderCode?.toString();
 
-        console.log('Prisma update result:', updateResult.count, 'users affected');
-
-        const orderCode = webhookData.orderCode?.toString();
+      if (!userEmail) {
+        console.error('ERROR: Could not extract user email from description:', description);
+        // Fallback: Tìm từ PaymentRequest
         if (orderCode) {
-          await prisma.paymentRequest.update({
-            where: { orderCode },
-            data: { status: 'SUCCESS', paidAt: new Date() }
-          });
-          console.log(`Payment status updated for orderCode: ${orderCode}`);
+          const request = await prisma.paymentRequest.findUnique({ where: { orderCode } });
+          if (request) userEmail = request.email;
         }
-
-        console.log(`Webhook: Đã cập nhật User ${userEmail} lên ${targetRole} thành công!`);
-      } else {
-        console.log('Non-success event:', webhookData.code, webhookData.status);
+        if (!userEmail) {
+          return res.status(200).json({ success: false, reason: 'Missing Email' });
+        }
       }
 
-      return res.status(200).json({ success: true });
+      // 4. XÁC ĐỊNH ROLE VÀ USAGE (Dùng includes() của anh - robust)
+      let targetRole = 'FREE';
+      const maxDailyUsage = 9999;  // Unlimited cho paid
 
-    } catch (error: any) {
-      console.error('Webhook error:', error.message || error);
-      return res.status(200).json({ success: true, error: 'Internal processing error' });
-    } finally {
+      if (description.includes('SÁNG TẠO')) {
+        targetRole = 'CREATIVE';
+      } else if (description.includes('VƯỢT TRỘI')) {
+        targetRole = 'SUPER';
+      } else {
+        console.log('WARN: Cannot determine plan from description. Not updating role.');
+        return res.status(200).json({ success: true });
+      }
+
+      // 5. CẬP NHẬT PRISMA USER
+      console.log('Attempting to update user:', { email: userEmail, role: targetRole, maxUsage: maxDailyUsage });
+      const updateResult = await prisma.user.updateMany({
+        where: { email: userEmail },
+        data: {
+          role: targetRole,
+          maxDailyUsage: maxDailyUsage,
+        },
+      });
+      console.log('Prisma user update result:', updateResult.count, 'users affected.');
+
+      // 6. CẬP NHẬT PAYMENT REQUEST (Thêm paidAt)
+      if (orderCode) {
+        await prisma.paymentRequest.update({
+          where: { orderCode },
+          data: { status: 'SUCCESS', paidAt: new Date() },  // Merge: Có paidAt
+        });
+        console.log(`Prisma payment request status updated for order: ${orderCode}`);
+      }
+
+    } else {
+      console.log(`Non-success event for order ${webhookData.orderCode}: ${webhookData.code}`);
+    }
+
+    return res.status(200).json({ success: true });
+
+  } catch (error: any) {
+    console.error('🚨 FATAL Webhook error:', error.message || error);
+    return res.status(200).json({ success: true, error: 'Internal processing error' });
+  } finally {
+    if (!prismaDisconnected) {
       await prisma.$disconnect();
+      prismaDisconnected = true;
     }
   }
-
-  return res.status(405).json({ error: 'Method not allowed' });
 }
