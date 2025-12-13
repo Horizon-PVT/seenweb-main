@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import { PayOS } from '@payos/node';
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers'; // Thêm để kiểm tra header theo cách Vercel gợi ý
+// Loại bỏ import { headers } từ 'next/headers' để tránh xung đột
 
 // --- CẤU HÌNH VÀ KHỞI TẠO ---
 // Đảm bảo PayOS được khởi tạo với các biến môi trường
@@ -20,15 +20,17 @@ const payos = new PayOS(
 export async function POST(req: NextRequest) {
   let webhookDataRaw: any;
   
-  // 1. Lấy Header và Raw Body (Cách chuẩn nhất trong App Router)
-  const headersList = headers();
-  // Vercel/Next.js thường chuẩn hóa Header về chữ thường
-  const signature = headersList.get('x-payos-signature');
+  // 1. Lấy Header và Raw Body (Cách bền vững nhất trong App Router)
+  
+  // SỬA FIX CUỐI: Lấy signature từ req.headers.get(). 
+  // Đây là cách đáng tin cậy nhất để truy cập Header trong môi trường Vercel.
+  const signature = req.headers.get('x-payos-signature'); 
+  
   const rawBody = await req.text(); // Lấy body dưới dạng text
 
   try {
     // Log Debug
-    console.log('--- WEBHOOK RECEIVED (App Router) ---');
+    console.log('--- WEBHOOK RECEIVED (App Router Final) ---');
     console.log('Webhook received:', {
       timestamp: new Date().toISOString(),
       signature: signature ? signature.substring(0, 10) + '...' : 'MISSING',
