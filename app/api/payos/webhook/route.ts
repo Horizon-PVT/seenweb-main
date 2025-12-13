@@ -1,9 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+// app/api/payos/webhook/route.ts
 import { PrismaClient } from '@prisma/client';
 import { PayOS } from '@payos/node';
-import { IncomingMessage } from 'http';
+import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers'; // Thêm để kiểm tra header theo cách Vercel gợi ý
 
 // --- CẤU HÌNH VÀ KHỞI TẠO ---
+// Đảm bảo PayOS được khởi tạo với các biến môi trường
 const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined };
 const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
@@ -14,54 +16,32 @@ const payos = new PayOS(
   process.env.PAYOS_CHECKSUM_KEY!
 );
 
-// Hàm đọc Raw Body từ request (Bắt buộc khi dùng bodyParse: false)
-async function getRawBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on('data', (chunk) => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-    req.on('error', reject);
-  });
-}
-
-// Cấu hình Next.js API
-export const config = {
-  api: {
-    bodyParser: false,  // BẮT BUỘC: Tắt auto-parse
-  },
-};
-
-// --- XỬ LÝ CHÍNH ---
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(200).json({ message: 'PayOS Webhook ready. Only POST is processed.' });
-  }
-
-  let webhookDataRaw: any; 
-  let rawBody: string;
+// --- XỬ LÝ CHÍNH: Route Handler cho phương thức POST ---
+export async function POST(req: NextRequest) {
+  let webhookDataRaw: any;
+  
+  // 1. Lấy Header và Raw Body (Cách chuẩn nhất trong App Router)
+  const headersList = headers();
+  // Vercel/Next.js thường chuẩn hóa Header về chữ thường
+  const signature = headersList.get('x-payos-signature');
+  const rawBody = await req.text(); // Lấy body dưới dạng text
 
   try {
-    rawBody = await getRawBody(req as IncomingMessage);
-
-    // SỬA LỖI HEADER: CHỈ KIỂM TRA DẠNG CHỮ THƯỜNG (vì Node.js/Next.js chuẩn hóa Header)
-    const signature = req.headers['x-payos-signature'] as string;
-    
     // Log Debug
-    console.log('--- WEBHOOK RECEIVED ---');
+    console.log('--- WEBHOOK RECEIVED (App Router) ---');
     console.log('Webhook received:', {
       timestamp: new Date().toISOString(),
       signature: signature ? signature.substring(0, 10) + '...' : 'MISSING',
       rawBodyLength: rawBody.length,
     });
     
-    // Nếu thiếu chữ ký (xảy ra trong môi trường thật nếu proxy/cloud lọc header)
+    // Nếu thiếu chữ ký
     if (!signature) {
       console.error('🚨 Missing x-payos-signature header');
-      // Trả về 200 để PayOS không gửi lại, nhưng chúng ta không xử lý
-      return res.status(200).json({ success: true, reason: 'Missing signature - ignored' }); 
+      return NextResponse.json({ success: true, reason: 'Missing signature - ignored' }, { status: 200 }); 
     }
 
-    // 1. XÁC THỰC HOẶC DEBUG POSTMAN
+    // 2. XÁC THỰC HOẶC DEBUG POSTMAN
     const isDebugPostman = signature === 'test-signature-123'; // Chữ ký giả anh dùng
 
     if (isDebugPostman) {
@@ -72,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.log('✅ Parse body thủ công thành công.');
         } catch (parseError: any) {
             console.error('🚨 Lỗi Parse Body thủ công:', parseError.message);
-            return res.status(200).json({ success: false, reason: 'Invalid JSON body for Debug' });
+            return NextResponse.json({ success: false, reason: 'Invalid JSON body for Debug' }, { status: 200 });
         }
     } else {
         // LUỒNG THẬT: CHẠY HÀM XÁC THỰC CHUẨN
@@ -80,9 +60,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             webhookDataRaw = payos.webhooks.verify(rawBody, signature);
             console.log('✅ Xác thực Webhook thành công (Real PayOS Request).');
         } catch (e: any) {
-            // Đây là lỗi chữ ký không hợp lệ từ PayOS thật
             console.error('❌ Chữ ký KHÔNG hợp lệ (REAL REQUEST):', e.message);
-            return res.status(200).json({ success: true, reason: 'Verification failed' });
+            return NextResponse.json({ success: true, reason: 'Verification failed' }, { status: 200 });
         }
     }
 
@@ -91,16 +70,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!webhookData || !webhookData.orderCode) {
       console.error('Webhook: Invalid Payload Structure (Missing data or orderCode)');
-      return res.status(200).json({ success: false, message: 'Invalid Payload Structure' });
+      return NextResponse.json({ success: false, message: 'Invalid Payload Structure' }, { status: 200 });
     }
     
     console.log('✅ Webhook data ready for processing. OrderCode:', webhookData.orderCode);
 
-    // 2. XỬ LÝ TRẠNG THÁI THÀNH CÔNG ('00' là PAID)
+    // 3. XỬ LÝ TRẠNG THÁI THÀNH CÔNG ('00' là PAID)
     if (webhookData.code === '00') {
       const description = webhookData.description || '';
       
-      // 3. TRÍCH XUẤT EMAIL VÀ ORDERCODE
       const orderCode = webhookData.orderCode?.toString();
       let userEmail: string | null = null;
       
@@ -112,17 +90,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Fallback: Tìm từ description (Regex)
       if (!userEmail) {
-          // Regex tìm email (ít tin cậy hơn)
           const userEmailMatch = description.match(/(\S+@\S+\.\S+)$/);
           userEmail = userEmailMatch ? userEmailMatch[1].toLowerCase().trim() : null;
       }
 
       if (!userEmail) {
         console.error('⚠️ KHÔNG tìm thấy Email cho đơn hàng:', orderCode);
-        return res.status(200).json({ success: true, reason: 'User not found' }); 
+        return NextResponse.json({ success: true, reason: 'User not found' }, { status: 200 }); 
       }
 
-      // 4. XÁC ĐỊNH ROLE VÀ USAGE
+      // 4. XÁC ĐỊNH ROLE VÀ CẬP NHẬT
       let targetRole: 'CREATIVE' | 'SUPER' | null = null;
       const maxDailyUsage = 9999; 
 
@@ -134,10 +111,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       if (!targetRole) {
           console.warn('⚠️ Không xác định được gói từ description. Không cập nhật role.');
-          return res.status(200).json({ success: true });
+          return NextResponse.json({ success: true }, { status: 200 });
       }
 
-      // 5. CẬP NHẬT PRISMA USER
+      // CẬP NHẬT PRISMA
       console.log('Attempting to update user:', { email: userEmail, role: targetRole, maxUsage: maxDailyUsage });
       await prisma.user.updateMany({
         where: { email: userEmail },
@@ -148,7 +125,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       console.log(`✅ Đã nâng cấp user ${userEmail} lên ${targetRole}`);
 
-      // 6. CẬP NHẬT PAYMENT REQUEST STATUS
       if (orderCode) {
         await prisma.paymentRequest.update({
           where: { orderCode },
@@ -161,11 +137,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`Non-success event for order ${webhookData.orderCode}: ${webhookData.code} - Status: ${webhookData.desc}`);
     }
 
-    // Luôn trả về 200 OK cho PayOS (để PayOS không gửi lại webhook)
-    return res.status(200).json({ success: true });
+    // Luôn trả về 200 OK cho PayOS
+    return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error: any) {
     console.error('🚨 FATAL Webhook error:', error.message || error);
-    return res.status(200).json({ success: true, error: 'Internal processing error' });
+    return NextResponse.json({ success: true, error: 'Internal processing error' }, { status: 200 });
   }
+}
+
+// Bắt buộc phải có hàm GET cho Route Handler
+export async function GET() {
+    return NextResponse.json({ message: 'PayOS Webhook ready. Only POST is processed.' }, { status: 200 });
 }
