@@ -43,9 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     rawBody = await getRawBody(req as IncomingMessage);
 
-    // FIX LỖI HEADER: Kiểm tra cả chữ thường và chữ hoa/PascalCase
-    const signature = (req.headers['x-payos-signature'] || req.headers['X-PayOS-Signature']) as string;
-
+    // SỬA LỖI HEADER: CHỈ KIỂM TRA DẠNG CHỮ THƯỜNG (vì Node.js/Next.js chuẩn hóa Header)
+    const signature = req.headers['x-payos-signature'] as string;
+    
     // Log Debug
     console.log('--- WEBHOOK RECEIVED ---');
     console.log('Webhook received:', {
