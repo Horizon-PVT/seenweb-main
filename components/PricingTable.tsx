@@ -19,7 +19,7 @@ const featuresMap = {
     "Truy cập Chatbot AI full quyền",
   ],
   SUPER: [
-    "MỞ KHÓA TOÀN BỘ 10 CÔNG CỤ:",
+    "MỞ KHÓA TOÀN BỘ  CÔNG CỤ:",
     "Phân tích đối thủ • Tìm kênh ẩn • Tìm Micro Niches (độc quyền)",
     "Narrative Studio (độc quyền) – kiếm tiền KDP Amazon",
     "Viết kịch bản nâng cao • Tạo Thumbnail AI • Text-to-Speech",

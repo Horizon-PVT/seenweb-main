@@ -1,8 +1,6 @@
-// prisma/schema.prisma (Bản Full Đã Sửa)
-
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"] // Cho Postgres trên Vercel
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -16,42 +14,85 @@ model User {
   name               String?
   image              String?
   passwordHash       String?
-  role               String    @default("FREE") // FREE | CREATIVE | SUPER
-  dailyUsage         Int       @default(0)       // Số lần dùng hôm nay (reset hàng ngày)
-  maxDailyUsage      Int       @default(2)       // FREE: 2 lần, CREATIVE/SUPER: 9999 (unlimited)
+  role               String    @default("FREE")
+  dailyUsage         Int       @default(0)
+  maxDailyUsage      Int       @default(2)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   
-  // ⚠️ TRƯỜNG MỚI ĐƯỢC THÊM: Lưu ngày hết hạn của gói
-  membershipExpiry   DateTime? 
+  membershipExpiry   DateTime?
 
-  paymentRequests PaymentRequest[]  // Relation 1-n với PaymentRequest
+  // AFFILIATE FIELDS (self-relation referrer / referredUsers)
+  referrerId         String?
+  referrer           User?     @relation("ReferralRelation", fields: [referrerId], references: [id])
+  referredUsers      User[]    @relation("ReferralRelation")
+  affiliateCode      String?   @unique
+  isAffiliate        Boolean   @default(false)
+  totalCommission    Decimal   @default(0)
+
+  // Relations
+  paymentRequests    PaymentRequest[]
+  commissions        Commission[]    @relation("UserCommissions") // commissions mà user là referrer
+  referredCommissions Commission[]   @relation("CommissionReferredUser") // commissions mà user là referredUser
+  payoutRequests     PayoutRequest[] @relation("UserPayouts")
 
   @@map("users")
 }
 
 model PaymentRequest {
   id           String    @id @default(cuid())
-  orderCode    String    @unique  // Unique orderCode từ PayOS cho webhook query
+  orderCode    String    @unique
   userId       String?
-  email        String    // Full email để fallback update
-  role         String    // Target role: CREATIVE | SUPER
-  amount       Int       // VND (349k tháng / 3.49M năm)
-  txn          String?    // Mã giao dịch PayOS
-  status       String    @default("PENDING") // PENDING | SUCCESS | FAILED | PENDING_MANUAL
+  email        String
+  role         String
+  amount       Int
+  txn          String?
+  status       String    @default("PENDING")
   createdAt    DateTime  @default(now())
   paidAt       DateTime?
   
-  // Trường đã được sửa lỗi trước đó
-  paymentInfo  String?   
+  paymentInfo  String?
 
-  // Quản trị
   approvedAt   DateTime?
   approvedBy   String?
   note         String?
 
-  // Relation với User
   user         User?     @relation(fields: [userId], references: [id])
 
   @@map("payment_requests")
+}
+
+// Model Commission (có cả referrer và referredUser relation)
+model Commission {
+  id               String   @id @default(cuid())
+  referrerId       String
+  referredUserId   String
+  paymentRequestId String?
+  type             String
+  amount           Decimal
+  status           String   @default("PENDING")
+  createdAt        DateTime @default(now())
+  approvedAt       DateTime?
+
+  referrer         User     @relation("UserCommissions", fields: [referrerId], references: [id])
+  referredUser     User     @relation("CommissionReferredUser", fields: [referredUserId], references: [id])
+
+  @@map("commissions")
+}
+
+// Model PayoutRequest
+model PayoutRequest {
+  id              String   @id @default(cuid())
+  affiliateId     String
+  amountRequested Decimal
+  amountApproved  Decimal?
+  bankInfo        Json
+  status          String   @default("PENDING")
+  requestedAt     DateTime @default(now())
+  processedAt     DateTime?
+  note            String?
+
+  affiliate       User     @relation("UserPayouts", fields: [affiliateId], references: [id])
+
+  @@map("payout_requests")
 }

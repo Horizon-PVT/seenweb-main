@@ -1,6 +1,22 @@
+'use client';
+
 import React from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const AffiliateSection: React.FC = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (status === 'authenticated') {
+      router.push('/affiliate/dashboard');
+    } else {
+      // Redirect login với callbackUrl về dashboard
+      router.push('/api/auth/signin?callbackUrl=/affiliate/dashboard');
+    }
+  };
+
   return (
     <section id="affiliate" className="py-20 border-t border-gray-800/50">
       <div className="container mx-auto px-6 text-center flex flex-col items-center">
@@ -16,14 +32,18 @@ const AffiliateSection: React.FC = () => {
             <div className="cube-face" style={{transform: 'rotateX(90deg) translateZ(48px)'}}>HOA HỒNG</div>
             <div className="cube-face" style={{transform: 'rotateX(-90deg) translateZ(48px)'}}>HOA HỒNG</div>
           </div>
-
         </div>
-        <h2 className="text-4xl font-playfair text-white mb-4">Lời Thề Của Tinh Hoa</h2>
+
+        <h2 className="text-4xl font-playfair text-white mb-4">Tham Gia Chương Trình Affiliate </h2>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
           Gia nhập hệ thống: <span className="text-[#CDAD5A] font-bold">30% Hoa Hồng Trọn Đời</span> cho mỗi khai sáng thành công.
         </p>
-        <button className="bg-transparent text-[#008080] font-bold py-3 px-8 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-[#008080] hover:text-white hover:shadow-[0_0_15px_#008080]">
-          Trở Thành Đồng Minh
+
+        <button
+          onClick={handleClick}
+          className="bg-transparent text-[#008080] font-bold py-3 px-8 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-[#008080] hover:text-white hover:shadow-[0_0_15px_#008080]"
+        >
+           AFFILIATE
         </button>
       </div>
     </section>
