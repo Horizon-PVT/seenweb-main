@@ -1,3 +1,5 @@
+// prisma/schema.prisma (Bản Full Đã Sửa)
+
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"] // Cho Postgres trên Vercel
@@ -9,16 +11,19 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  name          String?
-  image         String?
-  passwordHash  String?
-  role          String   @default("FREE") // FREE | CREATIVE | SUPER
-  dailyUsage    Int      @default(0)      // Số lần dùng hôm nay (reset hàng ngày)
-  maxDailyUsage Int      @default(2)      // FREE: 2 lần, CREATIVE/SUPER: 9999 (unlimited)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String?
+  image              String?
+  passwordHash       String?
+  role               String    @default("FREE") // FREE | CREATIVE | SUPER
+  dailyUsage         Int       @default(0)       // Số lần dùng hôm nay (reset hàng ngày)
+  maxDailyUsage      Int       @default(2)       // FREE: 2 lần, CREATIVE/SUPER: 9999 (unlimited)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  // ⚠️ TRƯỜNG MỚI ĐƯỢC THÊM: Lưu ngày hết hạn của gói
+  membershipExpiry   DateTime? 
 
   paymentRequests PaymentRequest[]  // Relation 1-n với PaymentRequest
 
@@ -26,24 +31,27 @@ model User {
 }
 
 model PaymentRequest {
-  id          String      @id @default(cuid())
-  orderCode   String      @unique  // Unique orderCode từ PayOS cho webhook query
-  userId      String?
-  email       String      // Full email để fallback update
-  role        String      // Target role: CREATIVE | SUPER
-  amount      Int         // VND (349k tháng / 3.49M năm)
-  txn         String?     // Mã giao dịch PayOS
-  status      String      @default("PENDING") // PENDING | SUCCESS | FAILED
-  createdAt   DateTime    @default(now())
-  paidAt      DateTime?
+  id           String    @id @default(cuid())
+  orderCode    String    @unique  // Unique orderCode từ PayOS cho webhook query
+  userId       String?
+  email        String    // Full email để fallback update
+  role         String    // Target role: CREATIVE | SUPER
+  amount       Int       // VND (349k tháng / 3.49M năm)
+  txn          String?    // Mã giao dịch PayOS
+  status       String    @default("PENDING") // PENDING | SUCCESS | FAILED | PENDING_MANUAL
+  createdAt    DateTime  @default(now())
+  paidAt       DateTime?
+  
+  // Trường đã được sửa lỗi trước đó
+  paymentInfo  String?   
 
   // Quản trị
-  approvedAt  DateTime?
-  approvedBy  String?
-  note        String?
+  approvedAt   DateTime?
+  approvedBy   String?
+  note         String?
 
   // Relation với User
-  user        User?       @relation(fields: [userId], references: [id])
+  user         User?     @relation(fields: [userId], references: [id])
 
   @@map("payment_requests")
 }
