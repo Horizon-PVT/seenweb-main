@@ -1,4 +1,13 @@
 /** @type {import('next').NextConfig} */
+
+const withMDX = require('@next/mdx')({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+});
+
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -36,6 +45,7 @@ const nextConfig = {
     }
     return config;
   },
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'], // ✅ Thêm: Hỗ trợ MDX cho blog
 };
 
-module.exports = nextConfig;
+module.exports = withMDX(nextConfig);

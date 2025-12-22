@@ -1,4 +1,4 @@
-// pages/index.tsx - BẢN FULL ĐÃ FIX (từ 5.txt, thêm check import ToolsGrid + optimize SEO)
+// pages/index.tsx - BẢN FULL ĐÃ FIX (từ 5.txt, thêm check import ToolsGrid + optimize SEO + thêm BlogTeaser)
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Header from "../components/Header";
@@ -9,6 +9,7 @@ import ToolsGrid from "../components/ToolsGrid"; // Import đúng
 import Partners from "../components/Partners";
 import Projects from "../components/Projects";
 import Testimonials from "../components/Testimonials";
+import BlogTeaser from "../components/BlogTeaser"; // ✅ THÊM: Teaser blog trên trang chủ
 import PricingTable from "../components/PricingTable";
 import AffiliateSection from "../components/AffiliateSection";
 import FinalCTA from "../components/FinalCTA";
@@ -78,6 +79,7 @@ export default function Home() {
             <Partners />
             <Projects />
             <Testimonials />
+            <BlogTeaser /> {/* ✅ THÊM: Section blog teaser ngay sau testimonials */}
             <PricingTable />
             <AffiliateSection />
             <FinalCTA />
