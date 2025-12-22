@@ -167,7 +167,7 @@ const ToolCard: React.FC<{
             }}
             className="bg-[#008080] text-white font-bold py-2 px-5 rounded text-sm hover:bg-[#008080]/80 transition"
           >
-            Dùng thử ngay
+            Sử dụng ngay
           </button>
         </div>
       )}
