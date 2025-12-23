@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { prisma } from '@/lib/prisma'; // Đã có
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client'; // Giữ để dùng Prisma.Decimal
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -18,57 +19,97 @@ const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google' && user.email) {
-        // Kiểm tra user đã tồn tại trong DB chưa
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-
-        // Nếu chưa tồn tại → tạo mới (đây là "đăng ký")
-        if (!existingUser) {
-          await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name || null,
-              image: user.image || null,
-              role: 'FREE',
-              dailyUsage: 0,
-              maxDailyUsage: 2,
-              membershipExpiry: null,
-              // referrerId sẽ được apply sau (bước riêng)
-              isAffiliate: false,
-              totalCommission: new Prisma.Decimal(0),
-              pendingCommission: new Prisma.Decimal(0),
-            },
+        try {
+          // Kiểm tra user tồn tại
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
           });
+
+          // Nếu chưa tồn tại → tạo mới (chỉ dùng fields tồn tại trong schema)
+          if (!existingUser) {
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || null,
+                image: user.image || null,
+                role: 'FREE',
+                dailyUsage: 0,
+                maxDailyUsage: 2,
+                membershipExpiry: null,
+                referrerId: null,          // Optional, sẵn cho referral sau
+                affiliateCode: null,       // Optional
+                isAffiliate: false,
+                totalCommission: new Prisma.Decimal(0),
+              },
+            });
+          }
+          return true;
+        } catch (error) {
+          console.error('Error in signIn callback (create/find user):', error);
+          return false;
         }
       }
-      return true; // Cho phép sign in
+      return true;
     },
 
     async redirect({ url, baseUrl }) {
       return baseUrl;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
-        token.sub = user.id;
+        // Để trống, load từ DB dưới
       }
+
+      if (token.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email as string },
+            select: {
+              id: true,
+              role: true,
+              membershipExpiry: true,
+              maxDailyUsage: true,
+            },
+          });
+
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+            token.membershipExpiry = dbUser.membershipExpiry;
+            token.maxDailyUsage = dbUser.maxDailyUsage;
+          }
+        } catch (error) {
+          console.error('Error loading user in jwt callback:', error);
+        }
+      }
+
       return token;
     },
 
     async session({ session, token }) {
-      // Fetch fresh data từ DB mỗi request (realtime role sau approve)
       if (session.user?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: session.user.email },
-          select: { role: true, membershipExpiry: true, maxDailyUsage: true },
-        });
-        if (dbUser) {
-          session.user.role = dbUser.role || 'FREE';
-          // Có thể thêm expiry, maxDailyUsage nếu frontend cần
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { role: true, membershipExpiry: true, maxDailyUsage: true },
+          });
+          if (dbUser) {
+            session.user.role = dbUser.role || 'FREE';
+          }
+        } catch (error) {
+          console.error('Error loading user in session callback:', error);
         }
       }
-      if (token.sub) session.user.id = token.sub as string;
+
+      if (token.id) {
+        session.user.id = token.id as string;
+      }
+
+      if (token.role) {
+        session.user.role = token.role as string;
+      }
+
       return session;
     },
   },
