@@ -255,47 +255,36 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
     }
   };
 
-  const generatePDF = async () => {
-    if (!scenes.length) {
-        alert('Chưa có cảnh nào để xuất bản.');
-        return;
+  
+const generatePDF = async () => {
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+  for (let i = 0; i < scenes.length; i++) {
+    if (i > 0) pdf.addPage();
+    const el = document.createElement('div');
+    el.style.width = '794px';
+    el.style.height = '1123px';
+    el.style.background = '#fff';
+    el.style.position = 'fixed';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+
+    if (scenes[i].imageUrl) {
+      const img = document.createElement('img');
+      img.src = scenes[i].imageUrl;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      el.appendChild(img);
+      await new Promise(r => img.onload = r);
     }
 
-    const { widthMM, heightMM, bleed } = KDP_TRIM_SIZES[scenes[0].trimSize];
-    
-    const totalWidthMM = widthMM + 2 * bleed;
-    const totalHeightMM = heightMM + 2 * bleed;
+    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#fff', useCORS: true });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 1), 'JPEG', 0, 0, 210, 297);
+    document.body.removeChild(el);
+  }
+  pdf.save('KDP_FULL_FIXED.pdf');
+};
 
-    const pdf = new jsPDF({
-        unit: 'mm',
-        format: [totalWidthMM, totalHeightMM],
-    });
-
-    for (let i = 0; i < scenes.length; i++) {
-        if (i > 0) {
-            pdf.addPage();
-        }
-        
-        const pageElement = pageRefs.current[i];
-        if (pageElement) { 
-            // TẠO CANVAS: Chụp cả hình ảnh và Text Box lại
-            const canvas = await html2canvas(pageElement, {
-                scale: 3, // Tăng scale lên 3x (300 DPI)
-                useCORS: true,
-                width: pageElement.offsetWidth, 
-                height: pageElement.offsetHeight,
-            });
-
-            const imgData = canvas.toDataURL('image/jpeg', 1.0); 
-            
-            // CHÈN ẢNH VÀO PDF: Ảnh này đã bao gồm text overlay.
-            pdf.addImage(imgData, 'JPEG', 0, 0, totalWidthMM, totalHeightMM);
-        }
-    }
-    
-    pdf.save(`KDP_Interior_${selectedTrimSize}_${Date.now()}.pdf`);
-    alert('Đã tạo file PDF NỘI DUNG chất lượng KDP. Tiếp theo hãy tạo BÌA SÁCH.');
-  };
 
   const renderInputPhase = () => (
     <div className="space-y-6 pt-4">
