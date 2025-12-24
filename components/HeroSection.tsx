@@ -35,7 +35,10 @@ animate-[spin_40s_linear_infinite]">
         <h2 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-black text-white leading-tight drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
           <span className="animate-liquid-pulse">SAN PHẲNG</span> CUỘC CHƠI <span className="animate-liquid-pulse" style={{ animationDelay: '0.3s' }}>YOUTUBE</span>
         </h2>
-        
+        <p className="mt-8 text-xl md:text-2xl text-gray-300 leading-relaxed">
+          Tìm ý tưởng • chọn keyword • viết tiêu đề • tối ưu video <br />
+          bằng các tool đơn giản, dễ dùng cho người mới làm YouTube.
+        </p>
   
         <div className="mt-32 md:mt-48">
           <a 

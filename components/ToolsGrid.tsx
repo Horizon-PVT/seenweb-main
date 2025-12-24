@@ -251,7 +251,7 @@ const ToolsGrid: React.FC = () => {
                   </svg>
                 </div>
                 <p className="text-4xl font-black text-[#CDAD5A] uppercase tracking-wider">
-                  BẮT ĐẦU NGAY HÔM NAY!
+                  🎯 Bắt đầu bằng 1 video làm đúng cách
                 </p>
               </div>
             </div>
