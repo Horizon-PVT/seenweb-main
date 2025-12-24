@@ -13,12 +13,8 @@ const nextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      { protocol: "https", hostname: "**.googleusercontent.com" },
-      { protocol: "https", hostname: "**.unsplash.com" },
-      { protocol: "https", hostname: "**.pexels.com" },
-    ],
-    unoptimized: true,  // ✅ Thêm: Tối ưu ảnh ngoài (nhẹ hơn cho AI-generated images)
+    domains: ["images.unsplash.com"],
+    unoptimized: false,
   },
   eslint: { ignoreDuringBuilds: true }, // ✅ Giữ nguyên: Tránh lỗi ESLint khi build
   typescript: { ignoreBuildErrors: true }, // ✅ Giữ nguyên: Tránh crash vì type nhỏ
