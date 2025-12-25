@@ -14,10 +14,10 @@ const FinalCTA: React.FC = () => {
         </h2>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-12">
            <button className="w-full sm:w-auto bg-[#008080] text-white font-bold py-4 px-12 text-lg border-2 border-[#008080] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow">
-            Chọn Gói MAGISTRATE
+            Chọn Gói TOÀN TRI
           </button>
           <button className="w-full sm:w-auto text-gray-400 hover:text-white transition-colors">
-            Đăng ký ARCHIVE (Thử nghiệm)
+            Đăng ký CỘNG ĐỒNG SEENYT
           </button>
         </div>
       </div>

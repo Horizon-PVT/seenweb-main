@@ -40,22 +40,9 @@ const Header: React.FC = () => {
             onClick={(e) => handleNavClick(e, "#about")}
             className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold"
           >
-            THÔNG TIN
+            Sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC
           </a>
-          <a
-            href="#tools"
-            onClick={(e) => handleNavClick(e, "#tools")}
-            className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold"
-          >
-            10 CÔNG CỤ
-          </a>
-          <a
-            href="#pricing"
-            onClick={(e) => handleNavClick(e, "#pricing")}
-            className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold"
-          >
-            BẢNG GIÁ
-          </a>
+          
         </nav>
 
         <div className="flex items-center space-x-4">
