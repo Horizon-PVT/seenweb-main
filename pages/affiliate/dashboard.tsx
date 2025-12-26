@@ -1,15 +1,54 @@
 import { GetServerSideProps } from 'next';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from '@/lib/prisma';
 import ApplyReferral from '@/components/ApplyReferral';
 
 export default function AffiliateDashboard({ user }: { user: any }) {
+  const [showFirstLoginTip, setShowFirstLoginTip] = useState(false);
+
+  useEffect(() => {
+    // Tip 1 lần: nếu lần đầu vào dashboard, show hướng dẫn và lưu localStorage để lần sau không hiện nữa
+    try {
+      const key = 'seenyt_affiliate_dashboard_first_login_tip_v1';
+      const existed = localStorage.getItem(key);
+      if (!existed) {
+        setShowFirstLoginTip(true);
+        localStorage.setItem(key, '1');
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   if (!user.isAffiliate) {
     return (
-      <div className="p-8 text-center text-white">
-        <p className="text-xl mb-4">Bạn chưa tham gia chương trình Affiliate.</p>
-        <form action="/api/affiliate/join" method="POST">
+      <div className="p-8 max-w-4xl mx-auto text-white">
+        {/* Top Nav */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link href="/">
+            <span className="cursor-pointer text-gray-200 hover:text-white">← Về trang chủ</span>
+          </Link>
+          <Link href="/affiliate">
+            <span className="cursor-pointer text-cyan-300 hover:text-cyan-200">Trang Affiliate</span>
+          </Link>
+        </div>
+
+        {showFirstLoginTip && (
+          <div className="mb-6 p-4 rounded-xl border border-yellow-600 bg-yellow-900/30">
+            <p className="font-bold text-yellow-300 mb-1">Lưu ý cho user lần đầu đăng nhập</p>
+            <p className="text-sm text-gray-200">
+              Nếu lần đầu đăng nhập mà bị điều hướng ra màn hình không đúng như mong muốn, mọi người chỉ cần bấm
+              <span className="font-bold"> mũi tên quay lại (Back) </span>
+              trên trình duyệt để trở về trang trước và thao tác lại.
+            </p>
+          </div>
+        )}
+
+        <p className="text-xl mb-4 text-center">Bạn chưa tham gia chương trình Affiliate.</p>
+        <form action="/api/affiliate/join" method="POST" className="text-center">
           <button className="bg-cyan-600 text-white py-3 px-8 rounded hover:bg-cyan-700">
             Tham gia ngay
           </button>
@@ -23,6 +62,28 @@ export default function AffiliateDashboard({ user }: { user: any }) {
 
   return (
     <div className="p-8 max-w-7xl mx-auto text-white">
+      {/* Top Nav */}
+      <div className="mb-6 flex items-center justify-between">
+        <Link href="/">
+          <span className="cursor-pointer text-gray-200 hover:text-white">← Về trang chủ</span>
+        </Link>
+        <Link href="/affiliate">
+          <span className="cursor-pointer text-cyan-300 hover:text-cyan-200">Trang Affiliate</span>
+        </Link>
+      </div>
+
+      {showFirstLoginTip && (
+        <div className="mb-6 p-4 rounded-xl border border-yellow-600 bg-yellow-900/30">
+          <p className="font-bold text-yellow-300 mb-1">Lưu ý cho user lần đầu đăng nhập</p>
+          <p className="text-sm text-gray-200">
+            Với các user lần đầu đăng nhập: nếu hệ thống có lúc đưa bạn ra một màn hình không đúng như mong muốn,
+            mọi người chỉ cần bấm
+            <span className="font-bold"> mũi tên quay lại (Back) </span>
+            trên trình duyệt để trở về trang trước và thao tác lại.
+          </p>
+        </div>
+      )}
+
       <ApplyReferral />
 
       <h1 className="text-4xl font-bold mb-8 text-center">Dashboard Affiliate</h1>
@@ -49,8 +110,15 @@ export default function AffiliateDashboard({ user }: { user: any }) {
       <div className="mb-12 text-center">
         <p className="mb-2 font-semibold">Link giới thiệu:</p>
         <div className="flex justify-center gap-4">
-          <input readOnly value={`https://seenyt.net/?ref=${user.affiliateCode || ''}`} className="w-96 p-3 bg-gray-800 border border-cyan-600 rounded" />
-          <button onClick={() => navigator.clipboard.writeText(`https://seenyt.net/?ref=${user.affiliateCode || ''}`)} className="bg-cyan-600 px-6 py-3 rounded hover:bg-cyan-700">
+          <input
+            readOnly
+            value={`https://seenyt.net/?ref=${user.affiliateCode || ''}`}
+            className="w-96 p-3 bg-gray-800 border border-cyan-600 rounded"
+          />
+          <button
+            onClick={() => navigator.clipboard.writeText(`https://seenyt.net/?ref=${user.affiliateCode || ''}`)}
+            className="bg-cyan-600 px-6 py-3 rounded hover:bg-cyan-700"
+          >
             Copy
           </button>
         </div>
@@ -86,41 +154,65 @@ export default function AffiliateDashboard({ user }: { user: any }) {
           {!isEligible && (
             <div className="mb-6 p-4 bg-red-900/50 border border-red-600 rounded text-center">
               <p className="font-bold text-red-400">Bạn chưa đủ điều kiện rút tiền</p>
-              <p className="text-sm mt-2">Cần đạt ít nhất <span className="font-bold">1.000.000 VND</span> để gửi yêu cầu.</p>
+              <p className="text-sm mt-2">
+                Cần đạt ít nhất <span className="font-bold">1.000.000 VND</span> để gửi yêu cầu.
+              </p>
             </div>
           )}
 
-          <form 
+          <form
             onSubmit={(e) => {
               if (!isEligible) {
                 e.preventDefault();
-                alert('Bạn chưa đủ điều kiện rút tiền!\n\nBạn cần đạt ít nhất 1.000.000 VND hoa hồng approved để gửi yêu cầu.\nVui lòng đọc kỹ điều khoản bên trái và tiếp tục giới thiệu user để kiếm thêm commission nhé!');
+                alert(
+                  'Bạn chưa đủ điều kiện rút tiền!\n\nBạn cần đạt ít nhất 1.000.000 VND hoa hồng approved để gửi yêu cầu.\nVui lòng đọc kỹ điều khoản bên trái và tiếp tục giới thiệu user để kiếm thêm commission nhé!'
+                );
               }
             }}
-            action="/api/affiliate/request-payout" 
-            method="POST" 
+            action="/api/affiliate/request-payout"
+            method="POST"
             className="space-y-4"
           >
             <input type="hidden" name="amount" value={totalApproved} />
 
             <div>
               <label className="block text-gray-300 mb-2">Ngân hàng</label>
-              <input type="text" name="bankName" required placeholder="Ví dụ: Vietcombank" className="w-full p-3 bg-gray-800 border border-gray-600 rounded" />
+              <input
+                type="text"
+                name="bankName"
+                required
+                placeholder="Ví dụ: Vietcombank"
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded"
+              />
             </div>
 
             <div>
               <label className="block text-gray-300 mb-2">Số tài khoản</label>
-              <input type="text" name="accountNumber" required placeholder="1234567890" className="w-full p-3 bg-gray-800 border border-gray-600 rounded" />
+              <input
+                type="text"
+                name="accountNumber"
+                required
+                placeholder="1234567890"
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded"
+              />
             </div>
 
             <div>
               <label className="block text-gray-300 mb-2">Chủ tài khoản</label>
-              <input type="text" name="accountName" required placeholder="NGUYEN VAN A" className="w-full p-3 bg-gray-800 border border-gray-600 rounded" />
+              <input
+                type="text"
+                name="accountName"
+                required
+                placeholder="NGUYEN VAN A"
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded"
+              />
             </div>
 
             <button
               type="submit"
-              className={`w-full py-4 rounded-lg text-xl font-bold transition-all ${isEligible ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-600 cursor-not-allowed'}`}
+              className={`w-full py-4 rounded-lg text-xl font-bold transition-all ${
+                isEligible ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-600 cursor-not-allowed'
+              }`}
             >
               {isEligible ? 'Gửi Yêu Cầu Rút Tiền' : 'Chưa Đủ Điều Kiện'}
             </button>
@@ -136,7 +228,9 @@ export default function AffiliateDashboard({ user }: { user: any }) {
       {/* Các phần dưới giữ nguyên (người giới thiệu + lịch sử commission) */}
       <div className="mb-12">
         <h2 className="text-2xl font-bold mb-6">Người Bạn Giới Thiệu ({user.referredUsers.length})</h2>
-        {user.referredUsers.length === 0 ? <p>Chưa có.</p> : (
+        {user.referredUsers.length === 0 ? (
+          <p>Chưa có.</p>
+        ) : (
           <table className="w-full bg-gray-900 rounded-xl">
             <thead className="bg-gray-800">
               <tr>
@@ -157,7 +251,9 @@ export default function AffiliateDashboard({ user }: { user: any }) {
       </div>
 
       <h2 className="text-2xl font-bold mb-6">Lịch Sử Hoa Hồng</h2>
-      {user.commissions.length === 0 ? <p>Chưa có.</p> : (
+      {user.commissions.length === 0 ? (
+        <p>Chưa có.</p>
+      ) : (
         <table className="w-full bg-gray-900 rounded-xl">
           <thead className="bg-gray-800">
             <tr>

@@ -68,7 +68,7 @@ const AffiliateSection: React.FC = () => {
                 <div className="absolute inset-0 rounded-full border-8 border-yellow-400 animate-ping opacity-75"></div>
                 <div className="absolute inset-0 rounded-full border-8 border-red-400 animate-ping delay-150 opacity-75"></div>
                 <span className="text-3xl font-bold text-white z-10 px-8">
-                  THAM GIA<br />AFFILIATE
+                  BẤM ĐÂY ĐỂ THAM GIA<br />AFFILIATE
                 </span>
               </button>
             </div>
