@@ -238,7 +238,11 @@ const ToolsGrid: React.FC = () => {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black py-16 px-4">
+    <section
+  id="tools"
+  className="min-h-screen scroll-mt-28 bg-gradient-to-b from-black via-gray-900 to-black py-16 px-4"
+>
+
       <div className="max-w-7xl mx-auto">
         <h2 className="text-5xl font-black text-center mb-4 text-[#CDAD5A] uppercase">
           BẢNG CÔNG CỤ SEENYT

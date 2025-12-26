@@ -1,45 +1,69 @@
-// File: pages/_app.tsx (thay toàn bộ bằng cái này - FULL HOÀN CHỈNH)
-import "@/styles/globals.css";  // Giữ nguyên import CSS của anh
+import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { SessionProvider } from "next-auth/react";  // Chỉ dùng NextAuth
+import { SessionProvider } from "next-auth/react";
 
-export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps) {
+  // Domain chuẩn cho share (URL tuyệt đối)
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.seenyt.net").replace(/\/$/, "");
+
+  // GIỮ ẢNH CŨ (đúng cái ảnh đang hiện khi share)
+  // Nếu trước đây anh dùng thumbnail.jpg thì giữ nguyên như này:
+  const ogImage = `${siteUrl}/thumbnail.jpg`;
+
+  const title = "SeenYT - Công cụ AI YouTube thông minh nhất 2025";
+  const description =
+    "SeenYT - Tool AI hỗ trợ creator YouTube tạo video tự động, tìm micro niche, viết kịch bản, tối ưu SEO và tạo thumbnail AI.";
+
   return (
     <SessionProvider session={session}>
       <Head>
-        {/* 🧠 SEO cơ bản áp dụng cho toàn site - giữ nguyên của anh */}
+        {/* BASIC */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta httpEquiv="Content-Language" content="vi" />
+        <meta name="theme-color" content="#0A0F1E" />
+
+        {/* TITLE + DESCRIPTION */}
+        <title>{title}</title>
+        <meta name="description" content={description} />
+
+        {/* ICONS */}
         <link rel="icon" href="/favicon.ico" />
-        <meta name="theme-color" content="#000000" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-        {/* 🧭 Default OpenGraph */}
-        <meta property="og:site_name" content="SeenWeb" />
+        {/* OPEN GRAPH (Zalo/Facebook) */}
+        <meta property="og:site_name" content="SeenYT" />
         <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://seenweb-main.vercel.app/thumbnail.jpg"
-        />
+        <meta property="og:url" content={`${siteUrl}/`} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:secure_url" content={ogImage} />
 
-        {/* 🕊 Twitter card */}
+        {/* (khuyên có) width/height để Zalo ổn định hơn */}
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+
+        {/* TWITTER */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:image"
-          content="https://seenweb-main.vercel.app/thumbnail.jpg"
-        />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={ogImage} />
 
-        {/* 🧱 JSON-LD Schema (Logo + Website) */}
+        {/* JSON-LD */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "SeenWeb",
-              url: "https://seenweb-main.vercel.app",
-              logo: "https://seenweb-main.vercel.app/thumbnail.jpg",
+              name: "SeenYT",
+              url: `${siteUrl}/`,
+              logo: ogImage,
             }),
           }}
         />

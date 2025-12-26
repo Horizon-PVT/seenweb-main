@@ -1,12 +1,14 @@
-// File: components/Header.tsx (bản full đã sửa - dùng NextAuth)
+// File: components/Header.tsx
 import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { useSession, signOut } from "next-auth/react";
 
 const Header: React.FC = () => {
-  const { data: session, status } = useSession();  // Check user từ NextAuth
-  const isLoggedIn = !!session;  // True nếu đã đăng nhập
-  const user = session?.user;  // Lấy info user (email, name, role)
+  const { data: session } = useSession();
+  const isLoggedIn = !!session;
+  const user = session?.user;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleNavClick = (
@@ -15,45 +17,62 @@ const Header: React.FC = () => {
   ) => {
     e.preventDefault();
     const targetElement = document.querySelector(targetId);
-    if (targetElement)
+    if (targetElement) {
       targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" });  // Đăng xuất an toàn, quay về home
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-sm border-b border-gray-800/50">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/55 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="relative text-2xl font-playfair font-bold text-[#CDAD5A] tracking-widest cursor-pointer">
-          SeenYT
-          <span className="absolute top-0 left-0 w-full h-full animate-metallic-sheen"></span>
-        </div>
+        {/* LOGO + WORDMARK (click về bảng công cụ) */}
+        <Link href="/#tools" className="flex items-center gap-3 group select-none">
+          <Image
+            src="/seenyt-mark.png"
+            alt="SeenYT Logo"
+            width={36}
+            height={36}
+            priority
+            className="seenyt-logo-icon"
+          />
+          <span className="seenyt-wordmark">
+            Seen<span>YT</span>
+          </span>
+        </Link>
 
+        {/* NAV */}
         <nav className="hidden md:flex items-center space-x-8">
+          <a
+            href="#tools"
+            onClick={(e) => handleNavClick(e, "#tools")}
+            className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
+          >
+            Bảng công cụ
+          </a>
+
           <a
             href="#about"
             onClick={(e) => handleNavClick(e, "#about")}
-            className="text-[#008080] hover:text-[#00b3b3] transition-colors duration-300 font-semibold"
+            className="text-[#00a3a3] hover:text-[#4ddcdc] transition-colors duration-300 font-semibold text-sm"
           >
             Sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC
           </a>
-          
         </nav>
 
+        {/* RIGHT SIDE */}
         <div className="flex items-center space-x-4">
           {isLoggedIn && user ? (
             <div className="flex items-center gap-3">
-              <span className="text-[#00b3b3] font-semibold">
+              <span className="text-[#4ddcdc] text-sm font-semibold">
                 👋 {user.email}
               </span>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 px-4 py-2 rounded-sm text-white hover:bg-red-600 transition-all duration-300"
+                className="bg-red-500 px-4 py-2 rounded-sm text-white text-sm hover:bg-red-600 transition-all"
               >
                 ĐĂNG XUẤT
               </button>
@@ -61,13 +80,13 @@ const Header: React.FC = () => {
           ) : (
             <>
               <button
-                onClick={openModal}
-                className="text-gray-300 hover:text-white transition-colors"
+                onClick={() => setIsModalOpen(true)}
+                className="text-gray-300 hover:text-white transition-colors text-sm"
               >
                 ĐĂNG NHẬP
               </button>
               <button
-                onClick={openModal}
+                onClick={() => setIsModalOpen(true)}
                 className="bg-[#008080] text-white font-bold py-2 px-5 border border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] hover:shadow-[0_0_15px_#008080]"
               >
                 ĐĂNG KÍ
@@ -77,8 +96,7 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal đăng nhập / đăng ký */}
-      <AuthModal isOpen={isModalOpen} onClose={closeModal} />
+      <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </header>
   );
 };
