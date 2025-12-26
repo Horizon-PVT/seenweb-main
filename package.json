@@ -16,6 +16,7 @@
     "@google/generative-ai": "^0.24.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.1.0",
+    "@next/third-parties": "^16.1.1",
     "@payos/node": "^2.0.3",
     "@prisma/client": "^5.17.0",
     "@types/fluent-ffmpeg": "^2.1.24",

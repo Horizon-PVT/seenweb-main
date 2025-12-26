@@ -3,6 +3,9 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
 
+// THÊM DÒNG NÀY ĐỂ DÙNG GTM CHÍNH THỨC
+import { GoogleTagManager } from '@next/third-parties/google';
+
 export default function App({
   Component,
   pageProps: { session, ...pageProps },
@@ -11,7 +14,6 @@ export default function App({
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.seenyt.net").replace(/\/$/, "");
 
   // GIỮ ẢNH CŨ (đúng cái ảnh đang hiện khi share)
-  // Nếu trước đây anh dùng thumbnail.jpg thì giữ nguyên như này:
   const ogImage = `${siteUrl}/thumbnail.jpg`;
 
   const title = "SeenYT - Công cụ AI YouTube thông minh nhất 2025";
@@ -70,6 +72,9 @@ export default function App({
       </Head>
 
       <Component {...pageProps} />
+
+      {/* THÊM DÒNG NÀY ĐỂ KÍCH HOẠT GTM TRÊN TOÀN BỘ TRANG */}
+      <GoogleTagManager gtmId="GTM-PS4LS7FF" />
     </SessionProvider>
   );
 }
