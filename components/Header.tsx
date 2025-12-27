@@ -6,9 +6,13 @@ import AuthModal from "./AuthModal";
 import { useSession, signOut } from "next-auth/react";
 
 const Header: React.FC = () => {
-  const { data: session } = useSession();
-  const isLoggedIn = !!session;
+  const { data: session, status } = useSession();
+
+  // QUAN TRỌNG: tránh trạng thái "vừa redirect xong nhưng session đang hydrate"
+  const isLoadingSession = status === "loading";
+  const isLoggedIn = status === "authenticated";
   const user = session?.user;
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleNavClick = (
@@ -65,7 +69,11 @@ const Header: React.FC = () => {
 
         {/* RIGHT SIDE */}
         <div className="flex items-center space-x-4">
-          {isLoggedIn && user ? (
+          {isLoadingSession ? (
+            <span className="text-white/60 text-sm font-semibold">
+              Đang kiểm tra...
+            </span>
+          ) : isLoggedIn && user ? (
             <div className="flex items-center gap-3">
               <span className="text-[#4ddcdc] text-sm font-semibold">
                 👋 {user.email}

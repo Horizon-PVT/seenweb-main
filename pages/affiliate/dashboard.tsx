@@ -76,7 +76,7 @@ export default function AffiliateDashboard({ user }: { user: any }) {
         <div className="mb-6 p-4 rounded-xl border border-yellow-600 bg-yellow-900/30">
           <p className="font-bold text-yellow-300 mb-1">Lưu ý cho user lần đầu đăng nhập</p>
           <p className="text-sm text-gray-200">
-            Với các user lần đầu đăng nhập: nếu hệ thống có lúc đưa bạn ra một màn hình không đúng như mong muốn,
+            Với các user lần đầu đăng nhập: nếu hệ thống có lúc đưa bạn ra một màn hình trắng không đúng như mong muốn,
             mọi người chỉ cần bấm
             <span className="font-bold"> mũi tên quay lại (Back) </span>
             trên trình duyệt để trở về trang trước và thao tác lại.

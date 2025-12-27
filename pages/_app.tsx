@@ -21,7 +21,12 @@ export default function App({
     "SeenYT - Tool AI hỗ trợ creator YouTube tạo video tự động, tìm micro niche, viết kịch bản, tối ưu SEO và tạo thumbnail AI.";
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider
+      session={session}
+      // giúp session cập nhật nhanh hơn sau login/redirect
+      refetchOnWindowFocus={true}
+      refetchInterval={30}
+    >
       <Head>
         {/* BASIC */}
         <meta charSet="utf-8" />

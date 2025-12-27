@@ -1,9 +1,10 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client'; // Giữ để dùng Prisma.Decimal
+// File: pages/api/auth/[...nextauth].ts
+import NextAuth, { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -11,56 +12,60 @@ const authOptions: NextAuthOptions = {
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: '/',
-    error: '/',
-    newUser: '/',
-  },
-  callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === 'google' && user.email) {
-        try {
-          // Kiểm tra user tồn tại
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
-          });
 
-          // Nếu chưa tồn tại → tạo mới (chỉ dùng fields tồn tại trong schema)
-          if (!existingUser) {
-            await prisma.user.create({
-              data: {
-                email: user.email,
-                name: user.name || null,
-                image: user.image || null,
-                role: 'FREE',
-                dailyUsage: 0,
-                maxDailyUsage: 2,
-                membershipExpiry: null,
-                referrerId: null,          // Optional, sẵn cho referral sau
-                affiliateCode: null,       // Optional
-                isAffiliate: false,
-                totalCommission: new Prisma.Decimal(0),
-              },
-            });
-          }
-          return true;
-        } catch (error) {
-          console.error('Error in signIn callback (create/find user):', error);
-          return false;
+  // Google-only
+  pages: {
+    signIn: "/",
+    error: "/",
+    newUser: "/welcome",
+  },
+
+  callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider !== "google") return false;
+      if (!user?.email) return false;
+
+      try {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          select: { id: true },
+        });
+
+        if (!existingUser) {
+          await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name || null,
+              image: user.image || null,
+              role: "FREE",
+              dailyUsage: 0,
+              maxDailyUsage: 2,
+              membershipExpiry: null,
+
+              referrerId: null,
+              affiliateCode: null,
+              isAffiliate: false,
+              totalCommission: new Prisma.Decimal(0),
+            },
+          });
         }
+
+        return true;
+      } catch (e) {
+        console.error("NextAuth signIn error:", e);
+        return false;
       }
-      return true;
     },
 
+    // QUAN TRỌNG: KHÔNG return baseUrl cứng kiểu "return baseUrl" cho mọi case.
+    // Nếu anh ép vậy thì callbackUrl "/welcome" sẽ không bao giờ chạy đúng.
     async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
       return baseUrl;
     },
 
-    async jwt({ token, user, account, profile }) {
-      if (user) {
-        // Để trống, load từ DB dưới
-      }
-
+    async jwt({ token }) {
       if (token.email) {
         try {
           const dbUser = await prisma.user.findUnique({
@@ -79,44 +84,22 @@ const authOptions: NextAuthOptions = {
             token.membershipExpiry = dbUser.membershipExpiry;
             token.maxDailyUsage = dbUser.maxDailyUsage;
           }
-        } catch (error) {
-          console.error('Error loading user in jwt callback:', error);
+        } catch (e) {
+          console.error("jwt callback error:", e);
         }
       }
-
       return token;
     },
 
     async session({ session, token }) {
-      if (session.user?.email) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { role: true, membershipExpiry: true, maxDailyUsage: true },
-          });
-          if (dbUser) {
-            session.user.role = dbUser.role || 'FREE';
-          }
-        } catch (error) {
-          console.error('Error loading user in session callback:', error);
-        }
-      }
-
-      if (token.id) {
-        session.user.id = token.id as string;
-      }
-
-      if (token.role) {
-        session.user.role = token.role as string;
-      }
-
+      // tuỳ type dự án anh, nếu TS báo lỗi session.user.id thì anh đã có custom type ở next-auth.d.ts
+      (session.user as any).id = token.id;
+      (session.user as any).role = token.role;
       return session;
     },
   },
-  session: {
-    strategy: 'jwt',
-  },
+
+  session: { strategy: "jwt" },
 };
 
 export default NextAuth(authOptions);
-export { authOptions };

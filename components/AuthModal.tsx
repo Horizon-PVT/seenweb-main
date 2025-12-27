@@ -13,20 +13,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Nếu đã authenticated trong modal (hiếm xảy ra), hiển thị success và đóng
   useEffect(() => {
     if (status === 'authenticated' && session) {
+      setIsLoading(false);
       setMessage({ text: 'Đăng nhập thành công!', type: 'success' });
-      setTimeout(() => {
-        onClose(); // Chỉ đóng modal, KHÔNG refresh/reload gì cả
+      const t = setTimeout(() => {
+        onClose();
       }, 1500);
+
+      return () => clearTimeout(t);
     }
+    return;
   }, [session, status, onClose]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setMessage(null);
+
     try {
-      await signIn('google', { callbackUrl: '/' });
+      // QUAN TRỌNG: redirect về /welcome thay vì /
+      // (welcome sẽ lo chuyện hydrate session xong rồi mới về home)
+      await signIn('google', { callbackUrl: '/welcome' });
+
+      // Thường sẽ redirect trước khi chạy đến đây.
+      // Không cần setIsLoading(false) ở đây.
     } catch (error) {
       setMessage({ text: 'Đăng nhập Google thất bại. Thử lại!', type: 'error' });
       setIsLoading(false);

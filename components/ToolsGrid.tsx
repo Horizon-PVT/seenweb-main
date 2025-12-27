@@ -161,14 +161,41 @@ const ToolCard: React.FC<{
   return (
     <div
       className={`relative bg-gradient-to-br from-gray-900 to-black rounded-xl border-2
-      ${
-        isLocked
-          ? "border-yellow-600/40"
-          : "border-gray-800 hover:border-[#CDAD5A]/60"
-      }
-      transition-all duration-300 shadow-xl cursor-pointer`}
+      ${isLocked ? "border-yellow-600/40" : "border-gray-800 hover:border-[#CDAD5A]/60"}
+      transition-all duration-300 shadow-xl cursor-pointer overflow-visible`} // overflow-visible để chữ nhô ra
       onClick={isLocked ? undefined : onToggleExpand}
     >
+      {/* Badge HOT */}
+      {isExclusive && (
+        <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-full z-10">
+          HOT
+        </span>
+      )}
+
+      {/* Icon ổ khóa vàng nhỏ ở góc phải trên */}
+      {isLocked && (
+        <div className="absolute top-4 right-4 z-10">
+          <svg className="w-8 h-8 text-[#CDAD5A] drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+          </svg>
+        </div>
+      )}
+
+      {/* Chữ "YÊU CẦU NÂNG CẤP" xoay -38° ở góc trên-trái */}
+      {isLocked && (
+        <div className="absolute -top-4 -left-6 z-20 pointer-events-none">
+          <span
+            className="text-[#CDAD5A] text-sm font-black tracking-wider drop-shadow-lg"
+            style={{
+              transform: "rotate(-38deg)",
+              transformOrigin: "left center",
+            }}
+          >
+            YÊU CẦU NÂNG CẤP
+          </span>
+        </div>
+      )}
+
       <div className="p-4 flex items-center gap-4">
         <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
           <Icon className="w-8 h-8 text-[#CDAD5A]" />
@@ -193,28 +220,16 @@ const ToolCard: React.FC<{
               e.stopPropagation();
               onOpenTool();
             }}
-            className="bg-[#008080] hover:bg-[#008080]/80 text-white font-bold py-2 px-5 rounded"
+            className="bg-[#008080] hover:bg-[#008080]/80 text-white font-bold py-2 px-5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLocked}
           >
-            Sử dụng ngay
+            {isLocked ? "Yêu cầu nâng cấp" : "Sử dụng ngay"}
           </button>
-        </div>
-      )}
-
-      {isExclusive && (
-        <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-full">
-          HOT
-        </span>
-      )}
-
-      {isLocked && (
-        <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center">
-          <span className="text-yellow-400 font-bold">YÊU CẦU NÂNG CẤP</span>
         </div>
       )}
     </div>
   );
 };
-
 /* =========================
    TOOLS GRID
 ========================= */
@@ -271,9 +286,7 @@ const ToolsGrid: React.FC = () => {
           <div className="flex justify-center items-center">
             <div className="bg-black/50 border border-[#CDAD5A]/30 rounded-3xl p-10 text-center">
               <p className="text-3xl font-black text-[#CDAD5A]">
-                🎯 BẮT ĐẦU BẰNG 1 VIDEO
-                <br />
-                LÀM ĐÚNG CÁCH
+                🎯 Từ Ý Tưởng Đến Viral – Chỉ Với SeenYT
               </p>
             </div>
           </div>
