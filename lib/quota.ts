@@ -16,7 +16,7 @@ export async function checkUserQuota(userId: string): Promise<void> {
             maxDailyUsage: true,
             lastUsageDate: true,
         },
-    });
+    }) as any;
 
     if (!user) {
         throw new Error('User not found');

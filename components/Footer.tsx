@@ -31,8 +31,8 @@ const Footer: React.FC = () => {
             </h4>
             <p className="text-gray-500 max-w-md">
               Sang phẳng cuộc chơi YouTube bằng sức mạnh của AI tiên tiến nhất.
-              <p className="text-xl text-gray-400">Web Tools SeenYT - Một sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC</p>
             </p>
+            <p className="text-xl text-gray-400 mt-2">Web Tools SeenYT - Một sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC</p>
           </div>
 
           {/* Cột 2 – Điều hướng */}

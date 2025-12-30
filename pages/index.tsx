@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
@@ -26,9 +26,6 @@ const ToolOverlay = dynamic(() => import("../components/ToolOverlay"), {
 
 export default function Home() {
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => setIsClient(true), []);
 
   const siteUrl = "https://seenyt.net";
   const title = "SeenYT - Công cụ AI YouTube thông minh nhất 2025";
@@ -83,44 +80,36 @@ export default function Home() {
         ))}
       </Head>
 
-      {isClient ? (
-        <>
-          <Header />
-          <main>
-            <HeroSection />
-            <PromotionCarousel />
-            <TechPillars />
+      <Header />
+      <main>
+        <HeroSection />
+        <PromotionCarousel />
+        <TechPillars />
 
-            {/* ✅ Anchor để nút "Quay lại menu" cuộn về đúng vị trí */}
-            <section id="bang-cong-cu-seenyt">
-              <ToolsGrid />
-            </section>
+        {/* ✅ Anchor để nút "Quay lại menu" cuộn về đúng vị trí */}
+        <section id="bang-cong-cu-seenyt">
+          <ToolsGrid />
+        </section>
 
-            <Partners />
-            <Projects />
-            <Testimonials />
-            <BlogTeaser />
+        <Partners />
+        <Projects />
+        <Testimonials />
+        <BlogTeaser />
 
-            <section id="pricing" className="scroll-mt-20">
-              <PricingTable />
-            </section>
+        <section id="pricing" className="scroll-mt-20">
+          <PricingTable />
+        </section>
 
-            <AffiliateSection />
-            <FinalCTA />
-            <FAQ />
-          </main>
-          <Footer />
-          <ChatbotWidget />
+        <AffiliateSection />
+        <FinalCTA />
+        <FAQ />
+      </main>
+      <Footer />
+      <ChatbotWidget />
 
-          {/* ✅ Overlay full-screen: mở cho TẤT CẢ tool */}
-          {openAnyTool && toolId && (
-            <ToolOverlay toolId={toolId} onBack={closeAndGoToolsBoard} />
-          )}
-        </>
-      ) : (
-        <div className="min-h-screen bg-[#0A1929] flex items-center justify-center text-[#CDAD5A]">
-          Đang tải giao diện...
-        </div>
+      {/* ✅ Overlay full-screen: mở cho TẤT CẢ tool */}
+      {openAnyTool && toolId && (
+        <ToolOverlay toolId={toolId} onBack={closeAndGoToolsBoard} />
       )}
     </div>
   );

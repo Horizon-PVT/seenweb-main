@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 // THÊM DÒNG NÀY ĐỂ DÙNG GTM CHÍNH THỨC
 import { GoogleTagManager } from '@next/third-parties/google';
@@ -76,7 +77,9 @@ export default function App({
         />
       </Head>
 
-      <Component {...pageProps} />
+      <ErrorBoundary>
+        <Component {...pageProps} />
+      </ErrorBoundary>
 
       {/* THÊM DÒNG NÀY ĐỂ KÍCH HOẠT GTM TRÊN TOÀN BỘ TRANG */}
       <GoogleTagManager gtmId="GTM-PS4LS7FF" />
