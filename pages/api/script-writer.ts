@@ -1,6 +1,9 @@
 // File: pages/api/script-writer.ts (Backend cho Viết Kịch Bản)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI } from "@google/genai";
+import { getServerSession } from "next-auth/next"; // Auth import
+import { authOptions } from "./auth/[...nextauth]"; // Auth definitions
+import { checkUserQuota, incrementUserUsage } from "@/lib/quota"; // Quota logic
 
 interface ErrorResponse {
   error: string;
@@ -16,11 +19,24 @@ export default async function handler(
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
+  // 1. Auth & Quota Check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session || !session.user || !session.user.id) {
+    return res.status(401).json({ error: "Bạn cần đăng nhập để sử dụng tính năng này." });
+  }
+
+  try {
+    // Check quota before calling AI
+    await checkUserQuota(session.user.id);
+  } catch (err: any) {
+    return res.status(403).json({ error: err.message });
+  }
+
   try {
     const { idea, goal, level, tone, style, length } = req.body;
 
     if (!idea || !goal || !level || !tone || !style || length === undefined) {
-        return res.status(400).json({ error: "Thiếu thông tin đầu vào (idea, goal, level, tone, style, length)." });
+      return res.status(400).json({ error: "Thiếu thông tin đầu vào (idea, goal, level, tone, style, length)." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -55,6 +71,9 @@ export default async function handler(
     });
 
     const scriptText = response.text.trim();
+
+    // 2. Increment Usage after success
+    await incrementUserUsage(session.user.id);
 
     // Trả về kết quả dạng text
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');

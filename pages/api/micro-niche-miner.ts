@@ -1,6 +1,9 @@
 // File: pages/api/micro-niche-miner.ts (Backend cho Micro Niche Miner)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI } from "@google/genai";
+import { getServerSession } from "next-auth/next"; // Auth import
+import { authOptions } from "./auth/[...nextauth]"; // Auth definitions
+import { checkUserQuota, incrementUserUsage } from "@/lib/quota"; // Quota logic
 
 // Định nghĩa kiểu Output (hoặc import)
 interface NicheData { nicheName: string; overallScore: number; competitionScore: number; searchVolumeScore: number; monetizationScore: number; pioneerVideoTopics: string[]; miningScript: { tone: string; frequency: string; monetizationGoal: string; }; lowFloorChannels: { name: string; url: string; }[]; }
@@ -16,11 +19,24 @@ export default async function handler(
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
+  // 1. Auth & Quota Check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session || !session.user || !session.user.id) {
+    return res.status(401).json({ error: "Bạn cần đăng nhập để sử dụng tính năng này." });
+  }
+
+  try {
+    // Check quota before calling AI
+    await checkUserQuota(session.user.id);
+  } catch (err: any) {
+    return res.status(403).json({ error: err.message });
+  }
+
   try {
     const { macroNiche, competition, searchVolume, monetization, outputLanguage } = req.body;
 
     if (!macroNiche || competition === undefined || searchVolume === undefined || monetization === undefined || !outputLanguage) {
-        return res.status(400).json({ error: "Thiếu thông tin đầu vào." });
+      return res.status(400).json({ error: "Thiếu thông tin đầu vào." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -84,23 +100,26 @@ export default async function handler(
     const jsonMatch = rawText.match(/{.*}|\[.*]/s); // Trích xuất JSON
 
     if (!jsonMatch) {
-        console.error("Gemini response did not contain valid JSON (Micro Niche):", rawText);
-        throw new Error("Phản hồi từ AI không chứa JSON hợp lệ.");
+      console.error("Gemini response did not contain valid JSON (Micro Niche):", rawText);
+      throw new Error("Phản hồi từ AI không chứa JSON hợp lệ.");
     }
 
     const jsonString = jsonMatch[0];
     let parsedOutput: OutputData;
     try {
-        parsedOutput = JSON.parse(jsonString);
+      parsedOutput = JSON.parse(jsonString);
     } catch (parseError) {
-        console.error("Lỗi parse JSON từ Gemini (Micro Niche):", jsonString);
-        throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
+      console.error("Lỗi parse JSON từ Gemini (Micro Niche):", jsonString);
+      throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
     }
 
     // Kiểm tra cấu trúc cơ bản
     if (!parsedOutput.topNiches || !parsedOutput.saturatedNichesWarning) {
-        throw new Error("Phản hồi AI không tuân theo cấu trúc JSON được yêu cầu.");
+      throw new Error("Phản hồi AI không tuân theo cấu trúc JSON được yêu cầu.");
     }
+
+    // 2. Increment Usage after success
+    await incrementUserUsage(session.user.id);
 
     res.status(200).json(parsedOutput);
 

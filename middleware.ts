@@ -1,8 +1,27 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function middleware(request: NextRequest) {
+const protectedPaths = ['/dashboard', '/admin', '/affiliate'];
+
+export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
+  const { pathname } = request.nextUrl;
+
+  // 1. Logic bảo mật: Kiểm tra auth cho các protected paths
+  const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
+
+  if (isProtected) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+
+    if (!token) {
+      const url = new URL('/login', request.url);
+      url.searchParams.set('callbackUrl', encodeURI(request.url));
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 2. Logic Affiliate: Lưu cookie nếu có ref code
   const refCode = request.nextUrl.searchParams.get('ref');
 
   if (refCode) {
@@ -18,16 +37,9 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Matcher chuẩn – exclude _next, api, static files (favicon, images...)
 export const config = {
   matcher: [
-    '/',
-    '/login',
-    '/pricing',
-    '/register',
-    '/dashboard/:path*',
-    '/affiliate/:path*',
-    // Thêm các page chính khác nếu cần, hoặc dùng pattern rộng:
+    // Chạy middleware trên tất cả các path, ngoại trừ static assets và api
     '/((?!_next/static|_next/image|api|favicon\\.ico|robots\\.txt).*)',
   ],
 };

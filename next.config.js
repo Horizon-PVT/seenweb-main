@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 
-const withMDX = require('@next/mdx')({
+const withMDX = require("@next/mdx")({
   extension: /\.mdx?$/,
   options: {
     remarkPlugins: [],
@@ -11,6 +11,7 @@ const withMDX = require('@next/mdx')({
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -18,34 +19,21 @@ const nextConfig = {
       { protocol: "https", hostname: "**.unsplash.com" },
       { protocol: "https", hostname: "**.pexels.com" },
     ],
-    unoptimized: true,  // ✅ Thêm: Tối ưu ảnh ngoài (nhẹ hơn cho AI-generated images)
+    unoptimized: true,
   },
-  eslint: { ignoreDuringBuilds: true }, // ✅ Giữ nguyên: Tránh lỗi ESLint khi build
-  typescript: { ignoreBuildErrors: true }, // ✅ Giữ nguyên: Tránh crash vì type nhỏ
+
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
+
   experimental: {
-    turbo: { 
-      rules: { 
-        '*.prisma': { loaders: ['prisma'] }  // ✅ Thêm: Tối ưu build cho Prisma queries
-      } 
+    turbo: {
+      rules: {
+        "*.prisma": { loaders: ["prisma"] },
+      },
     },
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.watchOptions = {
-        ignored: [
-          '**/node_modules/**',  // Ignore node_modules
-          '**/System Volume Information/**',
-          '**/hiberfil.sys',
-          '**/pagefile.sys',
-          '**/swapfile.sys',
-          '**/RECYCLER/**',  // Ignore Recycle Bin
-          '**/.git/**'  // Ignore Git
-        ]
-      };
-    }
-    return config;
-  },
-  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'], // ✅ Thêm: Hỗ trợ MDX cho blog
+
+  pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
 };
 
 module.exports = withMDX(nextConfig);

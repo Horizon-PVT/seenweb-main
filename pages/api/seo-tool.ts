@@ -1,6 +1,9 @@
 // File: pages/api/seo-tool.ts (Backend - Đã cập nhật Prompt Thumbnail)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI, Type } from "@google/genai";
+import { getServerSession } from "next-auth/next"; // Auth import
+import { authOptions } from "./auth/[...nextauth]"; // Auth definitions
+import { checkUserQuota, incrementUserUsage } from "@/lib/quota"; // Quota logic
 
 // Giữ nguyên schema JSON
 const seoSchema = {
@@ -70,10 +73,23 @@ export default async function handler(
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
+  // 1. Auth & Quota Check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session || !session.user || !session.user.id) {
+    return res.status(401).json({ error: "Bạn cần đăng nhập để sử dụng tính năng này." });
+  }
+
+  try {
+    // Check quota before calling AI
+    await checkUserQuota(session.user.id);
+  } catch (err: any) {
+    return res.status(403).json({ error: err.message });
+  }
+
   try {
     const { coreIdea, useGrounding, targetAudience, seoGoal } = req.body;
     if (!coreIdea || !targetAudience || !seoGoal) {
-        return res.status(400).json({ error: "Thiếu coreIdea, targetAudience, hoặc seoGoal." });
+      return res.status(400).json({ error: "Thiếu coreIdea, targetAudience, hoặc seoGoal." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -115,6 +131,9 @@ export default async function handler(
       console.error("Lỗi parse JSON từ Gemini (SEO Tool):", jsonString);
       throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
     }
+
+    // 2. Increment Usage after success
+    await incrementUserUsage(session.user.id);
 
     res.status(200).json(parsedOutput);
 

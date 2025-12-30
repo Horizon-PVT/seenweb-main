@@ -15,11 +15,17 @@ model User {
   image              String?
   passwordHash       String?
   role               String    @default("FREE")
+
+  // QUOTA FIELDS
   dailyUsage         Int       @default(0)
-  maxDailyUsage      Int       @default(2)
+  maxDailyUsage      Int       @default(3) // Updated from 2 to 3
+
+  // ✅ NEW: dùng để reset dailyUsage theo ngày (không cần cron)
+  lastUsageDate      DateTime? // New field for daily reset logic
+
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
-  
+
   membershipExpiry   DateTime?
 
   // AFFILIATE FIELDS (self-relation referrer / referredUsers)
@@ -31,10 +37,10 @@ model User {
   totalCommission    Decimal   @default(0)
 
   // Relations
-  paymentRequests    PaymentRequest[]
-  commissions        Commission[]    @relation("UserCommissions") // commissions mà user là referrer
-  referredCommissions Commission[]   @relation("CommissionReferredUser") // commissions mà user là referredUser
-  payoutRequests     PayoutRequest[] @relation("UserPayouts")
+  paymentRequests     PaymentRequest[]
+  commissions         Commission[]    @relation("UserCommissions")
+  referredCommissions Commission[]   @relation("CommissionReferredUser")
+  payoutRequests      PayoutRequest[] @relation("UserPayouts")
 
   @@map("users")
 }
@@ -50,7 +56,7 @@ model PaymentRequest {
   status       String    @default("PENDING")
   createdAt    DateTime  @default(now())
   paidAt       DateTime?
-  
+
   paymentInfo  String?
 
   approvedAt   DateTime?
@@ -62,7 +68,6 @@ model PaymentRequest {
   @@map("payment_requests")
 }
 
-// Model Commission (có cả referrer và referredUser relation)
 model Commission {
   id               String   @id @default(cuid())
   referrerId       String
@@ -80,7 +85,6 @@ model Commission {
   @@map("commissions")
 }
 
-// Model PayoutRequest
 model PayoutRequest {
   id              String   @id @default(cuid())
   affiliateId     String

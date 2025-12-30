@@ -8,10 +8,11 @@ interface PricingTableProps {
 
 const featuresMap = {
   FREE: [
-    "Chỉ sử dụng 2 công cụ: Viết kịch bản + SEO YouTube",
-    "Giới hạn: 2 lần sử dụng công cụ",
-    "Không được sử dụng các công cụ khác",
+    "Dùng 3 công cụ: Micro Niche Miner + Viết kịch bản + SEO YouTube",
+    "Giới hạn: 3 lần sử dụng / ngày (reset mỗi ngày)",
+    "Trải nghiệm đủ workflow 3 bước trước khi nâng cấp",
   ],
+
   CREATIVE: [
     "Gói FREE + Mở tools phân tích đối thủ (độc quyền)",
     "Không giới hạn lượt sử dụng",
@@ -189,11 +190,11 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
   // Sinh QR động từ VietQR
   const generateQRUrl = () => {
     if (!customerEmail || !customerEmail.includes("@")) return "";
-    
+
     const username = customerEmail.split("@")[0].toUpperCase();
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const addInfo = `SEENWEB ${selectedPlan} ${username} ${today} ${isSelectedYearly ? "12M" : "1M"}`;
-    
+
     const encodedName = encodeURIComponent(BANK_INFO.ACCOUNT_NAME);
     const encodedInfo = encodeURIComponent(addInfo);
 
@@ -278,7 +279,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
               ✕
             </button>
 
-          
+
             <p className="text-sm text-gray-500 mb-6">Quét QR hoặc chuyển khoản theo thông tin bên dưới</p>
 
             <div className="bg-gray-100 p-4 rounded-xl mb-6 inline-block">

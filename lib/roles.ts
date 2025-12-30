@@ -9,7 +9,7 @@ export const ROLES = {
 export type Role = keyof typeof ROLES;
 
 export const USAGE_LIMITS: Record<Role, number> = {
-  FREE: 2,
+  FREE: 3,
   CREATIVE: Infinity,
   SUPER: Infinity,
   VIP: Infinity,
@@ -21,7 +21,7 @@ export const TOOLS = [
   { id: 'seo', name: 'SEO YouTube tối ưu', roleMin: ROLES.FREE },
   { id: 'rival-scanner', name: 'Phân tích đối thủ (độc quyền)', roleMin: ROLES.CREATIVE },
   { id: 'hidden-channel-finder', name: 'Tìm kênh ẩn (độc quyền)', roleMin: ROLES.SUPER },
-  { id: 'micro-niche-miner', name: 'Tìm Micro Niches (độc quyền)', roleMin: ROLES.SUPER },
+  { id: 'micro-niche-miner', name: 'Tìm Micro Niches', roleMin: ROLES.FREE }, // Updated to allowed for FREE
   { id: 'narrative-studio', name: 'Narrative Studio (độc quyền) – kiếm tiền KDP Amazon', roleMin: ROLES.SUPER },
   { id: 'script-refiner', name: 'Viết kịch bản nâng cao', roleMin: ROLES.SUPER },
   { id: 'image-forge', name: 'Tạo Thumbnail AI', roleMin: ROLES.SUPER },
