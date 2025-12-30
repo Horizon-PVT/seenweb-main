@@ -15,6 +15,7 @@ import BlogTeaser from "../components/BlogTeaser";
 import PricingTable from "../components/PricingTable";
 import AffiliateSection from "../components/AffiliateSection";
 import FinalCTA from "../components/FinalCTA";
+import FAQ from "../components/FAQ"; // ✅ Import FAQ
 import Footer from "../components/Footer";
 import ChatbotWidget from "../components/ChatbotWidget";
 
@@ -99,9 +100,14 @@ export default function Home() {
             <Projects />
             <Testimonials />
             <BlogTeaser />
-            <PricingTable />
+
+            <section id="pricing" className="scroll-mt-20">
+              <PricingTable />
+            </section>
+
             <AffiliateSection />
             <FinalCTA />
+            <FAQ />
           </main>
           <Footer />
           <ChatbotWidget />

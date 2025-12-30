@@ -1,19 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-
-const CrushedIcon: React.FC = () => (
-  <div className="w-1/2 h-1/2 animate-glitch">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full h-full text-red-600/50"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-    >
-      <path d="M21.582 7.042c-.28-.99-1.073-1.785-2.06-2.066C17.913 4.5 12 4.5 12 4.5s-5.913 0-7.522.476c-.987.28-1.78.1.076-2.06.282-1.61.475-1.78.28-2.06C.39 5.913 0 12 0 12s0 5.913.476 7.522c.28.99 1.073 1.785 2.06 2.066C4.087 19.5 12 19.5 12 19.5s5.913 0 7.522-.476c.987-.28 1.78-1.076 2.06-2.06.476-1.61.476-7.522.476-7.522s0-5.913-.476-7.522zM9.75 15.5v-7l6 3.5-6 3.5z"></path>
-    </svg>
-  </div>
-);
+import React, { useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 type CountUpProps = {
   to: number;
@@ -30,16 +19,15 @@ const CountUp: React.FC<CountUpProps> = ({
   formatter,
   start = 0,
 }) => {
-  const [value, setValue] = useState(start);
-  const rafRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
+  const [value, setValue] = React.useState(start);
+  const rafRef = React.useRef<number | null>(null);
+  const startTimeRef = React.useRef<number | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const step = (ts: number) => {
       if (startTimeRef.current === null) startTimeRef.current = ts;
       const elapsed = ts - startTimeRef.current;
 
-      // easeOutCubic cho cảm giác mượt
       const t = Math.min(1, elapsed / durationMs);
       const eased = 1 - Math.pow(1 - t, 3);
 
@@ -53,8 +41,6 @@ const CountUp: React.FC<CountUpProps> = ({
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      startTimeRef.current = null;
     };
   }, [to, durationMs, start]);
 
@@ -64,104 +50,157 @@ const CountUp: React.FC<CountUpProps> = ({
 
 const HeroSection: React.FC = () => {
   const viNumber = useMemo(() => new Intl.NumberFormat('vi-VN'), []);
+  const [isMuted, setIsMuted] = useState(true);
+  const router = useRouter();
+
+  // Logic check đăng nhập
+  const { status } = useSession();
+  const isLoggedIn = status === 'authenticated';
+
+  const handleTryFreeClick = () => {
+    if (isLoggedIn) {
+      router.push('/dashboard');
+    } else {
+      router.push('/login');
+    }
+  };
 
   return (
     <section
       id="hero"
       className="min-h-screen flex flex-col justify-center items-center text-center pt-24 pb-12 relative overflow-hidden"
     >
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-t from-cyan-600 to-transparent"></div>
-      </div>
+      {/* Video background 18s */}
+      <video
+        autoPlay
+        muted={isMuted}
+        loop
+        playsInline
+        poster="/images/hero-poster.jpg"
+        className="absolute inset-0 w-full h-full object-cover -z-10"
+      >
+        <source src="/videos/hero-background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
 
-      <div className="absolute inset-0 flex items-center justify-center [perspective:1000px]">
-        <div className="relative w-56 h-56 md:w-72 md:h-72 [transform-style:preserve-3d] animate-[spin_40s_linear_infinite]">
-          {[0, 60, 120, 180, 240, 300].map((deg) => (
-            <div
-              key={deg}
-              className="absolute inset-0 border border-[#CDAD5A]/30 bg-black/50 flex items-center justify-center"
-              style={{ transform: `rotateY(${deg}deg) translateZ(128px)` }}
-            >
-              <CrushedIcon />
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Overlay tối */}
+      <div className="absolute inset-0 bg-black/50 -z-9" />
 
+      {/* Nội dung chính */}
       <div className="relative z-10 p-6 w-full">
-        {/* giữ nguyên h2 như bản hiện tại để tránh multiple H1 :contentReference[oaicite:1]{index=1} */}
-        <h2 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-black text-white leading-tight drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
+        <h2 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-black text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
           <span className="animate-liquid-pulse">SAN PHẲNG</span> CUỘC CHƠI{' '}
           <span className="animate-liquid-pulse" style={{ animationDelay: '0.3s' }}>
             YOUTUBE
           </span>
         </h2>
 
-        <p className="mt-8 text-xl md:text-2xl text-gray-300 leading-relaxed">
+        <p className="mt-8 text-xl md:text-2xl text-gray-200 leading-relaxed">
           Tìm ý tưởng • chọn keyword • viết tiêu đề • tối ưu video <br />
           bằng các tool đơn giản, dễ dùng cho người mới làm YouTube.
         </p>
 
-        {/* NÂNG NÚT LÊN: giảm margin-top so với mt-32 md:mt-48 trong file gốc :contentReference[oaicite:2]{index=2} */}
-        <div className="mt-20 md:mt-32">
+        {/* 2 NÚT CTA song song */}
+        <div className="mt-20 md:mt-32 flex flex-col sm:flex-row gap-6 justify-center items-center">
+          {/* Nút Cộng đồng - Tím Neon */}
           <a
             href="https://zalo.me/g/lhxazc331"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-[#008080] text-white font-bold py-4 px-10 text-lg border-2 border-[#008080] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow hover:emerald-glow-strong no-underline"
+            className="w-full sm:w-auto inline-block bg-[#A855F7] text-white font-bold py-4 px-10 text-lg border-2 border-[#A855F7] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#A855F7] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.5)] no-underline text-center"
           >
             CỘNG ĐỒNG SEENYT
           </a>
 
-          {/* KHỐI SỐ LIỆU (count up) */}
-          <div className="mt-12 w-full max-w-5xl mx-auto">
-            <div className="bg-black/30 backdrop-blur-sm border border-white/10 rounded-xl px-6 py-6 md:px-10">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 items-center">
-                {/* 9.600+ */}
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-extrabold text-cyan-300 tracking-wide">
-                    <CountUp
-                      to={9600}
-                      suffix="+"
-                      formatter={(v) => viNumber.format(v)}
-                    />
-                  </div>
-                  <div className="mt-2 text-sm md:text-base text-white/60">Creator tin dùng</div>
-                </div>
+          {/* Nút Dùng thử miễn phí - Tím Neon */}
+          <button
+            onClick={handleTryFreeClick}
+            className="w-full sm:w-auto inline-block bg-[#A855F7] text-white font-bold py-4 px-10 text-lg border-2 border-[#A855F7] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#A855F7] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+          >
+            DÙNG THỬ TOOL MIỄN PHÍ
+          </button>
+        </div>
 
-                {/* 400.000+ */}
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-extrabold text-rose-300 tracking-wide">
-                    <CountUp
-                      to={400000}
-                      suffix="+"
-                      formatter={(v) => viNumber.format(v)}
-                    />
-                  </div>
-                  <div className="mt-2 text-sm md:text-base text-white/60">Video AI tạo ra</div>
+        {/* Stats count-up */}
+        <div className="mt-12 w-full max-w-5xl mx-auto">
+          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-6 py-8 md:px-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 items-center">
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-extrabold text-cyan-300 tracking-wide">
+                  <CountUp to={9600} suffix="+" formatter={(v) => viNumber.format(v)} />
                 </div>
-
-                {/* 80M+ (đếm 0 -> 80) */}
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-extrabold text-emerald-300 tracking-wide">
-                    <CountUp to={80} suffix="M+" />
-                  </div>
-                  <div className="mt-2 text-sm md:text-base text-white/60">Lượt view đạt được</div>
+                <div className="mt-2 text-sm md:text-base text-white/60">Creator tin dùng</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-extrabold text-rose-300 tracking-wide">
+                  <CountUp to={400000} suffix="+" formatter={(v) => viNumber.format(v)} />
                 </div>
-
-                {/* 98% */}
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-extrabold text-violet-300 tracking-wide">
-                    <CountUp to={98} suffix="%" />
-                  </div>
-                  <div className="mt-2 text-sm md:text-base text-white/60">Creator hài lòng</div>
+                <div className="mt-2 text-sm md:text-base text-white/60">Video AI tạo ra</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-extrabold text-emerald-300 tracking-wide">
+                  <CountUp to={80} suffix="M+" />
                 </div>
+                <div className="mt-2 text-sm md:text-base text-white/60">Lượt view đạt được</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-extrabold text-violet-300 tracking-wide">
+                  <CountUp to={98} suffix="%" />
+                </div>
+                <div className="mt-2 text-sm md:text-base text-white/60">Creator hài lòng</div>
               </div>
             </div>
           </div>
-          {/* /KHỐI SỐ LIỆU */}
         </div>
       </div>
+
+      {/* Social Icons Stack (Fixed above Chatbot) */}
+      <div className="fixed bottom-28 right-8 z-30 flex flex-col items-center gap-4">
+        {/* Zalo */}
+        <a
+          href="https://zalo.me/g/lhxazc331"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-white p-3 rounded-full transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(0,104,255,0.6)] text-[#0068FF] shadow-lg"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+            <path d="M12.49 10.2722v-.4496h1.3467v6.3218h-.7704a.576.576 0 01-.5763-.5729l-.0006.0005a3.273 3.273 0 01-1.9372.6321c-1.8138 0-3.2844-1.4697-3.2844-3.2823 0-1.8125 1.4706-3.2822 3.2844-3.2822a3.273 3.273 0 011.9372.6321l.0006.0005zM6.9188 7.7896v.205c0 .3823-.051.6944-.2995 1.0605l-.03.0343c-.0542.0615-.1815.206-.2421.2843L2.024 14.8h4.8948v.7682a.5764.5764 0 01-.5767.5761H0v-.3622c0-.4436.1102-.6414.2495-.8476L4.8582 9.23H.1922V7.7896h6.7266zm8.5513 8.3548a.4805.4805 0 01-.4803-.4798v-7.875h1.4416v8.3548H15.47zM20.6934 9.6C22.52 9.6 24 11.0807 24 12.9044c0 1.8252-1.4801 3.306-3.3066 3.306-1.8264 0-3.3066-1.4808-3.3066-3.306 0-1.8237 1.4802-3.3044 3.3066-3.3044zm-10.1412 5.253c1.0675 0 1.9324-.8645 1.9324-1.9312 0-1.065-.865-1.9295-1.9324-1.9295s-1.9324.8644-1.9324 1.9295c0 1.0667.865 1.9312 1.9324 1.9312zm10.1412-.0033c1.0737 0 1.945-.8707 1.945-1.9453 0-1.073-.8713-1.9436-1.945-1.9436-1.0753 0-1.945.8706-1.945 1.9436 0 1.0746.8697 1.9453 1.945 1.9453z" />
+          </svg>
+        </a>
+
+        {/* Facebook */}
+        <a
+          href="https://www.facebook.com/profile.php?id=61585796132941"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-white p-3 rounded-full transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(24,119,242,0.6)] text-[#1877F2] shadow-lg"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+            <path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z" />
+          </svg>
+        </a>
+
+        {/* Telegram */}
+        <a
+          href="https://t.me/AdSeenYT"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-white p-3 rounded-full transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(38,165,228,0.6)] text-[#26A5E4] shadow-lg"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+          </svg>
+        </a>
+      </div>
+
+      {/* Nút toggle sound - Moved slightly left to avoid overlap if needed, or keep as is but check layer */}
+      <button
+        onClick={() => setIsMuted(!isMuted)}
+        className="absolute bottom-8 right-32 z-20 bg-black/60 backdrop-blur-sm p-4 rounded-full hover:bg-black/80 transition text-white text-2xl shadow-lg"
+        aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+      >
+        {isMuted ? '🔇' : '🔊'}
+      </button>
     </section>
   );
 };
