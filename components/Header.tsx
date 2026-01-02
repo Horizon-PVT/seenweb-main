@@ -65,6 +65,13 @@ const Header: React.FC = () => {
           >
             Sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC
           </a>
+
+          <Link
+            href="/tuyendung"
+            className="text-cyan-400 hover:text-cyan-300 transition-colors duration-300 font-bold text-sm tracking-wide bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-500/20 hover:border-cyan-500/50"
+          >
+            TUYỂN DỤNG
+          </Link>
         </nav>
 
         {/* RIGHT SIDE */}
