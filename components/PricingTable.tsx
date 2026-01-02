@@ -8,37 +8,28 @@ interface PricingTableProps {
 
 const featuresMap = {
   FREE: [
-    "Dùng 3 công cụ: Micro Niche Miner + Viết kịch bản + SEO YouTube",
+    "Trải nghiệm workflow 3 bước (Niche, Script, SEO)",
+    "Dùng 3 công cụ cốt lõi cho người mới",
     "Giới hạn: 3 lần sử dụng / ngày (reset mỗi ngày)",
-    "Trải nghiệm đủ workflow 3 bước trước khi nâng cấp",
   ],
-
-  CREATIVE: [
-    "Gói FREE + Mở tools phân tích đối thủ (độc quyền)",
-    "Không giới hạn lượt sử dụng",
+  STARTER: [
+    "Mở khóa giới hạn sử dụng các tool cơ bản",
+    "Làm video đều đặn hàng ngày",
+    "Phù hợp người mới bắt đầu nghiêm túc",
     "Hỗ trợ qua email",
-    "Truy cập Chatbot AI full quyền",
   ],
-  SUPER: [
-    "MỞ KHÓA TOÀN BỘ  CÔNG CỤ:",
-    "Phân tích đối thủ • Tìm kênh ẩn • Tìm Micro Niches (độc quyền)",
-    "Narrative Studio (độc quyền) – kiếm tiền KDP Amazon",
-    "Viết kịch bản nâng cao • Tạo Thumbnail AI • Text-to-Speech",
-    "Tối ưu SEO & nội dung • Rival Scanner • Velocity Tool",
-    "Tham gia khóa học online, Zoom, tài liệu độc quyền",
-  ],
-  VIP: [
-    "Hỗ trợ chuyên sâu trực tiếp từ chuyên gia",
-    "Được cấp tài khoản sử dụng SeenYT max riêng",
-    "Zoom riêng + đào tạo 1VS1 đến khi kiếm tiền YouTube/Affiliate",
-    "Hướng dẫn kiếm tiền trên KDP Amazon",
-    "Liên hệ: https://zalo.me/0789284078",
+  PRO: [
+    "MỞ KHÓA TOÀN BỘ CÔNG CỤ (bao gồm Kênh ẩn, Spy đối thủ)",
+    "Phân tích nâng cao & chiến lược ngách",
+    "Narrative Studio & Velocity Tool",
+    "Phù hợp creator muốn tăng tốc & kiếm tiền nhanh",
+    "Ưu tiên hỗ trợ",
   ],
 };
 
 const planToRole: Record<string, string> = {
-  "SÁNG TẠO": "CREATIVE",
-  "TOÀN TRI": "SUPER",
+  "STARTER": "CREATIVE",
+  "PRO": "SUPER",
 };
 
 const PricingCard = ({
@@ -74,8 +65,8 @@ const PricingCard = ({
     }
 
     const amount = isYearly
-      ? plan === "SÁNG TẠO" ? 3500000 : 6500000
-      : plan === "SÁNG TẠO" ? 349000 : 649000;
+      ? plan === "STARTER" ? 1490000 : 3990000 // 12 months (approx 10x logic)
+      : plan === "STARTER" ? 149000 : 399000;
 
     const role = planToRole[plan] || "CREATIVE";
 
@@ -110,7 +101,7 @@ const PricingCard = ({
         onClick={handleClick}
         className="mt-8 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl"
       >
-        {isFree ? "BẮT ĐẦU NGAY" : isVip ? "LIÊN HỆ NGAY" : "NÂNG CẤP NGAY"}
+        {isFree ? "DÙNG MIỄN PHÍ" : isVip ? "LIÊN HỆ NGAY" : plan === "STARTER" ? "BẮT ĐẦU VỚI STARTER" : "NÂNG CẤP PRO"}
       </button>
     </div>
   );
@@ -216,12 +207,12 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
               onClick={() => setIsYearly(true)}
               className={`px-6 py-2 rounded-full transition ${isYearly ? "bg-yellow-500 text-black font-bold" : "text-gray-400"}`}
             >
-              Năm (Tiết kiệm 20%)
+              Năm (Tiết kiệm ~2 tháng)
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <PricingCard
             plan="FREE"
             priceMonthly="0 đ"
@@ -233,101 +224,109 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
           />
+          {/* STARTER - Popular */}
           <PricingCard
-            plan="SÁNG TẠO"
-            priceMonthly="349.000 đ"
-            priceYearly="3.500.000 đ"
-            features={featuresMap.CREATIVE}
-            color="#CDAD5A"
-            glow="0 0 30px rgba(205,173,90,0.8)"
-            isYearly={isYearly}
-            onUpgrade={handleUpgrade}
-          />
-          <PricingCard
-            plan="TOÀN TRI"
-            priceMonthly="649.000 đ"
-            priceYearly="6.500.000 đ"
-            features={featuresMap.SUPER}
-            color="#00FFFF"
-            glow="0 0 40px rgba(0,255,255,0.8)"
+            plan="STARTER"
+            priceMonthly="149.000 đ"
+            priceYearly="1.490.000 đ"
+            features={featuresMap.STARTER}
+            color="#00FFFF" // Changed from Creative Gold to Cyan/Blueish for Starter? Or keep Gold? Prompt says STARTER is HIGHLIGHT. Let's make STARTER Gold (#CDAD5A) and PRO Purple/Red? Check prompt.
+            // Prompt: STARTER (HIGHLIGHT). PRO (Red/Pink?). 
+            // Old: Creative (Gold), Super (Cyan), VIP (Magenta).
+            // Let's make STARTER #CDAD5A (Gold) and PRO #A855F7 (Purple) to match Hero? Or keeping PRO as premium.
+            // Let's use Gold for STARTER as it's "Highlights".
+            glow="0 0 30px rgba(205,173,90,0.6)"
             isFeatured
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
           />
+          {/* PRO */}
           <PricingCard
-            plan="VIP"
-            priceMonthly="Liên hệ"
-            priceYearly="Liên hệ"
-            features={featuresMap.VIP}
-            color="#FF00FF"
-            glow="0 0 40px rgba(255,0,255,0.8)"
-            isVip
+            plan="PRO"
+            priceMonthly="399.000 đ"
+            priceYearly="3.990.000 đ"
+            features={featuresMap.PRO}
+            color="#A855F7" // Purple
+            glow="0 0 40px rgba(168,85,247,0.8)"
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
           />
         </div>
-      </div>
 
-      {/* Modal QR */}
-      {showQR && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowQR(false)}>
-          <div
-            className="bg-white p-6 md:p-8 rounded-3xl text-center max-w-md w-full shadow-2xl relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 text-gray-400 hover:text-black text-xl">
-              ✕
-            </button>
-
-
-            <p className="text-sm text-gray-500 mb-6">Quét QR hoặc chuyển khoản theo thông tin bên dưới</p>
-
-            <div className="bg-gray-100 p-4 rounded-xl mb-6 inline-block">
-              <img src={generateQRUrl()} alt="QR Transfer" className="w-64 h-64 md:w-80 md:h-80 object-contain rounded-lg" />
-            </div>
-
-            <div className="text-left bg-gray-50 p-4 rounded-xl text-sm mb-6 space-y-2 border border-gray-200">
-              <p><span className="font-bold text-gray-800">Ngân hàng:</span> {BANK_INFO.BANK_ID}</p>
-              <p><span className="font-bold text-gray-800">Số TK:</span> <span className="font-mono text-lg font-bold text-blue-600">{BANK_INFO.ACCOUNT_NO}</span></p>
-              <p><span className="font-bold text-gray-800">Chủ TK:</span> {BANK_INFO.ACCOUNT_NAME}</p>
-              <p><span className="font-bold text-gray-800">Số tiền:</span> <span className="font-bold text-green-700">{selectedAmount.toLocaleString("vi-VN")} đ</span></p>
-              <p>
-                <span className="font-bold text-gray-800">Nội dung CK (bắt buộc):</span>
-                <span
-                  className="block mt-1 bg-yellow-100 p-2 rounded border border-yellow-300 font-mono font-bold text-red-600 text-center select-all cursor-pointer"
-                  onClick={() => navigator.clipboard.writeText(generateQRUrl().includes('addInfo') ? decodeURIComponent(generateQRUrl().split('addInfo=')[1].split('&')[0]) : '')}
-                >
-                  {decodeURIComponent(generateQRUrl().split('addInfo=')[1]?.split('&')[0] || 'SEENWEB ...')}
-                </span>
-              </p>
-
-              <p className="font-bold text-gray-800 pt-3">Email nhận kích hoạt:</p>
-              <input
-                type="email"
-                placeholder="nhập email của bạn"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                className="w-full p-2 border border-blue-500 rounded-md text-base text-gray-900"
-                disabled={!!loggedInEmail}
-              />
-            </div>
-
-            <button
-              onClick={handleConfirmPaid}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 rounded-xl text-lg hover:shadow-lg transition disabled:opacity-50"
-            >
-              {loading ? "Đang gửi..." : "TÔI ĐÃ CHUYỂN KHOẢN XONG"}
-            </button>
-
-            {message && <p className="mt-4 text-center font-bold">{message}</p>}
-
-            <p className="mt-4 text-xs text-gray-400">
-              Sau khi chuyển xong, bấm nút:"TÔI ĐÃ CHUYỂN KHOẢN XONG"ở trên để thông báo Admin kiểm tra nhé!Tiếp Tục bấm f5 để reload lại . Liên hệ: <b>0789284078</b>
-            </p>
-          </div>
+        {/* Text VIP Only */}
+        <div className="text-center mt-12">
+          <p className="text-gray-400 text-sm">
+            Cần hỗ trợ 1–1 hoặc coaching?{" "}
+            <a href="https://zalo.me/0789284078" target="_blank" rel="noopener noreferrer" className="text-[#CDAD5A] font-bold hover:underline">
+              Liên hệ riêng
+            </a>
+          </p>
         </div>
-      )}
+
+        {/* Modal QR */}
+        {showQR && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowQR(false)}>
+            <div
+              className="bg-white p-6 md:p-8 rounded-3xl text-center max-w-md w-full shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 text-gray-400 hover:text-black text-xl">
+                ✕
+              </button>
+
+
+              <p className="text-sm text-gray-500 mb-6">Quét QR hoặc chuyển khoản theo thông tin bên dưới</p>
+
+              <div className="bg-gray-100 p-4 rounded-xl mb-6 inline-block">
+                <img src={generateQRUrl()} alt="QR Transfer" className="w-64 h-64 md:w-80 md:h-80 object-contain rounded-lg" />
+              </div>
+
+              <div className="text-left bg-gray-50 p-4 rounded-xl text-sm mb-6 space-y-2 border border-gray-200">
+                <p><span className="font-bold text-gray-800">Ngân hàng:</span> {BANK_INFO.BANK_ID}</p>
+                <p><span className="font-bold text-gray-800">Số TK:</span> <span className="font-mono text-lg font-bold text-blue-600">{BANK_INFO.ACCOUNT_NO}</span></p>
+                <p><span className="font-bold text-gray-800">Chủ TK:</span> {BANK_INFO.ACCOUNT_NAME}</p>
+                <p><span className="font-bold text-gray-800">Số tiền:</span> <span className="font-bold text-green-700">{selectedAmount.toLocaleString("vi-VN")} đ</span></p>
+                <p>
+                  <span className="font-bold text-gray-800">Nội dung CK (bắt buộc):</span>
+                  <span
+                    className="block mt-1 bg-yellow-100 p-2 rounded border border-yellow-300 font-mono font-bold text-red-600 text-center select-all cursor-pointer"
+                    onClick={() => navigator.clipboard.writeText(generateQRUrl().includes('addInfo') ? decodeURIComponent(generateQRUrl().split('addInfo=')[1].split('&')[0]) : '')}
+                  >
+                    {decodeURIComponent(generateQRUrl().split('addInfo=')[1]?.split('&')[0] || 'SEENWEB ...')}
+                  </span>
+                </p>
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="font-bold text-gray-800">Email nhận kích hoạt:</p>
+                  <input
+                    type="email"
+                    placeholder="nhập email của bạn"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    className="w-full mt-1 p-2 border border-blue-500 rounded-md text-base text-gray-900"
+                    disabled={!!loggedInEmail}
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleConfirmPaid}
+                disabled={loading}
+                // eslint-disable-next-line
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 rounded-xl text-lg hover:shadow-lg transition disabled:opacity-50"
+              >
+                {loading ? "Đang gửi..." : "TÔI ĐÃ CHUYỂN KHOẢN XONG"}
+              </button>
+
+              {message && <p className="mt-4 text-center font-bold text-black">{message}</p>}
+
+              <p className="mt-4 text-xs text-gray-400">
+                Sau khi chuyển xong, bấm nút: &quot;TÔI ĐÃ CHUYỂN KHOẢN XONG&quot; ở trên để thông báo Admin kiểm tra nhé! Tiếp Tục bấm F5 để reload lại. Liên hệ: <b>0789284078</b>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }

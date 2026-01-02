@@ -15,6 +15,8 @@ import BlogTeaser from "../components/BlogTeaser";
 import PricingTable from "../components/PricingTable";
 import AffiliateSection from "../components/AffiliateSection";
 import FinalCTA from "../components/FinalCTA";
+import OnboardingModal from "../components/OnboardingModal";
+import WorkflowSection from "../components/WorkflowSection";
 import FAQ from "../components/FAQ"; // ✅ Import FAQ
 import Footer from "../components/Footer";
 import ChatbotWidget from "../components/ChatbotWidget";
@@ -56,6 +58,12 @@ export default function Home() {
     }, 50);
   };
 
+  // Callback when onboarding modal goal is selected
+  const handleOnboardingComplete = () => {
+    // Could do analytics here or other logic
+    console.log("Onboarding goal selected");
+  };
+
   return (
     <div>
       <Head>
@@ -81,8 +89,11 @@ export default function Home() {
       </Head>
 
       <Header />
+      <OnboardingModal onComplete={handleOnboardingComplete} />
+
       <main>
         <HeroSection />
+        <WorkflowSection />
         <PromotionCarousel />
         <TechPillars />
 

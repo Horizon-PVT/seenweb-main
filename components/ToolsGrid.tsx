@@ -34,7 +34,8 @@ export interface Tool {
   longDescription: string;
   features: string[];
   icon: React.ComponentType<{ className?: string }>;
-  component: React.ComponentType;
+  component: React.ComponentType<any>;
+  isNewbie?: boolean;
 }
 
 /* =========================
@@ -50,6 +51,7 @@ const toolsLeft: Tool[] = [
     features: ["Hook viral", "Outline chuẩn", "Script đầy đủ", "Tối ưu retention"],
     icon: PyramidIcon,
     component: ScriptwriterTool,
+    isNewbie: true,
   },
   {
     id: "seo",
@@ -59,6 +61,7 @@ const toolsLeft: Tool[] = [
     features: ["Keyword volume", "Title CTR cao", "Description chuẩn SEO"],
     icon: PhiIcon,
     component: SeoTool,
+    isNewbie: true,
   },
   {
     id: "rival-scanner",
@@ -98,6 +101,7 @@ const toolsRight: Tool[] = [
     features: ["50 ý tưởng video", "Dự báo CPM"],
     icon: GearIcon,
     component: MicroNicheMinerTool,
+    isNewbie: true,
   },
   {
     id: "image-forge",
@@ -142,6 +146,7 @@ const exclusiveToolIds = [
   "hidden-channel-finder",
   "micro-niche-miner",
   "narrative-studio",
+  "velocity",
 ];
 
 /* =========================
@@ -165,8 +170,15 @@ const ToolCard: React.FC<{
       transition-all duration-300 shadow-xl cursor-pointer overflow-visible`} // overflow-visible để chữ nhô ra
       onClick={isLocked ? undefined : onToggleExpand}
     >
+      {/* Badge NEWBIE */}
+      {tool.isNewbie && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-black text-xs font-bold px-3 py-1 rounded-full z-30 shadow-lg border border-white whitespace-nowrap">
+          DÀNH CHO NGƯỜI MỚI
+        </span>
+      )}
+
       {/* Badge HOT */}
-      {isExclusive && (
+      {isExclusive && !tool.isNewbie && (
         <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-full z-10">
           HOT
         </span>
@@ -236,7 +248,7 @@ const ToolCard: React.FC<{
 
 const ToolsGrid: React.FC = () => {
   const { data: session } = useSession();
-  const userRole = (session?.user?.role || "FREE") as Role;
+  const userRole = ((session?.user as any)?.role || "FREE") as Role;
   const router = useRouter();
 
   const [expandedToolId, setExpandedToolId] = useState<string | null>(null);

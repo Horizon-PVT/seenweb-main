@@ -60,6 +60,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log(`[AUTH] ✅ User registered & auto-login: ${email}`);
 
+    // 🔥 FIRE-AND-FORGET WEBHOOK for Email Onboarding (Google Sheets)
+    try {
+      if (process.env.SHEETS_WEBHOOK_URL && process.env.SHEETS_WEBHOOK_KEY) {
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), 1500); // 1.5s timeout
+
+        const webhookUrl = `${process.env.SHEETS_WEBHOOK_URL}?key=${process.env.SHEETS_WEBHOOK_KEY}`;
+
+        // Don't await! Fire and forget.
+        fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "registered",
+            email: newUser.email,
+            status: "FREE", // New users start as FREE
+            ts: new Date().toISOString(),
+          }),
+          signal: controller.signal,
+        })
+          .then(() => { }) // swallow success
+          .catch(() => { }) // swallow error
+          .finally(() => clearTimeout(t));
+      }
+    } catch (e) { /* swallow sync errors */ }
+
     return res.status(201).json({ success: true, user: newUser });
   } catch (err: any) {
     console.error("REGISTER_ERROR:", err);

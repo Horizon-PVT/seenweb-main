@@ -87,70 +87,60 @@ const HeroSection: React.FC = () => {
       <div className="absolute inset-0 bg-black/50 -z-9" />
 
       {/* Nội dung chính */}
-      <div className="relative z-10 p-6 w-full">
-        <h2 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-black text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
-          <span className="animate-liquid-pulse">SAN PHẲNG</span> CUỘC CHƠI{' '}
-          <span className="animate-liquid-pulse" style={{ animationDelay: '0.3s' }}>
-            YOUTUBE
+      {/* Nội dung chính */}
+      <div className="relative z-10 p-6 w-full max-w-5xl mx-auto flex flex-col items-center">
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-playfair font-black text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] mb-6">
+          Công cụ AI hỗ trợ YouTuber mới <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">
+            làm video nhanh & đúng hướng
           </span>
+        </h1>
+
+        <h2 className="text-lg md:text-2xl text-gray-300 font-medium max-w-3xl leading-relaxed mb-8">
+          Viết kịch bản, SEO YouTube, tìm niche & tạo thumbnail — tất cả trong một quy trình đơn giản cho người mới bắt đầu.
         </h2>
 
-        <p className="mt-8 text-xl md:text-2xl text-gray-200 leading-relaxed">
-          Tìm ý tưởng • chọn keyword • viết tiêu đề • tối ưu video <br />
-          bằng các tool đơn giản, dễ dùng cho người mới làm YouTube.
-        </p>
-
-        {/* 2 NÚT CTA song song */}
-        <div className="mt-20 md:mt-32 flex flex-col sm:flex-row gap-6 justify-center items-center">
-          {/* Nút Cộng đồng - Tím Neon */}
-          <a
-            href="https://zalo.me/g/lhxazc331"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-block bg-[#A855F7] text-white font-bold py-4 px-10 text-lg border-2 border-[#A855F7] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#A855F7] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.5)] no-underline text-center"
-          >
-            CỘNG ĐỒNG SEENYT
-          </a>
-
-          {/* Nút Dùng thử miễn phí - Tím Neon */}
-          <button
-            onClick={handleTryFreeClick}
-            className="w-full sm:w-auto inline-block bg-[#A855F7] text-white font-bold py-4 px-10 text-lg border-2 border-[#A855F7] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#A855F7] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.5)]"
-          >
-            DÙNG THỬ TOOL MIỄN PHÍ
-          </button>
+        {/* Value Bullets */}
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8 text-left text-gray-200 mb-10 text-sm md:text-base bg-black/40 p-4 rounded-xl backdrop-blur-sm border border-white/5">
+          <div className="flex items-center gap-2">
+            <span className="text-green-400 text-xl">✓</span>
+            <span>Không biết làm gì? → <strong>AI gợi ý</strong></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-green-400 text-xl">✓</span>
+            <span>Không rành SEO? → <strong>Tối ưu tự động</strong></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-green-400 text-xl">✓</span>
+            <span>Không biết edit? → <strong>Vẫn làm đều</strong></span>
+          </div>
         </div>
 
-        {/* Stats count-up */}
-        <div className="mt-12 w-full max-w-5xl mx-auto">
-          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl px-6 py-8 md:px-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 items-center">
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-extrabold text-cyan-300 tracking-wide">
-                  <CountUp to={9600} suffix="+" formatter={(v) => viNumber.format(v)} />
-                </div>
-                <div className="mt-2 text-sm md:text-base text-white/60">Creator tin dùng</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-extrabold text-rose-300 tracking-wide">
-                  <CountUp to={400000} suffix="+" formatter={(v) => viNumber.format(v)} />
-                </div>
-                <div className="mt-2 text-sm md:text-base text-white/60">Video AI tạo ra</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-extrabold text-emerald-300 tracking-wide">
-                  <CountUp to={80} suffix="M+" />
-                </div>
-                <div className="mt-2 text-sm md:text-base text-white/60">Lượt view đạt được</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-extrabold text-violet-300 tracking-wide">
-                  <CountUp to={98} suffix="%" />
-                </div>
-                <div className="mt-2 text-sm md:text-base text-white/60">Creator hài lòng</div>
-              </div>
-            </div>
-          </div>
+        {/* 2 NÚT CTA song song */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
+          {/* Nút Dùng thử miễn phí */}
+          <button
+            onClick={handleTryFreeClick}
+            className="w-full sm:w-auto min-w-[200px] bg-[#A855F7] text-white font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] active:scale-95"
+          >
+            Dùng thử miễn phí
+          </button>
+
+          {/* Nút Xem demo */}
+          <a
+            href="https://youtu.be/demo_link_placeholder"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto min-w-[200px] bg-transparent text-white font-bold py-4 px-8 text-lg border border-white/30 rounded-full hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <span>▶</span> Xem demo 3 phút
+          </a>
+        </div>
+
+        {/* Trust Line */}
+        <div className="mt-8 flex items-center gap-2 text-gray-400 text-sm md:text-base">
+          <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+          Phù hợp YouTuber mới • Không cần kinh nghiệm • Có gói miễn phí
         </div>
       </div>
 
