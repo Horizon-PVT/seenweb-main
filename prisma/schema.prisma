@@ -100,3 +100,77 @@ model PayoutRequest {
 
   @@map("payout_requests")
 }
+
+model BlogCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  posts     BlogPost[]
+  
+  @@map("blog_categories")
+}
+
+model BlogPost {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  coverImage  String?
+  summary     String?
+  content     String        @db.Text
+  categoryId  String?
+  category    BlogCategory? @relation(fields: [categoryId], references: [id])
+  status      String        @default("DRAFT")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  publishedAt DateTime?
+  
+  @@map("blog_posts")
+}
+
+model Ebook {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  coverImageUrl   String?
+  pdfUrl          String
+  description     String?  @db.Text
+  status          String   @default("DRAFT")
+  displayOrder    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("ebooks")
+}
+
+model VideoTip {
+  id           String   @id @default(cuid())
+  title        String
+  youtubeUrl   String
+  youtubeId    String
+  thumbnailUrl String?
+  description  String?  @db.Text
+  tags         String?
+  status       String   @default("DRAFT")
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("video_tips")
+}
+
+model Promotion {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  type        String
+  value       Decimal
+  startDate   DateTime?
+  endDate     DateTime?
+  minOrder    Decimal?
+  status      String    @default("ACTIVE")
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("promotions")
+}

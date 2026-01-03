@@ -2,11 +2,13 @@ import React, { useEffect } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
+import { GetServerSideProps } from "next";
 
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
 import PromotionCarousel from "../components/PromotionCarousel";
 import TechPillars from "../components/TechPillars";
+import VideoTipsSection from "../components/VideoTipsSection";
 import ToolsGrid from "../components/ToolsGrid";
 import Partners from "../components/Partners";
 import Projects from "../components/Projects";
@@ -17,16 +19,17 @@ import AffiliateSection from "../components/AffiliateSection";
 import FinalCTA from "../components/FinalCTA";
 import OnboardingModal from "../components/OnboardingModal";
 import WorkflowSection from "../components/WorkflowSection";
-import FAQ from "../components/FAQ"; // ✅ Import FAQ
+import FAQ from "../components/FAQ";
 import Footer from "../components/Footer";
 import ChatbotWidget from "../components/ChatbotWidget";
+import { prisma } from "../lib/prisma";
 
 // ✅ Overlay SSR off (an toàn cho tool dùng window, AudioContext, localStorage...)
 const ToolOverlay = dynamic(() => import("../components/ToolOverlay"), {
   ssr: false,
 });
 
-export default function Home() {
+export default function Home({ ebooks = [], videos = [] }: { ebooks: any[]; videos: any[] }) {
   const router = useRouter();
 
   const siteUrl = "https://seenyt.net";
@@ -95,7 +98,10 @@ export default function Home() {
         <HeroSection />
         <WorkflowSection />
         <PromotionCarousel />
-        <TechPillars />
+
+        {/* ⚡ CRITICAL: Video section MUST be ABOVE Ebook section */}
+        <VideoTipsSection videos={videos} />
+        <TechPillars ebooks={ebooks} />
 
         {/* ✅ Anchor để nút "Quay lại menu" cuộn về đúng vị trí */}
         <section id="bang-cong-cu-seenyt">
@@ -125,3 +131,48 @@ export default function Home() {
     </div>
   );
 }
+
+// Fetch ebooks and videos from database
+export const getServerSideProps: GetServerSideProps = async () => {
+  try {
+    const [ebooks, videos] = await Promise.all([
+      prisma.ebook.findMany({
+        where: { status: 'PUBLISHED' },
+        orderBy: { displayOrder: 'asc' },
+        select: {
+          id: true,
+          title: true,
+          coverImageUrl: true,
+          pdfUrl: true,
+          description: true,
+        },
+      }),
+      prisma.videoTip.findMany({
+        where: { status: 'PUBLISHED' },
+        orderBy: { displayOrder: 'asc' },
+        select: {
+          id: true,
+          title: true,
+          youtubeId: true,
+          thumbnailUrl: true,
+          description: true,
+        },
+      }),
+    ]);
+
+    return {
+      props: {
+        ebooks: JSON.parse(JSON.stringify(ebooks)),
+        videos: JSON.parse(JSON.stringify(videos)),
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching ebooks/videos:', error);
+    return {
+      props: {
+        ebooks: [],
+        videos: [],
+      },
+    };
+  }
+};

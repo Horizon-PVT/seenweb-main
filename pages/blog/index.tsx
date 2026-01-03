@@ -1,46 +1,36 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
+import { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import { GetStaticProps } from 'next';
+import { prisma } from '@/lib/prisma';
 
 interface Post {
   slug: string;
   title: string;
-  description: string;
-  date: string;
+  summary: string;
+  publishedAt: string;
+  category: { name: string } | null;
 }
 
-export const getStaticProps: GetStaticProps<{ posts: Post[] }> = async () => {
-  const postsDirectory = path.join(process.cwd(), 'posts');
-  let posts: Post[] = [];
-
+export const getServerSideProps: GetServerSideProps<{ posts: Post[] }> = async () => {
   try {
-    const filenames = fs.readdirSync(postsDirectory).filter(file => file.endsWith('.mdx'));
-
-    posts = filenames.map((filename) => {
-      const filePath = path.join(postsDirectory, filename);
-      const fileContents = fs.readFileSync(filePath, 'utf8');
-      const { data } = matter(fileContents);
-
-      if (!data.title || !data.description || !data.date) {
-        console.warn(`File ${filename} thiếu frontmatter! Cần title, description, date.`);
-      }
-
-      return {
-        slug: filename.replace('.mdx', ''),
-        title: data.title || '(Thiếu tiêu đề - fix frontmatter)',
-        description: data.description || '(Thiếu mô tả - fix frontmatter)',
-        date: data.date || '2025-12-22',
-      };
+    const posts = await prisma.blogPost.findMany({
+      where: { status: 'PUBLISHED' },
+      include: { category: true },
+      orderBy: { publishedAt: 'desc' },
     });
 
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const serializedPosts = posts.map((post) => ({
+      slug: post.slug,
+      title: post.title,
+      summary: post.summary || '',
+      publishedAt: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
+      category: post.category ? { name: post.category.name } : null,
+    }));
+
+    return { props: { posts: serializedPosts } };
   } catch (error) {
     console.error('Error loading posts:', error);
+    return { props: { posts: [] } };
   }
-
-  return { props: { posts } };
 };
 
 const BlogIndex: React.FC<{ posts: Post[] }> = ({ posts }) => {
@@ -49,14 +39,19 @@ const BlogIndex: React.FC<{ posts: Post[] }> = ({ posts }) => {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-6xl font-black text-center text-[#CDAD5A] mb-12 uppercase tracking-wider">BLOG & TÀI NGUYÊN SEENYT</h1>
         {posts.length === 0 ? (
-          <p className="text-center text-[#CDAD5A] text-2xl">Chưa có bài viết hoặc lỗi load posts. Check console!</p>
+          <p className="text-center text-[#CDAD5A] text-2xl">Chưa có bài viết nào được xuất bản</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="block bg-gray-900 rounded-xl p-8 hover:border-[#CDAD5A] border-2 border-transparent transition-all shadow-xl hover:shadow-[#CDAD5A]/40">
                 <h2 className="text-2xl font-bold text-white mb-4">{post.title}</h2>
-                <p className="text-gray-400 mb-4">{post.description}</p>
-                <span className="text-sm text-gray-500">{new Date(post.date).toLocaleDateString('vi-VN')}</span>
+                {post.category && (
+                  <span className="inline-block px-3 py-1 bg-[#008080] text-white text-xs font-bold rounded-full mb-3">
+                    {post.category.name}
+                  </span>
+                )}
+                <p className="text-gray-400 mb-4">{post.summary}</p>
+                <span className="text-sm text-gray-500">{new Date(post.publishedAt).toLocaleDateString('vi-VN')}</span>
                 <span className="text-[#008080] ml-4 font-bold">Đọc thêm →</span>
               </Link>
             ))}
