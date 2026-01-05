@@ -73,7 +73,7 @@ export default function CoachingPage() {
                             {/* Book Cover Floating */}
                             <div className="absolute -bottom-10 -right-5 md:right-10 w-[180px] h-[260px] shadow-2xl animate-float hidden md:block border border-white/10 rounded-sm bg-black">
                                 <Image
-                                    src="/images/mrseen/mrseen-book.png"
+                                    src="/images/mrseen/poster-coaching-new.png"
                                     alt="SeenYT Book"
                                     fill
                                     className="object-cover rounded-sm"

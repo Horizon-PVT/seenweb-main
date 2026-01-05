@@ -52,7 +52,7 @@ const CoachingSection: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b0f] to-transparent z-10 md:hidden"></div>
                     <div className="relative w-full h-full border border-white/10 rounded-sm overflow-hidden group cursor-pointer">
                         <Image
-                            src="/images/mrseen/mrseen-stage.jpg"
+                            src="/images/mrseen/hero-coaching-new.png"
                             alt="Mr Seen Coaching"
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100"
