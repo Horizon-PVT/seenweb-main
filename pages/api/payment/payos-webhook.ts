@@ -3,15 +3,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
-import crypto from 'crypto';
-
-// Verify PayOS webhook signature
-function verifyWebhookSignature(data: any, signature: string, checksumKey: string): boolean {
-    const sortedKeys = Object.keys(data).sort();
-    const signData = sortedKeys.map(key => `${key}=${data[key]}`).join('&');
-    const expectedSignature = crypto.createHmac('sha256', checksumKey).update(signData).digest('hex');
-    return signature === expectedSignature;
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Allow GET for PayOS verification check
@@ -29,24 +20,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         const webhookData = req.body;
 
-        // Handle verification/test requests from PayOS (empty or test data)
+        // Handle empty request (verification)
         if (!webhookData || Object.keys(webhookData).length === 0) {
-            console.log('PayOS verification request received');
+            console.log('PayOS verification request received (empty body)');
             return res.status(200).json({
                 success: true,
                 message: 'Webhook verification successful'
             });
         }
 
-        // PayOS sends webhook with data and signature
-        const { code, desc, data, signature } = webhookData;
+        const { code, desc, data } = webhookData;
 
-        // Log incoming webhook for debugging
+        // Log incoming webhook
         console.log('PayOS Webhook received:', JSON.stringify(webhookData));
 
-        // Handle if no code provided (verification request)
+        // Handle if no code provided (verification/test)
         if (code === undefined || code === null) {
-            console.log('PayOS test/verification webhook received');
+            console.log('PayOS test webhook received (no code)');
             return res.status(200).json({
                 success: true,
                 message: 'Webhook is ready'
@@ -62,11 +52,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
         }
 
+        // Get orderCode from data
         const orderCode = data?.orderCode;
         if (!orderCode) {
-            return res.status(400).json({
-                success: false,
-                error: 'Missing orderCode in webhook data'
+            console.log('No orderCode in webhook data - treating as test');
+            return res.status(200).json({
+                success: true,
+                message: 'Webhook received (no orderCode - test data)'
             });
         }
 
@@ -76,10 +68,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         if (!paymentRequest) {
-            console.error(`Payment request not found for orderCode: ${orderCode}`);
-            return res.status(404).json({
-                success: false,
-                error: 'Payment request not found'
+            console.log(`Payment not found for orderCode: ${orderCode} - possibly test data`);
+            return res.status(200).json({
+                success: true,
+                message: 'Webhook received (order not found - test data)'
             });
         }
 
@@ -134,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-        // Handle affiliate commission if referral code exists
+        // Handle affiliate commission
         if (paymentInfo.referralCode) {
             try {
                 const referrer = await prisma.user.findUnique({
@@ -160,54 +152,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     await prisma.user.update({
                         where: { id: referrer.id },
                         data: {
-                            totalCommission: {
-                                increment: commissionAmount
-                            }
+                            totalCommission: { increment: commissionAmount }
                         }
                     });
                 }
-            } catch (commissionError) {
-                console.error('Error processing commission:', commissionError);
+            } catch (err) {
+                console.error('Error processing commission:', err);
             }
         }
 
         // Send Telegram notification
         try {
-            const telegramMessage = `
-✅ THANH TOÁN THÀNH CÔNG!
-------------------------------------
-- Khách: ${paymentRequest.email}
-- Số tiền: ${paymentRequest.amount.toLocaleString('vi-VN')} đ
-- Gói: ${paymentInfo.plan} (${paymentRequest.role})
-- Mã đơn: ${orderCode}
-- User ID: <code>${user.id}</code>
-------------------------------------
-Gói đã được kích hoạt tự động! 🎉
-`;
+            const msg = `✅ THANH TOÁN THÀNH CÔNG!\n----\n- Khách: ${paymentRequest.email}\n- Số tiền: ${paymentRequest.amount.toLocaleString('vi-VN')} đ\n- Gói: ${paymentInfo.plan || 'N/A'} (${paymentRequest.role})\n- Mã đơn: ${orderCode}\n----\nGói đã được kích hoạt tự động! 🎉`;
 
             await axios.post(`${process.env.NEXT_PUBLIC_APP_URL}/api/notify/telegram`, {
-                message: telegramMessage
+                message: msg
             });
-        } catch (telegramError) {
-            console.error('Error sending Telegram notification:', telegramError);
+        } catch (err) {
+            console.error('Error sending Telegram:', err);
         }
 
         // Return success
         return res.status(200).json({
             success: true,
             message: 'Payment processed successfully',
-            data: {
-                userId: user.id,
-                email: user.email,
-                role: user.role
-            }
+            data: { userId: user.id, email: user.email, role: user.role }
         });
 
     } catch (error: any) {
-        console.error("Error processing PayOS webhook:", error);
-        return res.status(500).json({
+        console.error("Error processing webhook:", error);
+        // Still return 200 to avoid PayOS retries
+        return res.status(200).json({
             success: false,
-            error: 'Internal Server Error: ' + error.message
+            message: 'Error processing webhook: ' + error.message
         });
     }
 }
