@@ -29,11 +29,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         const webhookData = req.body;
 
+        // Handle verification/test requests from PayOS (empty or test data)
+        if (!webhookData || Object.keys(webhookData).length === 0) {
+            console.log('PayOS verification request received');
+            return res.status(200).json({
+                success: true,
+                message: 'Webhook verification successful'
+            });
+        }
+
         // PayOS sends webhook with data and signature
         const { code, desc, data, signature } = webhookData;
 
         // Log incoming webhook for debugging
         console.log('PayOS Webhook received:', JSON.stringify(webhookData));
+
+        // Handle if no code provided (verification request)
+        if (code === undefined || code === null) {
+            console.log('PayOS test/verification webhook received');
+            return res.status(200).json({
+                success: true,
+                message: 'Webhook is ready'
+            });
+        }
 
         // Check if payment was successful (code 00)
         if (code !== '00') {
