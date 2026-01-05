@@ -391,38 +391,22 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
               </button>
 
 
-              <p className="text-sm text-gray-500 mb-6">Quét QR hoặc chuyển khoản theo thông tin bên dưới</p>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Thanh toán gói {selectedPlan}</h2>
+              <p className="text-lg font-bold text-green-600 mb-6">{selectedAmount.toLocaleString("vi-VN")} đ</p>
 
-              <div className="bg-gray-100 p-4 rounded-xl mb-6 inline-block">
-                <img src={generateQRUrl()} alt="QR Transfer" className="w-64 h-64 md:w-80 md:h-80 object-contain rounded-lg" />
-              </div>
-
-              <div className="text-left bg-gray-50 p-4 rounded-xl text-sm mb-6 space-y-2 border border-gray-200">
-                <p><span className="font-bold text-gray-800">Ngân hàng:</span> {BANK_INFO.BANK_ID}</p>
-                <p><span className="font-bold text-gray-800">Số TK:</span> <span className="font-mono text-lg font-bold text-blue-600">{BANK_INFO.ACCOUNT_NO}</span></p>
-                <p><span className="font-bold text-gray-800">Chủ TK:</span> {BANK_INFO.ACCOUNT_NAME}</p>
-                <p><span className="font-bold text-gray-800">Số tiền:</span> <span className="font-bold text-green-700">{selectedAmount.toLocaleString("vi-VN")} đ</span></p>
-                <p>
-                  <span className="font-bold text-gray-800">Nội dung CK (bắt buộc):</span>
-                  <span
-                    className="block mt-1 bg-yellow-100 p-2 rounded border border-yellow-300 font-mono font-bold text-red-600 text-center select-all cursor-pointer"
-                    onClick={() => navigator.clipboard.writeText(generateQRUrl().includes('addInfo') ? decodeURIComponent(generateQRUrl().split('addInfo=')[1].split('&')[0]) : '')}
-                  >
-                    {decodeURIComponent(generateQRUrl().split('addInfo=')[1]?.split('&')[0] || 'SEENWEB ...')}
-                  </span>
+              <div className="text-left bg-gray-50 p-4 rounded-xl text-sm mb-6 border border-gray-200">
+                <p className="font-bold text-gray-800 mb-2">Email nhận kích hoạt:</p>
+                <input
+                  type="email"
+                  placeholder="nhập email của bạn"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  className="w-full p-3 border border-blue-500 rounded-lg text-base text-gray-900"
+                  disabled={!!loggedInEmail}
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Sau khi thanh toán, gói sẽ được kích hoạt tự động ngay lập tức!
                 </p>
-
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="font-bold text-gray-800">Email nhận kích hoạt:</p>
-                  <input
-                    type="email"
-                    placeholder="nhập email của bạn"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full mt-1 p-2 border border-blue-500 rounded-md text-base text-gray-900"
-                    disabled={!!loggedInEmail}
-                  />
-                </div>
               </div>
 
               {/* PayOS Automatic Payment */}

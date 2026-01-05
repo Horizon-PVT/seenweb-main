@@ -39,7 +39,7 @@ export default function SuccessPage() {
         });
       }
 
-      setTimeout(() => router.push('/dashboard'), 3000); // Auto về dashboard 3s
+      setTimeout(() => router.push('/dashboard'), 5000); // Auto về dashboard 5s
     } else {
       setStatus('error');
     }
@@ -50,23 +50,60 @@ export default function SuccessPage() {
   }
 
   return (
-    <div className="flex justify-center items-center h-screen bg-green-100">
-      <div className="text-center p-8 bg-white rounded-lg shadow">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full mx-4">
         {status === 'success' ? (
           <>
-            <h1 className="text-2xl font-bold text-green-600 mb-4">Nâng cấp thành công!</h1>
-            <p>Đơn {String(orderCode || '')}: {String(desc || '')}</p>
-            <p className="text-sm text-gray-500 mt-4">Chuyển về dashboard...</p>
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-green-600 mb-2">🎉 Nâng cấp thành công!</h1>
+            <p className="text-gray-600 mb-2">Mã đơn: <span className="font-mono font-bold">{String(orderCode || '')}</span></p>
+            <p className="text-gray-500 mb-6">{String(desc || 'Gói của bạn đã được kích hoạt tự động')}</p>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition"
+              >
+                🚀 Vào Dashboard ngay
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition"
+              >
+                ← Về trang chủ
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400 mt-4">Tự động chuyển về dashboard sau 5 giây...</p>
           </>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Thanh toán thất bại</h1>
-            <button
-              onClick={() => router.push('/pricing')}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Thử lại
-            </button>
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Thanh toán không thành công</h1>
+            <p className="text-gray-500 mb-6">Vui lòng thử lại hoặc liên hệ hỗ trợ</p>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/pricing')}
+                className="w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-600 transition"
+              >
+                Thử lại
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition"
+              >
+                ← Về trang chủ
+              </button>
+            </div>
           </>
         )}
       </div>
