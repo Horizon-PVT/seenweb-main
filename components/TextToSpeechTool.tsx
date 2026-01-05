@@ -40,7 +40,7 @@ const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: 
     // thay vì tự parse Int16Array như PCM raw.
     // Tuy nhiên, nếu backend trả về WAV hợp lệ, ta có thể dùng ctx.decodeAudioData(buffer)
     const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-    return await ctx.decodeAudioData(arrayBuffer);
+    return await ctx.decodeAudioData(arrayBuffer as ArrayBuffer);
 };
 
 const bufferToWav = (buffer: AudioBuffer): Blob => {
