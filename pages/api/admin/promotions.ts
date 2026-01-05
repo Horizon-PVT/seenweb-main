@@ -11,12 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         if (req.method === 'GET') {
-            const promos = await prisma.promotion.findMany({ orderBy: { createdAt: 'desc' } });
+            const { promotionType } = req.query;
+            const where = promotionType ? { promotionType: promotionType as string } : {};
+            const promos = await prisma.promotion.findMany({
+                where,
+                orderBy: { createdAt: 'desc' }
+            });
             return res.status(200).json(promos);
         }
 
         if (req.method === 'POST') {
-            const { code, type, value, startDate, endDate, minOrder, status, description } = req.body;
+            const { code, type, value, promotionType, startDate, endDate, minOrder, usageLimit, status, description } = req.body;
             if (!code || !type || value === undefined) return res.status(400).json({ error: 'Code, type and value are required' });
 
             const promo = await prisma.promotion.create({
@@ -24,9 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     code: code.toUpperCase(),
                     type,
                     value,
+                    promotionType: promotionType || 'CODE',
                     startDate: startDate ? new Date(startDate) : null,
                     endDate: endDate ? new Date(endDate) : null,
                     minOrder: minOrder || null,
+                    usageLimit: usageLimit || null,
                     status: status || 'ACTIVE',
                     description: description || null,
                 },
@@ -35,16 +42,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (req.method === 'PUT') {
-            const { id, code, type, value, startDate, endDate, minOrder, status, description } = req.body;
+            const { id, code, type, value, promotionType, startDate, endDate, minOrder, usageLimit, status, description } = req.body;
             if (!id) return res.status(400).json({ error: 'Promotion ID is required' });
 
             const updateData: any = {};
             if (code !== undefined) updateData.code = code.toUpperCase();
             if (type !== undefined) updateData.type = type;
             if (value !== undefined) updateData.value = value;
+            if (promotionType !== undefined) updateData.promotionType = promotionType;
             if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
             if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
             if (minOrder !== undefined) updateData.minOrder = minOrder || null;
+            if (usageLimit !== undefined) updateData.usageLimit = usageLimit || null;
             if (status !== undefined) updateData.status = status;
             if (description !== undefined) updateData.description = description || null;
 

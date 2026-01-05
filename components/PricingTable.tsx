@@ -57,6 +57,41 @@ const PricingCard = ({
   isYearly: boolean;
   onUpgrade: (plan: string, amount: number, role: string, yearly: boolean) => void;
 }) => {
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState<any>(null);
+  const [promoError, setPromoError] = useState('');
+  const [applyingPromo, setApplyingPromo] = useState(false);
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+
+    setApplyingPromo(true);
+    setPromoError('');
+    setPromoApplied(null);
+
+    const baseAmount = isYearly
+      ? plan === "STARTER" ? 1490000 : 3990000
+      : plan === "STARTER" ? 149000 : 399000;
+
+    try {
+      const res = await fetch('/api/apply-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode, orderAmount: baseAmount }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setPromoApplied(data);
+      } else {
+        setPromoError(data.error || 'Mã không hợp lệ');
+      }
+    } catch (error) {
+      setPromoError('Lỗi kết nối');
+    } finally {
+      setApplyingPromo(false);
+    }
+  };
+
   const handleClick = () => {
     if (isFree) return;
     if (isVip) {
@@ -64,16 +99,21 @@ const PricingCard = ({
       return;
     }
 
-    const amount = isYearly
-      ? plan === "STARTER" ? 1490000 : 3990000 // 12 months (approx 10x logic)
+    const baseAmount = isYearly
+      ? plan === "STARTER" ? 1490000 : 3990000
       : plan === "STARTER" ? 149000 : 399000;
 
+    const amount = promoApplied ? promoApplied.finalAmount : baseAmount;
     const role = planToRole[plan] || "CREATIVE";
 
     onUpgrade(plan, amount, role, isYearly);
   };
 
   const price = isYearly ? priceYearly : priceMonthly;
+  const baseAmount = isYearly
+    ? plan === "STARTER" ? 1490000 : plan === "PRO" ? 3990000 : 0
+    : plan === "STARTER" ? 149000 : plan === "PRO" ? 399000 : 0;
+  const finalAmount = promoApplied ? promoApplied.finalAmount : baseAmount;
 
   return (
     <div
@@ -86,9 +126,23 @@ const PricingCard = ({
         </div>
       )}
       <h3 className="text-2xl font-bold mb-3 text-white tracking-wide">{plan}</h3>
-      <h2 className="text-4xl font-bold mb-6 tracking-tight" style={{ color }}>
-        {price}
-      </h2>
+      <div>
+        {promoApplied ? (
+          <>
+            <h2 className="text-2xl font-bold line-through text-gray-500" style={{ color }}>
+              {price}
+            </h2>
+            <h2 className="text-4xl font-bold mb-2 tracking-tight text-green-400">
+              {finalAmount.toLocaleString('vi-VN')} đ
+            </h2>
+            <p className="text-sm text-yellow-400 font-semibold mb-4">🎉 Giảm {promoApplied.discount.toLocaleString('vi-VN')} đ</p>
+          </>
+        ) : (
+          <h2 className="text-4xl font-bold mb-6 tracking-tight" style={{ color }}>
+            {price}
+          </h2>
+        )}
+      </div>
       <ul className="space-y-3 text-left text-gray-300 text-base flex-grow">
         {features.map((f, i) => (
           <li key={i} className="flex items-start">
@@ -97,9 +151,33 @@ const PricingCard = ({
           </li>
         ))}
       </ul>
+
+      {!isFree && !isVip && (
+        <div className="mt-6 space-y-2">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              placeholder="Nhập mã khuyến mại"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+              className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
+            />
+            <button
+              onClick={handleApplyPromo}
+              disabled={applyingPromo || !promoCode.trim()}
+              className="px-4 py-2 bg-[#CDAD5A] text-black font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
+            >
+              {applyingPromo ? '...' : 'Áp dụng'}
+            </button>
+          </div>
+          {promoError && <p className="text-red-400 text-xs text-left">{promoError}</p>}
+          {promoApplied && <p className="text-green-400 text-xs text-left">✓ Mã "{promoApplied.code}" đã được áp dụng</p>}
+        </div>
+      )}
+
       <button
         onClick={handleClick}
-        className="mt-8 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl"
+        className="mt-4 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl"
       >
         {isFree ? "DÙNG MIỄN PHÍ" : isVip ? "LIÊN HỆ NGAY" : plan === "STARTER" ? "BẮT ĐẦU VỚI STARTER" : "NÂNG CẤP PRO"}
       </button>

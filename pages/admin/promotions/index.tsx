@@ -1,23 +1,37 @@
-// Simplified promotions admin page
+// Enhanced promotions admin page with tabs for Programs and Codes
 import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { requireAdminAuth } from '@/lib/admin/auth';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
+type PromotionType = 'PROGRAM' | 'CODE';
+
 export default function AdminPromotions({ session }: any) {
+    const [activeTab, setActiveTab] = useState<PromotionType>('CODE');
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
-    const [formData, setFormData] = useState({ code: '', type: 'PERCENT', value: 0, startDate: '', endDate: '', minOrder: 0, status: 'ACTIVE', description: '' });
+    const [formData, setFormData] = useState({
+        code: '',
+        type: 'PERCENT',
+        value: 0,
+        promotionType: 'CODE' as PromotionType,
+        startDate: '',
+        endDate: '',
+        minOrder: 0,
+        usageLimit: null as number | null,
+        status: 'ACTIVE',
+        description: ''
+    });
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => { fetchData(); }, [activeTab]);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/admin/promotions');
+            const res = await fetch(`/api/admin/promotions?promotionType=${activeTab}`);
             setItems(await res.json());
         } finally {
             setLoading(false);
@@ -31,15 +45,28 @@ export default function AdminPromotions({ session }: any) {
                 code: item.code,
                 type: item.type,
                 value: item.value,
+                promotionType: item.promotionType || 'CODE',
                 startDate: item.startDate ? item.startDate.split('T')[0] : '',
                 endDate: item.endDate ? item.endDate.split('T')[0] : '',
                 minOrder: item.minOrder || 0,
+                usageLimit: item.usageLimit || null,
                 status: item.status,
                 description: item.description || '',
             });
         } else {
             setEditingItem(null);
-            setFormData({ code: '', type: 'PERCENT', value: 0, startDate: '', endDate: '', minOrder: 0, status: 'ACTIVE', description: '' });
+            setFormData({
+                code: '',
+                type: 'PERCENT',
+                value: 0,
+                promotionType: activeTab,
+                startDate: '',
+                endDate: '',
+                minOrder: 0,
+                usageLimit: null,
+                status: 'ACTIVE',
+                description: ''
+            });
         }
         setShowModal(true);
     };
@@ -78,7 +105,29 @@ export default function AdminPromotions({ session }: any) {
                 <div className="flex items-center justify-between">
                     <h2 className="text-3xl font-bold text-white">Quản lý Khuyến mại</h2>
                     <button onClick={() => handleOpenModal()} className="flex items-center space-x-2 bg-gradient-to-r from-[#008080] to-[#CDAD5A] text-white px-4 py-2 rounded-lg hover:opacity-90">
-                        <Plus size={20} /><span>Thêm khuyến mại</span>
+                        <Plus size={20} /><span>Thêm {activeTab === 'CODE' ? 'mã KM' : 'chương trình'}</span>
+                    </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex space-x-2 border-b border-gray-700">
+                    <button
+                        onClick={() => setActiveTab('CODE')}
+                        className={`px-6 py-3 font-medium transition-colors ${activeTab === 'CODE'
+                                ? 'text-[#CDAD5A] border-b-2 border-[#CDAD5A]'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        Mã khuyến mại
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('PROGRAM')}
+                        className={`px-6 py-3 font-medium transition-colors ${activeTab === 'PROGRAM'
+                                ? 'text-[#CDAD5A] border-b-2 border-[#CDAD5A]'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                    >
+                        Chương trình khuyến mại
                     </button>
                 </div>
 
@@ -90,20 +139,28 @@ export default function AdminPromotions({ session }: any) {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Loại</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Giá trị</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Đơn tối thiểu</th>
+                                {activeTab === 'CODE' && (
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Lượt dùng</th>
+                                )}
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Thời gian</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Trạng thái</th>
                                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-700">
-                            {loading ? <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">Đang tải...</td></tr> :
-                                items.length === 0 ? <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">Chưa có khuyến mại</td></tr> :
+                            {loading ? <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">Đang tải...</td></tr> :
+                                items.length === 0 ? <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">Chưa có {activeTab === 'CODE' ? 'mã khuyến mại' : 'chương trình'}</td></tr> :
                                     items.map((item) => (
                                         <tr key={item.id} className="hover:bg-gray-750">
                                             <td className="px-6 py-4 text-sm font-bold text-[#CDAD5A]">{item.code}</td>
                                             <td className="px-6 py-4 text-sm text-gray-300">{item.type === 'PERCENT' ? 'Phần trăm' : 'Cố định'}</td>
                                             <td className="px-6 py-4 text-sm text-white font-bold">{item.type === 'PERCENT' ? `${item.value}%` : `${parseInt(item.value).toLocaleString('vi-VN')} đ`}</td>
                                             <td className="px-6 py-4 text-sm text-gray-300">{item.minOrder ? `${parseInt(item.minOrder).toLocaleString('vi-VN')} đ` : 'Không'}</td>
+                                            {activeTab === 'CODE' && (
+                                                <td className="px-6 py-4 text-sm text-gray-300">
+                                                    {item.usageCount || 0} / {item.usageLimit || '∞'}
+                                                </td>
+                                            )}
                                             <td className="px-6 py-4 text-xs text-gray-400">
                                                 {item.startDate ? new Date(item.startDate).toLocaleDateString('vi-VN') : 'N/A'} - {item.endDate ? new Date(item.endDate).toLocaleDateString('vi-VN') : 'N/A'}
                                             </td>
@@ -125,14 +182,18 @@ export default function AdminPromotions({ session }: any) {
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                     <div className="bg-gray-800 rounded-xl max-w-2xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto">
                         <div className="sticky top-0 bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
-                            <h3 className="text-2xl font-bold text-white">{editingItem ? 'Chỉnh sửa khuyến mại' : 'Thêm khuyến mại'}</h3>
+                            <h3 className="text-2xl font-bold text-white">{editingItem ? 'Chỉnh sửa' : 'Thêm'} {formData.promotionType === 'CODE' ? 'mã KM' : 'chương trình'}</h3>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl">×</button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Mã khuyến mại *</label><input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white uppercase focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
-                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại *</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="PERCENT">Phần trăm (%)</option><option value="FIXED">Cố định (VND)</option></select></div>
+                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại khuyến mại *</label><select value={formData.promotionType} onChange={(e) => setFormData({ ...formData, promotionType: e.target.value as PromotionType })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="CODE">Mã khuyến mại</option><option value="PROGRAM">Chương trình khuyến mại</option></select></div>
+                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Mã *</label><input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white uppercase focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
+                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại giảm giá *</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="PERCENT">Phần trăm (%)</option><option value="FIXED">Cố định (VND)</option></select></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Giá trị *</label><input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Đơn tối thiểu</label><input type="number" value={formData.minOrder} onChange={(e) => setFormData({ ...formData, minOrder: parseFloat(e.target.value) })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
+                            {formData.promotionType === 'CODE' && (
+                                <div><label className="block text-sm font-medium text-gray-300 mb-2">Giới hạn lượt dùng (để trống = không giới hạn)</label><input type="number" value={formData.usageLimit || ''} onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value ? parseInt(e.target.value) : null })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
+                            )}
                             <div className="grid grid-cols-2 gap-4">
                                 <div><label className="block text-sm font-medium text-gray-300 mb-2">Ngày bắt đầu</label><input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
                                 <div><label className="block text-sm font-medium text-gray-300 mb-2">Ngày kết thúc</label><input type="date" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>

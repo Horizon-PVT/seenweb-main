@@ -23,6 +23,26 @@ export default function AffiliateDashboard({ user }: { user: any }) {
     }
   }, []);
 
+  const [isJoining, setIsJoining] = useState(false);
+
+  const handleJoinAffiliate = async () => {
+    setIsJoining(true);
+    try {
+      const res = await fetch('/api/affiliate/join', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        // Reload the page to show the affiliate dashboard
+        window.location.reload();
+      } else {
+        alert(data.error || 'Có lỗi xảy ra, vui lòng thử lại.');
+        setIsJoining(false);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra, vui lòng thử lại.');
+      setIsJoining(false);
+    }
+  };
+
   if (!user.isAffiliate) {
     return (
       <div className="p-8 max-w-4xl mx-auto text-white">
@@ -48,11 +68,15 @@ export default function AffiliateDashboard({ user }: { user: any }) {
         )}
 
         <p className="text-xl mb-4 text-center">Bạn chưa tham gia chương trình Affiliate.</p>
-        <form action="/api/affiliate/join" method="POST" className="text-center">
-          <button className="bg-cyan-600 text-white py-3 px-8 rounded hover:bg-cyan-700">
-            Tham gia ngay
+        <div className="text-center">
+          <button
+            onClick={handleJoinAffiliate}
+            disabled={isJoining}
+            className={`bg-cyan-600 text-white py-3 px-8 rounded hover:bg-cyan-700 ${isJoining ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isJoining ? 'Đang xử lý...' : 'Tham gia ngay'}
           </button>
-        </form>
+        </div>
       </div>
     );
   }
@@ -210,9 +234,8 @@ export default function AffiliateDashboard({ user }: { user: any }) {
 
             <button
               type="submit"
-              className={`w-full py-4 rounded-lg text-xl font-bold transition-all ${
-                isEligible ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-600 cursor-not-allowed'
-              }`}
+              className={`w-full py-4 rounded-lg text-xl font-bold transition-all ${isEligible ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-600 cursor-not-allowed'
+                }`}
             >
               {isEligible ? 'Gửi Yêu Cầu Rút Tiền' : 'Chưa Đủ Điều Kiện'}
             </button>

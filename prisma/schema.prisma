@@ -160,17 +160,20 @@ model VideoTip {
 }
 
 model Promotion {
-  id          String    @id @default(cuid())
-  code        String    @unique
-  type        String
-  value       Decimal
-  startDate   DateTime?
-  endDate     DateTime?
-  minOrder    Decimal?
-  status      String    @default("ACTIVE")
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  code           String    @unique
+  type           String    // PERCENT or FIXED
+  value          Decimal
+  promotionType  String    @default("CODE") // PROGRAM or CODE
+  startDate      DateTime?
+  endDate        DateTime?
+  minOrder       Decimal?
+  usageLimit     Int?      // Max usage count (null = unlimited)
+  usageCount     Int       @default(0) // Current usage count
+  status         String    @default("ACTIVE")
+  description    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   
   @@map("promotions")
 }
