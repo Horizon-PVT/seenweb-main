@@ -59,8 +59,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Logout button - Sử dụng signOut đúng cách */}
-        <div className="text-center py-10">
+        {/* Navigation buttons */}
+        <div className="text-center py-10 space-x-4">
+          <button
+            onClick={() => router.push("/")}
+            className="px-8 py-4 bg-gradient-to-r from-[#CDAD5A] to-[#B8973D] text-black font-bold text-lg rounded-xl hover:shadow-lg transition-all"
+          >
+            🏠 VỀ TRANG CHỦ
+          </button>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white font-bold text-lg rounded-xl hover:from-red-700 hover:to-red-900 transition-all shadow-lg"
