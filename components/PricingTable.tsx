@@ -197,6 +197,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
   const [selectedAmount, setSelectedAmount] = useState(0);
   const [selectedRole, setSelectedRole] = useState("");
   const [isSelectedYearly, setIsSelectedYearly] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'auto' | 'manual'>('auto'); // auto = PayOS, manual = QR
 
   const loggedInEmail = session?.user?.email || userEmail || "";
   const [customerEmail, setCustomerEmail] = useState(loggedInEmail);
@@ -250,6 +251,42 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
         setMessage("✅ Đã gửi thông báo thành công! Hệ thống sẽ tự động kích hoạt .");
       } else {
         setMessage("❌ Lỗi: " + (data.error || "Không xác định"));
+      }
+    } catch (err) {
+      setMessage("❌ Lỗi kết nối server.");
+    }
+    setLoading(false);
+  };
+
+  // Handle PayOS automatic payment
+  const handlePayOSPayment = async () => {
+    if (!customerEmail || !customerEmail.includes("@")) {
+      setMessage("⚠️ Vui lòng nhập email hợp lệ!");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/payment/create-payos-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: customerEmail,
+          amount: selectedAmount,
+          plan: selectedPlan,
+          role: selectedRole,
+          note: `${selectedPlan} - ${isSelectedYearly ? "Năm" : "Tháng"}`,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.data.paymentUrl) {
+        // Redirect to PayOS payment page
+        window.location.href = data.data.paymentUrl;
+      } else {
+        setMessage("❌ Lỗi: " + (data.error || "Không thể tạo link thanh toán"));
       }
     } catch (err) {
       setMessage("❌ Lỗi kết nối server.");
@@ -388,20 +425,62 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
                 </div>
               </div>
 
-              <button
-                onClick={handleConfirmPaid}
-                disabled={loading}
-                // eslint-disable-next-line
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 rounded-xl text-lg hover:shadow-lg transition disabled:opacity-50"
-              >
-                {loading ? "Đang gửi..." : "TÔI ĐÃ CHUYỂN KHOẢN XONG"}
-              </button>
+              {/* Payment Method Selection */}
+              <div className="mb-6 space-y-4">
+                <p className="font-bold text-gray-800 text-center">Chọn phương thức thanh toán:</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setPaymentMethod('auto')}
+                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${paymentMethod === 'auto'
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
+                  >
+                    <div className="text-sm">🚀 Tự động</div>
+                    <div className="text-xs opacity-80">PayOS</div>
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod('manual')}
+                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${paymentMethod === 'manual'
+                        ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-lg'
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
+                  >
+                    <div className="text-sm">📱 Thủ công</div>
+                    <div className="text-xs opacity-80">QR Code</div>
+                  </button>
+                </div>
+              </div>
 
-              {message && <p className="mt-4 text-center font-bold text-black">{message}</p>}
-
-              <p className="mt-4 text-xs text-gray-400">
-                Sau khi chuyển xong, bấm nút: &quot;TÔI ĐÃ CHUYỂN KHOẢN XONG&quot; ở trên để thông báo Admin kiểm tra nhé! Tiếp Tục bấm F5 để reload lại. Liên hệ: <b>0789284078</b>
-              </p>
+              {paymentMethod === 'auto' ? (
+                // PayOS Automatic Payment
+                <>
+                  <button
+                    onClick={handlePayOSPayment}
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold py-4 rounded-xl text-lg hover:shadow-lg transition disabled:opacity-50"
+                  >
+                    {loading ? "Đang tạo link..." : "💳 THANH TOÁN TỰ ĐỘNG QUA PAYOS"}
+                  </button>
+                  <p className="mt-4 text-xs text-gray-500 text-center">
+                    Bạn sẽ được chuyển tới trang thanh toán PayOS. Sau khi thanh toán thành công, gói sẽ <b>tự động được kích hoạt</b> ngay lập tức! ✨
+                  </p>
+                </>
+              ) : (
+                // Manual QR Payment
+                <>
+                  <button
+                    onClick={handleConfirmPaid}
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 rounded-xl text-lg hover:shadow-lg transition disabled:opacity-50"
+                  >
+                    {loading ? "Đang gửi..." : "TÔI ĐÃ CHUYỂN KHOẢN XONG"}
+                  </button>
+                  <p className="mt-4 text-xs text-gray-400">
+                    Sau khi chuyển xong, bấm nút: &quot;TÔI ĐÃ CHUYỂN KHOẢN XONG&quot; ở trên để thông báo Admin kiểm tra nhé! Tiếp Tục bấm F5 để reload lại. Liên hệ: <b>0789284078</b>
+                  </p>
+                </>
+              )}
             </div>
           </div>
         )}
