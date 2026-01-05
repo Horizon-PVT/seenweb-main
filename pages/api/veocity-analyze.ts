@@ -9,13 +9,13 @@ interface ErrorResponse { error: string; }
 
 // Hàm phụ trợ: Gọi AI để phát hiện ngôn ngữ
 async function detectLanguage(ai: GoogleGenAI, script: string): Promise<string> {
-    const detectionPrompt = `Analyze the following script and identify the main language used. Respond ONLY with the language name (e.g., English, Vietnamese, Spanish). Script: """${script.substring(0, 500)}"""`;
-    
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash", // ĐÃ SỬA: Dùng model thống nhất
-        contents: detectionPrompt
-    });
-    return response.text.trim();
+  const detectionPrompt = `Analyze the following script and identify the main language used. Respond ONLY with the language name (e.g., English, Vietnamese, Spanish). Script: """${script.substring(0, 500)}"""`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash", // ĐÃ SỬA: Dùng model thống nhất
+    contents: detectionPrompt
+  });
+  return response.text?.trim() || "";
 }
 
 export default async function handler(
@@ -23,20 +23,20 @@ export default async function handler(
   res: NextApiResponse<AnalysisResponse | ErrorResponse>
 ) {
   if (req.method !== 'POST') { return res.status(405).json({ error: `Method ${req.method} Not Allowed` }); }
-  
+
   try {
     const { script, userApiKey } = req.body;
     if (!script) { return res.status(400).json({ error: "Thiếu kịch bản (script)." }); }
-    
+
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey) { return res.status(500).json({ error: "Lỗi cấu hình API Key." }); }
-    
+
     const ai = new GoogleGenAI({ apiKey });
 
     // --- BƯỚC MỚI: PHÁT HIỆN NGÔN NGỮ (Dùng 2.5-flash) ---
     const outputLanguage = await detectLanguage(ai, script);
     console.log(`Kodaflow AI detected input language: ${outputLanguage}`);
-    
+
     // --- BƯỚC 1 & 2: TẠO PROMPT VỚI NGÔN NGỮ ĐÃ PHÁT HIỆN (ENFORCE CONSISTENCY) ---
     const analysisPrompt = `
       Bạn là Đạo diễn Phim AI. Nhiệm vụ của bạn là chuyển đổi kịch bản sau thành các Prompt tạo video chuyên nghiệp cho Veo3, với TÍNH NHẤT QUÁN NHÂN VẬT TUYỆT ĐỐI.
@@ -69,16 +69,16 @@ export default async function handler(
 
     // Gọi AI Phân tích (Dùng 2.5-flash)
     let sceneResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash", 
-        contents: analysisPrompt,
-        config: { 
-            responseMimeType: "application/json",
-            temperature: 0.2  // Thêm: Giảm randomness để consistent hơn
-        }
+      model: "gemini-2.5-flash",
+      contents: analysisPrompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.2  // Thêm: Giảm randomness để consistent hơn
+      }
     });
 
     // Xử lý và làm sạch JSON
-    let jsonText = sceneResponse.text.trim();
+    let jsonText = sceneResponse.text?.trim() || "";
     jsonText = jsonText.replace(/```json/g, "").replace(/```/g, "").trim();
     const parsedData = JSON.parse(jsonText);
 
@@ -87,13 +87,13 @@ export default async function handler(
 
     // --- LAYER 2: POST-PROCESS - Enforce consistency bằng code (Backup nếu AI quên) ---
     // Inject master vào mỗi prompt nếu chưa có
-    finalScenes = finalScenes.map(scene => ({
+    finalScenes = finalScenes.map((scene: Scene) => ({
       originalText: scene.originalText,
       prompt: `${masterPrompt} ${scene.prompt}` // Prefix master để Veo3 match character
     }));
 
     res.status(200).json({ masterCharacterPrompt: masterPrompt, scenes: finalScenes });
-    
+
   } catch (err: any) {
     console.error("Lỗi API Veocity:", err);
     res.status(500).json({ error: `Lỗi từ máy chủ: ${err.message || "Không xác định"}` });

@@ -53,7 +53,7 @@ export async function searchVideos(keyword: string, maxResults: number = 5) {
                 relevanceLanguage: 'vi', // Ưu tiên tiếng Việt, có thể auto-detect sau
             });
 
-            const videoIds = response.data.items?.map(item => item.id?.videoId).filter(Boolean) || [];
+            const videoIds = (response.data.items?.map(item => item.id?.videoId) ?? []).filter((id): id is string => typeof id === 'string');
 
             // Lấy thêm statistics (views, likes, etc.)
             if (videoIds.length > 0) {

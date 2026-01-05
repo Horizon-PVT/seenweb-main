@@ -70,7 +70,7 @@ export default async function handler(
       contents: prompt,
     });
 
-    const scriptText = response.text.trim();
+    const scriptText = response.text?.trim() || "";
 
     // 2. Increment Usage after success
     await incrementUserUsage(session.user.id);

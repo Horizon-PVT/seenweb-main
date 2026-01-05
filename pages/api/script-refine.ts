@@ -22,7 +22,7 @@ export default async function handler(
     const { currentScript, type, tone, length, style, lang } = req.body; // Thêm style vào đây
 
     if (!currentScript || !type) {
-        return res.status(400).json({ error: "Thiếu currentScript hoặc type." });
+      return res.status(400).json({ error: "Thiếu currentScript hoặc type." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -35,9 +35,9 @@ export default async function handler(
 
     // --- Xây dựng Prompt dựa trên 'type' ---
     if (type === 'refine') {
-        if (!tone || length === undefined) return res.status(400).json({ error: "Thiếu tone hoặc length cho 'refine'." });
-        // Đảm bảo dấu backtick ` ở đầu và cuối là đúng
-        prompt = `Bạn là một chuyên gia biên kịch. Hãy tinh chỉnh lại kịch bản sau đây theo các thông số mới, nhưng cố gắng giữ lại nội dung cốt lõi.
+      if (!tone || length === undefined) return res.status(400).json({ error: "Thiếu tone hoặc length cho 'refine'." });
+      // Đảm bảo dấu backtick ` ở đầu và cuối là đúng
+      prompt = `Bạn là một chuyên gia biên kịch. Hãy tinh chỉnh lại kịch bản sau đây theo các thông số mới, nhưng cố gắng giữ lại nội dung cốt lõi.
 Thông số mới: Tông giọng: ${tone}, Độ dài: Khoảng ${length} phút.
 KỊCH BẢN HIỆN TẠI:
 ---
@@ -45,21 +45,21 @@ ${currentScript}
 ---
 Hãy viết lại TOÀN BỘ kịch bản đã được tinh chỉnh. Vẫn giữ nguyên định dạng "DIALOGUE:" và "HƯỚNG DẪN ĐỌC:". Không thêm lời bình luận.`; // <--- Đảm bảo có dấu ` ở cuối
     } else if (type === 'consistency') {
-        // Đảm bảo dấu backtick ` ở đầu và cuối là đúng
-        prompt = `Bạn là một biên tập viên kịch bản. Hãy rà soát và chỉnh sửa kịch bản sau để đảm bảo giọng văn, ngôn từ của người dẫn chuyện (hoặc các nhân vật) được thống nhất từ đầu đến cuối.
+      // Đảm bảo dấu backtick ` ở đầu và cuối là đúng
+      prompt = `Bạn là một biên tập viên kịch bản. Hãy rà soát và chỉnh sửa kịch bản sau để đảm bảo giọng văn, ngôn từ của người dẫn chuyện (hoặc các nhân vật) được thống nhất từ đầu đến cuối.
 KỊCH BẢN HIỆN TẠI:
 ---
 ${currentScript}
 ---
 Hãy viết lại TOÀN BỘ kịch bản đã được đồng nhất. Vẫn giữ nguyên định dạng "DIALOGUE:" và "HƯỚNG DẪN ĐỌC:". Không thêm lời bình luận.`; // <--- Đảm bảo có dấu ` ở cuối
     } else if (type === 'translate') {
-        if (!lang) return res.status(400).json({ error: "Thiếu lang (ngôn ngữ đích) cho 'translate'." });
-        const langName = languages[lang as keyof typeof languages] || lang;
-        const originalTone = tone || 'không xác định';
-        const originalStyle = style || 'không xác định'; // Sử dụng style đã lấy từ req.body
+      if (!lang) return res.status(400).json({ error: "Thiếu lang (ngôn ngữ đích) cho 'translate'." });
+      const langName = languages[lang as keyof typeof languages] || lang;
+      const originalTone = tone || 'không xác định';
+      const originalStyle = style || 'không xác định'; // Sử dụng style đã lấy từ req.body
 
-        // Đảm bảo dấu backtick ` ở đầu và cuối là đúng
-        prompt = `Bạn là một dịch giả kịch bản chuyên nghiệp, chuyên về nội dung sáng tạo cho các nền tảng video. Nhiệm vụ của bạn là dịch kịch bản sau đây sang ngôn ngữ '${langName}' một cách tự nhiên, phù hợp với văn hóa bản địa.
+      // Đảm bảo dấu backtick ` ở đầu và cuối là đúng
+      prompt = `Bạn là một dịch giả kịch bản chuyên nghiệp, chuyên về nội dung sáng tạo cho các nền tảng video. Nhiệm vụ của bạn là dịch kịch bản sau đây sang ngôn ngữ '${langName}' một cách tự nhiên, phù hợp với văn hóa bản địa.
 
 YÊU CẦU CỐT LÕI: Không dịch một cách máy móc. Hãy điều chỉnh ngôn từ để giữ trọn vẹn Tông Giọng ('${originalTone}') và Phong Cách ('${originalStyle}') đã được xác định của kịch bản gốc (nếu có thể suy ra từ kịch bản). Phần 'HƯỚNG DẪN ĐỌC' cũng phải được dịch lại để phản ánh đúng chỉ dẫn về ngữ điệu trong ngôn ngữ đích.
 
@@ -72,7 +72,7 @@ ${currentScript}
 
 Kịch bản đã dịch sang '${langName}':`; // <--- Đảm bảo có dấu ` ở cuối
     } else {
-        return res.status(400).json({ error: "Loại hành động (type) không hợp lệ." });
+      return res.status(400).json({ error: "Loại hành động (type) không hợp lệ." });
     }
     // --- Hết xây dựng Prompt ---
 
@@ -82,7 +82,7 @@ Kịch bản đã dịch sang '${langName}':`; // <--- Đảm bảo có dấu ` 
       contents: prompt,
     });
 
-    const refinedScriptText = response.text.trim();
+    const refinedScriptText = response.text?.trim() || "";
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.status(200).send(refinedScriptText);

@@ -382,11 +382,11 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => { //
 
                                 {/* Full Description */}
                                 <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm">
-                                    <p className="text-xs text-gray-300 whitespace-pre-line">{output.description?.mainHashtags.slice(0, 5).join(' ')}</p>
-                                    <p className="text-xs text-gray-300 whitespace-pre-line mt-2">{output.description?.body}</p>
-                                    <p className="text-xs text-gray-400 mt-2">{output.description?.secondaryHashtags.slice(0, 10).join(' ')}</p>
+                                    <p className="text-xs text-gray-300 whitespace-pre-line">{output.description?.mainHashtags?.slice(0, 5).join(' ') || ''}</p>
+                                    <p className="text-xs text-gray-300 whitespace-pre-line mt-2">{output.description?.body || ''}</p>
+                                    <p className="text-xs text-gray-400 mt-2">{output.description?.secondaryHashtags?.slice(0, 10).join(' ') || ''}</p>
                                     {copySuccessDesc && <p className="text-xs text-green-400 mt-2">{copySuccessDesc}</p>}
-                                    <CopyButton textToCopy={[output?.description?.mainHashtags.slice(0, 5).join(' '), output?.description?.body, output?.description?.secondaryHashtags.slice(0, 10).join(' ')].filter(Boolean).join('\n')} onCopy={handleCopyDesc} />
+                                    <CopyButton textToCopy={[output?.description?.mainHashtags?.slice(0, 5).join(' '), output?.description?.body, output?.description?.secondaryHashtags?.slice(0, 10).join(' ')].filter(Boolean).join('\n')} onCopy={handleCopyDesc} />
                                 </div>
                             </div>
 
@@ -495,8 +495,8 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => { //
                                                 {enhanced && (
                                                     <div className="mb-2">
                                                         <span className={`text-xs px-2 py-0.5 rounded ${enhanced.angle === 'curiosity' ? 'bg-purple-500/20 text-purple-400' :
-                                                                enhanced.angle === 'result' ? 'bg-blue-500/20 text-blue-400' :
-                                                                    'bg-orange-500/20 text-orange-400'
+                                                            enhanced.angle === 'result' ? 'bg-blue-500/20 text-blue-400' :
+                                                                'bg-orange-500/20 text-orange-400'
                                                             }`}>
                                                             {enhanced.angle === 'curiosity' ? '🔮 CURIOSITY' :
                                                                 enhanced.angle === 'result' ? '✅ RESULT' :
@@ -553,8 +553,8 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => { //
                                     <div className="mb-3">
                                         <p className="text-sm font-bold text-gray-300 mb-1.5">Độ khó chủ đề:</p>
                                         <span className={`inline-block px-3 py-1.5 rounded text-sm font-bold ${output.seoRealityCheck.topicDifficulty === 'easy' ? 'bg-green-500 text-white' :
-                                                output.seoRealityCheck.topicDifficulty === 'medium' ? 'bg-yellow-500 text-black' :
-                                                    'bg-red-500 text-white'
+                                            output.seoRealityCheck.topicDifficulty === 'medium' ? 'bg-yellow-500 text-black' :
+                                                'bg-red-500 text-white'
                                             }`}>
                                             {output.seoRealityCheck.topicDifficulty === 'easy' ? '🟢 DỄ TIẾP CẬN' :
                                                 output.seoRealityCheck.topicDifficulty === 'medium' ? '🟡 CẠNH TRANH VỪA' :

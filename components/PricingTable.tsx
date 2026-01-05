@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 interface PricingTableProps {
@@ -335,9 +336,9 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
         <div className="text-center mt-12">
           <p className="text-gray-400 text-sm">
             Cần hỗ trợ 1–1 hoặc coaching?{" "}
-            <a href="https://zalo.me/0789284078" target="_blank" rel="noopener noreferrer" className="text-[#CDAD5A] font-bold hover:underline">
-              Liên hệ riêng
-            </a>
+            <Link href="/coaching" className="text-[#CDAD5A] font-bold hover:underline">
+              Xem chương trình Coaching 1-1
+            </Link>
           </p>
         </div>
 

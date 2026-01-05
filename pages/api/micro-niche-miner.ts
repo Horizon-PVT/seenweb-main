@@ -96,7 +96,7 @@ export default async function handler(
       },
     });
 
-    const rawText = response.text.trim();
+    const rawText = response.text?.trim() || "";
     const jsonMatch = rawText.match(/{.*}|\[.*]/s); // Trích xuất JSON
 
     if (!jsonMatch) {

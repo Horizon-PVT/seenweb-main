@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { GoogleGenAI, Modality, GenerateImagesConfig, NegativePrompt } from "@google/genai";
+import { GoogleGenAI, Modality, GenerateImagesConfig } from "@google/genai";
 
 /** FIX 413: allow larger JSON bodies for base64 images */
 export const config = {
@@ -70,9 +70,9 @@ export default async function handler(
 
     const chars: Ref[] = Array.isArray(characterRefs)
       ? characterRefs
-          .slice(0, 3)
-          .filter((r: any) => r?.base64 && r?.mimeType && isLikelyBase64(r.base64) && isValidImageMime(r.mimeType))
-          .map((r: any) => ({ base64: r.base64, mimeType: r.mimeType }))
+        .slice(0, 3)
+        .filter((r: any) => r?.base64 && r?.mimeType && isLikelyBase64(r.base64) && isValidImageMime(r.mimeType))
+        .map((r: any) => ({ base64: r.base64, mimeType: r.mimeType }))
       : [];
 
     const hasRefs = !!style || chars.length > 0;
@@ -139,7 +139,7 @@ export default async function handler(
     };
 
     if (typeof negativePrompt === "string" && negativePrompt.trim()) {
-      configImg.negativePrompt = negativePrompt.trim() as NegativePrompt;
+      configImg.negativePrompt = negativePrompt.trim();
     }
 
     const parsedSeed = Number.isFinite(Number(seed)) ? parseInt(String(seed), 10) : undefined;
@@ -152,8 +152,10 @@ export default async function handler(
     });
 
     const imageUrls =
-      response.generatedImages?.map((img) => `data:image/jpeg;base64,${img.image.imageBytes}`) || [];
-    if (!imageUrls.length) throw new Error("Imagen không trả về ảnh.");
+      response.generatedImages
+        ?.map((img) => img.image?.imageBytes ? `data:image/jpeg;base64,${img.image.imageBytes}` : null)
+        .filter((url): url is string => typeof url === "string") || [];
+    if (!imageUrls.length) throw new Error("Imagen không trả về ảnh (hoặc ảnh bị lỗi).");
 
     return res.status(200).json({ generatedImages: imageUrls });
   } catch (err: any) {

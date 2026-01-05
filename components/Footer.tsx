@@ -66,6 +66,12 @@ const Footer: React.FC = () => {
                   Bảng Giá
                 </a>
               </li>
+              <li>
+                <Link href="/coaching" className="hover:text-[#CDAD5A]">
+                  Coaching 1-1
+                </Link>
+              </li>
+
             </ul>
           </div>
 

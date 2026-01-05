@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user: {
         id: user.id,
         email: user.email,
-        plan: user.plan,
+        plan: user.role,
         dailyUsage: user.dailyUsage,
         maxDailyUsage: user.maxDailyUsage,
       },

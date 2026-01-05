@@ -26,22 +26,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     let prompt = "";
+    let formattedLowFloor: any[] = [];
 
     // ==================== 1. RIVAL SCANNER – GIỮ NGUYÊN 100% ====================
     if (tool === 'rival') {
       const urlMatch = input.match(/(?:youtube\.com\/(?:channel\/|c\/|user\/|@)([^\/?&]+)|youtu\.be\/([^\?]+)|youtube\.com\/watch\?v=([^&]+))/);
       if (!urlMatch) return res.status(400).json({ error: 'URL không hợp lệ' });
 
-      let channelId = urlMatch[1] || urlMatch[2] || urlMatch[3];
-      if (!channelId?.startsWith('UC')) {
-        const s = await youtube.search.list({ part: ['snippet'], q: channelId, type: 'channel', maxResults: 1 });
-        channelId = s.data.items?.[0]?.snippet?.channelId;
-        if (!channelId) return res.status(404).json({ error: 'Không tìm thấy kênh' });
+      let channelId = null;
+      const videoId = urlMatch[2] || urlMatch[3];
+      const channelHandleOrId = urlMatch[1];
+
+      // Case 1: Video URL -> Get Channel ID from Video
+      if (videoId) {
+        const vRes = await youtube.videos.list({
+          part: ['snippet'],
+          id: [videoId]
+        });
+        channelId = vRes.data.items?.[0]?.snippet?.channelId;
       }
+      // Case 2: Channel ID (starts with UC) -> Use directly
+      else if (channelHandleOrId?.startsWith('UC')) {
+        channelId = channelHandleOrId;
+      }
+      // Case 3: Handle or User -> Search to get Channel ID
+      else if (channelHandleOrId) {
+        const s = await youtube.search.list({
+          part: ['snippet'],
+          q: channelHandleOrId,
+          type: ['channel'],
+          maxResults: 1
+        });
+        channelId = s.data.items?.[0]?.snippet?.channelId;
+      }
+
+      if (!channelId) return res.status(404).json({ error: 'Không tìm thấy kênh' });
 
       const chRes = await youtube.channels.list({
         part: ['snippet', 'statistics', 'topicDetails'],
-        id: channelId
+        id: [channelId]
       });
 
       const ch = chRes.data.items?.[0];
@@ -69,9 +92,9 @@ Trả về đúng JSON sau, không thêm bất kỳ chữ nào:
 
     // ==================== 2. HIDDEN CHANNEL FINDER – GIỮ NGUYÊN 100% ====================
     else if (tool === 'hidden' && macroNiche) {
-      const channelSearch = await youtube.search.list({ part: ['snippet'], q: macroNiche, type: 'channel', maxResults: 40 });
-      const ids = channelSearch.data.items?.map(i => i.snippet?.channelId).filter(Boolean) || [];
-      const channels = ids.length ? (await youtube.channels.list({ part: ['snippet', 'statistics'], id: ids.join(',') })).data.items || [] : [];
+      const channelSearch = await youtube.search.list({ part: ['snippet'], q: macroNiche, type: ['channel'], maxResults: 40 });
+      const ids = channelSearch.data.items?.map(i => i.snippet?.channelId).filter(Boolean) as string[] || [];
+      const channels = ids.length ? (await youtube.channels.list({ part: ['snippet', 'statistics'], id: ids })).data.items || [] : [];
 
       const formattedChannels = channels
         .map(c => ({
@@ -88,7 +111,7 @@ Trả về đúng JSON sau, không thêm bất kỳ chữ nào:
       const videoSearch = await youtube.search.list({
         part: ['snippet'],
         q: macroNiche,
-        type: 'video',
+        type: ['video'],
         order: 'viewCount',
         maxResults: 25,
         publishedAfter: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -135,7 +158,7 @@ Trả về đúng JSON (8-12 kênh, 6-10 video, 6-8 xu hướng):
       const searchRes = await youtube.search.list({
         part: ['snippet'],
         q: macroNiche,
-        type: 'video',
+        type: ['video'],
         order: 'relevance',
         maxResults: 50,
       });
@@ -149,16 +172,16 @@ Trả về đúng JSON (8-12 kênh, 6-10 video, 6-8 xu hướng):
       const channelRes = await youtube.search.list({
         part: ['snippet'],
         q: macroNiche,
-        type: 'channel',
+        type: ['channel'],
         maxResults: 30,
       });
 
-      const channelIds = channelRes.data.items?.map(i => i.snippet?.channelId).filter(Boolean) || [];
+      const channelIds = channelRes.data.items?.map(i => i.snippet?.channelId).filter(Boolean) as string[] || [];
       const lowFloorChannels = channelIds.length
-        ? (await youtube.channels.list({ part: ['snippet', 'statistics'], id: channelIds.join(',') })).data.items || []
+        ? (await youtube.channels.list({ part: ['snippet', 'statistics'], id: channelIds })).data.items || []
         : [];
 
-      const formattedLowFloor = lowFloorChannels
+      formattedLowFloor = lowFloorChannels
         .filter(c => {
           const subs = Number(c.statistics?.subscriberCount || 0);
           return subs > 1000 && subs < 50000;

@@ -5,7 +5,7 @@ import { getSession } from "next-auth/react";
 
 declare global {
   interface Window {
-    dataLayer?: any[];
+    dataLayer?: Object[];
   }
 }
 

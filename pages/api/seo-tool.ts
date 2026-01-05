@@ -190,17 +190,21 @@ export default async function handler(
     }
 
     // === STEP 1: Generate AI SEO content ===
-    const prompt = `You are a world-class YouTube SEO expert AND a creative visual director, a "Signal Tuner". Your task is to generate a complete, max-spec SEO package including ultra-detailed thumbnail concepts.
+    const prompt = `You are a world-class YouTube SEO expert AND a creative visual director, a "Signal Tuner". Your task is to generate a complete, max-spec SEO package including detailed thumbnail concepts.
 
-    **CRITICAL INSTRUCTION**: First, automatically detect the language of the "Video Idea & Main Keywords" provided below. Then, you MUST generate the entire SEO package strictly in that detected language.
+    **CRITICAL INSTRUCTION**: 
+    1. First, automatically detect the language of the "Video Idea & Main Keywords" provided below. 
+    2. Then, you MUST generate the entire SEO package strictly in that detected language.
+    3. **OUTPUT FORMAT**: Return ONLY valid JSON. Do not include any markdown formatting (like \`\`\`json), explanations, or conversational text. 
+    4. **NO REPETITION**: Do not repeat emojis or text endlessly. Be concise and professional.
 
     - **Video Idea & Main Keywords**: "${coreIdea}"
     - **Target Audience**: "${targetAudience}"
     - **Main SEO Goal**: Optimize for "${seoGoal}"
 
     Based on this, and following the schema, generate the complete SEO package.
-    - Ensure the description body is well-structured with paragraphs, relevant emojis (like ✅, 👉, 💡, etc.), placeholders for links, and contact info.
-    - **CRITICAL FOR THUMBNAILS**: The thumbnail ideas MUST be **ultra-detailed**, providing concrete, vivid descriptions suitable for direct input into an AI image generator. Describe subject appearance (clothing, pose, ethnicity if relevant), background elements, specific objects with placement hints, lighting (e.g., dramatic, soft, neon), camera angle (e.g., low angle, eye-level, dutch tilt), and overall mood for each of the 3 concepts. Make them distinct from each other.`;
+    - Description body: Structure with paragraphs, relevant emojis (max 1-2 per paragraph), placeholders for links.
+    - Thumbnails: Provide vivid, concrete descriptions (subject, background, lighting, mood) for AI generation.`;
 
     const ai = new GoogleGenAI({ apiKey });
     const aiPromise = ai.models.generateContent({
@@ -233,13 +237,22 @@ export default async function handler(
     youtubeAnalysis = ytAnalysis;
 
     // Parse AI output
-    const jsonString = aiResponse.text.trim();
+    let jsonString = aiResponse.text?.trim() || "";
+
+    // Remove markdown code blocks if present (Gemini sometimes adds them despite JSON mode)
+    if (jsonString.startsWith('```json')) {
+      jsonString = jsonString.replace(/^```json/, '').replace(/```$/, '');
+    } else if (jsonString.startsWith('```')) {
+      jsonString = jsonString.replace(/^```/, '').replace(/```$/, '');
+    }
+    jsonString = jsonString.trim();
+
     let parsedOutput: OutputData;
     try {
       parsedOutput = JSON.parse(jsonString);
     } catch (parseError) {
-      console.error("JSON parse error:", jsonString);
-      throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
+      console.error("JSON parse error:", jsonString.substring(0, 500)); // Log start of string for debug
+      throw new Error(`Phản hồi từ AI không phải là JSON hợp lệ. Lỗi: ${(parseError as Error).message}`);
     }
 
     // === STEP 3: Enhance with YouTube data ===

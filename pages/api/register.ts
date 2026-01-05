@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         email,
         passwordHash: hash,
-        plan: "EXPLORER",
+
       },
     });
 

@@ -18,19 +18,19 @@ interface AnalysisResponse {
 }
 
 interface ImageResponse {
-    imageUrl: string; 
+  imageUrl: string;
 }
 
 interface ErrorResponse { error: string; }
 
-const languages: { [key: string]: string } = { 
-    "en": "English", "es": "Spanish", "fr": "French", "de": "German", "zh-CN": "Chinese (Simplified)", 
-    "ja": "Japanese", "ko": "Korean", "ru": "Russian", "ar": "Arabic", "pt": "Portuguese", "vi": "Vietnamese" 
-}; 
+const languages: { [key: string]: string } = {
+  "en": "English", "es": "Spanish", "fr": "French", "de": "German", "zh-CN": "Chinese (Simplified)",
+  "ja": "Japanese", "ko": "Korean", "ru": "Russian", "ar": "Arabic", "pt": "Portuguese", "vi": "Vietnamese"
+};
 
 // Khởi tạo AI
 const apiKey = process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI(apiKey || '');
+const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
 
 export default async function handler(
@@ -47,7 +47,7 @@ export default async function handler(
   }
 
   const { action, storyIdea, style, language, numberOfScenes, imagePrompt, aspectRatio, coverPrompt } = req.body;
-  
+
   if (action === 'analyze') {
     // --- Xử lý Phân tích Cảnh (Gemini) ---
     if (!storyIdea) {
@@ -55,7 +55,7 @@ export default async function handler(
     }
 
     const lang = languages[language as string] || 'English';
-    
+
     const prompt = `Bạn là chuyên gia tạo sách kể chuyện. Nhiệm vụ của bạn là chia câu chuyện sau thành ${numberOfScenes} cảnh VÀ tạo một TÓM TẮT HẤP DẪN (Blurb) dài khoảng 4-5 câu cho bìa sau của sách.
     Mỗi cảnh phải có một 'imagePrompt' (Lệnh tạo ảnh chi tiết) và 'narrationText' (Lời kể).
     - Ngôn ngữ: ${lang}.
@@ -73,7 +73,7 @@ export default async function handler(
         // ... ${numberOfScenes} scenes
       ]
     }`;
-    
+
     const analysisSchema = {
       type: Type.OBJECT,
       properties: {
@@ -104,16 +104,16 @@ export default async function handler(
         },
       });
 
-      const cleanJson = response.text.replace(/```json|```/g, '').trim();
+      const cleanJson = (response.text?.replace(/```json|```/g, '') || '').trim();
       const parsedOutput: AnalysisResponse = JSON.parse(cleanJson);
 
       if (!parsedOutput.scenes || !parsedOutput.bookSummary) {
         throw new Error("Phản hồi phân tích từ AI không chứa trường 'scenes' hoặc 'bookSummary'.");
       }
 
-      res.status(200).json({ 
-          scenes: parsedOutput.scenes,
-          bookSummary: parsedOutput.bookSummary // TRẢ VỀ TRƯỜNG MỚI
+      res.status(200).json({
+        scenes: parsedOutput.scenes,
+        bookSummary: parsedOutput.bookSummary // TRẢ VỀ TRƯỜNG MỚI
       });
 
     } catch (e: any) {
@@ -129,7 +129,7 @@ export default async function handler(
 
     const config: GenerateImagesConfig = {
       numberOfImages: 1,
-      outputMimeType: 'image/jpeg', 
+      outputMimeType: 'image/jpeg',
       aspectRatio: aspectRatio as any,
     };
 
@@ -140,48 +140,48 @@ export default async function handler(
         config: config,
       });
 
-      if (response.generatedImages && response.generatedImages.length > 0) {
+      if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image) {
         const imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
         res.status(200).json({ imageUrl: imageUrl });
       } else {
         throw new Error("API generateImages không trả về hình ảnh nào.");
       }
     } catch (e) {
-        console.error("Lỗi tạo ảnh:", e);
-        return res.status(500).json({ error: "Lỗi AI tạo ảnh. Đảm bảo prompt không vi phạm chính sách." });
+      console.error("Lỗi tạo ảnh:", e);
+      return res.status(500).json({ error: "Lỗi AI tạo ảnh. Đảm bảo prompt không vi phạm chính sách." });
     }
-  
+
   } else if (action === 'generateCover') {
     // --- Xử lý Tạo Bìa Sách (Imagen) ---
     if (!coverPrompt) {
       return res.status(400).json({ error: "Thiếu coverPrompt cho hành động 'generateCover'." });
     }
 
-    const finalPrompt = coverPrompt; 
-    
+    const finalPrompt = coverPrompt;
+
     const config: GenerateImagesConfig = {
       numberOfImages: 1,
       outputMimeType: 'image/jpeg',
       // Dùng 16:9 cho ảnh bìa nghệ thuật
-      aspectRatio: '16:9', 
+      aspectRatio: '16:9',
     };
 
     try {
       const response = await ai.models.generateImages({
-        model: 'imagen-4.0-generate-001', 
+        model: 'imagen-4.0-generate-001',
         prompt: finalPrompt,
         config: config,
       });
 
-      if (response.generatedImages && response.generatedImages.length > 0) {
+      if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image) {
         const imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
         res.status(200).json({ imageUrl: imageUrl });
       } else {
         throw new Error("API generateImages không trả về hình ảnh nào.");
       }
     } catch (e) {
-        console.error("Lỗi tạo bìa:", e);
-        return res.status(500).json({ error: "Lỗi AI tạo bìa. Đảm bảo prompt không vi phạm chính sách." });
+      console.error("Lỗi tạo bìa:", e);
+      return res.status(500).json({ error: "Lỗi AI tạo bìa. Đảm bảo prompt không vi phạm chính sách." });
     }
 
   } else {

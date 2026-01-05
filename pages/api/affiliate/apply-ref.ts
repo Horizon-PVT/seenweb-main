@@ -28,12 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: { referrerId: referrer.id },
     });
 
-    await prisma.referral.create({
-      data: {
-        referrerId: referrer.id,
-        referredUserId: user.id,
-      },
-    });
+    // Note: Referral tracking is managed via user.referrerId relation
+    // Commission will be calculated when payment is confirmed
 
     // Clear cookie
     res.setHeader('Set-Cookie', 'aff_ref=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax');

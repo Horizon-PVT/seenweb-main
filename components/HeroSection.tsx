@@ -76,7 +76,6 @@ const HeroSection: React.FC = () => {
         muted={isMuted}
         loop
         playsInline
-        poster="/images/hero-poster.jpg"
         className="absolute inset-0 w-full h-full object-cover -z-10"
       >
         <source src="/videos/hero-background.mp4" type="video/mp4" />

@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     include: { user: true },
   });
 
-  if (!paymentRequest || paymentRequest.status !== 'PENDING_MANUAL') {
+  if (!paymentRequest || paymentRequest.status !== 'PENDING_MANUAL' || !paymentRequest.user) {
     return res.status(400).json({ error: 'Invalid payment request' });
   }
 

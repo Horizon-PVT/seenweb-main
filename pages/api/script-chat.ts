@@ -19,7 +19,7 @@ export default async function handler(
     const { currentScript, chatRequest } = req.body;
 
     if (!currentScript || !chatRequest) {
-        return res.status(400).json({ error: "Thiếu currentScript hoặc chatRequest." });
+      return res.status(400).json({ error: "Thiếu currentScript hoặc chatRequest." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -45,7 +45,7 @@ Hãy viết lại TOÀN BỘ kịch bản mới đã được chỉnh sửa theo
       contents: prompt,
     });
 
-    const editedScriptText = response.text.trim();
+    const editedScriptText = response.text?.trim() || "";
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.status(200).send(editedScriptText);

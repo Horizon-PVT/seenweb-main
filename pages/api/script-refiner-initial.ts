@@ -46,7 +46,7 @@ export default async function handler(
     const { originalScript, rewriteLevel, optimizeGoal, language, initialChatRequest } = req.body;
 
     if (!originalScript || !rewriteLevel || !optimizeGoal || !language) {
-        return res.status(400).json({ error: "Thiếu thông tin đầu vào." });
+      return res.status(400).json({ error: "Thiếu thông tin đầu vào." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -87,18 +87,18 @@ export default async function handler(
       },
     });
 
-    const jsonString = response.text.trim();
+    const jsonString = response.text?.trim() || "";
     let parsedOutput: OutputData;
     try {
-        parsedOutput = JSON.parse(jsonString);
+      parsedOutput = JSON.parse(jsonString);
     } catch (parseError) {
-        console.error("Lỗi parse JSON từ Gemini (Refiner Initial):", jsonString);
-        throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
+      console.error("Lỗi parse JSON từ Gemini (Refiner Initial):", jsonString);
+      throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
     }
 
     // Kiểm tra cấu trúc cơ bản
     if (!parsedOutput.refinedScript || !parsedOutput.diffScript || !parsedOutput.metrics) {
-        throw new Error("Phản hồi AI không tuân theo cấu trúc JSON được yêu cầu.");
+      throw new Error("Phản hồi AI không tuân theo cấu trúc JSON được yêu cầu.");
     }
 
     res.status(200).json(parsedOutput);

@@ -30,6 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log("Plain password:", password);
     console.log("Stored hash:", user.passwordHash);
 
+    if (!user.passwordHash) {
+      console.warn("❌ User has no password (provider login?):", email);
+      return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     console.log("COMPARE RESULT:", isMatch);
 

@@ -25,15 +25,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { newPlan } = req.body;
 
     // 🔍 Kiểm tra gói có hợp lệ không
-    const validPlans = ["ARCHIVE", "MAGISTRATE", "TOANTRI"];
+    const validPlans = ["ARCHIVE", "MAGISTRATE", "TOANTRI", "STARTER", "PRO"];
     if (!validPlans.includes(newPlan)) {
       return res.status(400).json({ error: "Gói không hợp lệ." });
     }
 
-    // ✅ Cập nhật plan trong DB Neon
+    // ✅ Cập nhật role trong DB Neon (using role instead of plan)
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { plan: newPlan },
+      data: { role: newPlan },
     });
 
     console.log(`✅ ${updatedUser.email} đã nâng cấp lên gói ${newPlan}`);

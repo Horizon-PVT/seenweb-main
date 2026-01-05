@@ -17,7 +17,7 @@ export default async function handler(
     const { currentScript, iterativeChatRequest } = req.body;
 
     if (!currentScript || !iterativeChatRequest) {
-        return res.status(400).json({ error: "Thiếu currentScript hoặc iterativeChatRequest." });
+      return res.status(400).json({ error: "Thiếu currentScript hoặc iterativeChatRequest." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -46,7 +46,7 @@ export default async function handler(
       contents: prompt,
     });
 
-    const editedScriptText = response.text.trim();
+    const editedScriptText = response.text?.trim() || "";
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.status(200).send(editedScriptText);

@@ -6,6 +6,8 @@ import { GetServerSideProps } from "next";
 
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
+import CoachingSection from "../components/CoachingSection";
+
 import PromotionCarousel from "../components/PromotionCarousel";
 import TechPillars from "../components/TechPillars";
 import VideoTipsSection from "../components/VideoTipsSection";
@@ -96,6 +98,7 @@ export default function Home({ ebooks = [], videos = [] }: { ebooks: any[]; vide
 
       <main>
         <HeroSection />
+        <CoachingSection />
         <WorkflowSection />
         <PromotionCarousel />
 

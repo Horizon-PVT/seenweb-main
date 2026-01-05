@@ -18,12 +18,15 @@ const nextConfig = {
       { protocol: "https", hostname: "**.googleusercontent.com" },
       { protocol: "https", hostname: "**.unsplash.com" },
       { protocol: "https", hostname: "**.pexels.com" },
+      { protocol: "https", hostname: "**.placeholder.com" },
     ],
-    unoptimized: true,
+    // Enable image optimization for better performance
+    unoptimized: false,
   },
 
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  // Allow build but show warnings (không block build)
+  eslint: { ignoreDuringBuilds: false },
+  typescript: { ignoreBuildErrors: false },
 
   experimental: {
     turbo: {

@@ -29,7 +29,7 @@ export default async function handler(
 
     // Kiểm tra dữ liệu đầu vào (tùy chọn nhưng nên có)
     if (!targetUrl || !scanScope || !outputLanguage) {
-        return res.status(400).json({ error: "Thiếu thông tin targetUrl, scanScope, hoặc outputLanguage trong yêu cầu." });
+      return res.status(400).json({ error: "Thiếu thông tin targetUrl, scanScope, hoặc outputLanguage trong yêu cầu." });
     }
 
     // 3. LẤY API KEY BÍ MẬT TỪ .env.local (An toàn 100%)
@@ -81,14 +81,14 @@ export default async function handler(
       },
     });
 
-    const jsonString = response.text.trim();
+    const jsonString = response.text?.trim() || "";
     // Cố gắng parse JSON, nếu lỗi thì báo lỗi rõ ràng
     let parsedOutput: OutputData;
     try {
-        parsedOutput = JSON.parse(jsonString);
+      parsedOutput = JSON.parse(jsonString);
     } catch (parseError) {
-        console.error("Lỗi parse JSON từ Gemini:", jsonString);
-        throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
+      console.error("Lỗi parse JSON từ Gemini:", jsonString);
+      throw new Error("Phản hồi từ AI không phải là JSON hợp lệ.");
     }
 
 

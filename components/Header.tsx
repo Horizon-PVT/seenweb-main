@@ -50,6 +50,13 @@ const Header: React.FC = () => {
 
         {/* NAV */}
         <nav className="hidden md:flex items-center space-x-8">
+          <Link
+            href="/coaching"
+            className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
+          >
+            Coaching 1-1
+          </Link>
+
           <a
             href="#tools"
             onClick={(e) => handleNavClick(e, "#tools")}
@@ -57,6 +64,8 @@ const Header: React.FC = () => {
           >
             Bảng công cụ
           </a>
+
+
 
           <a
             href="#about"
