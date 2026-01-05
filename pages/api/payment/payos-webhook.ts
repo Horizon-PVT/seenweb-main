@@ -161,13 +161,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         }
 
-        // Send Telegram notification
+        // Send Telegram notification directly
         try {
-            const msg = `✅ THANH TOÁN THÀNH CÔNG!\n----\n- Khách: ${paymentRequest.email}\n- Số tiền: ${paymentRequest.amount.toLocaleString('vi-VN')} đ\n- Gói: ${paymentInfo.plan || 'N/A'} (${paymentRequest.role})\n- Mã đơn: ${orderCode}\n----\nGói đã được kích hoạt tự động! 🎉`;
+            const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+            const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-            await axios.post(`${process.env.NEXT_PUBLIC_APP_URL}/api/notify/telegram`, {
-                message: msg
-            });
+            if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+                const msg = `✅ THANH TOÁN THÀNH CÔNG!\n------------------------------------\n- Khách: ${paymentRequest.email}\n- Số tiền: ${paymentRequest.amount.toLocaleString('vi-VN')} đ\n- Gói: ${paymentInfo.plan || 'N/A'} (${paymentRequest.role})\n- Mã đơn: ${orderCode}\n------------------------------------\nGói đã được kích hoạt tự động! 🎉`;
+
+                await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: msg,
+                    parse_mode: 'HTML',
+                });
+                console.log('Telegram notification sent successfully');
+            } else {
+                console.log('Telegram not configured - skipping notification');
+            }
         } catch (err) {
             console.error('Error sending Telegram:', err);
         }
