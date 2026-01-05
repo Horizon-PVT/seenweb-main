@@ -12,25 +12,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const total = await prisma.paymentRequest.aggregate({
-      where: { status: 'COMPLETED' },
+      where: { status: { in: ['COMPLETED', 'PAID'] } },
       _count: { id: true },
       _sum: { amount: true },
     });
 
     const today = await prisma.paymentRequest.aggregate({
-      where: { status: 'COMPLETED', createdAt: { gte: todayStart } },
+      where: { status: { in: ['COMPLETED', 'PAID'] }, createdAt: { gte: todayStart } },
       _count: { id: true },
       _sum: { amount: true },
     });
 
     const week = await prisma.paymentRequest.aggregate({
-      where: { status: 'COMPLETED', createdAt: { gte: weekStart } },
+      where: { status: { in: ['COMPLETED', 'PAID'] }, createdAt: { gte: weekStart } },
       _count: { id: true },
       _sum: { amount: true },
     });
 
     const month = await prisma.paymentRequest.aggregate({
-      where: { status: 'COMPLETED', createdAt: { gte: monthStart } },
+      where: { status: { in: ['COMPLETED', 'PAID'] }, createdAt: { gte: monthStart } },
       _count: { id: true },
       _sum: { amount: true },
     });

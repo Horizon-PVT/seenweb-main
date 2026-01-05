@@ -8,7 +8,7 @@ interface PaymentRequest {
     email: string;
     amount: number;
     orderCode: string;
-    status: 'PENDING' | 'PENDING_MANUAL' | 'SUCCESS' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    status: 'PENDING' | 'PENDING_MANUAL' | 'PENDING_PAYOS' | 'SUCCESS' | 'COMPLETED' | 'PAID' | 'FAILED' | 'CANCELLED';
     createdAt: string;
     paymentInfo: string;
     role: string;
@@ -109,8 +109,10 @@ export default function AdminOrders({ session }: any) {
         switch (status) {
             case 'PENDING_MANUAL': return 'bg-yellow-500 text-gray-900';
             case 'PENDING': return 'bg-blue-400 text-white';
+            case 'PENDING_PAYOS': return 'bg-cyan-500 text-white';
             case 'SUCCESS':
-            case 'COMPLETED': return 'bg-green-500 text-white';
+            case 'COMPLETED':
+            case 'PAID': return 'bg-green-500 text-white';
             default: return 'bg-gray-400 text-gray-800';
         }
     };

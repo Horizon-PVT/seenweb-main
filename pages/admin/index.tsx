@@ -171,7 +171,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             prisma.paymentRequest.count(),
             prisma.paymentRequest.aggregate({
                 _sum: { amount: true },
-                where: { status: { in: ['SUCCESS', 'COMPLETED'] } },
+                where: { status: { in: ['SUCCESS', 'COMPLETED', 'PAID'] } },
             }),
             prisma.user.count(),
             prisma.user.count({ where: { isAffiliate: true } }),

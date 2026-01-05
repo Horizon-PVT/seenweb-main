@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const pendingRequests = await prisma.paymentRequest.findMany({
             where: {
                 status: {
-                    in: ['PENDING_MANUAL', 'SUCCESS', 'PENDING', 'COMPLETED'] // Thêm COMPLETED để xem lịch sử
+                    in: ['PENDING_MANUAL', 'SUCCESS', 'PENDING', 'COMPLETED', 'PAID', 'PENDING_PAYOS']
                 }
             },
             orderBy: {
