@@ -95,17 +95,17 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
   // ✅ tool list phục vụ cho các tool cần "tools + onToolSelect"
   // (ScriptwriterTool / RivalScannerTool / MicroNicheMinerTool…)
   const allTools: Tool[] = [
-    { id: "scriptwriter", name: "Viết kịch bản YouTube", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: ScriptwriterTool as any },
-    { id: "seo", name: "SEO YouTube tối ưu", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: SeoTool as any },
-    { id: "rival-scanner", name: "Phân tích đối thủ", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: RivalScannerTool as any },
-    { id: "hidden-channel-finder", name: "Tìm kênh ẩn", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: HiddenChannelFinderTool as any },
-    { id: "script-refiner", name: "Viết lại kịch bản", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: ScriptRefinerTool as any },
-    { id: "micro-niche-miner", name: "Micro Niche Miner", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: MicroNicheMinerTool as any },
-    { id: "image-forge", name: "SeenYT Vision", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: ImageForgeTool as any },
-    { id: "narrative-studio", name: "Narrative Studio", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: StoryStudioTool as any },
-    { id: "text-to-speech", name: "Text-to-Speech", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: TextToSpeechTool as any },
-    { id: "velocity", name: "Velocity Tool", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: VeocityTool as any },
-    { id: "virtual-mc", name: "Virtual MC (Idol AI)", shortDescription: "Tạo Video MC ảo từ ảnh", longDescription: "", features: [], icon: (() => null) as any, component: VirtualMCTool as any },
+    { id: "scriptwriter", name: "Viết kịch bản YouTube", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: ScriptwriterTool as any },
+    { id: "seo", name: "SEO YouTube tối ưu", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: SeoTool as any },
+    { id: "rival-scanner", name: "Phân tích đối thủ", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: RivalScannerTool as any },
+    { id: "hidden-channel-finder", name: "Tìm kênh ẩn", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: HiddenChannelFinderTool as any },
+    { id: "script-refiner", name: "Viết lại kịch bản", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: ScriptRefinerTool as any },
+    { id: "micro-niche-miner", name: "Micro Niche Miner", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: MicroNicheMinerTool as any },
+    { id: "image-forge", name: "SeenYT Vision", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: ImageForgeTool as any },
+    { id: "narrative-studio", name: "Narrative Studio", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: StoryStudioTool as any },
+    { id: "text-to-speech", name: "Text-to-Speech", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: TextToSpeechTool as any },
+    { id: "velocity", name: "Velocity Tool", shortDescription: "", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: VeocityTool as any },
+    { id: "virtual-mc", name: "Virtual MC (Idol AI)", shortDescription: "Tạo Video MC ảo từ ảnh", longDescription: "", features: [], seoKeywords: [], icon: (() => null) as any, component: VirtualMCTool as any },
   ];
 
   const onToolSelect = (tool: Tool) => {
