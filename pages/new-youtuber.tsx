@@ -365,20 +365,21 @@ export default function NewYoutuberLanding() {
                 </div>
 
                 <h1 className="mt-6 text-[42px] font-black leading-[1.12] tracking-[-0.02em] md:text-[64px] md:leading-[1.08] lg:text-[72px]">
-                  Đăng 10-20 video vẫn không lên view YouTube ?
+                 Làm YouTube Không Lên View?
                  
                   <span className="mt-4 block">
-                    Chọn 1 path —{" "}
+                    Người Mới —{" "}
                     <span className="bg-gradient-to-r from-[#00ffb4] via-[#ff70d6] to-[#7a5cff] bg-clip-text text-transparent">
-                      SeenYT dẫn anh đi đúng 3 bước
+                      Thường Chết Ở 1 Trong 3 Bước Này
                     </span>{" "}
-                    để ra video được lên đề xuất.
+                    .
                   </span>
                 </h1>
 
                 <p className="mt-6 max-w-[640px] text-base leading-7 text-white/70 md:text-lg md:leading-8">
-                  Người mới thường chết ở 1 trong 3 điểm: chọn ngách sai, script lan man, SEO tệ.
-                  Chọn đúng điểm kẹt của anh, SeenYT điều hướng vào đúng tool luôn.
+                  Người mới thường sai ở: chọn ngách – viết script – tối ưu SEO.
+SeenYT gom 3 bước này thành 1 path, làm đúng từ đầu.
+
                 </p>
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
