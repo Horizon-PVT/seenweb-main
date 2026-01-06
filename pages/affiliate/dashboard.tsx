@@ -330,6 +330,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
     membershipExpiry: user.membershipExpiry ? user.membershipExpiry.toISOString() : null,
+    lastUsageDate: (user as any).lastUsageDate ? (user as any).lastUsageDate.toISOString() : null,
     totalCommission: user.totalCommission ? user.totalCommission.toNumber() : 0,
     referredUsers: user.referredUsers.map((u: any) => ({
       ...u,

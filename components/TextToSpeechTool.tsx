@@ -124,6 +124,35 @@ const parseSRT = (content: string): SrtSegment[] => {
 };
 
 
+const mergeAudioBuffers = (buffers: AudioBuffer[], ctx: AudioContext): AudioBuffer | null => {
+    if (!buffers.length) return null;
+    const totalLength = buffers.reduce((acc, b) => acc + b.length, 0);
+    const output = ctx.createBuffer(1, totalLength, buffers[0].sampleRate);
+    const channelData = output.getChannelData(0);
+    let offset = 0;
+    for (const buf of buffers) {
+        channelData.set(buf.getChannelData(0), offset);
+        offset += buf.length;
+    }
+    return output;
+};
+
+const splitTextIntoChunks = (text: string, maxChars = 500): string[] => {
+    const chunks: string[] = [];
+    const sentences = text.match(/[^.!?\n]+[.!?\n]*/g) || [text];
+    let currentChunk = "";
+
+    for (const sentence of sentences) {
+        if ((currentChunk + sentence).length > maxChars && currentChunk) {
+            chunks.push(currentChunk.trim());
+            currentChunk = "";
+        }
+        currentChunk += sentence;
+    }
+    if (currentChunk) chunks.push(currentChunk.trim());
+    return chunks;
+};
+
 const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     const [mode, setMode] = useState<'text' | 'srt'>('text');
     const [scriptText, setScriptText] = useState('');
@@ -133,6 +162,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     const [speed, setSpeed] = useState(1);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [progress, setProgress] = useState(''); // New progress state
     const [error, setError] = useState('');
     const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -181,43 +211,60 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
             return;
         }
 
-        // Re-parse SRT if manually edited
-        let finalSegments = srtSegments;
-        if (mode === 'srt') {
-            finalSegments = parseSRT(scriptText);
-        }
-
         setIsLoading(true);
         setError('');
+        setProgress('');
         setAudioBuffer(null);
         stopAudio();
 
         try {
-            const response = await fetch('/api/text-to-speech', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mode,
-                    scriptText: mode === 'text' ? scriptText : undefined,
-                    srtSegments: mode === 'srt' ? finalSegments : undefined,
-                    selectedVoiceApiName,
-                    speed // Note: Speed này chỉ để client tham khảo, OpenAI API tts-1 cũng có param speed (0.25-4.0), backend có thể implement sau
-                }),
-            });
+            const chunks = mode === 'text'
+                ? splitTextIntoChunks(scriptText, 800) // Chunk size ~800 chars to be safe
+                : [scriptText]; // SRT handling kept simple for now (or split logic needed for SRT too)
 
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error);
+            // If SRT is too long, we might need similar logic, but SRT structure is complex. 
+            // For now assuming Text mode is the main issue with "20 mins".
 
-            if (result.audioBase64 && audioContextRef.current) {
-                const decodedBytes = decode(result.audioBase64);
-                // Backend trả về WAV, dùng decodeAudioData chuẩn
-                const buffer = await decodeAudioData(decodedBytes, audioContextRef.current, 24000, 1);
-                setAudioBuffer(buffer);
+            const buffers: AudioBuffer[] = [];
+
+            for (let i = 0; i < chunks.length; i++) {
+                setProgress(`Đang xử lý phần ${i + 1}/${chunks.length}...`);
+
+                const response = await fetch('/api/text-to-speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mode: mode === 'srt' ? 'srt' : 'text', // Keep original mode if SRT
+                        scriptText: mode === 'text' ? chunks[i] : undefined,
+                        srtSegments: mode === 'srt' ? parseSRT(chunks[i]) : undefined, // Partial SRT parsing if chunked? (SRT chunking is harder)
+                        // Note: For SRT, the current frontend split logic above just wraps it in 1 chunk if mode != text.
+                        // Ideally strictly split text mode only.
+                        selectedVoiceApiName,
+                        speed
+                    }),
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+
+                if (result.audioBase64 && audioContextRef.current) {
+                    const decodedBytes = decode(result.audioBase64);
+                    const buffer = await decodeAudioData(decodedBytes, audioContextRef.current, 24000, 1);
+                    buffers.push(buffer);
+                }
             }
+
+            if (buffers.length > 0 && audioContextRef.current) {
+                const finalBuffer = mergeAudioBuffers(buffers, audioContextRef.current);
+                setAudioBuffer(finalBuffer);
+                setProgress('Hoàn tất!');
+            }
+
         } catch (err: any) {
             setError(`Lỗi: ${err.message}`);
         } finally {
             setIsLoading(false);
+            setProgress('');
         }
     };
 
@@ -277,11 +324,21 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             <h3 className="text-[#CDAD5A] font-bold text-xs uppercase tracking-wide">Hỗ trợ đa ngôn ngữ tự động</h3>
                             <p className="text-[10px] text-gray-300 leading-tight mt-1">
                                 Hệ thống tự động nhận diện và đọc chuẩn giọng bản xứ cho <strong>hơn 50 ngôn ngữ</strong> (Anh, Nhật, Hàn, Pháp...).
-                                Chỉ cần nhập văn bản, AI sẽ xử lý ngữ điệu tự nhiên nhất. Tự động xử lý SRT chuẩn xác đến từng giây,từng điểm ngắt nghỉ, từng hơi thở .
+                                Chỉ cần nhập văn bản, AI sẽ xử lý ngữ điệu tự nhiên nhất.
                             </p>
                         </div>
                     </div>
 
+                    {/* --- INSTRUCTION BANNER (NEW) --- */}
+                    <div className="bg-[#CDAD5A]/10 border border-[#CDAD5A]/30 p-3 rounded-sm flex gap-3 items-center shadow-lg backdrop-blur-md animate-pulse-slow">
+                        <div className="text-xl">⚠️</div>
+                        <div>
+                            <h3 className="text-[#CDAD5A] font-bold text-[10px] uppercase tracking-wide">Tối ưu trải nghiệm</h3>
+                            <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
+                                Vui lòng chia nhỏ các file thành các đoạn <strong>dưới 10 phút</strong> để tối ưu trải nhiệm và tốc độ xử lý nhanh nhất , tránh quá tải hệ thống.
+                            </p>
+                        </div>
+                    </div>
                     {/* Mode Toggle */}
                     <div className="flex bg-black/30 p-1 rounded-sm border border-gray-700">
                         <button onClick={() => setMode('text')} className={`flex-1 py-2 text-xs font-bold transition-all ${mode === 'text' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}>VĂN BẢN (TEXT)</button>
@@ -330,7 +387,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     </div>
 
                     <button ref={buttonRef} onClick={handleGenerateSpeech} disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow-strong disabled:bg-gray-600 disabled:cursor-not-allowed">
-                        {isLoading ? "ĐANG CLIP..." : "TẠO GIỌNG NÓI NGAY"}
+                        {isLoading ? (progress || "ĐANG XỬ LÝ...") : "TẠO GIỌNG NÓI NGAY"}
                     </button>
                 </div>
 

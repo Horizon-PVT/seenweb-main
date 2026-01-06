@@ -62,7 +62,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) setArchive(parsed.slice(0, 12));
       }
-    } catch {}
+    } catch { }
   }, []);
 
   const persistArchive = (next: string[]) => {
@@ -70,7 +70,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setArchive(trimmed);
     try {
       localStorage.setItem(ARCHIVE_KEY, JSON.stringify(trimmed));
-    } catch {}
+    } catch { }
   };
 
   const handleClear = () => {
@@ -78,7 +78,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       setArchive([]);
       try {
         localStorage.removeItem(ARCHIVE_KEY);
-      } catch {}
+      } catch { }
     }
   };
 
@@ -275,90 +275,121 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         </aside>
 
         {/* CENTER */}
-        <main className="flex-grow p-10 flex flex-col items-center justify-between overflow-hidden">
-          <div className="flex-grow flex items-center justify-center w-full">
-            {isLoading ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="animate-spin w-12 h-12 border-2 border-[#F5C542] border-t-transparent rounded-full" />
-                <div className="text-xs text-white/70">Đang tạo ảnh…</div>
-              </div>
-            ) : images.length > 0 ? (
-              <div className="flex gap-4 flex-wrap justify-center">
-                {images.map((img, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={i}
-                    src={img}
-                    onClick={() => setSelected(img)}
-                    className="max-h-[56vh] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/10 cursor-pointer hover:border-[#F5C542]/40 transition"
-                    alt={`generated-${i}`}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className={`w-full max-w-2xl rounded-3xl ${panel} p-10 text-center`}>
-                <div className={`text-sm font-bold ${gold}`}>Studio Ready</div>
-                <div className={`text-xs ${soft} mt-2`}>
-                  Upload Style + Character refs để đồng nhất nhân vật. Bật Face Lock để khóa identity.
+        {/* CENTER */}
+        <main className="flex-grow relative flex flex-col overflow-hidden bg-[#07050A]">
+          {/* SCROLLABLE CONTENT */}
+          <div className="flex-grow overflow-y-auto p-8 pb-32 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <div className="flex flex-col items-center min-h-full justify-center">
+
+              {isLoading ? (
+                <div className="flex flex-col items-center gap-4 animate-pulse">
+                  <div className="w-16 h-16 border-4 border-[#F5C542] border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(245,197,66,0.2)]" />
+                  <div className="text-sm text-[#F5C542] font-bold tracking-widest">ĐANG SÁNG TẠO TÁC PHẨM...</div>
                 </div>
-              </div>
-            )}
+              ) : images.length > 0 ? (
+                <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
+                  {images.map((img, i) => (
+                    <div
+                      key={i}
+                      className="group relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-white/5 hover:border-[#F5C542]/50 transition-all duration-300 hover:-translate-y-1"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img}
+                        onClick={() => setSelected(img)}
+                        className={`w-full h-auto object-cover cursor-pointer ${aspectRatio === "1:1" ? "aspect-square" :
+                            aspectRatio === "9:16" ? "aspect-[9/16]" : "aspect-video"
+                          }`}
+                        alt={`generated-${i}`}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <span className="bg-black/60 text-white text-xs px-3 py-1 rounded-full border border-white/20">Click để xem</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={`w-full max-w-2xl rounded-3xl ${panel} p-12 text-center backdrop-blur-sm`}>
+                  <div className="w-16 h-16 bg-[#F5C542]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#F5C542]/20 text-3xl">
+                    🎨
+                  </div>
+                  <div className={`text-xl font-bold ${gold} mb-2 tracking-wide`}>STUDIO ĐÃ SẴN SÀNG</div>
+                  <div className={`text-sm ${soft} leading-relaxed max-w-md mx-auto`}>
+                    Hãy mô tả ý tưởng của bạn bên dưới. <br />
+                    Kết hợp <strong>Style Reference</strong> và <strong>Face Lock</strong> để có kết quả chuyên nghiệp nhất.
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Chat bar */}
-          <div className="w-full max-w-4xl p-3 rounded-[26px] border border-white/10 flex gap-3 items-center shadow-2xl bg-black/35 backdrop-blur">
-            <input
-              ref={inputRef}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Mô tả ý tưởng của anh..."
-              className="flex-grow bg-transparent border-none focus:ring-0 text-white px-4 text-sm outline-none"
-            />
+          {/* FLOATING CHAT BAR */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 pt-12 bg-gradient-to-t from-[#05050A] via-[#05050A]/95 to-transparent flex justify-center z-10">
+            <div className="w-full max-w-4xl p-2 rounded-[24px] border border-white/15 flex gap-2 items-center shadow-[0_10px_40px_rgba(0,0,0,0.5)] bg-[#1A1A20]/90 backdrop-blur-md">
+              <input
+                ref={inputRef}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!submitDisabled) handleSubmit();
+                  }
+                }}
+                placeholder="Mô tả ý tưởng của anh (Ví dụ: Mèo máy Doraemon phong cách Cyberpunk)..."
+                className="flex-grow bg-transparent border-none focus:ring-0 text-white px-5 py-3 text-sm outline-none placeholder:text-white/30"
+              />
 
-            <button
-              onClick={handleMagicPrompt}
-              disabled={isMagic}
-              className={`px-4 py-3 rounded-2xl font-black uppercase text-[11px] border border-white/10 bg-white/5 hover:bg-white/10 ${gold} disabled:opacity-50`}
-              title="Tự động tối ưu prompt"
-            >
-              {isMagic ? "MAGIC..." : "MAGIC"}
-            </button>
+              <div className="h-8 w-px bg-white/10 mx-1"></div>
 
-            <select
-              value={aspectRatio}
-              onChange={(e) => setAspectRatio(e.target.value as Aspect)}
-              className="bg-white/5 border border-white/10 text-white text-xs rounded-xl px-3 py-2 outline-none hover:bg-white/10"
-              title="Tỉ lệ ảnh"
-            >
-              <option value="16:9">16:9</option>
-              <option value="1:1">1:1</option>
-              <option value="9:16">9:16</option>
-            </select>
+              <button
+                onClick={handleMagicPrompt}
+                disabled={isMagic}
+                className={`px-4 py-2.5 rounded-xl font-bold uppercase text-[10px] border border-white/10 bg-white/5 hover:bg-white/10 ${gold} disabled:opacity-50 transition-colors flex flex-col items-center leading-none gap-0.5 min-w-[60px]`}
+                title="Tự động viết lại prompt hay hơn"
+              >
+                <span>✨</span>
+                <span>{isMagic ? "..." : "Magic"}</span>
+              </button>
 
-            <select
-              value={numImages}
-              onChange={(e) => setNumImages(parseInt(e.target.value, 10))}
-              className="bg-white/5 border border-white/10 text-white text-xs rounded-xl px-3 py-2 outline-none hover:bg-white/10"
-              title="Số ảnh"
-            >
-              <option value={1}>1</option>
-              <option value={2}>2</option>
-              <option value={3}>3</option>
-              <option value={4}>4</option>
-            </select>
+              <div className="flex flex-col gap-0.5">
+                <select
+                  value={aspectRatio}
+                  onChange={(e) => setAspectRatio(e.target.value as Aspect)}
+                  className="bg-black/40 border border-white/10 text-white text-[10px] rounded-lg px-2 py-1 outline-none hover:bg-white/5 cursor-pointer"
+                  title="Tỉ lệ ảnh"
+                >
+                  <option value="16:9">16:9</option>
+                  <option value="1:1">1:1</option>
+                  <option value="9:16">9:16</option>
+                </select>
 
-            <button
-              onClick={handleSubmit}
-              disabled={submitDisabled}
-              className={`text-white px-6 py-3 rounded-2xl font-black uppercase text-[11px] transition-transform disabled:opacity-50 disabled:hover:scale-100 hover:scale-105 ${redBtn}`}
-            >
-              ĐÚC ẢNH
-            </button>
+                <select
+                  value={numImages}
+                  onChange={(e) => setNumImages(parseInt(e.target.value, 10))}
+                  className="bg-black/40 border border-white/10 text-white text-[10px] rounded-lg px-2 py-1 outline-none hover:bg-white/5 cursor-pointer"
+                  title="Số lượng ảnh"
+                >
+                  <option value={1}>1 ảnh</option>
+                  <option value={2}>2 ảnh</option>
+                  <option value={3}>3 ảnh</option>
+                  <option value={4}>4 ảnh</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                disabled={submitDisabled}
+                className={`ml-1 text-white px-6 py-3.5 rounded-xl font-black uppercase text-[11px] tracking-wider transition-all disabled:opacity-50 disabled:grayscale hover:shadow-[0_0_20px_#C1121F] ${redBtn}`}
+              >
+                Tạo Ảnh
+              </button>
+            </div>
           </div>
 
           {error && (
-            <div className="mt-3 w-full max-w-4xl text-xs text-red-100 bg-[#C1121F]/20 border border-[#C1121F]/30 rounded-2xl p-3">
-              {error}
+            <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 text-xs text-red-200 bg-red-900/80 border border-red-500/50 rounded-full px-6 py-2 shadow-lg backdrop-blur animate-bounce">
+              ⚠️ {error}
             </div>
           )}
         </main>
@@ -450,15 +481,13 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
               <button
                 onClick={() => setFaceLock((v) => !v)}
-                className={`w-14 h-8 rounded-full border transition relative ${
-                  faceLock ? "bg-[#F5C542] border-[#F5C542]" : "bg-white/10 border-white/20"
-                }`}
+                className={`w-14 h-8 rounded-full border transition relative ${faceLock ? "bg-[#F5C542] border-[#F5C542]" : "bg-white/10 border-white/20"
+                  }`}
                 aria-label="toggle-face-lock"
               >
                 <span
-                  className={`absolute top-1 h-6 w-6 rounded-full shadow transition ${
-                    faceLock ? "left-7 bg-[#111]" : "left-1 bg-white"
-                  }`}
+                  className={`absolute top-1 h-6 w-6 rounded-full shadow transition ${faceLock ? "left-7 bg-[#111]" : "left-1 bg-white"
+                    }`}
                 />
               </button>
             </div>

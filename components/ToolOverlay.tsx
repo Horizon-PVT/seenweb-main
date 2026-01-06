@@ -11,6 +11,7 @@ import { MicroNicheMinerTool } from "./MicroNicheMinerTool";
 import StoryStudioTool from "./StoryStudioTool";
 import TextToSpeechTool from "./TextToSpeechTool";
 import VeocityTool from "./VeocityTool";
+import VirtualMCTool from "./VirtualMCTool";
 
 import type { Tool } from "./ToolsGrid";
 
@@ -85,6 +86,10 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
       name: "Velocity Tool",
       render: ({ onBack }) => <VeocityTool onBack={onBack} />,
     },
+    "virtual-mc": {
+      name: "Virtual MC (Idol AI)",
+      render: ({ onBack }) => <VirtualMCTool />,
+    },
   };
 
   // ✅ tool list phục vụ cho các tool cần "tools + onToolSelect"
@@ -100,6 +105,7 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
     { id: "narrative-studio", name: "Narrative Studio", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: StoryStudioTool as any },
     { id: "text-to-speech", name: "Text-to-Speech", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: TextToSpeechTool as any },
     { id: "velocity", name: "Velocity Tool", shortDescription: "", longDescription: "", features: [], icon: (() => null) as any, component: VeocityTool as any },
+    { id: "virtual-mc", name: "Virtual MC (Idol AI)", shortDescription: "Tạo Video MC ảo từ ảnh", longDescription: "", features: [], icon: (() => null) as any, component: VirtualMCTool as any },
   ];
 
   const onToolSelect = (tool: Tool) => {
