@@ -16,6 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { from, to, source, campaign } = req.query;
 
+    const sourceStr = Array.isArray(source) ? source[0] : source;
+    const campaignStr = Array.isArray(campaign) ? campaign[0] : campaign;
+
     // Default to 30 days ago if missing
     const fromStr = (from as string) || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     // Default to today if missing
@@ -45,8 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 lte: endDate
             }
         };
-        if (source) attributionFilter.firstUtmSource = source;
-        if (campaign) attributionFilter.firstUtmCampaign = campaign; // strict match or contains? strict for now
+        if (sourceStr) attributionFilter.firstUtmSource = sourceStr;
+        if (campaignStr) attributionFilter.firstUtmCampaign = campaignStr; // strict match or contains? strict for now
 
         // A. Signups (UserAttribution creation)
         const signups = await prisma.userAttribution.count({
@@ -87,16 +90,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             name: 'page_view',
             createdAt: { gte: startDate, lte: endDate }
         };
-        if (source) {
+        if (sourceStr) {
             sessionWhere.properties = {
                 path: ['utm_source'],
-                equals: source
+                equals: sourceStr
             };
         }
-        if (campaign) {
+        if (campaignStr) {
             sessionWhere.properties = {
                 path: ['utm_campaign'],
-                equals: campaign
+                equals: campaignStr
             };
         }
 
@@ -116,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             by: ['firstUtmCampaign'],
             where: {
                 firstSeenAt: { gte: startDate, lte: endDate },
-                firstUtmSource: source || undefined
+                firstUtmSource: sourceStr || undefined
             },
             _count: { userId: true },
             orderBy: { _count: { userId: 'desc' } },
