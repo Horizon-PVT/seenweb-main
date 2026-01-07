@@ -14,6 +14,7 @@ import {
     Menu,
     X,
     LogOut,
+    BarChart,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -53,6 +54,7 @@ const navGroups: NavGroup[] = [
             { label: 'Đơn hàng', href: '/admin/orders', icon: ShoppingCart },
             { label: 'Affiliate', href: '/admin/affiliate', icon: Users },
             { label: 'Khuyến mại', href: '/admin/promotions', icon: Tag },
+            { label: 'Attribution', href: '/admin/attribution', icon: BarChart },
         ],
     },
     {
@@ -126,8 +128,8 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
                                                 <Link
                                                     href={item.href}
                                                     className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${active
-                                                            ? 'bg-[#008080] text-white'
-                                                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                                        ? 'bg-[#008080] text-white'
+                                                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                                                         }`}
                                                 >
                                                     <Icon size={20} />

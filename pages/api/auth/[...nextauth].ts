@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { trackEvent } from "@/lib/analytics";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -66,14 +67,14 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!existingUser) {
-          await prisma.user.create({
+          const newUser = await prisma.user.create({
             data: {
               email: user.email,
               name: user.name || null,
               image: user.image || null,
               role: "FREE",
               dailyUsage: 0,
-              maxDailyUsage: 2,
+              maxDailyUsage: 3, // Updated default to 3
               membershipExpiry: null,
 
               referrerId: null,
@@ -82,6 +83,14 @@ export const authOptions: NextAuthOptions = {
               totalCommission: new Prisma.Decimal(0),
             },
           });
+
+          // Track Signup
+          // Try to get anon_id from cookies if possible, but NextAuth signIn callback doesn't expose req easily here directly depending on version.
+          // We rely on userId linkage.
+          await trackEvent('auth_signup_success', newUser.id);
+        } else {
+          // Track Login
+          await trackEvent('auth_login_success', existingUser.id);
         }
 
         return true;

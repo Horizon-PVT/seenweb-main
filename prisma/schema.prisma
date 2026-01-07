@@ -45,6 +45,10 @@ model User {
   commissions         Commission[]    @relation("UserCommissions")
   referredCommissions Commission[]   @relation("CommissionReferredUser")
   payoutRequests      PayoutRequest[] @relation("UserPayouts")
+  
+  // Analytics
+  attribution         UserAttribution?
+  events              Event[]
 
   @@map("users")
 }
@@ -180,4 +184,57 @@ model Promotion {
   updatedAt      DateTime  @updatedAt
   
   @@map("promotions")
+}
+
+model UserAttribution {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  anonId          String?
+
+  // First Touch
+  firstUtmSource   String?
+  firstUtmMedium   String?
+  firstUtmCampaign String?
+  firstUtmTerm     String?
+  firstUtmContent  String?
+  firstGclid       String?
+  firstReferrer    String?
+  firstLandingPath String?
+  firstSeenAt      DateTime?
+
+  // Last Touch
+  lastUtmSource    String?
+  lastUtmMedium    String?
+  lastUtmCampaign  String?
+  lastUtmTerm      String?
+  lastUtmContent   String?
+  lastGclid        String?
+  lastReferrer     String?
+  lastLandingPath  String?
+  lastSeenAt       DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("user_attributions")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  userId      String?
+  anonId      String?
+  path        String?
+  properties  Json?
+  ipHash      String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@index([name, createdAt])
+  @@index([userId])
+  @@index([anonId])
+  @@map("events")
 }

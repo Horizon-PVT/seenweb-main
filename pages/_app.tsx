@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
 import ErrorBoundary from "../components/ErrorBoundary";
+import AttributionTracker from "@/components/AttributionTracker";
 
 // THÊM DÒNG NÀY ĐỂ DÙNG GTM CHÍNH THỨC
 import { GoogleTagManager } from '@next/third-parties/google';
@@ -79,6 +80,7 @@ export default function App({
 
       <ErrorBoundary>
         <Component {...pageProps} />
+        <AttributionTracker />
       </ErrorBoundary>
 
       {/* THÊM DÒNG NÀY ĐỂ KÍCH HOẠT GTM TRÊN TOÀN BỘ TRANG */}

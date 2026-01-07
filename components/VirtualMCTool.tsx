@@ -47,6 +47,18 @@ export default function VirtualMCTool() {
                 })
             });
 
+            // Track Tool Start
+            // We can fire and forget
+            fetch('/api/analytics/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: 'tool_start',
+                    anonId: document.cookie.split('; ').find(row => row.startsWith('seen_anon_id='))?.split('=')[1], // Simple parse or just let backend handle if authenticated
+                    properties: { tool: 'VirtualMC' }
+                })
+            }).catch(() => { });
+
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Lỗi khởi tạo");
 
