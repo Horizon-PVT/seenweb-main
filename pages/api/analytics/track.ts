@@ -1,8 +1,6 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { trackEvent } from '@/lib/analytics';
-import { getCookie } from 'cookies-next'; // Just in case, but we pass headers usually
-// Or just rely on body
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).end();
