@@ -92,8 +92,8 @@ async function convertToPcm(inputPath: string): Promise<Buffer> {
       .audioFrequency(24000)
       .audioChannels(1)
       .save(pcmPath)
-      .on('end', resolve)
-      .on('error', reject);
+      .on('end', () => resolve())
+      .on('error', (err: Error) => reject(err));
   });
   const buffer = fs.readFileSync(pcmPath);
   try { fs.unlinkSync(pcmPath); } catch { }
