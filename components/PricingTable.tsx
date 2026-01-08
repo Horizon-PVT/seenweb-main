@@ -22,7 +22,7 @@ const featuresMap = {
   PRO: [
     "MỞ KHÓA TOÀN BỘ CÔNG CỤ (bao gồm Kênh ẩn, Spy đối thủ)",
     "Phân tích nâng cao & chiến lược ngách",
-    "Narrative Studio & Velocity Tool",
+    "Narrative Studio (Storytelling)",
     "Phù hợp creator muốn tăng tốc & kiếm tiền nhanh",
     "Ưu tiên hỗ trợ",
   ],
@@ -31,6 +31,7 @@ const featuresMap = {
 const planToRole: Record<string, string> = {
   "STARTER": "CREATIVE",
   "PRO": "SUPER",
+  "VIP": "VIP",
 };
 
 const PricingCard = ({
@@ -70,8 +71,8 @@ const PricingCard = ({
     setPromoApplied(null);
 
     const baseAmount = isYearly
-      ? plan === "STARTER" ? 1490000 : 3990000
-      : plan === "STARTER" ? 149000 : 399000;
+      ? plan === "STARTER" ? 1490000 : plan === "VIP" ? 5490000 : 3990000
+      : plan === "STARTER" ? 149000 : plan === "VIP" ? 549000 : 399000;
 
     try {
       const res = await fetch('/api/apply-promo', {
@@ -95,14 +96,12 @@ const PricingCard = ({
 
   const handleClick = () => {
     if (isFree) return;
-    if (isVip) {
-      window.open("https://zalo.me/0789284078", "_blank");
-      return;
-    }
+    if (isFree) return;
+    // VIP now uses standard payment flow
 
     const baseAmount = isYearly
-      ? plan === "STARTER" ? 1490000 : 3990000
-      : plan === "STARTER" ? 149000 : 399000;
+      ? plan === "STARTER" ? 1490000 : plan === "VIP" ? 5490000 : 3990000
+      : plan === "STARTER" ? 149000 : plan === "VIP" ? 549000 : 399000;
 
     const amount = promoApplied ? promoApplied.finalAmount : baseAmount;
     const role = planToRole[plan] || "CREATIVE";
@@ -112,8 +111,8 @@ const PricingCard = ({
 
   const price = isYearly ? priceYearly : priceMonthly;
   const baseAmount = isYearly
-    ? plan === "STARTER" ? 1490000 : plan === "PRO" ? 3990000 : 0
-    : plan === "STARTER" ? 149000 : plan === "PRO" ? 399000 : 0;
+    ? plan === "STARTER" ? 1490000 : plan === "VIP" ? 5490000 : plan === "PRO" ? 3990000 : 0
+    : plan === "STARTER" ? 149000 : plan === "VIP" ? 549000 : plan === "PRO" ? 399000 : 0;
   const finalAmount = promoApplied ? promoApplied.finalAmount : baseAmount;
 
   return (
@@ -180,7 +179,7 @@ const PricingCard = ({
         onClick={handleClick}
         className="mt-4 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl"
       >
-        {isFree ? "DÙNG MIỄN PHÍ" : isVip ? "LIÊN HỆ NGAY" : plan === "STARTER" ? "BẮT ĐẦU VỚI STARTER" : "NÂNG CẤP PRO"}
+        {isFree ? "DÙNG MIỄN PHÍ" : isVip ? "NÂNG CẤP VIP" : plan === "STARTER" ? "BẮT ĐẦU VỚI STARTER" : "NÂNG CẤP PRO"}
       </button>
     </div>
   );
@@ -328,7 +327,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-[90rem] mx-auto">
           <PricingCard
             plan="FREE"
             priceMonthly="0 đ"
@@ -364,6 +363,25 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             features={featuresMap.PRO}
             color="#A855F7" // Purple
             glow="0 0 40px rgba(168,85,247,0.8)"
+            isYearly={isYearly}
+            onUpgrade={handleUpgrade}
+          />
+          {/* VIP - New High Tier */}
+          <PricingCard
+            plan="VIP"
+            priceMonthly="549.000 đ"
+            priceYearly="5.490.000 đ"
+            features={[
+              "Bao gồm TOÀN BỘ tính năng gói PRO",
+              "AI Dubbing - Lồng tiếng Video tự động (Gói cao cấp)",
+              "Tạo Video AI (Velocity) - Tự động hóa 100%",
+              "Làm Video Shorts / TikTok công nghiệp",
+              "Support 1-1 qua Zalo Riêng (Siêu tốc)",
+              "Clone Voice AI (Sắp ra mắt)",
+            ]}
+            color="#FF00FF" // Magenta / Neon Pink for VIP
+            glow="0 0 50px rgba(255,0,255,0.8)"
+            isVip
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
           />

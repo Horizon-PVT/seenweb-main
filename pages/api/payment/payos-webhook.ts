@@ -94,12 +94,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             where: { email: paymentRequest.email }
         });
 
+        // Calculate dubbing credits based on role
+        let dubbingCreditsToAdd = 0;
+        if (paymentRequest.role === 'CREATIVE') dubbingCreditsToAdd = 10;
+        else if (paymentRequest.role === 'SUPER') dubbingCreditsToAdd = 30;
+        else if (paymentRequest.role === 'VIP') dubbingCreditsToAdd = 100;
+
         if (!user) {
             user = await prisma.user.create({
                 data: {
                     email: paymentRequest.email,
                     role: paymentRequest.role,
                     membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                    dubbingCredits: dubbingCreditsToAdd,
                 }
             });
         } else {
@@ -111,6 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 data: {
                     role: paymentRequest.role,
                     membershipExpiry: new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000),
+                    dubbingCredits: { increment: dubbingCreditsToAdd },
                 }
             });
         }

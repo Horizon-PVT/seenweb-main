@@ -128,6 +128,20 @@ const toolsHot: Tool[] = [
 
 const toolsContent: Tool[] = [
   {
+    id: "dubbing",
+    name: "AI Dubbing Studio (Lồng Tiếng)",
+    shortDescription: "Tự động dịch thuật và lồng tiếng Video.",
+    longDescription: "Biến video quốc tế thành video của bạn. Tự động dịch thuật, lồng tiếng Việt, khớp khẩu hình (Auto-Dubbing). Hỗ trợ tải video TikTok/YouTube và xuất bản nhanh chóng.",
+    seoKeywords: ["Dubbing", "Lồng Tiếng", "Video Translator"],
+    features: ["Auto Dub", "Voice AI", "Multi-Language"],
+    icon: MicrophoneIcon,
+    component: null as any, // Loaded in Overlay
+    isHot: true,
+    isNew: true,
+    thumbColor: "from-yellow-500 to-amber-600",
+    imageSrc: "/images/tool-dubbing-new.jpg",
+  },
+  {
     id: "velocity",
     name: "Tạo Video Bằng AI",
     shortDescription: "Tạo video Faceless tự động.",
@@ -336,10 +350,7 @@ const ToolsGrid: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
 
   const handleOpenTool = (tool: Tool) => {
-    if (tool.id === 'virtual-mc') {
-      router.push({ pathname: router.pathname, query: { ...router.query, tool: tool.id } }, undefined, { shallow: true });
-      return;
-    }
+
     if (!canAccessTool(tool.id, userRole)) return;
     router.push({ pathname: router.pathname, query: { ...router.query, tool: tool.id } }, undefined, { shallow: true });
   };

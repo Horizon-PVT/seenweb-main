@@ -17,6 +17,7 @@ import type { Tool } from "./ToolsGrid";
 
 // ✅ Vision SSR off (thường dùng window/drag/drop/canvas)
 const ImageForgeTool = dynamic(() => import("./ImageForgeTool"), { ssr: false });
+const DubbingTool = dynamic(() => import("./DubbingTool"), { ssr: false });
 
 type Props = {
   toolId: string;
@@ -89,6 +90,10 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
     "virtual-mc": {
       name: "Virtual MC (Idol AI)",
       render: ({ onBack }) => <VirtualMCTool />,
+    },
+    dubbing: {
+      name: "AI Dubbing Studio",
+      render: ({ onBack }) => <DubbingTool />,
     },
   };
 

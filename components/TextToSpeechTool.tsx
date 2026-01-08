@@ -1,5 +1,6 @@
-// File: components/TextToSpeechTool.tsx (OpenAI Version)
+// File: components/TextToSpeechTool.tsx (Multi-provider TTS with Vietnamese Upsell)
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface TextToSpeechToolProps {
     onBack: () => void;
@@ -13,7 +14,7 @@ type Voice = {
 };
 
 // *** DANH SÁCH GIỌNG ĐỌC OPENAI (Đã phân loại) ***
-const voices: Voice[] = [
+const openaiVoices: Voice[] = [
     // NAM
     { name: "Onyx", apiName: "onyx", gender: "Nam", description: "Trầm ấm, Trưởng thành (Tin tức, Tài liệu)" },
     { name: "Echo", apiName: "echo", gender: "Nam", description: "Vang, Ấm áp (Kể chuyện, Podcast)" },
@@ -23,6 +24,26 @@ const voices: Voice[] = [
     { name: "Shimmer", apiName: "shimmer", gender: "Nữ", description: "Rõ ràng, Sắc sảo (Marketing, Sales)" },
     { name: "Nova", apiName: "nova", gender: "Nữ", description: "Năng động, Trẻ trung (Video ngắn, Giải trí)" },
 ];
+
+// *** GIỌNG TIẾNG VIỆT (Gộp Edge + FPT) ***
+const vietnameseVoices: Voice[] = [
+    // Edge TTS (Free)
+    { name: "Hoài My", apiName: "vi-VN-HoaiMyNeural", gender: "Nữ", description: "Nữ - Giọng Bắc" },
+    { name: "Nam Minh", apiName: "vi-VN-NamMinhNeural", gender: "Nam", description: "Nam - Giọng Bắc" },
+    // FPT.AI (Premium quality)
+    { name: "Ban Mai", apiName: "banmai", gender: "Nữ", description: "Nữ - Giọng Bắc trẻ" },
+    { name: "Thu Minh", apiName: "thuminh", gender: "Nữ", description: "Nữ - Giọng Bắc" },
+    { name: "Lệ Minh", apiName: "leminh", gender: "Nữ", description: "Nữ - Giọng Trung" },
+    { name: "Mỹ An", apiName: "myan", gender: "Nữ", description: "Nữ - Giọng Nam" },
+    { name: "Minh Quang", apiName: "minhquang", gender: "Nam", description: "Nam - Giọng Bắc" },
+    { name: "Linh San", apiName: "linhsan", gender: "Nam", description: "Nam - Giọng Nam" },
+];
+
+// FPT voice IDs for backend routing
+const FPT_VOICE_IDS = ['banmai', 'thuminh', 'leminh', 'myan', 'minhquang', 'linhsan'];
+
+// Voice provider types (simplified to just openai vs vietnamese)
+type VoiceProvider = 'openai' | 'vietnamese';
 
 // Helper: Decode Audio
 const decode = (base64: string) => {
@@ -154,10 +175,13 @@ const splitTextIntoChunks = (text: string, maxChars = 500): string[] => {
 };
 
 const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
+    const { data: session } = useSession();
     const [mode, setMode] = useState<'text' | 'srt'>('text');
     const [scriptText, setScriptText] = useState('');
     const [srtSegments, setSrtSegments] = useState<SrtSegment[]>([]);
 
+    // Voice provider: openai (international), edge (Vietnamese free), fpt (Vietnamese premium)
+    const [voiceProvider, setVoiceProvider] = useState<VoiceProvider>('openai');
     const [selectedVoiceApiName, setSelectedVoiceApiName] = useState('alloy');
     const [speed, setSpeed] = useState(1);
 
@@ -236,10 +260,9 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     body: JSON.stringify({
                         mode: mode === 'srt' ? 'srt' : 'text', // Keep original mode if SRT
                         scriptText: mode === 'text' ? chunks[i] : undefined,
-                        srtSegments: mode === 'srt' ? parseSRT(chunks[i]) : undefined, // Partial SRT parsing if chunked? (SRT chunking is harder)
-                        // Note: For SRT, the current frontend split logic above just wraps it in 1 chunk if mode != text.
-                        // Ideally strictly split text mode only.
+                        srtSegments: mode === 'srt' ? parseSRT(chunks[i]) : undefined,
                         selectedVoiceApiName,
+                        voiceProvider, // 'openai' | 'edge' | 'fpt'
                         speed
                     }),
                 });
@@ -364,26 +387,69 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-[#008080] font-playfair">CHỌN CHÂN DUNG GIỌNG NÓI</label>
+                        <label className="text-sm font-bold text-[#008080] font-playfair">CHỌN LOẠI GIỌNG NÓI</label>
+
+                        {/* Provider Tabs - Only 2 tabs now */}
+                        <div className="flex bg-black/30 p-1 rounded-sm border border-gray-700 mb-2">
+                            <button
+                                onClick={() => { setVoiceProvider('openai'); setSelectedVoiceApiName('alloy'); }}
+                                className={`flex-1 py-2 text-xs font-bold transition-all ${voiceProvider === 'openai' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                🌍 Quốc Tế
+                            </button>
+                            <button
+                                onClick={() => { setVoiceProvider('vietnamese'); setSelectedVoiceApiName('banmai'); }}
+                                className={`flex-1 py-2 text-xs font-bold transition-all ${voiceProvider === 'vietnamese' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                🇻🇳 Tiếng Việt
+                            </button>
+                        </div>
+
+                        {/* Voice Select based on Provider */}
                         <div className="grid grid-cols-1 gap-2 text-xs">
                             <select value={selectedVoiceApiName} onChange={e => setSelectedVoiceApiName(e.target.value)} className="w-full obsidian-select py-2">
-                                <optgroup label="--- GIỌNG NAM (MALE) ---">
-                                    {voices.filter(v => v.gender === 'Nam').map(voice => (
-                                        <option key={voice.apiName} value={voice.apiName}>
-                                            ♂️ {voice.name} - {voice.description}
-                                        </option>
-                                    ))}
-                                </optgroup>
-                                <optgroup label="--- GIỌNG NỮ (FEMALE) ---">
-                                    {voices.filter(v => v.gender === 'Nữ').map(voice => (
-                                        <option key={voice.apiName} value={voice.apiName}>
-                                            ♀️ {voice.name} - {voice.description}
-                                        </option>
-                                    ))}
-                                </optgroup>
+                                {voiceProvider === 'openai' && (
+                                    <>
+                                        <optgroup label="--- GIỌNG NAM ---">
+                                            {openaiVoices.filter(v => v.gender === 'Nam').map(voice => (
+                                                <option key={voice.apiName} value={voice.apiName}>
+                                                    ♂️ {voice.name} - {voice.description}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                        <optgroup label="--- GIỌNG NỮ ---">
+                                            {openaiVoices.filter(v => v.gender === 'Nữ').map(voice => (
+                                                <option key={voice.apiName} value={voice.apiName}>
+                                                    ♀️ {voice.name} - {voice.description}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    </>
+                                )}
+                                {voiceProvider === 'vietnamese' && (
+                                    <>
+                                        <optgroup label="--- GIỌNG NỮ ---">
+                                            {vietnameseVoices.filter(v => v.gender === 'Nữ').map(voice => (
+                                                <option key={voice.apiName} value={voice.apiName}>
+                                                    ♀️ {voice.name} - {voice.description}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                        <optgroup label="--- GIỌNG NAM ---">
+                                            {vietnameseVoices.filter(v => v.gender === 'Nam').map(voice => (
+                                                <option key={voice.apiName} value={voice.apiName}>
+                                                    ♂️ {voice.name} - {voice.description}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    </>
+                                )}
                             </select>
                         </div>
-                        <p className="text-[10px] text-gray-400 italic text-center">* Giọng đọc sẽ tự điều chỉnh theo ngôn ngữ bạn nhập.</p>
+                        <p className="text-[10px] text-gray-400 italic text-center">
+                            {voiceProvider === 'openai' && '* Giọng OpenAI hỗ trợ 40+ ngôn ngữ tự động.'}
+                            {voiceProvider === 'vietnamese' && '* Giọng Việt Nam chuẩn với nhiều vùng miền.'}
+                        </p>
                     </div>
 
                     <button ref={buttonRef} onClick={handleGenerateSpeech} disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow-strong disabled:bg-gray-600 disabled:cursor-not-allowed">

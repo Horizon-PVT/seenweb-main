@@ -26,7 +26,9 @@ export const TOOLS = [
   { id: 'script-refiner', name: 'Viết kịch bản nâng cao', roleMin: ROLES.SUPER },
   { id: 'image-forge', name: 'Tạo Thumbnail AI', roleMin: ROLES.SUPER },
   { id: 'text-to-speech', name: 'Text-to-Speech Google Cloud', roleMin: ROLES.SUPER },
-  { id: 'velocity', name: 'Tạo Video (Velocity Tool)', roleMin: ROLES.SUPER },
+  { id: 'velocity', name: 'Tạo Video (Velocity Tool)', roleMin: ROLES.VIP },
+  { id: 'dubbing', name: 'AI Dubbing Studio', roleMin: ROLES.VIP },
+  { id: 'virtual-mc', name: 'Virtual MC', roleMin: ROLES.VIP },
 ] as const;
 
 // ✅ FIX TRIỆT ĐỂ: ADMIN full quyền + roleOrder đúng thứ tự (higher role index cao hơn)

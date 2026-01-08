@@ -27,6 +27,14 @@ model User {
   ttsUsageChars      Int       @default(0)
   ttsLastReset       String?
 
+  // AI DUBBING CREDITS
+  dubbingCredits     Int       @default(0) // 1 credit = 1 video minute (or similar)
+
+  // VIETNAMESE TTS ADD-ON (59k upsell)
+  hasVietnameseTTS      Boolean   @default(false) // User bought Vietnamese TTS addon
+  vietnameseTTSExpiry   DateTime? // When the addon expires
+  vietnameseTTSChars    Int       @default(0) // Chars used this month (soft limit tracking)
+
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
@@ -49,8 +57,28 @@ model User {
   // Analytics
   attribution         UserAttribution?
   events              Event[]
+  dubbingProjects     DubbingProject[]
 
   @@map("users")
+}
+
+model DubbingProject {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String?
+  videoUrl    String   // Original Video URL
+  status      String   @default("PROCESSING") // PROCESSING, COMPLETED, FAILED
+  duration    Int?     // In seconds
+  
+  outputUrl   String?  // Final dubbed video URL
+  transcript  Json?    // Array of segments { start, end, text, translatedText }
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("dubbing_projects")
 }
 
 model PaymentRequest {
