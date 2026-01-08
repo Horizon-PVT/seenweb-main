@@ -24,6 +24,7 @@ import StoryStudioTool from "./StoryStudioTool";
 import TextToSpeechTool from "./TextToSpeechTool";
 import VeocityTool from "./VeocityTool";
 import VirtualMCTool from "./VirtualMCTool";
+import UpgradeGate from "./UpgradeGate";
 
 import { useSession } from "next-auth/react";
 import { canAccessTool, type Role } from "@/lib/roles";
@@ -349,9 +350,15 @@ const ToolsGrid: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabType>('all');
 
-  const handleOpenTool = (tool: Tool) => {
+  const [showUpgradeGate, setShowUpgradeGate] = useState(false);
+  const [selectedToolForUpsell, setSelectedToolForUpsell] = useState<Tool | null>(null);
 
-    if (!canAccessTool(tool.id, userRole)) return;
+  const handleOpenTool = (tool: Tool) => {
+    if (!canAccessTool(tool.id, userRole)) {
+      setSelectedToolForUpsell(tool);
+      setShowUpgradeGate(true);
+      return;
+    }
     router.push({ pathname: router.pathname, query: { ...router.query, tool: tool.id } }, undefined, { shallow: true });
   };
 
@@ -437,12 +444,20 @@ const ToolsGrid: React.FC = () => {
           )}
         </div>
 
-        {/* FOOTER */}
         <div className="mt-20 text-center border-t border-[#F3EFE0]/10 pt-8">
           <p className="text-[#F3EFE0]/40 text-xs">SeenYT Platform © 2026</p>
         </div>
 
       </div>
+
+      {/* Global Upgrade Gate for Locked Tools */}
+      <UpgradeGate
+        isOpen={showUpgradeGate}
+        onClose={() => setShowUpgradeGate(false)}
+        userTier={userRole}
+        requiredTier={(selectedToolForUpsell as any)?.roleMin || 'STARTER'}
+        featureName={`Công cụ ${selectedToolForUpsell?.name || ''}`}
+      />
     </section>
   );
 };

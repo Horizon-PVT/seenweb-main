@@ -15,6 +15,7 @@ import {
     X,
     LogOut,
     BarChart,
+    Gift,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -54,6 +55,7 @@ const navGroups: NavGroup[] = [
             { label: 'Đơn hàng', href: '/admin/orders', icon: ShoppingCart },
             { label: 'Affiliate', href: '/admin/affiliate', icon: Users },
             { label: 'Khuyến mại', href: '/admin/promotions', icon: Tag },
+            { label: 'Tặng Bonus', href: '/admin/bonus-days', icon: Gift },
             { label: 'Attribution', href: '/admin/attribution', icon: BarChart },
         ],
     },

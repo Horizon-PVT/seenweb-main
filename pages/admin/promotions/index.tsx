@@ -114,8 +114,8 @@ export default function AdminPromotions({ session }: any) {
                     <button
                         onClick={() => setActiveTab('CODE')}
                         className={`px-6 py-3 font-medium transition-colors ${activeTab === 'CODE'
-                                ? 'text-[#CDAD5A] border-b-2 border-[#CDAD5A]'
-                                : 'text-gray-400 hover:text-white'
+                            ? 'text-[#CDAD5A] border-b-2 border-[#CDAD5A]'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         Mã khuyến mại
@@ -123,8 +123,8 @@ export default function AdminPromotions({ session }: any) {
                     <button
                         onClick={() => setActiveTab('PROGRAM')}
                         className={`px-6 py-3 font-medium transition-colors ${activeTab === 'PROGRAM'
-                                ? 'text-[#CDAD5A] border-b-2 border-[#CDAD5A]'
-                                : 'text-gray-400 hover:text-white'
+                            ? 'text-[#CDAD5A] border-b-2 border-[#CDAD5A]'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         Chương trình khuyến mại
@@ -153,8 +153,8 @@ export default function AdminPromotions({ session }: any) {
                                     items.map((item) => (
                                         <tr key={item.id} className="hover:bg-gray-750">
                                             <td className="px-6 py-4 text-sm font-bold text-[#CDAD5A]">{item.code}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-300">{item.type === 'PERCENT' ? 'Phần trăm' : 'Cố định'}</td>
-                                            <td className="px-6 py-4 text-sm text-white font-bold">{item.type === 'PERCENT' ? `${item.value}%` : `${parseInt(item.value).toLocaleString('vi-VN')} đ`}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-300">{item.type === 'PERCENT' ? 'Phần trăm' : item.type === 'FIXED' ? 'Cố định' : 'Tặng ngày'}</td>
+                                            <td className="px-6 py-4 text-sm text-white font-bold">{item.type === 'PERCENT' ? `${item.value}%` : item.type === 'FIXED' ? `${parseInt(item.value).toLocaleString('vi-VN')} đ` : `+${parseInt(item.value)} ngày`}</td>
                                             <td className="px-6 py-4 text-sm text-gray-300">{item.minOrder ? `${parseInt(item.minOrder).toLocaleString('vi-VN')} đ` : 'Không'}</td>
                                             {activeTab === 'CODE' && (
                                                 <td className="px-6 py-4 text-sm text-gray-300">
@@ -188,8 +188,8 @@ export default function AdminPromotions({ session }: any) {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại khuyến mại *</label><select value={formData.promotionType} onChange={(e) => setFormData({ ...formData, promotionType: e.target.value as PromotionType })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="CODE">Mã khuyến mại</option><option value="PROGRAM">Chương trình khuyến mại</option></select></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Mã *</label><input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white uppercase focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
-                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại giảm giá *</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="PERCENT">Phần trăm (%)</option><option value="FIXED">Cố định (VND)</option></select></div>
-                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Giá trị *</label><input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
+                            <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại giảm giá *</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="PERCENT">Phần trăm (%)</option><option value="FIXED">Cố định (VND)</option><option value="BONUS_DAYS">Tặng thêm ngày</option></select></div>
+                            <div><label className="block text-sm font-medium text-gray-300 mb-2">{formData.type === 'BONUS_DAYS' ? 'Số ngày tặng thêm *' : 'Giá trị *'}</label><input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })} placeholder={formData.type === 'BONUS_DAYS' ? 'VD: 15 (tặng thêm 15 ngày)' : ''} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Đơn tối thiểu</label><input type="number" value={formData.minOrder} onChange={(e) => setFormData({ ...formData, minOrder: parseFloat(e.target.value) })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
                             {formData.promotionType === 'CODE' && (
                                 <div><label className="block text-sm font-medium text-gray-300 mb-2">Giới hạn lượt dùng (để trống = không giới hạn)</label><input type="number" value={formData.usageLimit || ''} onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value ? parseInt(e.target.value) : null })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>

@@ -1,6 +1,9 @@
 // File: components/ScriptwriterTool.tsx (Hoàn Chỉnh - Gọi Backend cho cả 3 chức năng)
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import UpgradeGate from './UpgradeGate';
+import PremiumComparison from './PremiumComparison';
 import { PyramidIcon } from './AnimatedIcons';
 import type { Tool } from './ToolsGrid';
 
@@ -10,12 +13,18 @@ const styles = ["Vlog", "Hồi hộp", "Dạng tin tức", "Phim tài liệu", "
 const languages = { "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Chinese (Simplified)": "zh-CN", "Japanese": "ja", "Korean": "ko", "Russian": "ru", "Arabic": "ar", "Portuguese": "pt" };
 
 interface ScriptwriterToolProps {
-  tools: Tool[];
-  onToolSelect: (tool: Tool) => void;
-  onBack: () => void;
+    tools: Tool[];
+    onToolSelect: (tool: Tool) => void;
+    onBack: () => void;
 }
 
 const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect, onBack }) => {
+    const { data: session } = useSession();
+    const userRole = (session?.user as any)?.role || 'FREE';
+    const [showUpgradeGate, setShowUpgradeGate] = useState(false);
+    const [gateRequiredTier, setGateRequiredTier] = useState<string>('CREATIVE'); // Default
+    const [gateFeatureName, setGateFeatureName] = useState<string>('Tính năng này');
+
     // --- Các state giữ nguyên ---
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("ĐANG KIẾN TẠO...");
@@ -34,6 +43,13 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
 
     // --- Các hàm helper giữ nguyên ---
     const handleCopy = () => {
+        if (userRole === 'FREE' || userRole === 'USER') {
+            setGateRequiredTier('CREATIVE');
+            setGateFeatureName('Sao chép kịch bản');
+            setShowUpgradeGate(true);
+            return;
+        }
+
         if (outputScript) {
             navigator.clipboard.writeText(outputScript).then(() => {
                 setCopySuccess('Đã sao chép!');
@@ -43,6 +59,13 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
     };
 
     const handleExportTxt = () => {
+        if (userRole === 'FREE' || userRole === 'USER') {
+            setGateRequiredTier('CREATIVE');
+            setGateFeatureName('Xuất file TXT');
+            setShowUpgradeGate(true);
+            return;
+        }
+
         if (outputScript) {
             const blob = new Blob([outputScript], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
@@ -111,6 +134,14 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
 
     // --- HÀM handleRefine (Gọi Backend /api/script-refine) ---
     const handleRefine = async (type: 'refine' | 'consistency' | 'translate', lang: string = 'en') => {
+        // Feature gating for Refine (SUPER)
+        if (['FREE', 'CREATIVE', 'USER'].includes(userRole)) {
+            setGateRequiredTier('SUPER'); // PRO tier
+            setGateFeatureName('Tinh chỉnh nâng cao & Dịch thuật');
+            setShowUpgradeGate(true);
+            return;
+        }
+
         if (!outputScript) return;
 
         setIsLoading(true);
@@ -197,6 +228,14 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
 
     // --- Hàm handleConnect giữ nguyên ---
     const handleConnect = () => {
+        // Feature gating for Video (VIP)
+        if (userRole !== 'VIP' && userRole !== 'ADMIN') {
+            setGateRequiredTier('VIP');
+            setGateFeatureName('Kết nối tạo Video AI');
+            setShowUpgradeGate(true);
+            return;
+        }
+
         const videoTool = tools.find(t => t.name.includes("TẠO VIDEO"));
         if (videoTool) {
             alert(`Đang kết nối với công cụ TẠO VIDEO...\n(Kịch bản của bạn đã được lưu tạm và sẵn sàng để sử dụng)`);
@@ -252,8 +291,8 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                     <div>
                         <label className="text-xs font-bold text-[#CDAD5A]">ĐỘ DÀI</label>
                         <div className="flex items-center gap-2">
-                           <input type="range" min="1" max="120" value={length} onChange={e => setLength(parseInt(e.target.value))} className="w-full obsidian-slider" />
-                           <span className="font-mono text-lg text-[#008080] w-16 text-center">{length} phút</span>
+                            <input type="range" min="1" max="120" value={length} onChange={e => setLength(parseInt(e.target.value))} className="w-full obsidian-slider" />
+                            <span className="font-mono text-lg text-[#008080] w-16 text-center">{length} phút</span>
                         </div>
                     </div>
                     <button ref={buttonRef} type="submit" disabled={isLoading} className="w-full bg-[#CDAD5A] text-black font-bold py-3 px-5 border-2 border-[#CDAD5A] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#CDAD5A] active:scale-95 bronze-glow disabled:bg-gray-600 disabled:cursor-not-allowed">
@@ -264,7 +303,7 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
 
                 {/* Phần hiển thị kết quả và các nút chức năng (không thay đổi) */}
                 <div className="md:col-span-2 flex flex-col space-y-2 min-h-0">
-                     <div className="flex justify-between items-center flex-wrap gap-2">
+                    <div className="flex justify-between items-center flex-wrap gap-2">
                         <label className="text-xs font-bold text-[#008080]">KHUNG KỊCH BẢN PHÂN LOẠI</label>
                         <div className="flex items-center space-x-2">
                             <button onClick={handleCopy} title="Sao chép" className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>SAO CHÉP</button>
@@ -277,15 +316,28 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                         </div>
                     </div>
                     <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto whitespace-pre-wrap font-mono">
-                       {(isLoading && !outputScript) && (
-                           <div className="flex flex-col items-center justify-center h-full text-center">
-                                <div className="w-20 h-20 text-[#008080]"><PyramidIcon/></div>
+                        {(isLoading && !outputScript) && (
+                            <div className="flex flex-col items-center justify-center h-full text-center">
+                                <div className="w-20 h-20 text-[#008080]"><PyramidIcon /></div>
                                 <p className="mt-4 text-sm font-semibold text-[#008080] tracking-widest animate-pulse">{loadingMessage}</p> {/* Hiển thị loading message */}
-                           </div>
-                       )}
-                       {outputScript}
+                            </div>
+                        )}
+                        {outputScript}
                     </div>
-                     <div className="border-t border-gray-600/50 pt-2 flex flex-col space-y-2">
+
+                    {/* Phase 3: Live Comparison for FREE users */}
+                    {outputScript && (userRole === 'FREE' || userRole === 'USER') && (
+                        <PremiumComparison
+                            toolType="script"
+                            onUpgrade={() => {
+                                setGateRequiredTier('SUPER');
+                                setGateFeatureName('Trải nghiệm Premium');
+                                setShowUpgradeGate(true);
+                            }}
+                        />
+                    )}
+
+                    <div className="border-t border-gray-600/50 pt-2 flex flex-col space-y-2">
                         <form onSubmit={handleChatSubmit} className="flex items-center gap-2">
                             <input type="text" value={chatRequest} onChange={e => setChatRequest(e.target.value)} placeholder="Yêu cầu chỉnh sửa nhanh..." className="w-full obsidian-input !py-1 text-xs" disabled={!outputScript || isLoading} />
                             <button type="submit" className="text-xs p-1 px-3 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm disabled:opacity-50" disabled={!chatRequest || isLoading}>Gửi</button>
@@ -298,6 +350,14 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                     </div>
                 </div>
             </div>
+            {/* Upgrade Gate Modal */}
+            <UpgradeGate
+                isOpen={showUpgradeGate}
+                onClose={() => setShowUpgradeGate(false)}
+                userTier={userRole}
+                requiredTier={gateRequiredTier}
+                featureName={gateFeatureName}
+            />
         </div>
     );
 };
