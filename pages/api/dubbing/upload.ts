@@ -170,13 +170,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             translated: translatedMap[i.toString()] || s.text
         }));
 
-        // 6. Save video to public/temp for later merge step
-        const publicTempDir = path.join(process.cwd(), 'public', 'temp');
-        if (!fs.existsSync(publicTempDir)) fs.mkdirSync(publicTempDir, { recursive: true });
+        // 6. Handling Video File Persistence (Vercel Limitation)
+        // On Vercel, we cannot write effectively to public/temp for persistent serving.
+        // For now, we will skip the local copy to prevent "Read-only file system" errors.
+        // In a real production environment, you should upload `videoPath` to S3/Blob Storage here.
 
         const savedVideoName = `src_${project.id}.mp4`;
+        // We leave videoUrl as the uploaded reference or a placeholder since we can't serve it locally from Vercel function
+        const finalVideoUrl = `upload://${originalName}`;
+
+        /* 
+        // Vercel Blocked: 
+        const publicTempDir = path.join(process.cwd(), 'public', 'temp');
+        if (!fs.existsSync(publicTempDir)) fs.mkdirSync(publicTempDir, { recursive: true });
         const savedVideoPath = path.join(publicTempDir, savedVideoName);
-        fs.copyFileSync(videoPath, savedVideoPath);
+        fs.copyFileSync(videoPath, savedVideoPath); 
+        */
 
         // 7. Update DB
         await prisma.dubbingProject.update({

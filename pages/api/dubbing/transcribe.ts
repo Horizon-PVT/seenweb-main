@@ -77,63 +77,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-        // 2. Download Video using yt-dlp (Robust for TikTok/YouTube/Douyin)
+        // 2. Download Video using centralized helper
         const tempDir = os.tmpdir();
         const videoId = uuidv4();
         const videoPath = path.join(tempDir, `${videoId}.mp4`);
         const audioPath = path.join(tempDir, `${videoId}.mp3`);
-        const cookiesPath = path.join(tempDir, `cookies_${videoId}.txt`);
 
-        // Check if it's a Douyin link
-        const isDouyin = videoUrl.includes('douyin.com') || videoUrl.includes('iesdouyin.com');
+        // Use our new Vercel-friendly downloader
+        const { downloadVideo } = require('@/lib/videoDownloader');
+        const downloadResult = await downloadVideo(videoUrl, videoPath);
 
-        // For Douyin, we need to fetch cookies first
-        if (isDouyin) {
-            console.log('Detected Douyin link, fetching fresh cookies...');
-            // Create a minimal cookies file for Douyin
-            // This is a workaround - we create empty cookies file and let yt-dlp try with --add-headers
-            fs.writeFileSync(cookiesPath, '# Netscape HTTP Cookie File\n');
+        if (!downloadResult.success) {
+            throw new Error(downloadResult.error || 'Video download failed');
         }
-
-        // Build yt-dlp command with appropriate options
-        await new Promise((resolve, reject) => {
-            const { exec } = require('child_process');
-
-            // Build command with platform-specific options
-            let cmd = `yt-dlp -f "best[ext=mp4]/best" -o "${videoPath}"`;
-
-            if (isDouyin) {
-                // Add headers that mimic a browser request for Douyin
-                cmd += ` --add-headers "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"`;
-                cmd += ` --add-headers "Referer:https://www.douyin.com/"`;
-                cmd += ` --no-check-certificates`;
-                cmd += ` --extractor-args "douyin:api_hostname=www.douyin.com"`;
-            }
-
-            cmd += ` "${videoUrl}"`;
-
-            console.log('Downloading:', cmd);
-
-            // Increase timeout for Douyin (they can be slow)
-            exec(cmd, { timeout: 120000 }, (error: any, stdout: any, stderr: any) => {
-                // Clean up cookies file if created
-                try { fs.unlinkSync(cookiesPath); } catch { }
-
-                if (error) {
-                    console.error('yt-dlp error:', stderr);
-
-                    // If Douyin fails, suggest alternative
-                    if (isDouyin && stderr.includes('cookies')) {
-                        reject(new Error('Douyin video không tải được do yêu cầu cookies. Vui lòng thử: 1) Dùng link video trực tiếp (.mp4) hoặc 2) Dùng trang savetik.io để lấy link trực tiếp.'));
-                    } else {
-                        reject(new Error(`Không tải được video: ${stderr.substr(0, 150)}...`));
-                    }
-                } else {
-                    console.log('Download success:', stdout);
-                    resolve(true);
-                }
-            });
-        });
 
         // Verify file exists
         if (!fs.existsSync(videoPath)) {
