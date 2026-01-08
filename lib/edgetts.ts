@@ -1,51 +1,49 @@
-
-import { exec } from 'child_process';
+// File: lib/edgetts.ts - Using edge-tts-universal package
+import { EdgeTTS as EdgeTTSClient } from 'edge-tts-universal';
 import fs from 'fs';
 import path from 'path';
-import util from 'util';
-
-const execPromise = util.promisify(exec);
 
 export class EdgeTTS {
     /**
-     * Synthesize text to speech using edge-tts CLI.
+     * Synthesize text to speech using edge-tts-universal package.
      * @param text Text to synthesize
      * @param voice Voice key (e.g., 'vi-VN-HoaiMyNeural')
      * @param outputPath Output file path
      * @param rate Speed multiplier (e.g., 1.0 = normal, 1.2 = 20% faster)
+     * @param outputFormat Format string (ignored, always MP3)
      */
-    static async synthesize(text: string, voice: string = 'vi-VN-HoaiMyNeural', outputPath: string, rate: number = 1.0): Promise<string> {
+    static async synthesize(text: string, voice: string = 'vi-VN-HoaiMyNeural', outputPath: string, rate: number = 1.0, outputFormat: string = 'audio-24khz-48kbitrate-mono-mp3'): Promise<string> {
         // Ensure output dir exists
         const dir = path.dirname(outputPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
 
-        // Calculate rate percentage (edge-tts uses +X% or -X% format)
-        // rate 1.0 = +0%, rate 1.2 = +20%, rate 0.8 = -20%
+        // Calculate rate percentage for edge-tts (e.g., +20%, -10%)
         const ratePercent = Math.round((rate - 1) * 100);
         const rateStr = ratePercent >= 0 ? `+${ratePercent}%` : `${ratePercent}%`;
 
-        // Build command
-        // edge-tts --voice vi-VN-HoaiMyNeural --rate "+20%" --text "Hello" --write-media hello.mp3
-        const escapedText = text.replace(/"/g, '\\"').replace(/\n/g, ' ');
-        const command = `edge-tts --voice ${voice} --rate "${rateStr}" --text "${escapedText}" --write-media "${outputPath}"`;
+        // Create TTS client with text, voice, and options in constructor
+        const tts = new EdgeTTSClient(text, voice, {
+            rate: rateStr,
+        });
 
-        try {
-            const { stdout, stderr } = await execPromise(command);
-            return outputPath;
-        } catch (error) {
-            console.error('TTS Error:', error);
-            throw error;
-        }
+        // Synthesize - returns { audio: Blob, subtitle: [] }
+        const result = await tts.synthesize();
+
+        // Convert Blob to Buffer and write to file
+        const arrayBuffer = await result.audio.arrayBuffer();
+        const audioBuffer = Buffer.from(arrayBuffer);
+
+        fs.writeFileSync(outputPath, audioBuffer);
+
+        return outputPath;
     }
 
     /**
-     * Get available voices
+     * Get available Vietnamese voices
      */
     static async getVoices() {
-        // edge-tts --list-voices
-        // We can hardcode popular Vietnamese voices to save time
         return [
             { ShortName: 'vi-VN-HoaiMyNeural', Gender: 'Female' },
             { ShortName: 'vi-VN-NamMinhNeural', Gender: 'Male' }

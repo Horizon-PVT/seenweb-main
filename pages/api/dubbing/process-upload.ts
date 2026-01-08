@@ -8,7 +8,6 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import formidable from 'formidable';
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -17,23 +16,8 @@ const openai = new OpenAI({
 
 export const config = {
     api: {
-        bodyParser: false, // Disable default body parser for file upload
+        bodyParser: true, // JSON body
     },
-};
-
-// Parse form data with file upload
-const parseForm = (req: NextApiRequest): Promise<{ fields: formidable.Fields; files: formidable.Files }> => {
-    const form = formidable({
-        maxFileSize: 500 * 1024 * 1024, // 500MB max
-        keepExtensions: true,
-    });
-
-    return new Promise((resolve, reject) => {
-        form.parse(req, (err, fields, files) => {
-            if (err) reject(err);
-            else resolve({ fields, files });
-        });
-    });
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -42,6 +26,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await getServerSession(req, res, authOptions);
     if (!session || !session.user) {
         return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { uploadId, originalName } = req.body;
+
+    if (!uploadId || !originalName) {
+        return res.status(400).json({ error: 'Missing uploadId or originalName' });
     }
 
     const userId = (session.user as any).id;
@@ -73,24 +63,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        // Parse form data
-        const { fields, files } = await parseForm(req);
+        const tempDir = os.tmpdir();
+        const uploadedFilePath = path.join(tempDir, `upload_${uploadId}`);
 
-        console.log('[Upload] Files received:', Object.keys(files));
-        console.log('[Upload] Files structure:', JSON.stringify(files, null, 2));
-
-        // Formidable v3 returns arrays by default
-        const videoFiles = files.video;
-        const videoFile = Array.isArray(videoFiles) ? videoFiles[0] : videoFiles;
-
-        if (!videoFile) {
-            return res.status(400).json({ error: 'No video file uploaded' });
+        if (!fs.existsSync(uploadedFilePath)) {
+            return res.status(400).json({ error: 'Upload file not found (maybe expired?)' });
         }
 
-        const uploadedPath = videoFile.filepath;
-        const originalName = videoFile.originalFilename || 'uploaded_video';
-
-        console.log('[Upload] Received file:', originalName, 'at', uploadedPath);
+        console.log('[Process] Processing file:', originalName, 'from', uploadedFilePath);
 
         // Deduct 1 credit
         await prisma.user.update({
@@ -109,16 +89,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         // 2. Setup paths
-        const tempDir = os.tmpdir();
         const videoId = uuidv4();
         const videoPath = path.join(tempDir, `${videoId}.mp4`);
         const audioPath = path.join(tempDir, `${videoId}.mp3`);
 
-        // Copy uploaded file to our temp location (rename to .mp4)
-        fs.copyFileSync(uploadedPath, videoPath);
-
-        // Clean up original upload
-        try { fs.unlinkSync(uploadedPath); } catch { }
+        // Rename/Move uploaded file to videoPath (handling rename across devices just in case, though tmp is usually same volume)
+        // Since we are in os.tmpdir(), rename should work.
+        // But to be safe, copy and unlink?
+        // Actually, renameSync is atomic.
+        fs.renameSync(uploadedFilePath, videoPath);
 
         // 3. Extract Audio (mp3)
         await new Promise((resolve, reject) => {
@@ -170,22 +149,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             translated: translatedMap[i.toString()] || s.text
         }));
 
-        // 6. Handling Video File Persistence (Vercel Limitation)
-        // On Vercel, we cannot write effectively to public/temp for persistent serving.
-        // For now, we will skip the local copy to prevent "Read-only file system" errors.
-        // In a real production environment, you should upload `videoPath` to S3/Blob Storage here.
-
         const savedVideoName = `src_${project.id}.mp4`;
-        // We leave videoUrl as the uploaded reference or a placeholder since we can't serve it locally from Vercel function
-        const finalVideoUrl = `upload://${originalName}`;
-
-        /* 
-        // Vercel Blocked: 
-        const publicTempDir = path.join(process.cwd(), 'public', 'temp');
-        if (!fs.existsSync(publicTempDir)) fs.mkdirSync(publicTempDir, { recursive: true });
-        const savedVideoPath = path.join(publicTempDir, savedVideoName);
-        fs.copyFileSync(videoPath, savedVideoPath); 
-        */
 
         // 7. Update DB
         await prisma.dubbingProject.update({
@@ -208,11 +172,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ok: true,
             projectId: project.id,
             segments: finalSegments,
-            videoUrl: `/temp/${savedVideoName}` // Return local video URL for merge step
+            videoUrl: `/temp/${savedVideoName}`
         });
 
     } catch (error: any) {
-        console.error('Upload Processing Error:', error);
+        console.error('Process Error:', error);
         res.status(500).json({ error: error.message });
     }
 }

@@ -96,55 +96,66 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
         }
     };
 
-    // STEP 1: Process Video (Upload mode)
+    // STEP 1: Process Video (Upload mode) - CHUNKED
     const handleUploadFile = async () => {
         if (!videoFile) {
             alert('Vui lòng chọn file video!');
             return;
         }
         setLoading(true);
-        setLogs(['⏳ Đang tải lên video...']);
+        setLogs(['⏳ Đang chuẩn bị upload...']);
         setUploadProgress(0);
 
         try {
-            const formData = new FormData();
-            formData.append('video', videoFile);
+            // 1. Chunked Upload
+            const chunkSize = 1024 * 1024; // 1MB chunks
+            const totalChunks = Math.ceil(videoFile.size / chunkSize);
+            const uploadId = crypto.randomUUID();
 
-            // Use XMLHttpRequest for progress tracking
-            const xhr = new XMLHttpRequest();
+            addLog(`📤 Bắt đầu upload ${totalChunks} chunks...`);
 
-            const uploadPromise = new Promise<any>((resolve, reject) => {
-                xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        setUploadProgress(percent);
-                        if (percent < 100) {
-                            // Update log with progress
-                        }
-                    }
-                };
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * chunkSize;
+                const end = Math.min(videoFile.size, start + chunkSize);
+                const chunk = videoFile.slice(start, end);
 
-                xhr.onload = () => {
-                    if (xhr.status === 200) {
-                        resolve(JSON.parse(xhr.responseText));
-                    } else {
-                        try {
-                            const err = JSON.parse(xhr.responseText);
-                            reject(new Error(err.error || 'Upload failed'));
-                        } catch {
-                            reject(new Error('Upload failed'));
-                        }
-                    }
-                };
+                const formData = new FormData();
+                formData.append('chunk', chunk);
+                formData.append('chunkIndex', i.toString());
+                formData.append('uploadId', uploadId);
 
-                xhr.onerror = () => reject(new Error('Network error'));
+                // Use fetch for chunks, we can track progress manually by chunk count
+                const res = await fetch('/api/dubbing/chunk-upload', {
+                    method: 'POST',
+                    body: formData
+                });
 
-                xhr.open('POST', '/api/dubbing/upload');
-                xhr.send(formData);
+                if (!res.ok) {
+                    throw new Error(`Upload chunk ${i + 1} failed`);
+                }
+
+                const percent = Math.round(((i + 1) / totalChunks) * 100);
+                setUploadProgress(percent);
+            }
+
+            addLog('✅ Upload hoàn tất! Đang xử lý video...');
+            setUploadProgress(100);
+
+            // 2. Process
+            const res = await fetch('/api/dubbing/process-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    uploadId,
+                    originalName: videoFile.name
+                })
             });
 
-            addLog('📤 Đang upload file...');
-            const data = await uploadPromise;
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Processing failed');
+            }
 
             addLog('🎙️ Đang trích xuất và dịch thuật...');
 

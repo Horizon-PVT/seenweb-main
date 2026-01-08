@@ -25,19 +25,24 @@ const openaiVoices: Voice[] = [
     { name: "Nova", apiName: "nova", gender: "Nữ", description: "Năng động, Trẻ trung (Video ngắn, Giải trí)" },
 ];
 
-// *** GIỌNG TIẾNG VIỆT (Gộp Edge + FPT) ***
-const vietnameseVoices: Voice[] = [
-    // Edge TTS (Free)
-    { name: "Hoài My", apiName: "vi-VN-HoaiMyNeural", gender: "Nữ", description: "Nữ - Giọng Bắc" },
-    { name: "Nam Minh", apiName: "vi-VN-NamMinhNeural", gender: "Nam", description: "Nam - Giọng Bắc" },
-    // FPT.AI (Premium quality)
-    { name: "Ban Mai", apiName: "banmai", gender: "Nữ", description: "Nữ - Giọng Bắc trẻ" },
-    { name: "Thu Minh", apiName: "thuminh", gender: "Nữ", description: "Nữ - Giọng Bắc" },
-    { name: "Lệ Minh", apiName: "leminh", gender: "Nữ", description: "Nữ - Giọng Trung" },
-    { name: "Mỹ An", apiName: "myan", gender: "Nữ", description: "Nữ - Giọng Nam" },
-    { name: "Minh Quang", apiName: "minhquang", gender: "Nam", description: "Nam - Giọng Bắc" },
-    { name: "Linh San", apiName: "linhsan", gender: "Nam", description: "Nam - Giọng Nam" },
+// *** GIỌNG TIẾNG VIỆT - EDGE TTS (Free, dùng cho cả SRT & TEXT) ***
+const edgeVoices: Voice[] = [
+    { name: "Hoài My", apiName: "vi-VN-HoaiMyNeural", gender: "Nữ", description: "Nữ - Giọng Bắc (Miễn phí)" },
+    { name: "Nam Minh", apiName: "vi-VN-NamMinhNeural", gender: "Nam", description: "Nam - Giọng Bắc (Miễn phí)" },
 ];
+
+// *** GIỌNG TIẾNG VIỆT - FPT.AI (Premium, chỉ dùng cho TEXT mode) ***
+const fptVoices: Voice[] = [
+    { name: "Ban Mai", apiName: "banmai", gender: "Nữ", description: "Nữ - Giọng Bắc trẻ (FPT)" },
+    { name: "Thu Minh", apiName: "thuminh", gender: "Nữ", description: "Nữ - Giọng Bắc (FPT)" },
+    { name: "Lệ Minh", apiName: "leminh", gender: "Nữ", description: "Nữ - Giọng Trung (FPT)" },
+    { name: "Mỹ An", apiName: "myan", gender: "Nữ", description: "Nữ - Giọng Nam (FPT)" },
+    { name: "Minh Quang", apiName: "minhquang", gender: "Nam", description: "Nam - Giọng Bắc (FPT)" },
+    { name: "Linh San", apiName: "linhsan", gender: "Nam", description: "Nam - Giọng Nam (FPT)" },
+];
+
+// Combined for TEXT mode
+const allVietnameseVoices: Voice[] = [...edgeVoices, ...fptVoices];
 
 // FPT voice IDs for backend routing
 const FPT_VOICE_IDS = ['banmai', 'thuminh', 'leminh', 'myan', 'minhquang', 'linhsan'];
@@ -204,6 +209,16 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
             if (audioSourceRef.current) audioSourceRef.current.stop();
         };
     }, []);
+
+    // Reset Vietnamese voice to Edge when switching to SRT mode
+    useEffect(() => {
+        if (mode === 'srt' && voiceProvider === 'vietnamese') {
+            // If current voice is FPT, switch to Edge
+            if (FPT_VOICE_IDS.includes(selectedVoiceApiName)) {
+                setSelectedVoiceApiName('vi-VN-HoaiMyNeural');
+            }
+        }
+    }, [mode, voiceProvider, selectedVoiceApiName]);
 
     // File Processing
     const processFile = (file: File) => {
@@ -428,24 +443,63 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                 )}
                                 {voiceProvider === 'vietnamese' && (
                                     <>
-                                        <optgroup label="--- GIỌNG NỮ ---">
-                                            {vietnameseVoices.filter(v => v.gender === 'Nữ').map(voice => (
-                                                <option key={voice.apiName} value={voice.apiName}>
-                                                    ♀️ {voice.name} - {voice.description}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                        <optgroup label="--- GIỌNG NAM ---">
-                                            {vietnameseVoices.filter(v => v.gender === 'Nam').map(voice => (
-                                                <option key={voice.apiName} value={voice.apiName}>
-                                                    ♂️ {voice.name} - {voice.description}
-                                                </option>
-                                            ))}
-                                        </optgroup>
+                                        {/* SRT mode: Only show free Edge voices */}
+                                        {mode === 'srt' && (
+                                            <>
+                                                <optgroup label="--- GIỌNG MIỄN PHÍ (SRT) ---">
+                                                    {edgeVoices.map(voice => (
+                                                        <option key={voice.apiName} value={voice.apiName}>
+                                                            {voice.gender === 'Nữ' ? '♀️' : '♂️'} {voice.name} - {voice.description}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            </>
+                                        )}
+                                        {/* TEXT mode: Show all voices (Edge + FPT) */}
+                                        {mode === 'text' && (
+                                            <>
+                                                <optgroup label="--- GIỌNG MIỄN PHÍ ---">
+                                                    {edgeVoices.map(voice => (
+                                                        <option key={voice.apiName} value={voice.apiName}>
+                                                            {voice.gender === 'Nữ' ? '♀️' : '♂️'} {voice.name} - {voice.description}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                                <optgroup label="--- GIỌNG PREMIUM (FPT) ---">
+                                                    {fptVoices.map(voice => (
+                                                        <option key={voice.apiName} value={voice.apiName}>
+                                                            {voice.gender === 'Nữ' ? '♀️' : '♂️'} 👑 {voice.name} - {voice.description}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            </>
+                                        )}
                                     </>
                                 )}
                             </select>
                         </div>
+
+                        {/* Speed Control - show for all providers */}
+                        <div className="mt-3 p-3 bg-black/20 rounded-sm border border-gray-700">
+                            <label className="text-xs text-gray-400 flex justify-between items-center mb-2">
+                                <span>⚡ Tốc độ đọc:</span>
+                                <span className="text-[#CDAD5A] font-bold">{speed.toFixed(1)}x</span>
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-gray-500">0.5x</span>
+                                <input
+                                    type="range"
+                                    min="0.5"
+                                    max="2.0"
+                                    step="0.1"
+                                    value={speed}
+                                    onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                                    className="flex-1 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#CDAD5A]"
+                                />
+                                <span className="text-[10px] text-gray-500">2.0x</span>
+                            </div>
+                        </div>
+
                         <p className="text-[10px] text-gray-400 italic text-center">
                             {voiceProvider === 'openai' && '* Giọng OpenAI hỗ trợ 40+ ngôn ngữ tự động.'}
                             {voiceProvider === 'vietnamese' && '* Giọng Việt Nam chuẩn với nhiều vùng miền.'}
