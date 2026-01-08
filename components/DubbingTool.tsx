@@ -433,7 +433,7 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
                             disabled={loading}
                             className="w-full bg-gradient-to-r from-[#CDAD5A] to-orange-500 text-black py-4 rounded-xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            {loading ? <Loader2 className="animate-spin" /> : <Wand2 className="w-5 h-5" />}
+                            {loading ? <Loader2 className="animate-spin" /> : <Mic className="w-5 h-5" />}
                             🎬 Tạo Video Lồng Tiếng
                         </button>
 
