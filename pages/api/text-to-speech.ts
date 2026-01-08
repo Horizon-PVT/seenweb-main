@@ -191,7 +191,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       'linhsan': 'vi-VN-NamMinhNeural',
     };
 
-    // Helper to generate TTS audio for a single text chunk
     // For SRT mode with Vietnamese voices: only use Edge TTS (no FPT - too slow/unreliable)
     // For TEXT mode: allow FPT with Edge fallback
     const generateAudio = async (text: string, isSrtMode: boolean): Promise<Buffer | null> => {
@@ -202,13 +201,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return await callOpenAITts(openai, text, selectedVoiceApiName, speed);
         } else if (voiceProvider === 'vietnamese' || voiceProvider === 'edge' || voiceProvider === 'fpt') {
           const isFptVoice = fptVoiceIds.includes(selectedVoiceApiName);
+          const edgeVoice = isFptVoice
+            ? (fptToEdgeMap[selectedVoiceApiName] || 'vi-VN-HoaiMyNeural')
+            : selectedVoiceApiName;
 
           // SRT mode: Always use Edge TTS for Vietnamese (FPT is too slow/unreliable)
           if (isSrtMode) {
-            // Map FPT voice to Edge equivalent if user somehow selected FPT voice in SRT
-            const edgeVoice = isFptVoice
-              ? (fptToEdgeMap[selectedVoiceApiName] || 'vi-VN-HoaiMyNeural')
-              : selectedVoiceApiName;
             return await callEdgeTts(text, edgeVoice, speed);
           }
 
@@ -216,17 +214,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           if (isFptVoice) {
             try {
               return await callFptTts(text, selectedVoiceApiName, speed);
-            } catch (fptError) {
-              console.warn('FPT TTS failed, falling back to Edge TTS:', fptError);
-              const edgeVoice = fptToEdgeMap[selectedVoiceApiName] || 'vi-VN-HoaiMyNeural';
-              return await callEdgeTts(text, edgeVoice, speed);
+            } catch (fptError: any) {
+              console.warn('FPT TTS failed, falling back to Edge TTS:', fptError.message);
+              // Fallback to Edge TTS
+              try {
+                return await callEdgeTts(text, edgeVoice, speed);
+              } catch (edgeError: any) {
+                console.error('Edge TTS fallback also failed:', edgeError.message);
+                return null;
+              }
             }
           } else {
             return await callEdgeTts(text, selectedVoiceApiName, speed);
           }
         }
-      } catch (e) {
-        console.error('TTS Generation Error:', e);
+      } catch (e: any) {
+        console.error('TTS Generation Error:', e.message);
       }
       return null;
     };

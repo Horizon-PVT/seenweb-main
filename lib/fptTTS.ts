@@ -1,4 +1,4 @@
-// lib/fptTTS.ts - FPT.AI Text-to-Speech Integration
+// lib/fptTTS.ts - FPT.AI Text-to-Speech Integration (Optimized for Vercel)
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
@@ -29,6 +29,7 @@ export interface FPTTTSOptions {
 
 /**
  * Synthesize text to speech using FPT.AI TTS API
+ * Optimized for Vercel serverless with shorter timeouts
  * @param text Text to synthesize
  * @param outputPath Output file path
  * @param options Voice and speed options
@@ -54,7 +55,7 @@ export async function synthesizeFPT(
     try {
         console.log(`[FPT TTS] Request: voice=${voice}, speed=${fptSpeed}, text="${text.substring(0, 50)}..."`);
 
-        // Make API request
+        // Make API request with shorter timeout for serverless
         const response = await axios.post(
             FPT_TTS_API_URL,
             text,
@@ -65,7 +66,7 @@ export async function synthesizeFPT(
                     'speed': fptSpeed.toString(),
                     'Content-Type': 'text/plain; charset=utf-8',
                 },
-                timeout: 30000,
+                timeout: 10000, // 10s timeout for initial request
             }
         );
 
@@ -80,23 +81,27 @@ export async function synthesizeFPT(
             throw new Error(`FPT TTS error: ${errorMsg}`);
         }
 
-        // Download the audio file with retry logic (CDN may take a few seconds)
+        // Download the audio file with FASTER retry logic for Vercel (max ~6 seconds)
+        // Reduced from 8 retries to 4, and shorter wait times
         let audioResponse = null;
-        const MAX_RETRIES = 8;
+        const MAX_RETRIES = 4;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-            // Wait longer on each retry: 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s
-            const waitTime = 3000 + (attempt * 1000);
+            // Wait times: 1.5s, 2s, 2s, 2s (total max ~7.5s)
+            const waitTime = attempt === 0 ? 1500 : 2000;
             await new Promise(resolve => setTimeout(resolve, waitTime));
 
             try {
                 audioResponse = await axios.get(audioUrl, {
                     responseType: 'arraybuffer',
-                    timeout: 30000,
+                    timeout: 5000, // 5s timeout per download attempt
                 });
                 break; // Success, exit loop
             } catch (downloadError: any) {
                 console.warn(`[FPT TTS] Download attempt ${attempt + 1}/${MAX_RETRIES} failed: ${downloadError.message}`);
-                if (attempt === MAX_RETRIES - 1) throw downloadError; // Last attempt, rethrow
+                if (attempt === MAX_RETRIES - 1) {
+                    // Last attempt failed - throw specific error for fallback
+                    throw new Error(`FPT CDN timeout after ${MAX_RETRIES} attempts`);
+                }
             }
         }
 

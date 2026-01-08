@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { Wand2, Youtube, ArrowRight, Loader2, Edit3, Download, Check, Video as VideoIcon, Upload, Link2, Mic, Volume2 } from 'lucide-react';
+import { ArrowRight, Loader2, Edit3, Download, Check, Video as VideoIcon, Upload, Mic, Volume2 } from 'lucide-react';
 
 interface DubbingToolProps {
     onBack?: () => void;
@@ -30,8 +30,7 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
     const [logs, setLogs] = useState<string[]>([]);
     const [uploadProgress, setUploadProgress] = useState(0);
 
-    // Input mode: 'url' or 'upload'
-    const [inputMode, setInputMode] = useState<'url' | 'upload'>('upload');
+    // Removed: inputMode state - now only supporting file upload
 
     // Data
     const [videoUrl, setVideoUrl] = useState('');
@@ -58,43 +57,7 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
         }
     };
 
-    // STEP 1: Process Video (URL mode)
-    const handleTranscribeUrl = async () => {
-        if (!videoUrl) {
-            alert('Vui lòng nhập link video!');
-            return;
-        }
-        setLoading(true);
-        setLogs(['⏳ Đang tải video từ link...']);
-
-        try {
-            addLog('🔄 Đang gửi yêu cầu đến server...');
-            const res = await fetch('/api/dubbing/transcribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ videoUrl })
-            });
-
-            addLog('📥 Đã nhận phản hồi, đang xử lý...');
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.error || 'Server Error');
-            }
-
-            setProjectId(data.projectId);
-            setVideoUrl(data.videoUrl || videoUrl); // Use returned URL if available
-            setSegments(data.segments || []);
-            addLog('✅ Đã dịch xong! Chuyển sang trình chỉnh sửa...');
-            setTimeout(() => setStep(2), 1000);
-        } catch (e: any) {
-            console.error('[DubbingTool] Error:', e);
-            addLog(`❌ LỖI: ${e.message}`);
-            alert(`Lỗi: ${e.message}`);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // NOTE: URL transcribe mode removed - only file upload is supported
 
     // STEP 1: Process Video (Upload mode) - CHUNKED
     const handleUploadFile = async () => {
@@ -244,13 +207,7 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
         setSegments(newSegs);
     };
 
-    const handleProcess = () => {
-        if (inputMode === 'url') {
-            handleTranscribeUrl();
-        } else {
-            handleUploadFile();
-        }
-    };
+    // NOTE: handleProcess removed - now calling handleUploadFile directly
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a] text-white p-6">
@@ -270,115 +227,63 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
             </div>
 
             <div className="max-w-4xl mx-auto">
-                {/* STEP 1: INPUT */}
+                {/* STEP 1: INPUT - ONLY FILE UPLOAD */}
                 {step === 1 && (
                     <div className="bg-black/50 border border-gray-800 rounded-2xl p-8">
-                        {/* Tab Switcher */}
-                        <div className="flex gap-2 mb-6">
-                            <button
-                                onClick={() => setInputMode('upload')}
-                                className={`flex-1 py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition ${inputMode === 'upload'
-                                    ? 'bg-[#CDAD5A] text-black'
-                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                                    }`}
-                            >
-                                <Upload className="w-5 h-5" />
-                                Upload File
-                            </button>
-                            <button
-                                onClick={() => setInputMode('url')}
-                                className={`flex-1 py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition ${inputMode === 'url'
-                                    ? 'bg-[#CDAD5A] text-black'
-                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                                    }`}
-                            >
-                                <Link2 className="w-5 h-5" />
-                                Dán Link
-                            </button>
+                        {/* Header */}
+                        <div className="text-center mb-6">
+                            <h2 className="text-xl font-bold text-white mb-2">📤 Tải Video Lên</h2>
+                            <p className="text-gray-400 text-sm">Hỗ trợ: MP4, MOV, AVI... (tối đa 500MB)</p>
                         </div>
 
-                        {/* Upload Mode */}
-                        {inputMode === 'upload' && (
-                            <div className="space-y-4">
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="video/*"
-                                    onChange={handleFileSelect}
-                                    className="hidden"
-                                />
+                        {/* Upload Area */}
+                        <div className="space-y-4">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="video/*"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
 
-                                <div
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-[#CDAD5A] transition group"
-                                >
-                                    {videoFile ? (
-                                        <div>
-                                            <VideoIcon className="w-12 h-12 mx-auto mb-3 text-[#CDAD5A]" />
-                                            <p className="text-white font-bold">{videoFile.name}</p>
-                                            <p className="text-gray-400 text-sm">{(videoFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                                            <p className="text-gray-500 text-xs mt-2">Click để chọn file khác</p>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <Upload className="w-12 h-12 mx-auto mb-3 text-gray-500 group-hover:text-[#CDAD5A] transition" />
-                                            <p className="text-gray-400">Kéo thả video vào đây hoặc <span className="text-[#CDAD5A]">click để chọn file</span></p>
-                                            <p className="text-gray-600 text-sm mt-2">Hỗ trợ: MP4, MOV, AVI... (tối đa 500MB)</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {uploadProgress > 0 && uploadProgress < 100 && (
-                                    <div className="w-full bg-gray-800 rounded-full h-2">
-                                        <div
-                                            className="bg-[#CDAD5A] h-2 rounded-full transition-all"
-                                            style={{ width: `${uploadProgress}%` }}
-                                        />
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-[#CDAD5A] transition group"
+                            >
+                                {videoFile ? (
+                                    <div>
+                                        <VideoIcon className="w-12 h-12 mx-auto mb-3 text-[#CDAD5A]" />
+                                        <p className="text-white font-bold">{videoFile.name}</p>
+                                        <p className="text-gray-400 text-sm">{(videoFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                        <p className="text-gray-500 text-xs mt-2">Click để chọn file khác</p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <Upload className="w-12 h-12 mx-auto mb-3 text-gray-500 group-hover:text-[#CDAD5A] transition" />
+                                        <p className="text-gray-400">Kéo thả video vào đây hoặc <span className="text-[#CDAD5A]">click để chọn file</span></p>
+                                        <p className="text-gray-600 text-sm mt-2">Hỗ trợ: MP4, MOV, AVI...</p>
                                     </div>
                                 )}
-
-                                <button
-                                    onClick={handleProcess}
-                                    disabled={loading || !videoFile}
-                                    className="w-full bg-[#CDAD5A] hover:bg-[#b09348] text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
-                                    Xử lý Video
-                                </button>
                             </div>
-                        )}
 
-                        {/* URL Mode */}
-                        {inputMode === 'url' && (
-                            <div className="space-y-4">
-                                <p className="text-gray-400 text-sm">Hỗ trợ: YouTube, TikTok, và link video trực tiếp (.mp4)</p>
-
-                                <div className="flex gap-3">
-                                    <div className="relative flex-1">
-                                        <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                                        <input
-                                            type="text"
-                                            value={videoUrl}
-                                            onChange={(e) => setVideoUrl(e.target.value)}
-                                            placeholder="https://youtube.com/shorts/... hoặc link .mp4"
-                                            className="w-full bg-gray-900 border border-gray-700 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-[#CDAD5A] transition"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={handleProcess}
-                                        disabled={loading || !videoUrl}
-                                        className="bg-[#CDAD5A] hover:bg-[#b09348] text-black font-bold px-8 rounded-xl flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
-                                        <span className="hidden md:inline">Xử lý</span>
-                                    </button>
+                            {uploadProgress > 0 && uploadProgress < 100 && (
+                                <div className="w-full bg-gray-800 rounded-full h-2">
+                                    <div
+                                        className="bg-[#CDAD5A] h-2 rounded-full transition-all"
+                                        style={{ width: `${uploadProgress}%` }}
+                                    />
                                 </div>
+                            )}
 
-                                <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-3 text-sm">
-                                    <p className="text-amber-400">💡 <strong>Mẹo:</strong> Nếu link TikTok/Douyin không hoạt động, tải video về rồi dùng tab "Upload File".</p>
-                                </div>
-                            </div>
-                        )}
+                            <button
+                                onClick={handleUploadFile}
+                                disabled={loading || !videoFile}
+                                className="w-full bg-[#CDAD5A] hover:bg-[#b09348] text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
+                                Xử lý Video
+                            </button>
+                        </div>
 
                         {/* Log Display */}
                         {logs.length > 0 && (
