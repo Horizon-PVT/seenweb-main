@@ -17,8 +17,13 @@ export default function RecruitmentPage() {
         location: "",
         portfolio: "",
         reason: "",
-        aiReady: "",
+        aiReady: "Co",
+        gender: "Nam",
+        dob: "",
+        experience: "",
+        recentJob: "",
     });
+    const [photo, setPhoto] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
@@ -40,10 +45,17 @@ export default function RecruitmentPage() {
         setSubmitStatus("idle");
 
         try {
+            const data = new FormData();
+            Object.entries(formData).forEach(([key, value]) => {
+                data.append(key, value as string);
+            });
+            if (photo) {
+                data.append("photo", photo);
+            }
+
             const res = await fetch("/api/apply", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
+                body: data,
             });
 
             if (res.ok) {
@@ -60,8 +72,10 @@ export default function RecruitmentPage() {
 
     const resetForm = () => {
         setFormData({
-            fullName: "", email: "", phone: "", role: "Content Creator (YouTube)", location: "", portfolio: "", reason: "", aiReady: ""
+            fullName: "", email: "", phone: "", role: "Content Creator (YouTube)", location: "", portfolio: "", reason: "", aiReady: "",
+            gender: "Nam", dob: "", experience: "", recentJob: ""
         });
+        setPhoto(null);
         setSubmitStatus("idle");
     };
 
@@ -389,6 +403,24 @@ export default function RecruitmentPage() {
 
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Giới tính</label>
+                                            <div className="relative">
+                                                <select name="gender" value={formData.gender} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all appearance-none cursor-pointer">
+                                                    <option value="Nam">Nam</option>
+                                                    <option value="Nữ">Nữ</option>
+                                                    <option value="Khác">Khác</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-5 h-5" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-2">Ngày tháng năm sinh</label>
+                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all" />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div>
                                             <label className="block text-sm font-bold text-slate-700 mb-2">SĐT / Zalo *</label>
                                             <input required name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all" placeholder="09xxxxxxx" />
                                         </div>
@@ -396,6 +428,16 @@ export default function RecruitmentPage() {
                                             <label className="block text-sm font-bold text-slate-700 mb-2">Khu vực *</label>
                                             <input required name="location" value={formData.location} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all" placeholder="Hà Nội, TP.HCM..." />
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Ảnh đại diện (CV/Portrait)</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => setPhoto(e.target.files ? e.target.files[0] : null)}
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 transition-all"
+                                        />
                                     </div>
 
                                     <div>
@@ -408,6 +450,16 @@ export default function RecruitmentPage() {
                                             </select>
                                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-5 h-5" />
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Công việc gần nhất là gì?</label>
+                                        <input name="recentJob" value={formData.recentJob} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all" placeholder="Ví dụ: Editor tại Agency A..." />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Bạn đã có kinh nghiệm về gì?</label>
+                                        <textarea name="experience" value={formData.experience} onChange={handleChange} rows={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all" placeholder="Mô tả ngắn gọn kinh nghiệm liên quan..." />
                                     </div>
 
                                     <div>
@@ -425,11 +477,25 @@ export default function RecruitmentPage() {
                                         <label className="block text-sm font-bold text-slate-700 mb-2">Bạn có sẵn sàng học và dùng AI mỗi ngày không? *</label>
                                         <div className="flex gap-6 mt-2">
                                             <label className="flex items-center gap-2 cursor-pointer p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex-1">
-                                                <input type="radio" name="aiReady" value="Co" required onChange={handleChange} className="accent-cyan-600 w-5 h-5" />
+                                                <input
+                                                    type="radio"
+                                                    name="aiReady"
+                                                    value="Co"
+                                                    checked={formData.aiReady === "Co"}
+                                                    onChange={handleChange}
+                                                    className="accent-cyan-600 w-5 h-5"
+                                                />
                                                 <span className="text-slate-700">Có, tôi thích công nghệ mới</span>
                                             </label>
                                             <label className="flex items-center gap-2 cursor-pointer p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex-1">
-                                                <input type="radio" name="aiReady" value="Khong" onChange={handleChange} className="accent-red-500 w-5 h-5" />
+                                                <input
+                                                    type="radio"
+                                                    name="aiReady"
+                                                    value="Khong"
+                                                    checked={formData.aiReady === "Khong"}
+                                                    onChange={handleChange}
+                                                    className="accent-red-500 w-5 h-5"
+                                                />
                                                 <span className="text-slate-700">Không, tôi thich cách cũ</span>
                                             </label>
                                         </div>
