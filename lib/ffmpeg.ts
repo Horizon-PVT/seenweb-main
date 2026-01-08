@@ -1,43 +1,42 @@
 // lib/ffmpeg.ts - FFmpeg configuration for both local and Vercel serverless
+// Using @ffmpeg-installer/ffmpeg which has better cross-platform support
 
 import ffmpeg from 'fluent-ffmpeg';
-import ffmpegPath from 'ffmpeg-static';
 import path from 'path';
 import fs from 'fs';
 
 /**
  * Get the correct ffmpeg path for the current environment.
- * Handles both local development and Vercel serverless deployment.
+ * Tries multiple approaches for maximum compatibility.
  */
 function getFFmpegPath(): string | null {
-    // 1. Try ffmpeg-static path directly
-    if (ffmpegPath) {
-        // On Vercel, the path might be relative to node_modules
-        if (fs.existsSync(ffmpegPath)) {
-            console.log('[FFmpeg] Using ffmpeg-static path:', ffmpegPath);
-            return ffmpegPath;
+    // Approach 1: Try @ffmpeg-installer/ffmpeg (better for serverless)
+    try {
+        const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
+        if (ffmpegInstaller.path && fs.existsSync(ffmpegInstaller.path)) {
+            console.log('[FFmpeg] Using @ffmpeg-installer path:', ffmpegInstaller.path);
+            return ffmpegInstaller.path;
         }
-
-        // Try resolving from project root
-        const projectRoot = process.cwd();
-        const resolvedPath = path.resolve(projectRoot, 'node_modules', 'ffmpeg-static', 'ffmpeg');
-        if (fs.existsSync(resolvedPath)) {
-            console.log('[FFmpeg] Using resolved path:', resolvedPath);
-            return resolvedPath;
-        }
-
-        // Try with .exe extension for Windows
-        const resolvedPathExe = resolvedPath + '.exe';
-        if (fs.existsSync(resolvedPathExe)) {
-            console.log('[FFmpeg] Using resolved path (exe):', resolvedPathExe);
-            return resolvedPathExe;
-        }
+    } catch (e) {
+        console.log('[FFmpeg] @ffmpeg-installer/ffmpeg not available');
     }
 
-    // 2. Try system ffmpeg
+    // Approach 2: Try ffmpeg-static
+    try {
+        const ffmpegStatic = require('ffmpeg-static');
+        if (ffmpegStatic && fs.existsSync(ffmpegStatic)) {
+            console.log('[FFmpeg] Using ffmpeg-static path:', ffmpegStatic);
+            return ffmpegStatic;
+        }
+    } catch (e) {
+        console.log('[FFmpeg] ffmpeg-static not available');
+    }
+
+    // Approach 3: Try common system paths
     const systemPaths = [
         '/usr/bin/ffmpeg',           // Linux
         '/usr/local/bin/ffmpeg',     // macOS Homebrew
+        '/opt/bin/ffmpeg',           // Some Alpine/Docker
         'C:\\ffmpeg\\bin\\ffmpeg.exe', // Windows custom
     ];
 
@@ -48,13 +47,17 @@ function getFFmpegPath(): string | null {
         }
     }
 
-    console.warn('[FFmpeg] Could not find ffmpeg binary. Audio/video processing may fail.');
+    // Approach 4: Let fluent-ffmpeg find it in PATH
+    console.warn('[FFmpeg] Could not find ffmpeg binary, relying on system PATH');
     return null;
 }
 
 const resolvedFFmpegPath = getFFmpegPath();
 if (resolvedFFmpegPath) {
     ffmpeg.setFfmpegPath(resolvedFFmpegPath);
+    console.log('[FFmpeg] Configured with path:', resolvedFFmpegPath);
+} else {
+    console.error('[FFmpeg] WARNING: No ffmpeg path found! Audio/video processing will fail.');
 }
 
 export default ffmpeg;

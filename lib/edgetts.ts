@@ -1,11 +1,12 @@
-// File: lib/edgetts.ts - Using edge-tts-universal package
-import { EdgeTTS as EdgeTTSClient } from 'edge-tts-universal';
+// File: lib/edgetts.ts - Using edge-tts-universal Communicate class (more reliable)
+import { Communicate } from 'edge-tts-universal';
 import fs from 'fs';
 import path from 'path';
 
 export class EdgeTTS {
     /**
-     * Synthesize text to speech using edge-tts-universal package.
+     * Synthesize text to speech using edge-tts-universal Communicate class.
+     * This method streams audio chunks and combines them.
      * @param text Text to synthesize
      * @param voice Voice key (e.g., 'vi-VN-HoaiMyNeural')
      * @param outputPath Output file path
@@ -23,20 +24,35 @@ export class EdgeTTS {
         const ratePercent = Math.round((rate - 1) * 100);
         const rateStr = ratePercent >= 0 ? `+${ratePercent}%` : `${ratePercent}%`;
 
-        // Create TTS client with text, voice, and options in constructor
-        const tts = new EdgeTTSClient(text, voice, {
+        // Use Communicate class which uses streaming (more reliable)
+        const communicate = new Communicate(text, {
+            voice: voice,
             rate: rateStr,
         });
 
-        // Synthesize - returns { audio: Blob, subtitle: [] }
-        const result = await tts.synthesize();
+        // Collect all audio chunks
+        const audioChunks: Buffer[] = [];
 
-        // Convert Blob to Buffer and write to file
-        const arrayBuffer = await result.audio.arrayBuffer();
-        const audioBuffer = Buffer.from(arrayBuffer);
+        try {
+            for await (const chunk of communicate.stream()) {
+                if (chunk.type === 'audio' && chunk.data) {
+                    audioChunks.push(Buffer.from(chunk.data));
+                }
+            }
+        } catch (error: any) {
+            console.error('[EdgeTTS] Stream error:', error.message);
+            throw new Error(`Edge TTS failed: ${error.message}`);
+        }
 
+        if (audioChunks.length === 0) {
+            throw new Error('Edge TTS: No audio data received');
+        }
+
+        // Combine all chunks and write to file
+        const audioBuffer = Buffer.concat(audioChunks);
         fs.writeFileSync(outputPath, audioBuffer);
 
+        console.log(`[EdgeTTS] Generated audio: ${outputPath} (${audioBuffer.length} bytes)`);
         return outputPath;
     }
 

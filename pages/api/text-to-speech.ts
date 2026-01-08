@@ -105,12 +105,30 @@ async function callEdgeTts(text: string, voice: string, speed: number = 1.0): Pr
   const tempMp3Path = path.join(os.tmpdir(), `edge_tts_${Date.now()}_${Math.random().toString(36).slice(2)}.mp3`);
 
   try {
-    // Always request MP3 format (more reliable), convert to PCM after
+    console.log(`[Edge TTS] Synthesizing: voice=${voice}, speed=${speed}, text="${text.substring(0, 50)}..."`);
+
+    // Generate MP3 using Edge TTS
     await EdgeTTS.synthesize(text, voice, tempMp3Path, speed, 'audio-24khz-48kbitrate-mono-mp3');
+
+    // Check if file was created
+    if (!fs.existsSync(tempMp3Path)) {
+      throw new Error('Edge TTS did not generate audio file');
+    }
+
+    const fileSize = fs.statSync(tempMp3Path).size;
+    console.log(`[Edge TTS] Generated MP3: ${fileSize} bytes`);
+
+    if (fileSize < 100) {
+      throw new Error('Edge TTS generated empty or invalid audio');
+    }
 
     // Convert to PCM
     const pcmBuffer = await convertToPcm(tempMp3Path);
+    console.log(`[Edge TTS] Converted to PCM: ${pcmBuffer.length} bytes`);
     return pcmBuffer;
+  } catch (error: any) {
+    console.error('[Edge TTS] Error:', error.message);
+    throw error;
   } finally {
     // Cleanup MP3
     try { fs.unlinkSync(tempMp3Path); } catch { }

@@ -70,7 +70,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ error: 'Upload file not found (maybe expired?)' });
         }
 
+        // Check if ffmpeg is available BEFORE deducting credits
+        const { resolvedFFmpegPath } = await import('@/lib/ffmpeg');
+        if (!resolvedFFmpegPath) {
+            console.error('[Dubbing] FFmpeg not available on this server');
+            return res.status(500).json({
+                error: 'FFmpeg chưa được cài đặt trên server. Tính năng Dubbing tạm thời không khả dụng. Vui lòng liên hệ admin.'
+            });
+        }
+
         console.log('[Process] Processing file:', originalName, 'from', uploadedFilePath);
+        console.log('[Process] FFmpeg path:', resolvedFFmpegPath);
 
         // Deduct 1 credit
         await prisma.user.update({
@@ -99,12 +109,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Actually, renameSync is atomic.
         fs.renameSync(uploadedFilePath, videoPath);
 
-        // 3. Extract Audio (mp3)
-        await new Promise((resolve, reject) => {
+        // 3. Extract Audio (mp3) - with detailed error handling
+        await new Promise<void>((resolve, reject) => {
+            console.log('[Dubbing] Extracting audio from:', videoPath);
             ffmpeg(videoPath)
                 .toFormat('mp3')
-                .on('end', resolve)
-                .on('error', reject)
+                .on('start', (cmd: string) => {
+                    console.log('[FFmpeg] Command:', cmd);
+                })
+                .on('end', () => {
+                    console.log('[FFmpeg] Audio extraction complete');
+                    resolve();
+                })
+                .on('error', (err: Error) => {
+                    console.error('[FFmpeg] Error:', err.message);
+                    reject(new Error(`Cannot find ffmpeg: ${err.message}. Please ensure ffmpeg is installed on the server.`));
+                })
                 .save(audioPath);
         });
 
