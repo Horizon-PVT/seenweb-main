@@ -264,7 +264,8 @@ const CapCutCard: React.FC<{
   isLocked: boolean;
   onOpen: () => void;
   index: number;
-}> = ({ tool, isLocked, onOpen, index }) => {
+  showExclusiveBadge?: boolean;
+}> = ({ tool, isLocked, onOpen, index, showExclusiveBadge = false }) => {
   const Icon = tool.icon;
   const [isHovered, setIsHovered] = useState(false);
 
@@ -347,13 +348,18 @@ const CapCutCard: React.FC<{
 /* =========================
    SECTION
    ========================= */
-const ToolSection: React.FC<{ title: string; tools: Tool[]; userRole: Role; onOpen: (t: Tool) => void }> = ({ title, tools, userRole, onOpen }) => (
+const ToolSection: React.FC<{ title: string; tools: Tool[]; userRole: Role; onOpen: (t: Tool) => void; isExclusiveSection?: boolean }> = ({ title, tools, userRole, onOpen, isExclusiveSection = false }) => (
   <div className="mb-10 px-2 animate-fade-in-up">
     <div className="flex items-center gap-2 mb-4">
       <div className="w-1.5 h-5 bg-[#F3EFE0] rounded-full shadow-sm"></div>
       <h3 className="text-lg font-bold text-[#F3EFE0] uppercase tracking-wide">
         {title}
       </h3>
+      {isExclusiveSection && (
+        <span className="ml-2 px-2 py-0.5 text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full uppercase tracking-wide shadow-lg animate-pulse">
+          ⭐ ĐỘC QUYỀN
+        </span>
+      )}
     </div>
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
       {tools.map((t, i) => (
@@ -363,6 +369,7 @@ const ToolSection: React.FC<{ title: string; tools: Tool[]; userRole: Role; onOp
           tool={t}
           isLocked={!canAccessTool(t.id, userRole)}
           onOpen={() => onOpen(t)}
+          showExclusiveBadge={isExclusiveSection}
         />
       ))}
     </div>
@@ -427,7 +434,7 @@ const ToolsGrid: React.FC = () => {
     { id: 'hot', label: 'Đang thịnh hành', icon: '🔥' },
     { id: 'content', label: 'Sáng tạo nội dung', icon: '📝' },
     { id: 'research', label: 'Nghiên cứu thị trường', icon: '📊' },
-    { id: 'very_hot', label: '🔥 TOOLS VERY HOT', icon: null },
+    { id: 'very_hot', label: '🏆 GÓC HỌC WIN!', icon: null },
   ];
 
   return (
@@ -475,7 +482,7 @@ const ToolsGrid: React.FC = () => {
         <div className="min-h-[500px]">
           {activeTab === 'all' ? (
             <>
-              <ToolSection title="🔥 Tools Very Hot" tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} />
+              <ToolSection title="🏆 Góc Học Win!" tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} />
               <ToolSection title="🔥 Đang Thịnh Hành" tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} />
               <ToolSection title="📝 Sáng Tạo Nội Dung" tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} />
               <ToolSection title="📊 Nghiên Cứu Thị Trường" tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} />
