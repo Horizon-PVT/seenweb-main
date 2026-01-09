@@ -1,15 +1,16 @@
 // pages/api/youtube.ts
-// BẢN FULL ĐÃ FIX HOÀN HẢO CHO MICRO NICHE MINER – 2 TOOL KHÁC GIỮ NGUYÊN 100% (Dec 10, 2025)
+// BẢN FULL ĐÃ FIX HOÀN HẢO CHO MICRO NICHE MINER + REDIS CACHE (Jan 2026)
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getCached, setCache, generateCacheKey, CACHE_PREFIXES } from '@/lib/cache';
 
 const youtube = google.youtube({ version: 'v3', auth: process.env.YOUTUBE_API_KEY });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 60 * 60 * 1000; // 1h
+// Redis Cache TTL: 7 days (persistent across restarts)
+const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
@@ -18,11 +19,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!tool) return res.status(400).json({ error: 'Thiếu tool' });
 
-  const cacheKey = `${tool}:${input || macroNiche}`;
-  const cached = cache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return res.status(200).json(cached.data);
+  // Redis cache check
+  const cacheInput = `youtube:${tool}:${input || macroNiche}`;
+  const cacheKey = generateCacheKey(CACHE_PREFIXES.GENERAL, cacheInput);
+  const cached = await getCached<any>(cacheKey);
+  if (cached) {
+    console.log(`[YouTube API] Cache HIT for ${tool}:${input || macroNiche}`);
+    return res.status(200).json(cached);
   }
+  console.log(`[YouTube API] Cache MISS for ${tool}:${input || macroNiche} - Calling AI`);
 
   try {
     let prompt = "";
@@ -294,7 +299,8 @@ TRẢ VỀ CHỈ JSON THUẦN, BẮT ĐẦU BẰNG { VÀ KẾT THÚC BẰNG }, K
         text = text.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
 
         const data = JSON.parse(text);
-        cache.set(cacheKey, { data, timestamp: Date.now() });
+        // Save to Redis (async, don't wait)
+        setCache(cacheKey, data, CACHE_TTL_SECONDS);
         return res.status(200).json(data);
 
       } catch (e: any) {
@@ -320,7 +326,8 @@ TRẢ VỀ CHỈ JSON THUẦN, BẮT ĐẦU BẰNG { VÀ KẾT THÚC BẰNG }, K
               saturatedNichesWarning: ["ngách chung chung", "review sản phẩm đắt tiền"]
             }))
           };
-          cache.set(cacheKey, { data: fallbackData, timestamp: Date.now() });
+          // Save fallback to Redis too
+          setCache(cacheKey, fallbackData, CACHE_TTL_SECONDS);
           return res.status(200).json(fallbackData);
         }
       }

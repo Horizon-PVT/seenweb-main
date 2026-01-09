@@ -238,6 +238,21 @@ const toolsVeryHot: Tool[] = [
     thumbColor: "from-red-600 to-yellow-500", // Special gradient
     imageSrc: "/images/tool-thay-youtube-new.png",
   },
+  {
+    id: "niche-engine",
+    name: "Thư viện ngách thắng 100%",
+    shortDescription: "Chọn ngách & Sinh kịch bản Long Video.",
+    longDescription: "Hệ thống Long Video Engine giúp bạn chọn ngách chiến thắng, phân tích cơ hội và sinh gói triển khai nội dung chi tiết (Prompt + Script) chỉ với vài cú click.",
+    seoKeywords: ["Niche", "Long Video", "Script Gen"],
+    features: ["20+ Ngách Win", "Prompt Meta", "Auto-Script"],
+    icon: CompassIcon,
+    component: null as any,
+    isHot: true,
+    isExclusive: true,
+    isPro: true,
+    thumbColor: "from-emerald-600 to-teal-500",
+    imageSrc: "/images/tool-niche-engine.jpg", // Placeholder or generic
+  },
 ];
 
 /* =========================
@@ -380,6 +395,12 @@ const ToolsGrid: React.FC = () => {
     // Special handling for Thầy YouTube - navigate to dedicated page
     if (tool.id === 'thay-youtube') {
       router.push('/tools/thay-youtube');
+      return;
+    }
+
+    // Special handling for Niche Engine
+    if (tool.id === 'niche-engine') {
+      router.push('/studio/niche-engine');
       return;
     }
 

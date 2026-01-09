@@ -19,6 +19,12 @@ export default function WelcomePopupManager() {
         const isTest = router.query.test_popup === 'true';
         console.log('WelcomePopupManager: Checking...', { status, role: (session?.user as any)?.role, isTest });
 
+        // Skip on tool pages to avoid navigation conflicts
+        if (router.pathname.startsWith('/studio') || router.pathname.startsWith('/tools')) {
+            console.log('WelcomePopupManager: Skipping on tool page.');
+            return;
+        }
+
         // Force show if testing
         if (isTest) {
             console.log('WelcomePopupManager: Test mode active. Showing popup.');
