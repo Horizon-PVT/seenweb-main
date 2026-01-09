@@ -223,6 +223,23 @@ const toolsResearch: Tool[] = [
   },
 ];
 
+const toolsVeryHot: Tool[] = [
+  {
+    id: "thay-youtube",
+    name: "Thầy YouTube - Giáo Án 30 Ngày",
+    shortDescription: "Giáo án 30 ngày cầm tay chỉ việc.",
+    longDescription: "Đồng hành cùng bạn trong 30 ngày đầu làm YouTube. Cung cấp giáo án chi tiết hàng ngày, tool hỗ trợ, và định hướng nội dung để đạt 1000 sub đầu tiên.",
+    seoKeywords: ["Giáo Án YouTube", "30 Ngày", "Thầy YouTube"],
+    features: ["Lộ trình 30 ngày", "Kèm cặp 1-1", "Tool tích hợp"],
+    icon: BookIcon,
+    component: null as any,
+    isHot: true,
+    isExclusive: true,
+    thumbColor: "from-red-600 to-yellow-500", // Special gradient
+    imageSrc: "/images/tool-thay-youtube-new.png",
+  },
+];
+
 /* =========================
    COMPACT CARD
    ========================= */
@@ -341,7 +358,7 @@ const ToolSection: React.FC<{ title: string; tools: Tool[]; userRole: Role; onOp
    NAV & MAIN GRID
    ========================= */
 
-type TabType = 'all' | 'newbie' | 'hot' | 'content' | 'research';
+type TabType = 'all' | 'newbie' | 'hot' | 'content' | 'research' | 'very_hot';
 
 const ToolsGrid: React.FC = () => {
   const { data: session } = useSession();
@@ -359,11 +376,18 @@ const ToolsGrid: React.FC = () => {
       setShowUpgradeGate(true);
       return;
     }
+
+    // Special handling for Thầy YouTube - navigate to dedicated page
+    if (tool.id === 'thay-youtube') {
+      router.push('/tools/thay-youtube');
+      return;
+    }
+
     router.push({ pathname: router.pathname, query: { ...router.query, tool: tool.id } }, undefined, { shallow: true });
   };
 
   // Helper to get tools based on filter
-  const allTools = [...toolsHot, ...toolsContent, ...toolsResearch];
+  const allTools = [...toolsVeryHot, ...toolsHot, ...toolsContent, ...toolsResearch];
 
   const getFilteredTools = () => {
     switch (activeTab) {
@@ -371,6 +395,7 @@ const ToolsGrid: React.FC = () => {
       case 'hot': return allTools.filter(t => t.isHot);
       case 'content': return toolsContent;
       case 'research': return toolsResearch;
+      case 'very_hot': return toolsVeryHot;
       default: return [];
     }
   };
@@ -381,6 +406,7 @@ const ToolsGrid: React.FC = () => {
     { id: 'hot', label: 'Đang thịnh hành', icon: '🔥' },
     { id: 'content', label: 'Sáng tạo nội dung', icon: '📝' },
     { id: 'research', label: 'Nghiên cứu thị trường', icon: '📊' },
+    { id: 'very_hot', label: '🔥 TOOLS VERY HOT', icon: null },
   ];
 
   return (
@@ -428,6 +454,7 @@ const ToolsGrid: React.FC = () => {
         <div className="min-h-[500px]">
           {activeTab === 'all' ? (
             <>
+              <ToolSection title="🔥 Tools Very Hot" tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} />
               <ToolSection title="🔥 Đang Thịnh Hành" tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} />
               <ToolSection title="📝 Sáng Tạo Nội Dung" tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} />
               <ToolSection title="📊 Nghiên Cứu Thị Trường" tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} />

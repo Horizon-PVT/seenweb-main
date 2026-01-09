@@ -58,6 +58,7 @@ model User {
   attribution         UserAttribution?
   events              Event[]
   dubbingProjects     DubbingProject[]
+  teacherRoadmap      TeacherRoadmap?
 
   @@map("users")
 }
@@ -265,4 +266,41 @@ model Event {
   @@index([userId])
   @@index([anonId])
   @@map("events")
+}
+
+model TeacherRoadmap {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+
+  // Onboarding Data
+  channelTopic    String?
+  channelGoal     String?
+  availableTime   String?
+  contentMix      String?
+  timezone        String?
+  postingTime     String?
+  content         Json?    // Stores the full 30-day AI generated plan
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  progress        TeacherRoadmapProgress[]
+
+  @@map("teacher_roadmaps")
+}
+
+model TeacherRoadmapProgress {
+  id              String   @id @default(cuid())
+  roadmapId       String
+  roadmap         TeacherRoadmap @relation(fields: [roadmapId], references: [id])
+
+  day             Int      // 0 to 30
+  status          String   @default("LOCKED") // LOCKED, OPEN, COMPLETED, SKIPPED
+
+  unlockedAt      DateTime?
+  completedAt     DateTime?
+
+  @@unique([roadmapId, day])
+  @@map("teacher_roadmap_progress")
 }

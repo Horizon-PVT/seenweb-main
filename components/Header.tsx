@@ -67,6 +67,9 @@ const Header: React.FC = () => {
 
 
 
+
+
+
           <a
             href="#about"
             onClick={(e) => handleNavClick(e, "#about")}

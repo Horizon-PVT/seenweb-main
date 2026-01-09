@@ -95,13 +95,13 @@ export default function UpgradeGate({
                     </div>
 
                     <div className="p-6 space-y-5">
-                        {/* Sunk cost message */}
+                        {/* Sunk cost message - changed to value proposition */}
                         <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-xl p-4 text-center">
-                            <p className="text-yellow-400">
-                                ⚠️ Bạn đã hoàn thành <strong>{featureName}</strong>!
+                            <p className="text-yellow-400 font-medium">
+                                🚀 Mở khóa toàn bộ sức mạnh của <strong>{featureName}</strong>!
                             </p>
                             <p className="text-gray-400 text-sm mt-1">
-                                Để tải xuống hoặc copy kết quả, vui lòng nâng cấp.
+                                Kết quả đã sẵn sàng. Nâng cấp để truy cập đầy đủ và tải xuống ngay.
                             </p>
                         </div>
 
@@ -143,13 +143,13 @@ export default function UpgradeGate({
                                     </div>
                                 </div>
 
-                                {/* Share option (1 time only) */}
+                                {/* Share option (Trial) */}
                                 <button
                                     onClick={handleShareOption}
                                     className="w-full bg-blue-600/20 border border-blue-500/30 text-blue-400 font-medium py-3 rounded-xl hover:bg-blue-600/30 transition flex items-center justify-center gap-2"
                                 >
                                     <Share2 className="w-5 h-5" />
-                                    Share FB để mở khóa 1 lần (chỉ 1 lần duy nhất)
+                                    Share FB để mở khóa dùng thử 7 ngày
                                 </button>
                             </>
                         )}

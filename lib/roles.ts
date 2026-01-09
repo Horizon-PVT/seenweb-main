@@ -29,6 +29,7 @@ export const TOOLS = [
   { id: 'velocity', name: 'Tạo Video (Velocity Tool)', roleMin: ROLES.VIP },
   { id: 'dubbing', name: 'AI Dubbing Studio', roleMin: ROLES.VIP },
   { id: 'virtual-mc', name: 'Virtual MC', roleMin: ROLES.VIP },
+  { id: 'thay-youtube', name: 'Thầy YouTube', roleMin: ROLES.CREATIVE }, // STARTER tier required, Day 11+ requires VIP
 ] as const;
 
 // ✅ FIX TRIỆT ĐỂ: ADMIN full quyền + roleOrder đúng thứ tự (higher role index cao hơn)
