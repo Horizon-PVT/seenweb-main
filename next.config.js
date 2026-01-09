@@ -19,6 +19,9 @@ const nextConfig = {
       { protocol: "https", hostname: "**.unsplash.com" },
       { protocol: "https", hostname: "**.pexels.com" },
       { protocol: "https", hostname: "**.placeholder.com" },
+      { protocol: "https", hostname: "minio.kodaflow.com" },
+      { protocol: "https", hostname: "api.dicebear.com" },
+      { protocol: "https", hostname: "randomuser.me" },
     ],
     // Enable image optimization for better performance
     unoptimized: false,

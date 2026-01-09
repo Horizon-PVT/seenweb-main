@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 type CountUpProps = {
   to: number;
@@ -126,14 +127,13 @@ const HeroSection: React.FC = () => {
           </button>
 
           {/* Nút Xem demo */}
-          <a
-            href="https://youtu.be/demo_link_placeholder"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto min-w-[200px] bg-transparent text-white font-bold py-4 px-8 text-lg border border-white/30 rounded-full hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-2"
+          {/* Nút Cộng Đồng (Thay cho Demo) */}
+          <button
+            onClick={() => router.push('/community')}
+            className="w-full sm:w-auto min-w-[200px] bg-red-600 text-white font-bold py-4 px-8 text-lg rounded-full hover:bg-red-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(220,38,38,0.4)] animate-pulse"
           >
-            <span>▶</span> Xem demo 3 phút
-          </a>
+            <span>🚀</span> GIA NHẬP CỘNG ĐỒNG
+          </button>
         </div>
 
         {/* Trust Line */}
@@ -145,6 +145,18 @@ const HeroSection: React.FC = () => {
 
       {/* Social Icons Stack (Fixed above Chatbot) */}
       <div className="fixed bottom-28 right-8 z-30 flex flex-col items-center gap-4">
+        {/* Seen Chat Community (Added) */}
+        <Link
+          href="/community"
+          className="bg-white p-1 rounded-full transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(255,0,0,0.6)] shadow-lg w-12 h-12 flex items-center justify-center overflow-hidden border border-red-500/20 group relative"
+        >
+          <img src="/images/logo-seen-chat.png" alt="Seen Chat" className="w-full h-full object-cover" />
+          {/* Tooltip */}
+          <div className="absolute right-full mr-4 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Cộng Đồng
+          </div>
+        </Link>
+
         {/* Zalo */}
         <a
           href="https://zalo.me/g/lhxazc331"

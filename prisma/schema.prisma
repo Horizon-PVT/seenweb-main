@@ -59,6 +59,13 @@ model User {
   events              Event[]
   dubbingProjects     DubbingProject[]
   teacherRoadmap      TeacherRoadmap?
+  chatMessages        ChatMessage[]
+  
+  // V2: Creator Hub Gamification
+  badges              UserBadge[]
+  youtubeSubCount     Int             @default(0)
+  streakDays          Int             @default(0)
+  lastActiveAt        DateTime?
 
   @@map("users")
 }
@@ -303,4 +310,72 @@ model TeacherRoadmapProgress {
 
   @@unique([roadmapId, day])
   @@map("teacher_roadmap_progress")
+}
+
+// ============================================
+// SEEN CHAT COMMUNITY MODELS
+// ============================================
+
+model ChatChannel {
+  id          String   @id @default(cuid())
+  slug        String   @unique // e.g., 'general', 'newbie', 'flex'
+  name        String
+  icon        String?  // Emoji or Icon name
+  description String?
+  isLocked    Boolean  @default(false) // If true, requires special role/payment
+  
+  messages    ChatMessage[]
+  
+  // V2: Grouping & Type
+  category    String   @default("GENERAL") // GENERAL, GROWTH, SPECIAL
+  type        String   @default("CHAT")    // CHAT, SHOWCASE
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("chat_channels")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  
+  // V2: Flex Card Data
+  type      String   @default("TEXT") // TEXT, FLEX, SYSTEM
+  metadata  Json?    // { subCount, viewCount, topic, insight } for FLEX cards
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  channelId String
+  channel   ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([channelId, createdAt])
+  @@map("chat_messages")
+}
+
+// ============================================
+// GAMIFICATION MODELS (V2)
+// ============================================
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeCode String   // e.g., '1K_SUB', 'STREAK_7', 'HELPER'
+  earnedAt  DateTime @default(now())
+
+  @@unique([userId, badgeCode])
+  @@map("user_badges")
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
 }
