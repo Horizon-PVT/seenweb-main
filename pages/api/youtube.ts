@@ -33,14 +33,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let prompt = "";
     let formattedLowFloor: any[] = [];
 
-    // ==================== 1. RIVAL SCANNER – GIỮ NGUYÊN 100% ====================
+    // ==================== 1. RIVAL SCANNER – ĐÃ FIX HỖ TRỢ HANDLE TRỰC TIẾP ====================
     if (tool === 'rival') {
-      const urlMatch = input.match(/(?:youtube\.com\/(?:channel\/|c\/|user\/|@)([^\/?&]+)|youtu\.be\/([^\?]+)|youtube\.com\/watch\?v=([^&]+))/);
-      if (!urlMatch) return res.status(400).json({ error: 'URL không hợp lệ' });
+      // Hỗ trợ cả URL đầy đủ VÀ handle trực tiếp (@username hoặc username)
+      let urlMatch = input.match(/(?:youtube\.com\/(?:channel\/|c\/|user\/|@)([^\/?\&]+)|youtu\.be\/([^\?]+)|youtube\.com\/watch\?v=([^\&]+))/);
+
+      // Nếu không match URL, kiểm tra xem có phải handle trực tiếp không
+      let directHandle: string | null = null;
+      if (!urlMatch) {
+        // Chấp nhận @username hoặc username (loại bỏ @ nếu có)
+        const handleMatch = input.trim().match(/^@?([a-zA-Z0-9_\-]+)$/);
+        if (handleMatch) {
+          directHandle = handleMatch[1];
+        } else {
+          return res.status(400).json({ error: 'URL hoặc tên kênh không hợp lệ. Hãy nhập URL YouTube hoặc @handle của kênh.' });
+        }
+      }
 
       let channelId = null;
-      const videoId = urlMatch[2] || urlMatch[3];
-      const channelHandleOrId = urlMatch[1];
+      const videoId = urlMatch?.[2] || urlMatch?.[3];
+      const channelHandleOrId = urlMatch?.[1]; // This will be undefined if urlMatch is null
 
       // Case 1: Video URL -> Get Channel ID from Video
       if (videoId) {
@@ -64,8 +76,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         channelId = s.data.items?.[0]?.snippet?.channelId;
       }
+      // Case 4: Direct handle (user nhập @username hoặc username trực tiếp)
+      else if (directHandle) {
+        const s = await youtube.search.list({
+          part: ['snippet'],
+          q: directHandle,
+          type: ['channel'],
+          maxResults: 1
+        });
+        channelId = s.data.items?.[0]?.snippet?.channelId;
+      }
 
-      if (!channelId) return res.status(404).json({ error: 'Không tìm thấy kênh' });
+      if (!channelId) return res.status(404).json({ error: 'Không tìm thấy kênh. Hãy kiểm tra lại tên hoặc URL kênh.' });
 
       const chRes = await youtube.channels.list({
         part: ['snippet', 'statistics', 'topicDetails'],
