@@ -180,14 +180,21 @@ Trả về đúng JSON (8-12 kênh, 6-10 video, 6-8 xu hướng):
 }`;
     }
 
-    // ==================== 3. MICRO NICHE MINER – ĐÃ FIX HOÀN HẢO ====================
+    // ==================== 3. MICRO NICHE MINER – ĐÃ FIX HOÀN HẢO + QUỐC TẾ ====================
     else if (tool === 'micro' && macroNiche) {
+      // Lấy targetMarket từ request body (mặc định VN)
+      const { targetMarket = 'VN' } = req.body;
+      const isVN = targetMarket === 'VN';
+      const regionCode = isVN ? 'VN' : 'US';
+      const outputLanguage = isVN ? 'Tiếng Việt' : 'English';
+
       const searchRes = await youtube.search.list({
         part: ['snippet'],
         q: macroNiche,
         type: ['video'],
         order: 'relevance',
         maxResults: 50,
+        regionCode: regionCode,
       });
 
       const realVideos = (searchRes.data.items || []).map(v => ({
@@ -201,6 +208,7 @@ Trả về đúng JSON (8-12 kênh, 6-10 video, 6-8 xu hướng):
         q: macroNiche,
         type: ['channel'],
         maxResults: 30,
+        regionCode: regionCode,
       });
 
       const channelIds = channelRes.data.items?.map(i => i.snippet?.channelId).filter(Boolean) as string[] || [];
@@ -221,8 +229,10 @@ Trả về đúng JSON (8-12 kênh, 6-10 video, 6-8 xu hướng):
           thumbnail: c.snippet?.thumbnails?.high?.url || c.snippet?.thumbnails?.medium?.url || '',
         }));
 
-      // PROMPT MỚI + SIÊU ỔN ĐỊNH – GEMINI SẼ KHÔNG BAO GIỜ LỖI JSON NỮA
-      prompt = `Từ macro-niche "${macroNiche}", tìm 8-10 micro-niche cực kỳ tiềm năng tại Việt Nam.
+      // PROMPT ĐỘNG THEO THỊ TRƯỜNG
+      if (isVN) {
+        // PROMPT CHO VIỆT NAM (giữ nguyên logic cũ)
+        prompt = `Từ macro-niche "${macroNiche}", tìm 8-10 micro-niche cực kỳ tiềm năng tại Việt Nam.
 
 Dữ liệu thật:
 Video hot: ${JSON.stringify(realVideos.map(v => v.title).slice(0, 30))}
@@ -270,6 +280,59 @@ TRẢ VỀ CHỈ JSON THUẦN, BẮT ĐẦU BẰNG { VÀ KẾT THÚC BẰNG }, K
     }
   ]
 }`;
+      } else {
+        // PROMPT CHO QUỐC TẾ (US/Global) - Tiếng Anh, CPM cao
+        prompt = `From the macro-niche "${macroNiche}", find 8-10 extremely high-potential micro-niches for the US/Global market.
+
+CRITICAL: Focus on niches with HIGH CPM ($5-30+ per 1000 views). Target English-speaking audiences in USA, UK, Canada, Australia.
+
+Real YouTube Data:
+Trending videos: ${JSON.stringify(realVideos.map(v => v.title).slice(0, 30))}
+Low-floor successful channels: ${JSON.stringify(formattedLowFloor)}
+
+RETURN ONLY PURE JSON, START WITH { AND END WITH }, NO MISSING BRACKETS, NO EXTRA TEXT:
+
+{
+  "topNiches": [
+    {
+      "nicheName": "Specific micro-niche with high CPM potential (Finance, Tech, Health, Business, etc.)",
+      "overallScore": 9.3,
+      "competitionScore": 22,
+      "searchVolumeScore": 86,
+      "monetizationScore": 94,
+      "longTermViabilityScore": 90,
+      "peakTimingForecast": "Q1-Q2 2026",
+      "communitySentimentAnalysis": "The community is actively searching for actionable, data-driven content with real examples...",
+      "pioneerVideoTopics": [
+        "10+ high-CTR video titles ready to use",
+        "Title 2",
+        "Title 3",
+        "Title 4",
+        "Title 5",
+        "Title 6",
+        "Title 7",
+        "Title 8",
+        "Title 9",
+        "Title 10"
+      ],
+      "miningScript": {
+        "tone": "professional + engaging",
+        "frequency": "2-3 videos/week",
+        "monetizationGoal": "AdSense ($15+ CPM) + affiliate marketing + digital products"
+      },
+      "lowFloorChannels": [
+        {
+          "name": "Real channel name",
+          "url": "https://youtube.com/channel/...",
+          "subscribers": "25K",
+          "thumbnail": "real thumbnail url"
+        }
+      ],
+      "saturatedNichesWarning": ["saturated niche 1", "saturated niche 2"]
+    }
+  ]
+}`;
+      }
     } else {
       return res.status(400).json({ error: 'Tool không hỗ trợ' });
     }
