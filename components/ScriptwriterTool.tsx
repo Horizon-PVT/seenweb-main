@@ -315,14 +315,54 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                             <span className="text-xs text-[#CDAD5A] w-20 text-right">{copySuccess}</span>
                         </div>
                     </div>
-                    <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto whitespace-pre-wrap font-mono">
+                    <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto whitespace-pre-wrap font-mono relative">
                         {(isLoading && !outputScript) && (
                             <div className="flex flex-col items-center justify-center h-full text-center">
                                 <div className="w-20 h-20 text-[#008080]"><PyramidIcon /></div>
-                                <p className="mt-4 text-sm font-semibold text-[#008080] tracking-widest animate-pulse">{loadingMessage}</p> {/* Hiển thị loading message */}
+                                <p className="mt-4 text-sm font-semibold text-[#008080] tracking-widest animate-pulse">{loadingMessage}</p>
                             </div>
                         )}
-                        {outputScript}
+                        {outputScript && (
+                            <>
+                                {/* Show partial content for FREE, full for PAID */}
+                                {(userRole === 'FREE' || userRole === 'USER') ? (
+                                    <>
+                                        {/* Visible portion (first 400 chars) */}
+                                        <div className="text-gray-300">
+                                            {outputScript.substring(0, 400)}...
+                                        </div>
+                                        {/* Blurred portion with paywall overlay */}
+                                        <div className="relative mt-4">
+                                            <div className="blur-sm select-none pointer-events-none text-gray-500">
+                                                {outputScript.substring(400, 800)}
+                                            </div>
+                                            {/* Paywall Overlay */}
+                                            <div
+                                                className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black flex flex-col items-center justify-center cursor-pointer rounded-lg"
+                                                onClick={() => {
+                                                    setGateRequiredTier('CREATIVE');
+                                                    setGateFeatureName('Xem toàn bộ kịch bản');
+                                                    setShowUpgradeGate(true);
+                                                }}
+                                            >
+                                                <div className="text-4xl mb-3">🔒</div>
+                                                <p className="text-white font-bold text-center px-4">
+                                                    Bạn đã có 1 ý tưởng video có khả năng lên view!
+                                                </p>
+                                                <p className="text-gray-400 text-sm text-center px-4 mt-1">
+                                                    Mở khóa để nhận toàn bộ kịch bản + hướng dẫn đăng video.
+                                                </p>
+                                                <button className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
+                                                    Mở khóa để làm tiếp →
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>{outputScript}</>
+                                )}
+                            </>
+                        )}
                     </div>
 
                     {/* Phase 3: Live Comparison for FREE users */}

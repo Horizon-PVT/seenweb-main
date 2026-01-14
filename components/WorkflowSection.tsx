@@ -4,30 +4,33 @@ import { useRouter } from "next/router";
 const STEPS = [
     {
         step: 1,
-        title: "Tìm chủ đề dễ làm",
-        desc: "Scan trọn thị trường, tìm ngách ít cạnh tranh, view cao.",
+        title: "Chọn đúng video nên làm",
+        desc: "Hệ thống phân tích thị trường và đối thủ để chỉ ra video dễ làm, ít cạnh tranh và có người xem.",
         toolId: "micro-niche-miner",
         toolName: "Micro Niche Miner",
         icon: "🎯",
         color: "from-blue-500 to-cyan-400",
+        cta: "Chỉ tôi nên làm video gì →"
     },
     {
         step: 2,
-        title: "Viết kịch bản video",
-        desc: "AI viết hook viral, outline & kịch bản chi tiết trong 30s.",
+        title: "Có sẵn kịch bản để làm theo",
+        desc: "Cung cấp sẵn hook, kịch bản và nội dung từng đoạn. Không cần nghĩ – chỉ cần làm theo.",
         toolId: "scriptwriter",
         toolName: "Scriptwriter",
         icon: "✍️",
         color: "from-purple-500 to-pink-500",
+        cta: "Lấy kịch bản video →"
     },
     {
         step: 3,
-        title: "SEO & Đăng video",
-        desc: "Tối ưu tiêu đề, mô tả, tag chuẩn SEO để leo top tìm kiếm.",
+        title: "Đăng đúng cách để có cơ hội lên view",
+        desc: "Gợi ý tiêu đề, mô tả, tag và hướng thumbnail để video không đăng đại, không đoán mò.",
         toolId: "seo",
         toolName: "SEO Tool + Thumbnail",
         icon: "🚀",
         color: "from-amber-400 to-orange-500",
+        cta: "Chuẩn bị đăng video →"
     },
 ];
 
@@ -50,10 +53,10 @@ export default function WorkflowSection() {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-black text-white mb-4 uppercase tracking-tight">
-                        Quy Trình <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">3 Bước Đơn Giản</span>
+                        Quy Trình <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">3 Bước Để Làm Video Có Cơ Hội Lên View</span>
                     </h2>
                     <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                        Lộ trình đã được kiểm chứng giúp người mới xây kênh thành công mà không cần kinh nghiệm.
+                        Hệ thống dẫn bạn đi từ "chưa biết làm gì" → "có video sẵn để đăng".
                     </p>
                 </div>
 
@@ -82,7 +85,7 @@ export default function WorkflowSection() {
                                 onClick={() => handleOpenTool(item.toolId)}
                                 className="mt-auto w-full py-3 px-6 rounded-xl bg-gray-800 hover:bg-white text-white hover:text-black font-bold transition-all duration-300 border border-gray-700 hover:border-white"
                             >
-                                Bắt đầu bước {item.step} →
+                                {item.cta}
                             </button>
                         </div>
                     ))}

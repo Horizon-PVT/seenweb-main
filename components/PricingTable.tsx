@@ -9,15 +9,16 @@ interface PricingTableProps {
 
 const featuresMap = {
   FREE: [
-    "✅ Đào Ngách CPM Cao",
-    "✅ Viết Kịch Bản Viral",
-    "✅ Tối Ưu SEO & Từ Khóa",
+    "✅ Đào Ngách CPM Cao (1 lượt/ngày)",
+    "⚠️ Viết Kịch Bản (xem trước)",
+    "⚠️ Tối Ưu SEO (xem trước)",
     "✅ Thư viện ngách (5 ngách đầu)",
     "✅ Thầy YouTube (Day 1-5)",
-    "⚠️ Giới hạn: 3 lượt/ngày",
   ],
   STARTER: [
-    "Tất cả tính năng FREE (không giới hạn lượt)",
+    "Tất cả tính năng FREE (không giới hạn)",
+    "✅ Viết Kịch Bản (đầy đủ + copy)",
+    "✅ Tối Ưu SEO (đầy đủ + copy)",
     "✅ Phân Tích Kênh Đối Thủ",
     "✅ Thầy YouTube (Day 6-20)",
     "✅ 10 credits AI Dubbing",

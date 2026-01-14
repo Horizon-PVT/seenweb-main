@@ -90,29 +90,29 @@ const HeroSection: React.FC = () => {
       {/* Nội dung chính */}
       <div className="relative z-10 p-6 w-full max-w-5xl mx-auto flex flex-col items-center">
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-playfair font-black text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] mb-6">
-          Công cụ AI hỗ trợ YouTuber mới <br className="hidden md:block" />
+          Giúp bạn tìm đúng ngách và <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">
-            làm video nhanh & đúng hướng
+            làm video có khả năng lên view
           </span>
         </h1>
 
         <h2 className="text-lg md:text-2xl text-gray-300 font-medium max-w-3xl leading-relaxed mb-8">
-          Viết kịch bản, SEO YouTube, tìm niche & tạo thumbnail — tất cả trong một quy trình đơn giản cho người mới bắt đầu.
+          Không cần kinh nghiệm, chỉ cần làm theo từng bước.
         </h2>
 
         {/* Value Bullets */}
         <div className="flex flex-col md:flex-row gap-4 md:gap-8 text-left text-gray-200 mb-10 text-sm md:text-base bg-black/40 p-4 rounded-xl backdrop-blur-sm border border-white/5">
           <div className="flex items-center gap-2">
             <span className="text-green-400 text-xl">✓</span>
-            <span>Không biết làm gì? → <strong>AI gợi ý</strong></span>
+            <span>Không biết làm gì? → <strong>Chỉ cho bạn video nên làm</strong></span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400 text-xl">✓</span>
-            <span>Không rành SEO? → <strong>Tối ưu tự động</strong></span>
+            <span>Không biết viết? → <strong>Có sẵn kịch bản</strong></span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400 text-xl">✓</span>
-            <span>Không biết edit? → <strong>Vẫn làm đều</strong></span>
+            <span>Không rành SEO? → <strong>Hướng dẫn đăng đúng cách</strong></span>
           </div>
         </div>
 
