@@ -20,65 +20,74 @@ import {
   type TopicDifficulty,
 } from "@/lib/youtube-api";
 
-// Enhanced schema with new fields
+// Simple Schema - Only 5 core features for reliable responses
 const seoSchema = {
   type: Type.OBJECT,
   properties: {
     performanceScore: {
       type: Type.OBJECT,
-      description: "Overall SEO performance evaluation.",
       properties: {
-        overall: { type: Type.NUMBER, description: "Overall score out of 100, must be high." },
-        keywordRepetition: { type: Type.NUMBER, description: "Score for keyword repetition (out of 5), must be 5." },
-        highVolumeTags: { type: Type.NUMBER, description: "Score for using high-volume tags (out of 5), must be 5." },
-        rankingTags: { type: Type.NUMBER, description: "Score for using relevant ranking tags (out of 5), must be 5." }
+        overall: { type: Type.NUMBER },
+        keywordRepetition: { type: Type.NUMBER },
+        highVolumeTags: { type: Type.NUMBER },
+        rankingTags: { type: Type.NUMBER }
       }
     },
     titles: {
       type: Type.ARRAY,
-      description: "Generate exactly 3 title variations.",
       items: {
         type: Type.OBJECT,
         properties: {
-          text: { type: Type.STRING, description: "The generated title, under 65 characters, including 2 main hashtags at the end." },
-          score: { type: Type.NUMBER, description: "A score for this specific title (out of 100, must be > 90)." },
-          keywords: { type: Type.ARRAY, description: "List of main and secondary keywords present in this title.", items: { type: Type.STRING } }
+          text: { type: Type.STRING },
+          score: { type: Type.NUMBER }
         }
       }
     },
     description: {
       type: Type.OBJECT,
       properties: {
-        mainHashtags: { type: Type.ARRAY, description: "Exactly 5 main hashtags for the start of the description.", items: { type: Type.STRING } },
-        body: { type: Type.STRING, description: "The main body of the description, broken into logical paragraphs with newlines. It must include relevant emojis to enhance readability. It must also include a placeholder for a YouTube link like '[PASTE YOUR VIDEO LINK HERE]' and a contact email like 'Business Inquiries: your.email@example.com'." },
-        secondaryHashtags: { type: Type.ARRAY, description: "Exactly 10 secondary hashtags for the end of the description.", items: { type: Type.STRING } }
+        mainHashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
+        body: { type: Type.STRING },
+        secondaryHashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
       }
     },
     tags: {
       type: Type.ARRAY,
-      description: "Generate around 30 relevant tags, not exceeding 500 characters in total. The first tag must be the main keyword.",
       items: {
         type: Type.OBJECT,
         properties: {
           text: { type: Type.STRING },
-          strength: { type: Type.STRING, description: "Either 'Good' (for high search volume/low competition) or 'Balanced'." }
+          strength: { type: Type.STRING }
         }
       }
     },
     thumbnailIdeas: {
       type: Type.ARRAY,
-      description: "Generate exactly 3 diverse and ultra-detailed thumbnail concepts for A/B testing.",
       items: {
         type: Type.OBJECT,
         properties: {
-          concept: { type: Type.STRING, description: "Ultra-detailed concept: subject appearance (clothing, pose), background elements, specific objects." },
-          emotion: { type: Type.STRING, description: "The target emotion (e.g., Curiosity, Urgency, Surprise)." },
-          colors: { type: Type.STRING, description: "Two contrasting dominant color pairs (e.g., 'Vibrant green on dark grey')." },
-          facialExpression: { type: Type.STRING, description: "Detailed facial expression (e.g., 'Shocked face, wide eyes, open mouth, slight head tilt')." },
-          objects: { type: Type.STRING, description: "Specific objects/icons with placement hints (e.g., 'Glowing code icon (top-left), red warning sign (bottom-right)')." },
-          thumbnailText: { type: Type.STRING, description: "Short, impactful text (e.g., 'WHY?!' or 'SECRET CODE')." },
-          fontSuggestion: { type: Type.STRING, description: "Font style suggestion (e.g., 'Bold, impactful sans-serif like Bebas Neue')." },
-          composition: { type: Type.STRING, description: "Layout/camera angle (e.g., 'Close-up shot, subject slightly off-center right, text wraps around subject. 16:9 aspect ratio. Shallow depth of field. Dramatic lighting from above.')." },
+          concept: { type: Type.STRING },
+          aiPrompt: { type: Type.STRING },
+          emotion: { type: Type.STRING },
+          colors: { type: Type.STRING },
+          thumbnailText: { type: Type.STRING }
+        }
+      }
+    },
+    uploadTimeOptimizer: {
+      type: Type.OBJECT,
+      properties: {
+        audienceTimezone: { type: Type.STRING },
+        bestTimes: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              day: { type: Type.STRING },
+              time: { type: Type.STRING },
+              reason: { type: Type.STRING }
+            }
+          }
         }
       }
     }
@@ -118,7 +127,49 @@ interface OutputData {
     composition: string;
   }[];
 
-  // NEW FIELDS
+  // NEW FIELDS - Advanced SEO Features
+  hookVariations?: {
+    type: string;
+    script: string;
+    openingLine: string;
+    retentionTechnique: string;
+    estimatedRetention: number;
+  }[];
+  ctrPrediction?: {
+    overallScore: number;
+    titleScore: number;
+    thumbnailScore: number;
+    emotionalPull: string;
+    improvements: string[];
+    competitorBenchmark: string;
+  };
+  uploadTimeOptimizer?: {
+    bestTimes: {
+      day: string;
+      time: string;
+      reason: string;
+      competitionLevel: string;
+    }[];
+    avoidTimes: string[];
+    audienceTimezone: string;
+  };
+  shortsSuggestions?: {
+    clipTitle: string;
+    hookMoment: string;
+    suggestedDuration: string;
+    viralPotential: number;
+    caption: string;
+    crossPlatform: string[];
+  }[];
+  competitorInsights?: {
+    avgViews: string;
+    commonPattern: string;
+    contentGap: string;
+    difficultyLevel: string;
+    recommendation: string;
+  };
+
+  // Existing enhanced fields
   titleOptimized?: OptimizedTitle;
   descriptionEnhanced?: {
     firstTwoLines: string;
@@ -189,26 +240,52 @@ export default async function handler(
       return res.status(500).json({ error: "Lỗi cấu hình máy chủ." });
     }
 
-    // === STEP 1: Generate AI SEO content ===
-    const prompt = `You are a world-class YouTube SEO expert AND a creative visual director, a "Signal Tuner". Your task is to generate a complete, max-spec SEO package including detailed thumbnail concepts.
+    // === STEP 1: Generate SEO content - SIMPLE 5 FEATURES ONLY ===
+    const prompt = `Bạn là chuyên gia SEO YouTube. Tạo gói SEO với 5 phần sau:
 
-    **CRITICAL INSTRUCTION**: 
-    1. First, automatically detect the language of the "Video Idea & Main Keywords" provided below. 
-    2. Then, you MUST generate the entire SEO package strictly in that detected language.
-    3. **OUTPUT FORMAT**: Return ONLY valid JSON. Do not include any markdown formatting (like \`\`\`json), explanations, or conversational text. 
-    4. **NO REPETITION**: Do not repeat emojis or text endlessly. Be concise and professional.
+**THÔNG TIN VIDEO**:
+- Chủ đề: "${coreIdea}"
+- Đối tượng: "${targetAudience}"
+- Mục tiêu: "${seoGoal}"
 
-    - **Video Idea & Main Keywords**: "${coreIdea}"
-    - **Target Audience**: "${targetAudience}"
-    - **Main SEO Goal**: Optimize for "${seoGoal}"
+**YÊU CẦU**:
 
-    Based on this, and following the schema, generate the complete SEO package.
-    - Description body: Structure with paragraphs, relevant emojis (max 1-2 per paragraph), placeholders for links.
-    - Thumbnails: Provide vivid, concrete descriptions (subject, background, lighting, mood) for AI generation.`;
+1. **performanceScore**: 
+   - overall: 95
+   - keywordRepetition: 5
+   - highVolumeTags: 5
+   - rankingTags: 5
+
+2. **titles** (3 tiêu đề):
+   - text: Tiêu đề dưới 65 ký tự, có 2 hashtags cuối
+   - score: 90-100
+
+3. **description**:
+   - mainHashtags: 5 hashtags
+   - body: Mô tả 200+ từ, có emojis, 4 đoạn văn, dùng \\n để xuống dòng
+   - secondaryHashtags: 10 hashtags
+
+4. **tags** (25 tags):
+   - text: từ khóa
+   - strength: "Good" hoặc "Balanced"
+
+5. **thumbnailIdeas** (3 concepts):
+   - concept: Mô tả ý tưởng thumbnail bằng tiếng Việt (20+ từ)
+   - aiPrompt: ENGLISH prompt for AI image generation (50+ words). Include: subject (person/object), pose, expression, background, lighting, camera angle, style. Format for Midjourney/DALL-E.
+   - emotion: Cảm xúc (Curiosity/Shock/Excitement)
+   - colors: Main colors (e.g., "red, yellow, dark blue")
+   - thumbnailText: Text trên thumbnail (2-4 từ)
+
+6. **uploadTimeOptimizer**:
+   - audienceTimezone: "Việt Nam GMT+7"
+   - bestTimes: 3 thời điểm tối ưu (day, time, reason)
+
+**OUTPUT**: Chỉ JSON, không markdown.`;
 
     const ai = new GoogleGenAI({ apiKey });
-    const aiPromise = ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+
+    const aiResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         tools: useGrounding ? [{ googleSearch: {} }] : undefined,
@@ -217,29 +294,23 @@ export default async function handler(
       },
     });
 
-    // === STEP 2: Fetch YouTube data (parallel with AI) ===
+    // === STEP 2: Fetch YouTube data ===
     let youtubeAnalysis: VideoAnalysis | null = null;
     let competitorVideos: any[] = [];
     const mainKeyword = extractMainKeyword(coreIdea);
 
-    const youtubePromise = searchVideos(mainKeyword, 5)
-      .then(async (videos) => {
-        competitorVideos = videos;
-        return analyzeTopVideos(videos);
-      })
-      .catch((error) => {
-        console.error('YouTube API Error (non-blocking):', error.message);
-        return null;
-      });
-
-    // Wait for both
-    const [aiResponse, ytAnalysis] = await Promise.all([aiPromise, youtubePromise]);
-    youtubeAnalysis = ytAnalysis;
+    try {
+      const videos = await searchVideos(mainKeyword, 5);
+      competitorVideos = videos;
+      youtubeAnalysis = await analyzeTopVideos(videos);
+    } catch (error) {
+      console.error('YouTube API Error (non-blocking):', (error as Error).message);
+    }
 
     // Parse AI output
-    let jsonString = aiResponse.text?.trim() || "";
+    let jsonString = aiResponse.text?.trim() || "{}";
 
-    // Remove markdown code blocks if present (Gemini sometimes adds them despite JSON mode)
+    // Remove markdown code blocks if present
     if (jsonString.startsWith('```json')) {
       jsonString = jsonString.replace(/^```json/, '').replace(/```$/, '');
     } else if (jsonString.startsWith('```')) {
@@ -251,8 +322,8 @@ export default async function handler(
     try {
       parsedOutput = JSON.parse(jsonString);
     } catch (parseError) {
-      console.error("JSON parse error:", jsonString.substring(0, 500)); // Log start of string for debug
-      throw new Error(`Phản hồi từ AI không phải là JSON hợp lệ. Lỗi: ${(parseError as Error).message}`);
+      console.error("JSON parse error:", jsonString.substring(0, 500));
+      throw new Error(`AI response is not valid JSON.`);
     }
 
     // === STEP 3: Enhance with YouTube data ===

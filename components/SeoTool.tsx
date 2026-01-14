@@ -21,6 +21,7 @@ interface OutputData {
         text: string;
         score: number;
         keywords: string[];
+        angle?: string;
     }[];
     description?: {
         mainHashtags: string[];
@@ -33,16 +34,68 @@ interface OutputData {
     }[];
     thumbnailIdeas?: {
         concept: string;
+        aiPrompt?: string;
         emotion: string;
         colors: string;
-        facialExpression: string;
-        objects: string;
+        facialExpression?: string;
+        objects?: string;
         thumbnailText: string;
-        fontSuggestion: string;
-        composition: string;
+        fontSuggestion?: string;
+        composition?: string;
     }[];
 
-    // NEW FIELDS
+    // NEW ADVANCED FEATURES
+    hookVariations?: {
+        type: string;
+        script: string;
+        openingLine: string;
+        retentionTechnique: string;
+        estimatedRetention: number;
+    }[];
+    ctrPrediction?: {
+        overallScore: number;
+        titleScore: number;
+        thumbnailScore: number;
+        emotionalPull: string;
+        improvements: string[];
+        competitorBenchmark: string;
+    };
+    uploadTimeOptimizer?: {
+        bestTimes: {
+            day: string;
+            time: string;
+            reason: string;
+            competitionLevel: string;
+        }[];
+        avoidTimes: string[];
+        audienceTimezone: string;
+    };
+    shortsSuggestions?: {
+        clipTitle: string;
+        hookMoment: string;
+        suggestedDuration: string;
+        viralPotential: number;
+        caption: string;
+        platformSpecificContent?: {
+            platform: string;
+            caption: string;
+            editTip: string;
+        }[];
+    }[];
+    competitorInsights?: {
+        avgViews: string;
+        commonPattern: string;
+        contentGap: string;
+        difficultyLevel: string;
+        recommendation: string;
+    };
+    idealTitle?: {
+        recommendedTitle: string;
+        reasoning: string;
+        improvements: string[];
+    };
+
+    // EXISTING ENHANCED FIELDS
     titleOptimized?: {
         text: string;
         reasoning: string;
@@ -337,18 +390,37 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
                                         </div>
                                     </div>
 
-                                    {/* Blurred portion with paywall overlay */}
+                                    {/* Blurred portion - REAL AI CONTENT for curiosity */}
                                     <div className="relative mt-4">
-                                        <div className="blur-sm select-none pointer-events-none opacity-50">
-                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">Ý TƯỞNG TITLE</h3>
-                                            <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm">
-                                                <p className="text-gray-400">Title gợi ý 1...</p>
-                                                <p className="text-gray-400">Title gợi ý 2...</p>
-                                            </div>
-                                            <h3 className="text-lg font-bold text-white mb-2 mt-4 font-playfair">Ý TƯỞNG TAGS</h3>
-                                            <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm">
-                                                <p className="text-gray-400">Tag 1, Tag 2, Tag 3...</p>
-                                            </div>
+                                        <div className="blur-sm select-none pointer-events-none opacity-60">
+                                            {/* Show real titles */}
+                                            {output.titles && output.titles.length > 0 && (
+                                                <div className="mb-4">
+                                                    <h3 className="text-lg font-bold text-white mb-2 font-playfair">Ý TƯỞNG TITLE</h3>
+                                                    <div className="space-y-2">
+                                                        {output.titles.slice(0, 2).map((title, i) => (
+                                                            <div key={i} className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm">
+                                                                <p className="font-semibold text-base text-gray-200">{title.text}</p>
+                                                                <p className="text-xs text-gray-400 mt-1">Score: {title.score}/100</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* Show real tags */}
+                                            {output.tags && output.tags.length > 0 && (
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-white mb-2 font-playfair">Ý TƯỞNG TAGS</h3>
+                                                    <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm flex flex-wrap gap-2">
+                                                        {output.tags.slice(0, 8).map((tag, i) => (
+                                                            <span key={i} className="px-3 py-1 rounded-full text-xs font-semibold bg-[#008080]/50 text-[#008080]">
+                                                                {tag.text}
+                                                            </span>
+                                                        ))}
+                                                        <span className="px-3 py-1 text-xs text-gray-500">+{output.tags.length - 8} more...</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Paywall Overlay */}
@@ -365,7 +437,7 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
                                                 Bạn đã có 1 bộ SEO tuyệt vời cho video có khả năng lên view!
                                             </p>
                                             <p className="text-gray-400 text-sm text-center px-4 mt-1">
-                                                Mở khóa để nhận toàn bộ SEO YouTube Pro.
+                                                Mở khóa để nhận toàn bộ Title, Tags, Thumbnail gợi ý.
                                             </p>
                                             <button className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
                                                 Mở khóa SEO Pro →
@@ -375,54 +447,168 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
                                 </div>
                             ) : (
                                 /* PAID users see full output */
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-sm">
                                         <p className="text-green-400 font-bold">✅ Bạn có quyền truy cập đầy đủ!</p>
-                                        <p className="text-gray-300 text-sm mt-1">Tất cả nội dung SEO đã được hiển thị ở trên.</p>
+                                        <p className="text-gray-300 text-sm mt-1">Tất cả nội dung SEO đã được hiển thị bên dưới.</p>
                                     </div>
-                                    {/* Performance Score (FULL) */}
+
+                                    {/* Performance Score */}
                                     <div>
-                                        <h3 className="text-lg font-bold text-white mb-2 font-playfair">ĐIỂM HIỆU SUẤT</h3>
-                                        <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm space-y-2">
+                                        <h3 className="text-lg font-bold text-white mb-2 font-playfair">📊 ĐIỂM HIỆU SUẤT</h3>
+                                        <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm grid grid-cols-2 gap-2">
                                             <p><strong className="text-[#CDAD5A]">Tổng quan:</strong> {output.performanceScore?.overall || 0}/100</p>
-                                            <p><strong className="text-[#CDAD5A]">Tần suất từ khóa:</strong> {output.performanceScore?.keywordRepetition || 0}/100</p>
-                                            <p><strong className="text-[#CDAD5A]">Từ khóa có lưu lượng cao:</strong> {output.performanceScore?.highVolumeTags || 0}/100</p>
-                                            <p><strong className="text-[#CDAD5A]">Từ khóa xếp hạng:</strong> {output.performanceScore?.rankingTags || 0}/100</p>
+                                            <p><strong className="text-[#CDAD5A]">Tần suất từ khóa:</strong> {output.performanceScore?.keywordRepetition || 0}/5</p>
+                                            <p><strong className="text-[#CDAD5A]">Tags lưu lượng cao:</strong> {output.performanceScore?.highVolumeTags || 0}/5</p>
+                                            <p><strong className="text-[#CDAD5A]">Tags xếp hạng:</strong> {output.performanceScore?.rankingTags || 0}/5</p>
                                         </div>
                                     </div>
+
                                     {/* Titles */}
                                     {output.titles && output.titles.length > 0 && (
                                         <div>
-                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">Ý TƯỞNG TITLE</h3>
+                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">🎯 Ý TƯỞNG TITLE (A/B Test)</h3>
                                             <div className="space-y-2">
                                                 {output.titles.map((title, i) => (
-                                                    <div key={i} className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm">
-                                                        <p className="font-semibold text-base text-gray-200">{title.text} <span className="text-gray-400">({title.score}/100)</span></p>
-                                                        <p className="text-xs text-gray-400 mt-1">Từ khóa: {title.keywords.join(', ')}</p>
+                                                    <div key={i} className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm flex justify-between items-start">
+                                                        <div className="flex-1">
+                                                            <p className="font-semibold text-base text-gray-200">{title.text}</p>
+                                                            <p className="text-xs text-gray-400 mt-1">Score: {title.score}/100 | Keywords: {title.keywords?.join(', ')}</p>
+                                                        </div>
                                                         <CopyButton textToCopy={title.text} onCopy={() => handleCopyTitle(i, title.text)} />
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Ideal Title Recommendation */}
+                                    {output.idealTitle && (
+                                        <div className="p-4 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-500/50 rounded-lg">
+                                            <h3 className="text-lg font-bold text-yellow-400 mb-2 font-playfair">⭐ TITLE TỐI ƯU NHẤT</h3>
+                                            <p className="text-white font-bold text-lg mb-2">"{output.idealTitle.recommendedTitle}"</p>
+                                            <p className="text-sm text-gray-300 mb-2"><strong className="text-yellow-400">Lý do:</strong> {output.idealTitle.reasoning}</p>
+                                            {output.idealTitle.improvements && output.idealTitle.improvements.length > 0 && (
+                                                <div>
+                                                    <p className="text-sm font-bold text-orange-400">💡 Có thể cải thiện thêm:</p>
+                                                    <ul className="text-xs text-gray-300 list-disc list-inside">
+                                                        {output.idealTitle.improvements.map((imp, i) => <li key={i}>{imp}</li>)}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            <CopyButton textToCopy={output.idealTitle.recommendedTitle} onCopy={() => handleCopyTitle(99, output.idealTitle!.recommendedTitle)} />
+                                        </div>
+                                    )}
+
+                                    {/* Description */}
+                                    {output.description && (
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">📝 MÔ TẢ VIDEO</h3>
+                                            <div className="p-4 bg-black/40 border border-[#008080]/50 rounded-sm space-y-3">
+                                                {/* Main Hashtags */}
+                                                <div className="flex flex-wrap gap-2">
+                                                    {output.description.mainHashtags?.map((tag, i) => (
+                                                        <span key={i} className="px-2 py-1 bg-[#008080]/30 text-[#008080] rounded text-xs font-bold">{tag}</span>
+                                                    ))}
+                                                </div>
+                                                {/* Body */}
+                                                <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed border-l-2 border-[#008080]/50 pl-3">
+                                                    {output.description.body}
+                                                </div>
+                                                {/* Secondary Hashtags */}
+                                                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-700">
+                                                    {output.description.secondaryHashtags?.map((tag, i) => (
+                                                        <span key={i} className="px-2 py-1 bg-gray-700/50 text-gray-400 rounded text-xs">{tag}</span>
+                                                    ))}
+                                                </div>
+                                                <button onClick={handleCopyDesc} className="mt-2 px-3 py-1 bg-[#008080] text-white text-xs font-bold rounded hover:bg-[#006666] transition-colors">
+                                                    {copySuccessDesc || 'COPY MÔ TẢ'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Tags */}
                                     {output.tags && output.tags.length > 0 && (
                                         <div>
-                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">Ý TƯỞNG TAGS</h3>
+                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">🏷️ TAGS ({output.tags.length} tags)</h3>
                                             <div className="p-3 bg-black/40 border border-[#CDAD5A]/50 rounded-sm flex flex-wrap gap-2">
                                                 {output.tags.map((tag, i) => (
-                                                    <span key={i} className={`px-3 py-1 rounded-full text-xs font-semibold ${tag.strength === 'Good' ? 'bg-[#008080]/50 text-[#008080]' : 'bg-[#CDAD5A]/50 text-[#CDAD5A]'}`}>
+                                                    <span key={i} className={`px-3 py-1 rounded-full text-xs font-semibold ${tag.strength === 'Good' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-[#CDAD5A]/20 text-[#CDAD5A] border border-[#CDAD5A]/30'}`}>
                                                         {tag.text}
                                                     </span>
                                                 ))}
                                             </div>
-                                            <div className="mt-2">
-                                                <CopyButton textToCopy={output.tags.map(t => t.text).join(', ')} onCopy={handleCopyTags} />
+                                            <button onClick={handleCopyTags} className="mt-2 px-3 py-1 bg-[#CDAD5A] text-black text-xs font-bold rounded hover:bg-[#b89c4a] transition-colors">
+                                                {copySuccessTags || 'COPY TẤT CẢ TAGS'}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Thumbnail Ideas - A/B Test */}
+                                    {output.thumbnailIdeas && output.thumbnailIdeas.length > 0 && (
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">🖼️ GỢI Ý THUMBNAIL (A/B Test - {output.thumbnailIdeas.length} concepts)</h3>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {output.thumbnailIdeas.map((thumb, i) => (
+                                                    <div key={i} className="p-4 bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-lg">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-purple-400 font-bold text-sm">Concept {i + 1}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                {thumb.colors && <span className="px-2 py-0.5 bg-pink-500/30 text-pink-300 text-xs rounded-full">🎨 {thumb.colors}</span>}
+                                                                <span className="px-2 py-0.5 bg-purple-500/30 text-purple-300 text-xs rounded-full">{thumb.emotion}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            <p className="text-gray-200 text-sm"><strong className="text-[#CDAD5A]">📷 Ý tưởng:</strong> {thumb.concept}</p>
+
+                                                            {/* AI Prompt for Image Generation */}
+                                                            {thumb.aiPrompt && (
+                                                                <div className="bg-black/40 p-3 rounded border border-green-500/30">
+                                                                    <div className="flex items-center justify-between mb-2">
+                                                                        <span className="text-green-400 font-bold text-xs">🤖 AI Image Prompt (English)</span>
+                                                                        <button
+                                                                            onClick={() => navigator.clipboard.writeText(thumb.aiPrompt || '')}
+                                                                            className="px-2 py-1 bg-green-500/30 text-green-300 text-xs rounded hover:bg-green-500/50 transition-colors"
+                                                                        >
+                                                                            Copy Prompt
+                                                                        </button>
+                                                                    </div>
+                                                                    <p className="text-gray-300 text-xs font-mono leading-relaxed">{thumb.aiPrompt}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="pt-3 mt-3 border-t border-purple-500/30 flex items-center justify-between">
+                                                            <p className="text-white font-bold text-lg">"{thumb.thumbnailText}"</p>
+                                                            <CopyButton textToCopy={`${thumb.aiPrompt || thumb.concept}`} onCopy={() => handleCopyThumbnail(i, thumb.concept)} />
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* ⏰ Upload Time Optimizer */}
+                                    {output.uploadTimeOptimizer && (
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white mb-2 font-playfair">⏰ THỜI GIAN ĐĂNG TỐI ƯU</h3>
+                                            <div className="p-4 bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-lg">
+                                                <p className="text-xs text-gray-400 mb-3">Timezone: {output.uploadTimeOptimizer.audienceTimezone}</p>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                    {output.uploadTimeOptimizer.bestTimes?.map((slot, i) => (
+                                                        <div key={i} className="p-3 bg-black/30 rounded border border-green-500/20">
+                                                            <p className="text-green-400 font-bold">{slot.day}</p>
+                                                            <p className="text-white text-lg font-bold">{slot.time}</p>
+                                                            <p className="text-xs text-gray-400">{slot.reason}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Action Buttons */}
-                                    <div className="flex items-center gap-4 pt-4">
+                                    <div className="flex items-center gap-4 pt-4 border-t border-gray-700">
                                         <button onClick={() => alert('Đang phát triển...')} className="flex-grow bg-[#008080] text-white font-bold py-2 px-5 border-2 border-[#008080] rounded-sm transition-all hover:bg-transparent hover:text-[#008080]">LƯU VÀO ARCHIVE LOG</button>
                                     </div>
                                 </div>

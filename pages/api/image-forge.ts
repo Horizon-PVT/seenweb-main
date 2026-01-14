@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { GoogleGenAI, Modality, GenerateImagesConfig } from "@google/genai";
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 
 /** FIX 413: allow larger JSON bodies for base64 images */
 export const config = {
@@ -38,6 +40,12 @@ export default async function handler(
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+  }
+
+  // 🔐 Authentication check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return res.status(401).json({ error: "Bạn cần đăng nhập để sử dụng tính năng này." });
   }
 
   try {

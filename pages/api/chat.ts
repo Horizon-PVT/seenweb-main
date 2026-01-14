@@ -1,6 +1,8 @@
 // File: pages/api/chat.ts (API ROUTE – GEMINI 2.5 FLASH)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -66,6 +68,12 @@ HƯỚNG DẪN TRẢ LỜI:
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Chỉ hỗ trợ POST' });
+  }
+
+  // 🔐 Authentication check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
   }
 
   const { message } = req.body;

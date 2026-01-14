@@ -5,6 +5,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getCached, setCache, generateCacheKey, CACHE_PREFIXES } from '@/lib/cache';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 
 const youtube = google.youtube({ version: 'v3', auth: process.env.YOUTUBE_API_KEY });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -14,6 +16,12 @@ const CACHE_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
+
+  // 🔐 Authentication check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
+  }
 
   const { tool, input, macroNiche, outputLanguage = 'Tiếng Việt' } = req.body;
 
