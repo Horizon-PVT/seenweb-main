@@ -9,32 +9,16 @@ const FAQ: React.FC = () => {
 
     const faqItems = [
         {
-            question: "Gói TOÀN TRI bao gồm những gì?",
-            answer: "Gói TOÀN TRI mở khóa toàn bộ sức mạnh của SeenYT: tất cả các công cụ AI (Script Writer, SEO, Micro Niche Miner, Rival Scanner...), không giới hạn lượt sử dụng, và đặc biệt là quyền truy cập vào cộng đồng kín cùng các khóa học độc quyền để giúp bạn thành công trên YouTube."
+            question: "Tôi là người mới hoàn toàn, SeenYT có dễ dùng không?",
+            answer: "Cực kỳ dễ! Chúng tôi thiết kế giao diện dành riêng cho người không rành công nghệ. Có quy trình 3 bước cầm tay chỉ việc, bạn chỉ cần làm theo hướng dẫn là có video."
         },
         {
-            question: "SeenYT có thực sự là trí tuệ nhân tạo không?",
-            answer: "Chính xác. SeenYT sử dụng các mô hình ngôn ngữ lớn (LLM) và kỹ thuật phân tích dữ liệu tiên tiến nhất hiện nay (Gemini Pro/Flash, Google Search Grounding) để phân tích thị trường, sáng tạo nội dung và tối ưu hóa video theo thời gian thực."
+            question: "SeenYT có giúp video của tôi lên xu hướng không?",
+            answer: "Có! Công cụ của chúng tôi sử dụng AI để phân tích thuật toán YouTube, tìm ra các chủ đề đang hot và hướng dẫn bạn cách tối ưu (SEO, Thumbnail, Kịch bản) để tăng tối đa cơ hội được đề xuất."
         },
         {
-            question: "Tôi cần kiến thức lập trình hay AI để sử dụng không?",
-            answer: "Hoàn toàn không. Chúng tôi thiết kế SeenYT để bất kỳ ai cũng có thể sử dụng. Giao diện thân thiện, trực quan, chỉ cần nhập ý tưởng và để AI lo phần còn lại."
-        },
-        {
-            question: "Có bản dùng thử miễn phí không?",
-            answer: "Có! Bạn có thể bắt đầu với gói FREE, trải nghiệm các tính năng cốt lõi (3 lượt/ngày) để cảm nhận hiệu quả trước khi quyết định nâng cấp lên các gói cao cấp hơn."
-        },
-        {
-            question: "Làm thế nào để tham gia cộng đồng SEENYT?",
-            answer: "Rất đơn giản. Hãy bấm vào nút 'Đăng ký CỘNG ĐỒNG SEENYT' hoặc tham gia nhóm Zalo của chúng tôi để giao lưu, học hỏi kinh nghiệm từ hàng ngàn sáng tạo nội dung khác."
-        },
-        {
-            question: "Tôi có thể hủy đăng ký bất cứ lúc nào không?",
-            answer: "Tất nhiên. Chúng tôi không bao giờ ràng buộc bạn. Bạn có thể sử dụng theo tháng và dừng bất cứ khi nào bạn muốn, mặc dù chúng tôi tin rằng giá trị bạn nhận được sẽ khiến bạn muốn gắn bó lâu dài."
-        },
-        {
-            question: "Tại sao nên chọn TOÀN TRI ngay hôm nay?",
-            answer: "Vì YouTube đang thay đổi từng giờ. Gói TOÀN TRI cung cấp cho bạn 'vũ khí' lợi hại nhất để đi tắt đón đầu, tìm ra các ngách chưa ai khai phá và xây dựng đế chế nội dung của riêng bạn ngay bây giờ với chi phí tối ưu nhất."
+            question: "Tôi có thể kiếm tiền từ các video tạo bởi SeenYT không?",
+            answer: "Chắc chắn rồi. Bạn sở hữu 100% bản quyền video tạo ra. Rất nhiều người dùng của chúng tôi đã bật kiếm tiền và nhận doanh thu từ YouTube cũng như Affiliate."
         }
     ];
 

@@ -32,7 +32,13 @@ const Footer: React.FC = () => {
             <p className="text-gray-500 max-w-md">
               Sang phẳng cuộc chơi YouTube bằng sức mạnh của AI tiên tiến nhất.
             </p>
-            <p className="text-xl text-gray-400 mt-2">Web Tools SeenYT - Một sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC</p>
+            <div className="flex flex-wrap gap-4 mt-3">
+              <Link href="/affiliate" className="text-[#CDAD5A] hover:text-yellow-400 font-semibold">
+                💰 Affiliate Program
+              </Link>
+              <span className="text-gray-600">|</span>
+              <span className="text-gray-400 text-sm">Sản phẩm của Công Ty CP Dịch Vụ Quốc Tế NTC</span>
+            </div>
           </div>
 
           {/* Cột 2 – Điều hướng */}
@@ -50,11 +56,11 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="#tools"
-                  onClick={(e) => handleNavClick(e, "#tools")}
+                  href="#bang-cong-cu-seenyt"
+                  onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
                   className="hover:text-[#CDAD5A]"
                 >
-                  Công Cụ
+                  Bảng Công Cụ
                 </a>
               </li>
               <li>

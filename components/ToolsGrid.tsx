@@ -277,8 +277,8 @@ const CapCutCard: React.FC<{
       className="group relative flex flex-col bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-white/10 ring-1 ring-black/5 select-none"
       style={{ animationDelay: `${index * 50}ms` }}
     >
-      {/* 1. THUMBNAIL AREA */}
-      <div className={`relative w-full h-28 bg-gradient-to-r ${tool.thumbColor || 'from-gray-300 to-gray-400'} flex items-center justify-center overflow-hidden`}>
+      {/* 1. THUMBNAIL AREA - COMPACT */}
+      <div className={`relative w-full h-20 bg-gradient-to-r ${tool.thumbColor || 'from-gray-300 to-gray-400'} flex items-center justify-center overflow-hidden`}>
 
         {/* IMAGE / VIDEO */}
         {tool.imageSrc ? (
@@ -314,11 +314,11 @@ const CapCutCard: React.FC<{
         )}
       </div>
 
-      {/* 2. TEXT & BADGES AREA */}
-      <div className="p-3 flex flex-col flex-grow bg-white relative">
+      {/* 2. TEXT & BADGES AREA - COMPACT */}
+      <div className="p-2 flex flex-col flex-grow bg-white relative">
 
         {/* BADGES */}
-        <div className="flex flex-wrap gap-1 mb-1.5">
+        <div className="flex flex-wrap gap-0.5 mb-1">
           {tool.isHot && <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">🔥 HOT</span>}
           {tool.isExclusive && <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">💎 ĐỘC QUYỀN</span>}
           {tool.isNew && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">🚀 MỚI</span>}
@@ -326,17 +326,17 @@ const CapCutCard: React.FC<{
         </div>
 
         {/* TOOL NAME */}
-        <h3 className="text-base font-extrabold text-gray-800 group-hover:text-blue-600 transition-colors truncate w-full mb-0.5">
+        <h3 className="text-sm font-extrabold text-gray-800 group-hover:text-blue-600 transition-colors truncate w-full mb-0.5">
           {tool.name}
         </h3>
 
-        <p className="text-[12px] text-gray-500 line-clamp-1 leading-snug">
+        <p className="text-[11px] text-gray-500 line-clamp-1 leading-snug">
           {tool.shortDescription}
         </p>
 
         {/* HOVER REVEAL */}
-        <div className={`absolute inset-x-0 bottom-0 bg-white p-3 border-t border-gray-100 shadow-[-2px_-5px_15px_rgba(0,0,0,0.05)] transition-transform duration-300 transform ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
-          <p className="text-[11px] text-gray-600 leading-relaxed line-clamp-3">
+        <div className={`absolute inset-x-0 bottom-0 bg-white p-2 border-t border-gray-100 shadow-[-2px_-5px_15px_rgba(0,0,0,0.05)] transition-transform duration-300 transform ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
+          <p className="text-[10px] text-gray-600 leading-relaxed line-clamp-2">
             {tool.longDescription}
           </p>
         </div>
@@ -348,33 +348,72 @@ const CapCutCard: React.FC<{
 /* =========================
    SECTION
    ========================= */
-const ToolSection: React.FC<{ title: string; tools: Tool[]; userRole: Role; onOpen: (t: Tool) => void; isExclusiveSection?: boolean }> = ({ title, tools, userRole, onOpen, isExclusiveSection = false }) => (
-  <div className="mb-10 px-2 animate-fade-in-up">
-    <div className="flex items-center gap-2 mb-4">
-      <div className="w-1.5 h-5 bg-[#F3EFE0] rounded-full shadow-sm"></div>
-      <h3 className="text-lg font-bold text-[#F3EFE0] uppercase tracking-wide">
-        {title}
-      </h3>
-      {isExclusiveSection && (
-        <span className="ml-2 px-2 py-0.5 text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full uppercase tracking-wide shadow-lg animate-pulse">
-          ⭐ ĐỘC QUYỀN
-        </span>
-      )}
+/* =========================
+   SECTION
+   ========================= */
+type SectionVariant = 'default' | 'gold' | 'fire' | 'blue' | 'green';
+
+const ToolSection: React.FC<{
+  title: string;
+  tools: Tool[];
+  userRole: Role;
+  onOpen: (t: Tool) => void;
+  isExclusiveSection?: boolean;
+  variant?: SectionVariant;
+}> = ({ title, tools, userRole, onOpen, isExclusiveSection = false, variant = 'default' }) => {
+
+  const getThemeClass = () => {
+    switch (variant) {
+      case 'gold': return 'border-amber-500/30 bg-amber-900/10';
+      case 'fire': return 'border-red-500/30 bg-red-900/10';
+      case 'blue': return 'border-blue-500/30 bg-blue-900/10';
+      case 'green': return 'border-green-500/30 bg-green-900/10';
+      default: return 'border-transparent';
+    }
+  };
+
+  const getTitleColor = () => {
+    switch (variant) {
+      case 'gold': return 'text-amber-400';
+      case 'fire': return 'text-red-400';
+      case 'blue': return 'text-blue-400';
+      case 'green': return 'text-emerald-400';
+      default: return 'text-[#F3EFE0]';
+    }
+  };
+
+  return (
+    <div className={`mb-10 px-4 py-6 rounded-2xl border ${getThemeClass()} animate-fade-in-up transition-all duration-300 hover:bg-opacity-20`}>
+      <div className="flex items-center gap-2 mb-6">
+        <div className={`w-1.5 h-6 rounded-full shadow-sm ${variant === 'gold' ? 'bg-amber-400' :
+            variant === 'fire' ? 'bg-red-500' :
+              variant === 'blue' ? 'bg-blue-500' :
+                variant === 'green' ? 'bg-emerald-500' : 'bg-[#F3EFE0]'
+          }`}></div>
+        <h3 className={`text-xl font-bold uppercase tracking-wide ${getTitleColor()}`}>
+          {title}
+        </h3>
+        {isExclusiveSection && (
+          <span className="ml-2 px-2 py-0.5 text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full uppercase tracking-wide shadow-lg animate-pulse">
+            ⭐ ĐỘC QUYỀN
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        {tools.map((t, i) => (
+          <CapCutCard
+            key={t.id}
+            index={i}
+            tool={t}
+            isLocked={!canAccessTool(t.id, userRole)}
+            onOpen={() => onOpen(t)}
+            showExclusiveBadge={isExclusiveSection}
+          />
+        ))}
+      </div>
     </div>
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-      {tools.map((t, i) => (
-        <CapCutCard
-          key={t.id}
-          index={i}
-          tool={t}
-          isLocked={!canAccessTool(t.id, userRole)}
-          onOpen={() => onOpen(t)}
-          showExclusiveBadge={isExclusiveSection}
-        />
-      ))}
-    </div>
-  </div>
-);
+  )
+};
 
 /* =========================
    NAV & MAIN GRID
@@ -482,10 +521,10 @@ const ToolsGrid: React.FC = () => {
         <div className="min-h-[500px]">
           {activeTab === 'all' ? (
             <>
-              <ToolSection title="🏆 Góc Học Win!" tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} />
-              <ToolSection title="🔥 Đang Thịnh Hành" tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} />
-              <ToolSection title="📝 Sáng Tạo Nội Dung" tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} />
-              <ToolSection title="📊 Nghiên Cứu Thị Trường" tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} />
+              <ToolSection title="🏆 Góc Học Win!" tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="gold" />
+              <ToolSection title="🔥 Đang Thịnh Hành" tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" />
+              <ToolSection title="📝 Sáng Tạo Nội Dung" tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" />
+              <ToolSection title="📊 Nghiên Cứu Thị Trường" tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" />
             </>
           ) : (
             <div className="animate-fade-in">

@@ -33,8 +33,7 @@ const Header: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/55 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* LOGO + WORDMARK (click về bảng công cụ) */}
-        <Link href="/#tools" className="flex items-center gap-3 group select-none">
+        <Link href="/#bang-cong-cu-seenyt" className="flex items-center gap-3 group select-none">
           <Image
             src="/seenyt-mark.png"
             alt="SeenYT Logo"
@@ -58,25 +57,32 @@ const Header: React.FC = () => {
           </Link>
 
           <a
-            href="#tools"
-            onClick={(e) => handleNavClick(e, "#tools")}
+            href="#bang-cong-cu-seenyt"
+            onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
             className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
           >
             Bảng công cụ
           </a>
 
-
-
-
-
-
           <a
-            href="#about"
-            onClick={(e) => handleNavClick(e, "#about")}
-            className="text-[#00a3a3] hover:text-[#4ddcdc] transition-colors duration-300 font-semibold text-sm"
+            href="#pricing"
+            onClick={(e) => handleNavClick(e, "#pricing")}
+            className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
           >
-            Sản phẩm của Công Ty Cổ Phần Dịch Vụ Quốc Tế NTC
+            Bảng giá
           </a>
+
+
+
+
+
+
+          <Link
+            href="/affiliate"
+            className="text-[#00a3a3] hover:text-[#4ddcdc] transition-colors duration-300 font-semibold text-sm uppercase"
+          >
+            Trở thành đối tác
+          </Link>
 
           <Link
             href="/tuyendung"

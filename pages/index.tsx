@@ -24,6 +24,8 @@ import WorkflowSection from "../components/WorkflowSection";
 import FAQ from "../components/FAQ";
 import Footer from "../components/Footer";
 import ChatbotWidget from "../components/ChatbotWidget";
+import FloatingSidebar from "../components/FloatingSidebar";
+import SocialProofBar from "@/components/SocialProofBar";
 import { prisma } from "../lib/prisma";
 
 // ✅ Overlay SSR off (an toàn cho tool dùng window, AudioContext, localStorage...)
@@ -98,34 +100,28 @@ export default function Home({ ebooks = [], videos = [] }: { ebooks: any[]; vide
 
       <main>
         <HeroSection />
-        <CoachingSection />
+        <SocialProofBar />
         <WorkflowSection />
+        <Testimonials />
         <PromotionCarousel />
-
-        {/* ⚡ CRITICAL: Video section MUST be ABOVE Ebook section */}
-        <VideoTipsSection videos={videos} />
-        <TechPillars ebooks={ebooks} />
 
         {/* ✅ Anchor để nút "Quay lại menu" cuộn về đúng vị trí */}
         <section id="bang-cong-cu-seenyt">
           <ToolsGrid />
         </section>
 
-        <Partners />
-        <Projects />
-        <Testimonials />
-        <BlogTeaser />
-
         <section id="pricing" className="scroll-mt-20">
           <PricingTable />
         </section>
 
+        <CoachingSection />
         <AffiliateSection />
         <FinalCTA />
         <FAQ />
       </main>
       <Footer />
       <ChatbotWidget />
+      <FloatingSidebar />
 
       {/* ✅ Overlay full-screen: mở cho TẤT CẢ tool */}
       {openAnyTool && toolId && (
