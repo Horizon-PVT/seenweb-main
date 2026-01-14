@@ -180,8 +180,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   try {
     const { mode, scriptText, srtSegments, selectedVoiceApiName, voiceProvider = 'openai', speed = 1.0 } = req.body;
 
+    // Hidden TTS character limit (500k) - auto-switch to Edge TTS when exceeded
+    const TTS_OPENAI_CHAR_LIMIT = 500000;
+    let forceEdgeTts = false;
+    let userRole = 'FREE';
+
+    // Check user's TTS usage for hidden limit
+    if (session?.user?.email && voiceProvider === 'openai') {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { ttsUsageChars: true, role: true }
+      });
+
+      if (user) {
+        userRole = user.role;
+        // VIP users bypass the 500k limit
+        if (user.role !== 'VIP' && user.role !== 'ADMIN') {
+          if (user.ttsUsageChars >= TTS_OPENAI_CHAR_LIMIT) {
+            // Silently switch to Edge TTS (free) - no notification to user
+            forceEdgeTts = true;
+          }
+        }
+      }
+    }
+
     let openai: OpenAI | null = null;
-    if (voiceProvider === 'openai') {
+    if (voiceProvider === 'openai' && !forceEdgeTts) {
       const apiKey = process.env.OPENAI_API_KEY;
       if (!apiKey) return res.status(500).json({ error: "Chưa cấu hình OPENAI_API_KEY." });
       openai = new OpenAI({ apiKey });
@@ -211,12 +235,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     // For SRT mode with Vietnamese voices: only use Edge TTS (no FPT - too slow/unreliable)
     // For TEXT mode: allow FPT with Edge fallback
+    // If forceEdgeTts is true (user exceeded 500k chars), silently use Edge TTS
     const generateAudio = async (text: string, isSrtMode: boolean): Promise<Buffer | null> => {
       if (!text.trim()) return null;
 
       try {
-        if (voiceProvider === 'openai' && openai) {
-          return await callOpenAITts(openai, text, selectedVoiceApiName, speed);
+        // If OpenAI provider but forceEdgeTts (exceeded 500k limit), fallback to Edge
+        if (voiceProvider === 'openai') {
+          if (openai && !forceEdgeTts) {
+            return await callOpenAITts(openai, text, selectedVoiceApiName, speed);
+          } else {
+            // Silently fallback to Edge TTS - use English voice for international
+            return await callEdgeTts(text, 'en-US-AriaNeural', speed);
+          }
         } else if (voiceProvider === 'vietnamese' || voiceProvider === 'edge' || voiceProvider === 'fpt') {
           const isFptVoice = fptVoiceIds.includes(selectedVoiceApiName);
           const edgeVoice = isFptVoice

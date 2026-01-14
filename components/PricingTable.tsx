@@ -9,21 +9,29 @@ interface PricingTableProps {
 
 const featuresMap = {
   FREE: [
-    "Trải nghiệm workflow 3 bước (Niche, Script, SEO)",
-    "Dùng 3 công cụ cốt lõi cho người mới",
-    "Giới hạn: 3 lần sử dụng / ngày (reset mỗi ngày)",
+    "✅ Đào Ngách CPM Cao",
+    "✅ Viết Kịch Bản Viral",
+    "✅ Tối Ưu SEO & Từ Khóa",
+    "✅ Thư viện ngách (5 ngách đầu)",
+    "✅ Thầy YouTube (Day 1-5)",
+    "⚠️ Giới hạn: 3 lượt/ngày",
   ],
   STARTER: [
-    "Mở khóa giới hạn sử dụng các tool cơ bản",
-    "Làm video đều đặn hàng ngày",
-    "Phù hợp người mới bắt đầu nghiêm túc",
+    "Tất cả tính năng FREE (không giới hạn lượt)",
+    "✅ Phân Tích Kênh Đối Thủ",
+    "✅ Thầy YouTube (Day 6-20)",
+    "✅ 10 credits AI Dubbing",
     "Hỗ trợ qua email",
   ],
   PRO: [
-    "MỞ KHÓA TOÀN BỘ CÔNG CỤ (bao gồm Kênh ẩn, Spy đối thủ)",
-    "Phân tích nâng cao & chiến lược ngách",
-    "Narrative Studio (Storytelling)",
-    "Phù hợp creator muốn tăng tốc & kiếm tiền nhanh",
+    "Tất cả tính năng STARTER",
+    "✅ Tìm Ngách Xanh (Kênh ẩn)",
+    "✅ Kể Chuyện Lịch Sử / Story",
+    "✅ Chỉnh Sửa & Nâng Cấp Kịch Bản",
+    "✅ Tạo Thumbnail AI",
+    "✅ Text-to-Speech OpenAI (500k ký tự)",
+    "✅ Thư viện ngách (20+ ngách)",
+    "✅ 30 credits AI Dubbing",
     "Ưu tiên hỗ trợ",
   ],
 };
@@ -372,12 +380,13 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             priceMonthly="549.000 đ"
             priceYearly="5.490.000 đ"
             features={[
-              "Bao gồm TOÀN BỘ tính năng gói PRO",
-              "AI Dubbing - Lồng tiếng Video tự động (Gói cao cấp)",
-              "Tạo Video AI (Velocity) - Tự động hóa 100%",
-              "Làm Video Shorts / TikTok công nghiệp",
-              "Support 1-1 qua Zalo Riêng (Siêu tốc)",
-              "Clone Voice AI (Sắp ra mắt)",
+              "Tất cả tính năng gói PRO",
+              "✅ AI Dubbing Studio (100 credits)",
+              "✅ Tạo Video AI (Velocity)",
+              "✅ Tạo MC Ảo (Virtual MC)",
+              "✅ Thầy YouTube (Day 21-30)",
+              "✅ Text-to-Speech không giới hạn",
+              "Support 1-1 qua Zalo (Siêu tốc)",
             ]}
             color="#FF00FF" // Magenta / Neon Pink for VIP
             glow="0 0 50px rgba(255,0,255,0.8)"

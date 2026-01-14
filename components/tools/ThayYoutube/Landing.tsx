@@ -50,17 +50,17 @@ const Landing: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
                 <div className="grid md:grid-cols-3 gap-8">
                     {[
                         {
-                            title: "Ngày 0-10: Khởi Động (Free)",
+                            title: "Ngày 0-5: Khởi Động (Free)",
                             desc: "Xây dựng tư duy, chọn ngách đúng, đăng video đầu tiên và vượt qua nỗi sợ.",
                             icon: "🚀"
                         },
                         {
-                            title: "Ngày 11-20: Tăng Tốc (VVIP)",
+                            title: "Ngày 6-20: Tăng Tốc (Starter)",
                             desc: "Tối ưu hóa Retention, học cách viết Hook viral và giữ chân khán giả.",
                             icon: "⚡"
                         },
                         {
-                            title: "Ngày 21-30: Về Đích (VVIP)",
+                            title: "Ngày 21-30: Về Đích (VIP)",
                             desc: "Xây dựng series, biến người xem thành Fan trung thành và bắt đầu kiếm tiền.",
                             icon: "🏆"
                         }

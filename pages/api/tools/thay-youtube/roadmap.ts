@@ -37,12 +37,13 @@ export default async function handler(
         }
 
         // Determine user tier logic
-        // STARTER/CREATIVE/FREE users can access Day 0-10
-        // PRO/SUPER/ADMIN users can access Day 11-30
+        // Day 0-5: FREE (all users)
+        // Day 6-20: STARTER+ (CREATIVE, SUPER, VIP, ADMIN)
+        // Day 21-30: VIP only (VIP, ADMIN)
 
-        // Check if user has PRO tier for advanced content
-        const isProTier = ["SUPER", "VIP", "ADMIN"].includes(user.role);
-        const maxDayAllowedByTier = isProTier ? 30 : 10;
+        // Check user tier levels
+        const isStarter = ["CREATIVE", "SUPER", "VIP", "ADMIN"].includes(user.role);
+        const isVIP = ["VIP", "ADMIN"].includes(user.role);
 
         // Filter ROADMAP_DATA based on tier and progress?
         // User requested "locked" to show paywall. So we might want to return METADATA for all days,
@@ -63,8 +64,18 @@ export default async function handler(
             const progressItem = roadmap.progress.find((p: any) => p.day === i);
             let status = progressItem ? progressItem.status : "LOCKED";
 
-            // If it's locked by tier (Day 11+ requires PRO)
-            const lockedByTier = i > 10 && !isProTier;
+            // Tier-based access logic
+            let lockedByTier = false;
+            let requiredTier = "FREE";
+
+            if (i >= 6 && i <= 20 && !isStarter) {
+                lockedByTier = true;
+                requiredTier = "STARTER";
+            }
+            if (i >= 21 && !isVIP) {
+                lockedByTier = true;
+                requiredTier = "VIP";
+            }
 
             // Data for this day
             // Note: The AI might generate string keys "0", "1", so we check both i and i.toString()
@@ -79,21 +90,22 @@ export default async function handler(
             } else if (lockedByTier) {
                 content = {
                     day: i,
-                    title: dayData?.title || "VVIP CONTENT",
-                    overview: "Nâng cấp lên VVIP để xem nội dung này.",
-                    lockedTier: "vvip"
+                    title: dayData?.title || `Ngày ${i}`,
+                    overview: `Nâng cấp lên ${requiredTier} để mở khóa nội dung này.`,
+                    lockedTier: requiredTier.toLowerCase()
                 };
             } else {
                 content = {
                     day: i,
                     title: dayData?.title || `Ngày ${i}`,
-                    lockedTier: i <= 10 ? "starter" : "vvip"
+                    lockedTier: i <= 5 ? "free" : i <= 20 ? "starter" : "vip"
                 };
             }
 
             daysResponse[i] = {
                 status,
                 lockedByTier,
+                requiredTier,
                 content
             };
         };

@@ -8,11 +8,12 @@ import { ArrowLeft, Lock, Play, FileText, CheckCircle, Loader2 } from 'lucide-re
 import { NICHE_LIBRARY, Niche } from '@/data/niche-library';
 
 // --- ACCESS CONTROL LOGIC ---
-// STARTER: Index 0-4 (5 niches)
-// PRO/ADMIN/CREATIVE: All
+// ALL USERS: Index 0-4 (5 niches free)
+// PRO (SUPER/VIP/ADMIN): All niches
 const isNicheLocked = (nicheIndex: number, userRole: string) => {
-    if (['ADMIN', 'MOD', 'PRO', 'CREATIVE', 'VIP'].includes(userRole)) return false;
-    // STARTER or FREE
+    // PRO+ users get all niches
+    if (['ADMIN', 'SUPER', 'VIP'].includes(userRole)) return false;
+    // All users (FREE, CREATIVE) get first 5 niches (index 0-4)
     return nicheIndex > 4; // Lock from 6th item (index 5)
 };
 
