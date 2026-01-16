@@ -25,6 +25,7 @@ import TextToSpeechTool from "./TextToSpeechTool";
 import VeocityTool from "./VeocityTool";
 import VirtualMCTool from "./VirtualMCTool";
 import UpgradeGate from "./UpgradeGate";
+import FutureEyeTool from "./tools/FutureEye/FutureEyeTool";
 
 import { useSession } from "next-auth/react";
 import { canAccessTool, type Role } from "@/lib/roles";
@@ -255,6 +256,25 @@ const toolsVeryHot: Tool[] = [
   },
 ];
 
+// Admin-only tools
+const toolsDeveloper: Tool[] = [
+  {
+    id: "future-eye",
+    name: "FUTURE-EYE AI - Video Tương Lai",
+    shortDescription: "Sản xuất video documentary chất lượng quốc tế.",
+    longDescription: "Công cụ AI chuyên dụng để sản xuất video YouTube ngách Tương lai/Thiên tai/Công nghệ. Tự động tạo 12 chủ đề, viết kịch bản 2000 từ, bảng visual sync với prompt Runway và tọa độ Google Earth.",
+    seoKeywords: ["Documentary", "Future", "AI Video"],
+    features: ["12 Topics", "Visual Sync", "Multi-lang"],
+    icon: CompassIcon,
+    component: FutureEyeTool,
+    isHot: true,
+    isExclusive: true,
+    isPro: true,
+    thumbColor: "from-purple-600 to-pink-600",
+    imageSrc: "/images/tool-future-eye.jpg",
+  },
+];
+
 /* =========================
    COMPACT CARD
    ========================= */
@@ -386,9 +406,9 @@ const ToolSection: React.FC<{
     <div className={`mb-10 px-4 py-6 rounded-2xl border ${getThemeClass()} animate-fade-in-up transition-all duration-300 hover:bg-opacity-20`}>
       <div className="flex items-center gap-2 mb-6">
         <div className={`w-1.5 h-6 rounded-full shadow-sm ${variant === 'gold' ? 'bg-amber-400' :
-            variant === 'fire' ? 'bg-red-500' :
-              variant === 'blue' ? 'bg-blue-500' :
-                variant === 'green' ? 'bg-emerald-500' : 'bg-[#F3EFE0]'
+          variant === 'fire' ? 'bg-red-500' :
+            variant === 'blue' ? 'bg-blue-500' :
+              variant === 'green' ? 'bg-emerald-500' : 'bg-[#F3EFE0]'
           }`}></div>
         <h3 className={`text-xl font-bold uppercase tracking-wide ${getTitleColor()}`}>
           {title}
@@ -419,7 +439,7 @@ const ToolSection: React.FC<{
    NAV & MAIN GRID
    ========================= */
 
-type TabType = 'all' | 'newbie' | 'hot' | 'content' | 'research' | 'very_hot';
+type TabType = 'all' | 'newbie' | 'hot' | 'content' | 'research' | 'very_hot' | 'developer';
 
 const ToolsGrid: React.FC = () => {
   const { data: session } = useSession();
@@ -450,11 +470,17 @@ const ToolsGrid: React.FC = () => {
       return;
     }
 
+    // Special handling for Future Eye
+    if (tool.id === 'future-eye') {
+      router.push('/tools/future-eye');
+      return;
+    }
+
     router.push({ pathname: router.pathname, query: { ...router.query, tool: tool.id } }, undefined, { shallow: true });
   };
 
   // Helper to get tools based on filter
-  const allTools = [...toolsVeryHot, ...toolsHot, ...toolsContent, ...toolsResearch];
+  const allTools = [...toolsVeryHot, ...toolsHot, ...toolsContent, ...toolsResearch, ...(userRole === 'ADMIN' ? toolsDeveloper : [])];
 
   const getFilteredTools = () => {
     switch (activeTab) {
@@ -463,6 +489,7 @@ const ToolsGrid: React.FC = () => {
       case 'content': return toolsContent;
       case 'research': return toolsResearch;
       case 'very_hot': return toolsVeryHot;
+      case 'developer': return toolsDeveloper;
       default: return [];
     }
   };
@@ -474,6 +501,7 @@ const ToolsGrid: React.FC = () => {
     { id: 'content', label: 'Sáng tạo nội dung', icon: '📝' },
     { id: 'research', label: 'Nghiên cứu thị trường', icon: '📊' },
     { id: 'very_hot', label: '🏆 GÓC HỌC WIN!', icon: null },
+    ...(userRole === 'ADMIN' ? [{ id: 'developer', label: '🔧 Nhà Phát Triển', icon: null }] : []),
   ];
 
   return (
@@ -525,6 +553,9 @@ const ToolsGrid: React.FC = () => {
               <ToolSection title="🔥 Đang Thịnh Hành" tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" />
               <ToolSection title="📝 Sáng Tạo Nội Dung" tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" />
               <ToolSection title="📊 Nghiên Cứu Thị Trường" tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" />
+              {userRole === 'ADMIN' && (
+                <ToolSection title="🔧 Nhà Phát Triển" tools={toolsDeveloper} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="default" />
+              )}
             </>
           ) : (
             <div className="animate-fade-in">
