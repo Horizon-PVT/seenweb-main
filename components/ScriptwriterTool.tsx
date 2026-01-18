@@ -35,6 +35,7 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
     const [level, setLevel] = useState('Nâng Cao');
     const [tone, setTone] = useState('Hùng hồn');
     const [style, setStyle] = useState('Vlog');
+    const [format, setFormat] = useState('visual'); // visual | story
     const [length, setLength] = useState(10);
     const [chatRequest, setChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
@@ -105,7 +106,7 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
         setTimeout(() => buttonRef.current?.classList.remove('animate-emerald-pulse-strong'), 1000);
 
         setIsLoading(true);
-        setLoadingMessage("ĐANG KIẾN TẠO...");
+        setLoadingMessage(format === 'visual' ? "ĐANG DÀN CẢNH..." : "ĐANG VIẾT CÂU CHUYỆN...");
         setOutputScript('');
         setError('');
 
@@ -113,7 +114,7 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
             const response = await fetch('/api/script-writer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idea, goal, level, tone, style, length: Number(length) }),
+                body: JSON.stringify({ idea, goal, level, tone, style, length: Number(length), format }),
             });
 
             const scriptText = await response.text();
@@ -283,6 +284,13 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                         </select>
                     </div>
                     <div>
+                        <label className="text-xs font-bold text-[#CDAD5A]">ĐỊNH DẠNG</label>
+                        <select value={format} onChange={e => setFormat(e.target.value)} className="w-full obsidian-select">
+                            <option value="visual">Kịch bản Phân cảnh (Visual)</option>
+                            <option value="story">Kể chuyện (Story/Podcast)</option>
+                        </select>
+                    </div>
+                    <div>
                         <label className="text-xs font-bold text-[#CDAD5A]">PHONG CÁCH</label>
                         <select value={style} onChange={e => setStyle(e.target.value)} className="w-full obsidian-select">
                             {styles.map(s => <option key={s}>{s}</option>)}
@@ -291,7 +299,7 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                     <div>
                         <label className="text-xs font-bold text-[#CDAD5A]">ĐỘ DÀI</label>
                         <div className="flex items-center gap-2">
-                            <input type="range" min="1" max="120" value={length} onChange={e => setLength(parseInt(e.target.value))} className="w-full obsidian-slider" />
+                            <input type="range" min="1" max="30" value={length} onChange={e => setLength(parseInt(e.target.value))} className="w-full obsidian-slider" />
                             <span className="font-mono text-lg text-[#008080] w-16 text-center">{length} phút</span>
                         </div>
                     </div>
@@ -315,7 +323,7 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                             <span className="text-xs text-[#CDAD5A] w-20 text-right">{copySuccess}</span>
                         </div>
                     </div>
-                    <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto whitespace-pre-wrap font-mono relative">
+                    <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto font-mono relative">
                         {(isLoading && !outputScript) && (
                             <div className="flex flex-col items-center justify-center h-full text-center">
                                 <div className="w-20 h-20 text-[#008080]"><PyramidIcon /></div>
@@ -324,43 +332,97 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                         )}
                         {outputScript && (
                             <>
-                                {/* Show partial content for FREE, full for PAID */}
-                                {(userRole === 'FREE' || userRole === 'USER') ? (
-                                    <>
-                                        {/* Visible portion (first 400 chars) */}
-                                        <div className="text-gray-300">
-                                            {outputScript.substring(0, 400)}...
-                                        </div>
-                                        {/* Blurred portion with paywall overlay */}
-                                        <div className="relative mt-4">
-                                            <div className="blur-sm select-none pointer-events-none text-gray-500">
-                                                {outputScript.substring(400, 800)}
+                                {/* Custom Markdown Table Renderer */}
+                                {(() => {
+                                    // Check if script has a markdown table structure
+                                    const hasTable = outputScript.includes('|') && outputScript.includes('---');
+
+                                    if (hasTable && (userRole !== 'FREE' && userRole !== 'USER')) {
+                                        // Simple Parser for specific Visual/Audio table
+                                        const lines = outputScript.split('\n').filter(line => line.trim() !== '');
+                                        const tableRows = lines.filter(line => line.trim().startsWith('|'));
+                                        const textBefore = lines.filter(line => !line.trim().startsWith('|') && !line.startsWith('---')).join('\n'); // Intro text
+
+                                        // Process headers and body
+                                        const headerRow = tableRows[0];
+                                        const bodyRows = tableRows.slice(2); // Skip header and separator |---|
+
+                                        return (
+                                            <div className="space-y-4">
+                                                {/* Text Intro */}
+                                                <div className="whitespace-pre-wrap text-gray-300 font-sans">{textBefore}</div>
+
+                                                {/* Styled Grid Table */}
+                                                <div className="border border-gray-700 rounded-lg overflow-hidden">
+                                                    {/* Header */}
+                                                    <div className="grid grid-cols-2 bg-gray-900 border-b border-gray-700">
+                                                        <div className="p-3 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-2">
+                                                            <span>👁️</span> VISUAL (Mắt thấy)
+                                                        </div>
+                                                        <div className="p-3 font-bold text-[#CDAD5A] uppercase tracking-wider flex items-center gap-2">
+                                                            <span>👂</span> AUDIO (Tai nghe)
+                                                        </div>
+                                                    </div>
+                                                    {/* Body */}
+                                                    <div className="divide-y divide-gray-700 bg-black/40">
+                                                        {bodyRows.map((row, idx) => {
+                                                            const cols = row.split('|').filter(c => c.trim() !== '').map(c => c.trim());
+                                                            // Handle cases where pipe might be inside text (limitation of simple split, but okay for strict AI output)
+                                                            if (cols.length < 2) return null;
+                                                            return (
+                                                                <div key={idx} className="grid grid-cols-2 hover:bg-gray-800/30 transition-colors">
+                                                                    <div className="p-3 border-r border-gray-700 text-gray-300 whitespace-pre-wrap">
+                                                                        {cols[0]}
+                                                                    </div>
+                                                                    <div className="p-3 text-gray-200 whitespace-pre-wrap font-sans">
+                                                                        {cols[1]}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            {/* Paywall Overlay */}
-                                            <div
-                                                className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black flex flex-col items-center justify-center cursor-pointer rounded-lg"
-                                                onClick={() => {
-                                                    setGateRequiredTier('CREATIVE');
-                                                    setGateFeatureName('Xem toàn bộ kịch bản');
-                                                    setShowUpgradeGate(true);
-                                                }}
-                                            >
-                                                <div className="text-4xl mb-3">🔒</div>
-                                                <p className="text-white font-bold text-center px-4">
-                                                    Bạn đã có 1 ý tưởng video có khả năng lên view!
-                                                </p>
-                                                <p className="text-gray-400 text-sm text-center px-4 mt-1">
-                                                    Mở khóa để nhận toàn bộ kịch bản + hướng dẫn đăng video.
-                                                </p>
-                                                <button className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
-                                                    Mở khóa để làm tiếp →
-                                                </button>
+                                        );
+                                    } else {
+                                        // Fallback for Free users (Blurred) or non-table output
+                                        return (
+                                            <div className="whitespace-pre-wrap">
+                                                {(userRole === 'FREE' || userRole === 'USER') ? (
+                                                    <>
+                                                        <div className="text-gray-300">
+                                                            {outputScript.substring(0, 400)}...
+                                                        </div>
+                                                        <div className="relative mt-4">
+                                                            <div className="blur-sm select-none pointer-events-none text-gray-500">
+                                                                {outputScript.substring(400, 800)}
+                                                            </div>
+                                                            <div
+                                                                className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black flex flex-col items-center justify-center cursor-pointer rounded-lg"
+                                                                onClick={() => {
+                                                                    setGateRequiredTier('CREATIVE');
+                                                                    setGateFeatureName('Xem toàn bộ kịch bản');
+                                                                    setShowUpgradeGate(true);
+                                                                }}
+                                                            >
+                                                                <div className="text-4xl mb-3">🔒</div>
+                                                                <p className="text-white font-bold text-center px-4">
+                                                                    Kịch bản VIP Pro đã sẵn sàng!
+                                                                    <br /><span className="text-xs font-normal text-[#CDAD5A]">Format: Visual Storyboard 2 Cột</span>
+                                                                </p>
+                                                                <button className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
+                                                                    Mở khóa ngay →
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    outputScript
+                                                )}
                                             </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>{outputScript}</>
-                                )}
+                                        );
+                                    }
+                                })()}
                             </>
                         )}
                     </div>

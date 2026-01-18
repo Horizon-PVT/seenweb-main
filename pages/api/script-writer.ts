@@ -33,7 +33,7 @@ export default async function handler(
   }
 
   try {
-    const { idea, goal, level, tone, style, length } = req.body;
+    const { idea, goal, level, tone, style, length, format = 'visual' } = req.body;
 
     if (!idea || !goal || !level || !tone || !style || length === undefined) {
       return res.status(400).json({ error: "Thiếu thông tin đầu vào (idea, goal, level, tone, style, length)." });
@@ -45,20 +45,90 @@ export default async function handler(
       return res.status(500).json({ error: "Lỗi cấu hình máy chủ." });
     }
 
-    // --- Copy Prompt từ ScriptwriterTool.tsx ---
-    // Lưu ý: Prompt này yêu cầu output dạng text, không phải JSON
-    const prompt = `Bạn là một chuyên gia viết kịch bản YouTube bậc thầy. Đầu tiên, hãy xác định ngôn ngữ của 'Dữ Liệu Gốc' (Ý tưởng chính). Sau đó, hãy tạo ra một kịch bản BẰNG CHÍNH NGÔN NGỮ ĐÓ dựa trên các thông số sau:
-    - Dữ Liệu Gốc (Ý tưởng chính): "${idea}"
-    - Mục Tiêu: ${goal}
-    - Cấp Độ Phức Tạp: ${level}
-    - Tông Giọng: ${tone}
-    - Phong Cách: ${style}
-    - Độ dài video dự kiến: ${length} phút.
+    // --- 1. Framework Selection Logic (Tự động chọn khung sườn) ---
+    let framework = "";
+    let frameworkDesc = "";
 
-    QUAN TRỌNG: Đầu ra chỉ được chứa kịch bản ở định dạng "KỊCH BẢN ÂM THANH". Tuyệt đối chỉ bao gồm hai cột:
-    1. DIALOGUE: Lời thoại hoặc lời dẫn của người nói.
-    2. HƯỚNG DẪN ĐỌC: Chỉ dẫn về ngữ điệu, tốc độ, cảm xúc khi đọc (ví dụ: "nói nhanh, hào hứng", "chậm lại, nhấn mạnh").
-    Không thêm bất kỳ định dạng nào khác. Bắt đầu ngay với kịch bản.`;
+    switch (goal) {
+      case "Tăng View":
+        framework = "The Mystery Box (Chiếc hộp bí ẩn)";
+        frameworkDesc = "Tạo ra một câu hỏi lớn ngay từ đầu (Open Loop) và chỉ giải đáp nó ở cuối cùng. Rải rác các manh mối (Breadcrumbs) suốt video.";
+        break;
+      case "Tăng Chuyển Đổi":
+        framework = "PAS (Problem - Agitation - Solution)";
+        frameworkDesc = "Nêu vấn đề -> Xát muối vào nỗi đau -> Đưa ra giải pháp (Sản phẩm/Dịch vụ) như cứu cánh duy nhất.";
+        break;
+      case "Xây dựng Thương Hiệu":
+        framework = "Hero's Journey (Hành trình người hùng)";
+        frameworkDesc = "Nhân vật gặp biến cố -> Tìm người dẫn đường -> Chiến đấu -> Thay đổi và trở về.";
+        break;
+      default:
+        framework = "AIDA (Attention - Interest - Desire - Action)";
+        frameworkDesc = "Gây chú ý -> Tạo hứng thú -> Kích thích mong muốn -> Kêu gọi hành động.";
+    }
+
+    // --- 2. Duration Context (Đã có, giữ nguyên nhưng tinh chỉnh văn phong) ---
+    let durationContext = "";
+    if (Number(length) <= 3) {
+      durationContext = "Đây là video NGẮN (Shorts/TikTok). Yêu cầu: Cắt bỏ intro, vào thẳng vấn đề (In Medias Res). Nhịp độ dồn dập.";
+    } else {
+      durationContext = "Đây là video DÀI. Yêu cầu: Giữ chân người xem bằng cách thay đổi trạng thái cảm xúc (Emotional Rollercoaster) mỗi 3 phút.";
+    }
+
+    // --- 3. PROMPT GENERATION BASED ON FORMAT ---
+    let prompt = "";
+
+    if (format === 'story') {
+      // === MODE: STORYTELLING / PODCAST ===
+      prompt = `Bạn là một Nhà Kể Chuyện Đại Tài & Podcaster chuyên nghiệp.
+Nhiệm vụ: Viết một kịch bản Audio/Storytelling lôi cuốn, đánh mạnh vào THÍNH GIÁC và TRÍ TƯỞNG TƯỢNG.
+
+**THÔNG SỐ**:
+- Ý tưởng: "${idea}"
+- Ngôn ngữ: Output trùng Ngôn ngữ Input.
+- Mục tiêu: ${goal} -> Framework: ${framework} (${frameworkDesc})
+- Tông giọng: ${tone} | Phong cách: ${style}
+- Thời lượng: ${length} phút.
+- Chiến lược: ${durationContext}
+
+**YÊU CẦU CỐT LÕI (AUDIO-FIRST)**:
+1. **Theater of the Mind**: Dùng từ ngữ gợi hình để người nghe tự tưởng tượng ra khung cảnh trong đầu.
+2. **Kể chuyện dẫn dắt**: Dùng giọng văn kể chuyện (Narrative), thủ thỉ tâm tình hoặc hùng hồn tùy tông giọng.
+3. **Sound Design**: Ghi chú rõ loại âm thanh nền (SFX) hoặc nhạc nền (BGM) cần thiết để tăng cảm xúc.
+
+**ĐỊNH DẠNG OUTPUT**:
+Trình bày dạng văn bản chia đoạn rõ ràng:
+- **[MỞ ĐẦU - HOOK]**: Câu mở đầu chấn động.
+- **[THÂN BÀI - DIỄN BIẾN]**: Kể chi tiết, chia nhỏ thành các ý chính (Key Points).
+- **[KẾT THÚC - CTA]**: Đúc kết và kêu gọi.
+(Kèm các ghi chú [SFX: Tiếng mưa rơi...] hoặc [Tone: Giọng trầm ấm...] trong ngoặc vuông).`;
+
+    } else {
+      // === MODE: VISUAL SCRIPT (DEFAULT) ===
+      prompt = `Bạn là Đạo Diễn Hình Ảnh & Chiến Lược Gia YouTube (Top 1% Global).
+Nhiệm vụ: Viết một kịch bản Video Viral KHÔNG PHẢI ĐỂ ĐỌC, MÀ ĐỂ XEM.
+
+**THÔNG SỐ ĐẦU VÀO**:
+- Ý tưởng gốc: "${idea}"
+- Ngôn ngữ Đầu ra: **Detect & Match Input Language** (Nếu Idea là Anh -> Viết Anh).
+- Mục tiêu: ${goal} -> **Áp dụng Framework: ${framework}** (${frameworkDesc}).
+- Tông giọng: ${tone}
+- Thời lượng: ${length} phút.
+- Chiến lược độ dài: ${durationContext}
+
+**YÊU CẦU CỐT LÕI (VISUAL-FIRST THINKING)**:
+1. **No Talking Heads**: Hạn chế cảnh người ngồi nói. Hãy mô tả B-Roll, Meme, Text Overlay, Chuyển cảnh.
+2. **Retention Engineering**: Cứ mỗi 60 giây phải có một "Pattern Interrupt" (Thay đổi góc máy, âm thanh lạ, câu hỏi sốc) để đánh thức não bộ người xem.
+3. **Open Loop**: Gieo một bí mật ở đầu video và hứa sẽ tiết lộ ở cuối.
+
+**ĐỊNH DẠNG OUTPUT (BẮT BUỘC DÙNG MARKDOWN TABLE)**:
+Hãy trình bày kịch bản dưới dạng Bảng Markdown gồm 2 cột:
+| VISUAL (Mắt thấy) | AUDIO (Tai nghe) |
+| :--- | :--- |
+| [00:00-00:15] Mô tả chi tiết cảnh quay, hành động, text hiện trên màn hình... | Lời thoại (Dialogue) hoặc Lời bình (Voiceover). Kèm chỉ dẫn cảm xúc trong ngoặc đơn (Vd: Hào hứng). |
+
+*Lưu ý: Cột VISUAL phải chiếm 50% trọng lượng kịch bản. Đừng chỉ viết mỗi Audio.*`;
+    }
     // --- Hết Prompt ---
 
     const ai = new GoogleGenAI({ apiKey });
