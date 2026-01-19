@@ -1,9 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { useSession } from "next-auth/react";
+import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
-
 export default function VirtualMCTool() {
     const { data: session } = useSession();
+    const router = useRouter();
+    const { t } = useTranslation('common');
+    const isEN = router.locale === 'en';
+
     const userRole = (session?.user as any)?.role || "FREE";
     const isPro = userRole === 'SUPER' || userRole === 'ADMIN';
 
@@ -97,7 +102,7 @@ export default function VirtualMCTool() {
     return (
         <div className="relative bg-black/40 backdrop-blur-md border border-[#008080]/30 rounded-lg p-6 max-w-4xl mx-auto shadow-2xl">
             <h2 className="text-2xl font-bold text-[#CDAD5A] font-playfair mb-6 text-center tracking-widest uppercase border-b border-[#008080]/30 pb-4">
-                Siêu Tiên Nữ - Virtual Idol
+                {isEN ? 'AI Virtual Idol' : 'Siêu Tiên Nữ - Virtual Idol'}
             </h2>
 
             {/* PRO LOCK OVERLAY */}
@@ -125,14 +130,14 @@ export default function VirtualMCTool() {
                 <div className="space-y-6">
                     {/* Image Upload */}
                     <div className="group relative">
-                        <label className="block text-[#008080] font-bold text-xs uppercase mb-2">1. Chân dung Idol (Ảnh tĩnh)</label>
+                        <label className="block text-[#008080] font-bold text-xs uppercase mb-2">{isEN ? '1. Idol Portrait (Static Image)' : '1. Chân dung Idol (Ảnh tĩnh)'}</label>
                         <div className="border-2 border-dashed border-gray-600 rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer hover:border-[#CDAD5A] transition-all bg-black/20 overflow-hidden relative">
                             {imagePreview ? (
                                 <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
                             ) : (
                                 <div className="text-center text-gray-500">
                                     <span className="text-4xl block mb-2">👤</span>
-                                    <span className="text-xs">Bấm để chọn ảnh</span>
+                                    <span className="text-xs">{isEN ? 'Click to select image' : 'Bấm để chọn ảnh'}</span>
                                 </div>
                             )}
                             <input
@@ -151,25 +156,25 @@ export default function VirtualMCTool() {
 
                     {/* Audio Upload */}
                     <div>
-                        <label className="block text-[#008080] font-bold text-xs uppercase mb-2">2. Giọng nói (File âm thanh/TTS)</label>
+                        <label className="block text-[#008080] font-bold text-xs uppercase mb-2">{isEN ? '2. Voice (Audio File/TTS)' : '2. Giọng nói (File âm thanh/TTS)'}</label>
                         <input
                             type="file"
                             accept="audio/*"
                             onChange={(e) => e.target.files?.[0] && setAudioFile(e.target.files[0])}
                             className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#003333] file:text-[#CDAD5A] hover:file:bg-[#004d4d]"
                         />
-                        <p className="text-[10px] text-gray-500 mt-1 italic">* Mẹo: Dùng tab "Chuyển văn bản thành giọng nói của SeenYt" để tạo file âm thanh tốt, chuẩn nhất trước,sau đó hãy đưa file âm thanh đó vào .</p>
+                        <p className="text-[10px] text-gray-500 mt-1 italic">{isEN ? '* Tip: Use "Text to Speech" tool to create high-quality audio first.' : '* Mẹo: Dùng tab "Chuyển văn bản thành giọng nói của SeenYt" để tạo file âm thanh tốt, chuẩn nhất trước,sau đó hãy đưa file âm thanh đó vào .'}</p>
                     </div>
 
                     {/* TIPS BANNER */}
                     <div className="bg-[#CDAD5A]/10 border border-[#CDAD5A]/30 p-4 rounded-lg flex gap-3 shadow-lg animate-pulse-slow">
                         <div className="text-2xl">💡</div>
                         <div>
-                            <h3 className="text-[#CDAD5A] font-bold text-xs uppercase tracking-wide mb-1">MẸO TỐI ƯU KẾT QUẢ</h3>
+                            <h3 className="text-[#CDAD5A] font-bold text-xs uppercase tracking-wide mb-1">{isEN ? 'OPTIMIZATION TIPS' : 'MẸO TỐI ƯU KẾT QUẢ'}</h3>
                             <ul className="text-[10px] text-gray-300 space-y-1 list-disc list-inside">
-                                <li><strong>Ảnh:</strong> Nên dùng ảnh chân dung cận mặt (Close-up), tỉ lệ <strong>16:9</strong> hoặc vuông. Hạn chế ảnh toàn thân.</li>
-                                <li><strong>Âm thanh:</strong> Tốt nhất dưới <strong>1-2 phút</strong> để xử lý nhanh (tránh lỗi timeout).</li>
-                                <li><strong>Head Motion:</strong> AI sẽ tự động cử động đầu cho tự nhiên hơn (không chỉ nhép môi).</li>
+                                <li><strong>{isEN ? 'Image:' : 'Ảnh:'}</strong> {isEN ? 'Use close-up portrait, 16:9 or square. Avoid full body.' : 'Nên dùng ảnh chân dung cận mặt (Close-up), tỉ lệ 16:9 hoặc vuông. Hạn chế ảnh toàn thân.'}</li>
+                                <li><strong>{isEN ? 'Audio:' : 'Âm thanh:'}</strong> {isEN ? 'Best under 1-2 minutes for fast processing.' : 'Tốt nhất dưới 1-2 phút để xử lý nhanh (tránh lỗi timeout).'}</li>
+                                <li><strong>{isEN ? 'Head Motion:' : 'Head Motion:'}</strong> {isEN ? 'AI will animate head movement automatically.' : 'AI sẽ tự động cử động đầu cho tự nhiên hơn (không chỉ nhép môi).'}</li>
                             </ul>
                         </div>
                     </div>

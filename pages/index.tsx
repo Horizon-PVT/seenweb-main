@@ -131,8 +131,10 @@ export default function Home({ ebooks = [], videos = [] }: { ebooks: any[]; vide
   );
 }
 
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
 // Fetch ebooks and videos from database
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   try {
     const [ebooks, videos] = await Promise.all([
       prisma.ebook.findMany({
@@ -161,6 +163,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
     return {
       props: {
+        ...(await serverSideTranslations(locale ?? 'vi', ['common'])),
         ebooks: JSON.parse(JSON.stringify(ebooks)),
         videos: JSON.parse(JSON.stringify(videos)),
       },
@@ -169,6 +172,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
     console.error('Error fetching ebooks/videos:', error);
     return {
       props: {
+        ...(await serverSideTranslations(locale ?? 'vi', ['common'])),
         ebooks: [],
         videos: [],
       },

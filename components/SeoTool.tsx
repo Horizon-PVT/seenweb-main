@@ -1,6 +1,8 @@
 // File: components/SeoTool.tsx (SeenYT Alpha Strategy UI)
 import React, { useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import { PhiIcon } from './AnimatedIcons';
 
 interface SeoToolProps {
@@ -82,6 +84,10 @@ const Loader: React.FC = () => (
 // --- MAIN COMPONENT ---
 const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
     const { data: session } = useSession();
+    const { t } = useTranslation('common');
+    const router = useRouter();
+    const isEN = router.locale === 'en';
+
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [output, setOutput] = useState<OutputData | null>(null);
@@ -155,26 +161,26 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
                         <p className="text-xs text-gray-400">Strategic Intelligence Engine 2026</p>
                     </div>
                 </div>
-                <button onClick={onBack} className="text-gray-400 hover:text-white">&times; Thoát</button>
+                <button onClick={onBack} className="text-gray-400 hover:text-white">&times; {isEN ? 'Exit' : 'Thoát'}</button>
             </div>
 
             {/* Main Content */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow min-h-0">
                 {/* LEFT: Input */}
                 <form onSubmit={handleSubmit} className="lg:col-span-3 flex flex-col space-y-4 h-full">
-                    <label className="text-sm font-bold text-[#CDAD5A]">Ý TƯỞNG / KỊCH BẢN GỐC</label>
+                    <label className="text-sm font-bold text-[#CDAD5A]">{isEN ? 'IDEA / RAW SCRIPT' : 'Ý TƯỞNG / KỊCH BẢN GỐC'}</label>
                     <textarea
                         value={coreIdea}
                         onChange={e => setCoreIdea(e.target.value)}
-                        placeholder="Paste kịch bản hoặc ý tưởng thô sơ vào đây..."
+                        placeholder={isEN ? 'Paste your script or raw idea here...' : 'Paste kịch bản hoặc ý tưởng thô sơ vào đây...'}
                         className="w-full h-full min-h-[200px] p-4 bg-black/40 border border-gray-700 rounded-lg focus:border-[#CDAD5A] focus:ring-1 focus:ring-[#CDAD5A] text-gray-300 resize-none"
                     ></textarea>
                     <div className="flex gap-2">
-                        <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-xs">📂 Upload File</button>
+                        <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-xs">📂 {isEN ? 'Upload File' : 'Upload File'}</button>
                         <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                     </div>
                     <button disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-[#CDAD5A] to-[#b89c4a] text-black font-bold rounded shadow-lg hover:shadow-[#CDAD5A]/20 transition-all disabled:opacity-50">
-                        {isLoading ? "ĐANG PHÂN TÍCH..." : "CHẠY CHIẾN LƯỢC 🚀"}
+                        {isLoading ? (isEN ? 'ANALYZING...' : 'ĐANG PHÂN TÍCH...') : (isEN ? 'RUN STRATEGY 🚀' : 'CHẠY CHIẾN LƯỢC 🚀')}
                     </button>
                     {error && <p className="text-red-500 text-center text-xs">{error}</p>}
                 </form>
@@ -188,7 +194,7 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
                             <div className="w-32 h-32 border-2 border-dashed border-gray-700 rounded-full flex items-center justify-center">
                                 <StrategyIcon />
                             </div>
-                            <p>Sẵn sàng tiếp nhận dữ liệu...</p>
+                            <p>{isEN ? 'Ready to receive data...' : 'Sẵn sàng tiếp nhận dữ liệu...'}</p>
                         </div>
                     )}
 

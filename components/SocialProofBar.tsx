@@ -1,13 +1,7 @@
 // components/SocialProofBar.tsx
 // Animated social proof bar with scrolling stats and logos
 import React from 'react';
-
-const STATS = [
-    { number: '500+', label: 'YouTuber đang dùng' },
-    { number: '10K+', label: 'Video được tạo' },
-    { number: '50M+', label: 'Views đạt được' },
-    { number: '98%', label: 'Hài lòng' },
-];
+import { useTranslation } from 'next-i18next';
 
 const PARTNER_LOGOS = [
     '/images/partners/youtube.png',
@@ -17,6 +11,15 @@ const PARTNER_LOGOS = [
 ];
 
 export default function SocialProofBar() {
+    const { t } = useTranslation('common');
+
+    const STATS = [
+        { number: '500+', label: t('stats.users', 'YouTubers using') },
+        { number: '10K+', label: t('stats.videos', 'Videos created') },
+        { number: '50M+', label: t('stats.views', 'Views achieved') },
+        { number: '98%', label: t('stats.satisfaction', 'Satisfaction') },
+    ];
+
     return (
         <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 py-4 overflow-hidden border-y border-gray-800">
             <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-8">

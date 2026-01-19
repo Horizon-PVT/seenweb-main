@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import { ArrowRight, Loader2, Edit3, Download, Check, Video as VideoIcon, Upload, Mic, Volume2 } from 'lucide-react';
 
 interface DubbingToolProps {
@@ -25,6 +27,10 @@ const ALL_VOICES = [...EDGE_VOICES, ...FPT_VOICES];
 
 export default function DubbingTool({ onBack }: DubbingToolProps) {
     const { data: session } = useSession();
+    const { t } = useTranslation('common');
+    const router = useRouter();
+    const isEN = router.locale === 'en';
+
     const [step, setStep] = useState(1); // 1: Input, 2: Edit, 3: Result
     const [loading, setLoading] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
@@ -216,7 +222,7 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-black text-[#CDAD5A]">🎙️ AI Dubbing Studio</h1>
-                        <p className="text-gray-400 mt-1">Tự động dịch thuật và lồng tiếng Video</p>
+                        <p className="text-gray-400 mt-1">{isEN ? 'Auto translate and dub videos' : 'Tự động dịch thuật và lồng tiếng Video'}</p>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                         <div className={`px-3 py-1 rounded-full ${step >= 1 ? 'bg-[#CDAD5A] text-black' : 'bg-gray-700'}`}>1. Upload</div>
@@ -232,8 +238,8 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
                     <div className="bg-black/50 border border-gray-800 rounded-2xl p-8">
                         {/* Header */}
                         <div className="text-center mb-6">
-                            <h2 className="text-xl font-bold text-white mb-2">📤 Tải Video Lên</h2>
-                            <p className="text-gray-400 text-sm">Hỗ trợ: MP4, MOV, AVI... (tối đa 500MB)</p>
+                            <h2 className="text-xl font-bold text-white mb-2">📤 {isEN ? 'Upload Video' : 'Tải Video Lên'}</h2>
+                            <p className="text-gray-400 text-sm">{isEN ? 'Supported: MP4, MOV, AVI... (max 500MB)' : 'Hỗ trợ: MP4, MOV, AVI... (tối đa 500MB)'}</p>
                         </div>
 
                         {/* Upload Area */}

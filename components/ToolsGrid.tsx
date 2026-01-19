@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useTranslation } from 'next-i18next';
 import {
   PyramidIcon,
   PhiIcon,
@@ -285,9 +286,15 @@ const CapCutCard: React.FC<{
   onOpen: () => void;
   index: number;
   showExclusiveBadge?: boolean;
-}> = ({ tool, isLocked, onOpen, index, showExclusiveBadge = false }) => {
+  t: any;
+}> = ({ tool, isLocked, onOpen, index, showExclusiveBadge = false, t }) => {
   const Icon = tool.icon;
   const [isHovered, setIsHovered] = useState(false);
+
+  // Get translated tool name/description using tool ID as key
+  const toolName = t(`tools.${tool.id}.name`, tool.name);
+  const toolShortDesc = t(`tools.${tool.id}.short`, tool.shortDescription);
+  const toolLongDesc = t(`tools.${tool.id}.long`, tool.longDescription);
 
   return (
     <div
@@ -304,7 +311,7 @@ const CapCutCard: React.FC<{
         {tool.imageSrc ? (
           <img
             src={tool.imageSrc}
-            alt={tool.name}
+            alt={toolName}
             className="absolute inset-0 w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
           />
         ) : tool.videoSrc ? (
@@ -339,25 +346,25 @@ const CapCutCard: React.FC<{
 
         {/* BADGES */}
         <div className="flex flex-wrap gap-0.5 mb-1">
-          {tool.isHot && <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">🔥 HOT</span>}
-          {tool.isExclusive && <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">💎 ĐỘC QUYỀN</span>}
-          {tool.isNew && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">🚀 MỚI</span>}
-          {tool.isNewbie && !tool.isHot && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">🌱 DÀNH CHO NGƯỜI MỚI</span>}
+          {tool.isHot && <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">🔥 {t('badges.hot', 'HOT')}</span>}
+          {tool.isExclusive && <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">💎 {t('badges.exclusive', 'EXCLUSIVE')}</span>}
+          {tool.isNew && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">🚀 {t('badges.new', 'NEW')}</span>}
+          {tool.isNewbie && !tool.isHot && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">🌱 {t('badges.for_beginners', 'FOR BEGINNERS')}</span>}
         </div>
 
         {/* TOOL NAME */}
         <h3 className="text-sm font-extrabold text-gray-800 group-hover:text-blue-600 transition-colors truncate w-full mb-0.5">
-          {tool.name}
+          {toolName}
         </h3>
 
         <p className="text-[11px] text-gray-500 line-clamp-1 leading-snug">
-          {tool.shortDescription}
+          {toolShortDesc}
         </p>
 
         {/* HOVER REVEAL */}
         <div className={`absolute inset-x-0 bottom-0 bg-white p-2 border-t border-gray-100 shadow-[-2px_-5px_15px_rgba(0,0,0,0.05)] transition-transform duration-300 transform ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
           <p className="text-[10px] text-gray-600 leading-relaxed line-clamp-2">
-            {tool.longDescription}
+            {toolLongDesc}
           </p>
         </div>
       </div>
@@ -377,10 +384,11 @@ const ToolSection: React.FC<{
   title: string;
   tools: Tool[];
   userRole: Role;
-  onOpen: (t: Tool) => void;
+  onOpen: (tool: Tool) => void;
   isExclusiveSection?: boolean;
   variant?: SectionVariant;
-}> = ({ title, tools, userRole, onOpen, isExclusiveSection = false, variant = 'default' }) => {
+  t: any;
+}> = ({ title, tools, userRole, onOpen, isExclusiveSection = false, variant = 'default', t }) => {
 
   const getThemeClass = () => {
     switch (variant) {
@@ -415,19 +423,20 @@ const ToolSection: React.FC<{
         </h3>
         {isExclusiveSection && (
           <span className="ml-2 px-2 py-0.5 text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full uppercase tracking-wide shadow-lg animate-pulse">
-            ⭐ ĐỘC QUYỀN
+            ⭐ {t('badges.exclusive', 'EXCLUSIVE')}
           </span>
         )}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {tools.map((t, i) => (
+        {tools.map((tool, i) => (
           <CapCutCard
-            key={t.id}
+            key={tool.id}
             index={i}
-            tool={t}
-            isLocked={!canAccessTool(t.id, userRole)}
-            onOpen={() => onOpen(t)}
+            tool={tool}
+            isLocked={!canAccessTool(tool.id, userRole)}
+            onOpen={() => onOpen(tool)}
             showExclusiveBadge={isExclusiveSection}
+            t={t}
           />
         ))}
       </div>
@@ -445,6 +454,7 @@ const ToolsGrid: React.FC = () => {
   const { data: session } = useSession();
   const userRole = ((session?.user as any)?.role || "FREE") as Role;
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   const [activeTab, setActiveTab] = useState<TabType>('all');
 
@@ -495,13 +505,13 @@ const ToolsGrid: React.FC = () => {
   };
 
   const navItems = [
-    { id: 'all', label: 'Tất cả', icon: null },
-    { id: 'newbie', label: 'Dành cho người mới', icon: '🌱' },
-    { id: 'hot', label: 'Đang thịnh hành', icon: '🔥' },
-    { id: 'content', label: 'Sáng tạo nội dung', icon: '📝' },
-    { id: 'research', label: 'Nghiên cứu thị trường', icon: '📊' },
-    { id: 'very_hot', label: '🏆 GÓC HỌC WIN!', icon: null },
-    ...(userRole === 'ADMIN' ? [{ id: 'developer', label: '🔧 Nhà Phát Triển', icon: null }] : []),
+    { id: 'all', label: t('nav.all', 'Tất cả'), icon: null },
+    { id: 'newbie', label: t('nav.newbie', 'Dành cho người mới'), icon: '🌱' },
+    { id: 'hot', label: t('nav.hot', 'Đang thịnh hành'), icon: '🔥' },
+    { id: 'content', label: t('nav.content', 'Sáng tạo nội dung'), icon: '📝' },
+    { id: 'research', label: t('nav.research', 'Nghiên cứu thị trường'), icon: '📊' },
+    { id: 'very_hot', label: '🏆 ' + t('nav.learning', 'GÓC HỌC WIN!'), icon: null },
+    ...(userRole === 'ADMIN' ? [{ id: 'developer', label: '🔧 ' + t('nav.developer', 'Nhà Phát Triển'), icon: null }] : []),
   ];
 
   return (
@@ -514,7 +524,7 @@ const ToolsGrid: React.FC = () => {
             SeenYT <span className="font-light italic text-[#CDAD5A]">Studio</span>
           </h2>
           <p className="text-[#F3EFE0]/70 text-sm md:text-base max-w-2xl font-light">
-            Khơi nguồn sáng tạo với bộ công cụ AI tối thượng. Thiết kế tinh tế, hiệu năng vượt trội.
+            {t('studio.subtitle', 'Khơi nguồn sáng tạo với bộ công cụ AI tối thượng. Thiết kế tinh tế, hiệu năng vượt trội.')}
           </p>
         </div>
 
@@ -549,12 +559,12 @@ const ToolsGrid: React.FC = () => {
         <div className="min-h-[500px]">
           {activeTab === 'all' ? (
             <>
-              <ToolSection title="🏆 Góc Học Win!" tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="gold" />
-              <ToolSection title="🔥 Đang Thịnh Hành" tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" />
-              <ToolSection title="📝 Sáng Tạo Nội Dung" tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" />
-              <ToolSection title="📊 Nghiên Cứu Thị Trường" tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" />
+              <ToolSection title={'🏆 ' + t('sections.learning', 'Góc Học Win!')} tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="gold" t={t} />
+              <ToolSection title={'🔥 ' + t('sections.trending', 'Đang Thịnh Hành')} tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" t={t} />
+              <ToolSection title={'📝 ' + t('sections.content_creation', 'Sáng Tạo Nội Dung')} tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" t={t} />
+              <ToolSection title={'📊 ' + t('sections.research', 'Nghiên Cứu Thị Trường')} tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" t={t} />
               {userRole === 'ADMIN' && (
-                <ToolSection title="🔧 Nhà Phát Triển" tools={toolsDeveloper} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="default" />
+                <ToolSection title={'🔧 ' + t('sections.developer', 'Nhà Phát Triển')} tools={toolsDeveloper} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="default" t={t} />
               )}
             </>
           ) : (
@@ -564,6 +574,7 @@ const ToolsGrid: React.FC = () => {
                 tools={getFilteredTools()}
                 userRole={userRole}
                 onOpen={handleOpenTool}
+                t={t}
               />
             </div>
           )}

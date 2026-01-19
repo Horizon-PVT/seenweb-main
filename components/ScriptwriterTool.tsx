@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import UpgradeGate from './UpgradeGate';
 import PremiumComparison from './PremiumComparison';
 import { PyramidIcon } from './AnimatedIcons';
@@ -20,10 +22,14 @@ interface ScriptwriterToolProps {
 
 const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect, onBack }) => {
     const { data: session } = useSession();
+    const { t } = useTranslation('common');
+    const router = useRouter();
+    const isEN = router.locale === 'en';
+
     const userRole = (session?.user as any)?.role || 'FREE';
     const [showUpgradeGate, setShowUpgradeGate] = useState(false);
-    const [gateRequiredTier, setGateRequiredTier] = useState<string>('CREATIVE'); // Default
-    const [gateFeatureName, setGateFeatureName] = useState<string>('Tính năng này');
+    const [gateRequiredTier, setGateRequiredTier] = useState<string>('CREATIVE');
+    const [gateFeatureName, setGateFeatureName] = useState<string>(isEN ? 'This feature' : 'Tính năng này');
 
     // --- Các state giữ nguyên ---
     const [isLoading, setIsLoading] = useState(false);
@@ -244,80 +250,84 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
         }
     }
 
-    // --- Phần JSX return giữ nguyên ---
+    // --- Main JSX ---
     return (
         <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#CDAD5A] tracking-wider">KIẾN TẠO THIÊN HÀ: LÕI KỊCH BẢN</h2>
-                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2">&times; Trở Về</button>
+                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#CDAD5A] tracking-wider">
+                    {isEN ? 'GALAXY BUILDER: SCRIPT CORE' : 'KIẾN TẠO THIÊN HÀ: LÕI KỊCH BẢN'}
+                </h2>
+                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2">
+                    &times; {isEN ? 'Back' : 'Trở Về'}
+                </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow min-h-0">
-                {/* Form nhập liệu (không thay đổi) */}
+                {/* Form */}
                 <form onSubmit={handleSubmit} className="md:col-span-1 flex flex-col space-y-3 pr-2 overflow-y-auto">
                     <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">TẠO DỮ LIỆU GỐC</label>
-                        <textarea value={idea} onChange={e => setIdea(e.target.value)} placeholder="Nhập ý tưởng sơ bộ, chủ đề..." className="w-full h-24 obsidian-textarea"></textarea>
+                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'RAW DATA INPUT' : 'TẠO DỮ LIỆU GỐC'}</label>
+                        <textarea value={idea} onChange={e => setIdea(e.target.value)} placeholder={isEN ? 'Enter your idea, topic...' : 'Nhập ý tưởng sơ bộ, chủ đề...'} className="w-full h-24 obsidian-textarea"></textarea>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="text-xs font-bold text-[#CDAD5A]">MỤC TIÊU</label>
+                            <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'GOAL' : 'MỤC TIÊU'}</label>
                             <select value={goal} onChange={e => setGoal(e.target.value)} className="w-full obsidian-select">
-                                <option>Tăng View</option>
-                                <option>Tăng Chuyển Đổi</option>
-                                <option>Xây dựng Thương Hiệu</option>
+                                <option value="Tăng View">{isEN ? 'Increase Views' : 'Tăng View'}</option>
+                                <option value="Tăng Chuyển Đổi">{isEN ? 'Increase Conversion' : 'Tăng Chuyển Đổi'}</option>
+                                <option value="Xây dựng Thương Hiệu">{isEN ? 'Build Brand' : 'Xây dựng Thương Hiệu'}</option>
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-[#CDAD5A]">CẤP ĐỘ</label>
+                            <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'LEVEL' : 'CẤP ĐỘ'}</label>
                             <select value={level} onChange={e => setLevel(e.target.value)} className="w-full obsidian-select">
-                                <option>Cơ Bản</option>
-                                <option>Nâng Cao</option>
-                                <option>Tinh Hoa</option>
+                                <option value="Cơ Bản">{isEN ? 'Basic' : 'Cơ Bản'}</option>
+                                <option value="Nâng Cao">{isEN ? 'Advanced' : 'Nâng Cao'}</option>
+                                <option value="Tinh Hoa">{isEN ? 'Expert' : 'Tinh Hoa'}</option>
                             </select>
                         </div>
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">TÔNG GIỌNG</label>
+                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'TONE' : 'TÔNG GIỌNG'}</label>
                         <select value={tone} onChange={e => setTone(e.target.value)} className="w-full obsidian-select">
                             {tones.map(t => <option key={t}>{t}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">ĐỊNH DẠNG</label>
+                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'FORMAT' : 'ĐỊNH DẠNG'}</label>
                         <select value={format} onChange={e => setFormat(e.target.value)} className="w-full obsidian-select">
-                            <option value="visual">Kịch bản Phân cảnh (Visual)</option>
-                            <option value="story">Kể chuyện (Story/Podcast)</option>
+                            <option value="visual">{isEN ? 'Visual Script (Scene-by-scene)' : 'Kịch bản Phân cảnh (Visual)'}</option>
+                            <option value="story">{isEN ? 'Storytelling (Story/Podcast)' : 'Kể chuyện (Story/Podcast)'}</option>
                         </select>
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">PHONG CÁCH</label>
+                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'STYLE' : 'PHONG CÁCH'}</label>
                         <select value={style} onChange={e => setStyle(e.target.value)} className="w-full obsidian-select">
                             {styles.map(s => <option key={s}>{s}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">ĐỘ DÀI</label>
+                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'LENGTH' : 'ĐỘ DÀI'}</label>
                         <div className="flex items-center gap-2">
                             <input type="range" min="1" max="30" value={length} onChange={e => setLength(parseInt(e.target.value))} className="w-full obsidian-slider" />
-                            <span className="font-mono text-lg text-[#008080] w-16 text-center">{length} phút</span>
+                            <span className="font-mono text-lg text-[#008080] w-16 text-center">{length} {isEN ? 'min' : 'phút'}</span>
                         </div>
                     </div>
                     <button ref={buttonRef} type="submit" disabled={isLoading} className="w-full bg-[#CDAD5A] text-black font-bold py-3 px-5 border-2 border-[#CDAD5A] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#CDAD5A] active:scale-95 bronze-glow disabled:bg-gray-600 disabled:cursor-not-allowed">
-                        {isLoading ? loadingMessage : "KHỞI TẠO CẤU TRÚC"}
+                        {isLoading ? (isEN ? 'GENERATING...' : loadingMessage) : (isEN ? 'INITIALIZE STRUCTURE' : 'KHỞI TẠO CẤU TRÚC')}
                     </button>
                     {error && <p className="text-red-500 text-center text-xs">{error}</p>}
                 </form>
 
-                {/* Phần hiển thị kết quả và các nút chức năng (không thay đổi) */}
+                {/* Output section */}
                 <div className="md:col-span-2 flex flex-col space-y-2 min-h-0">
                     <div className="flex justify-between items-center flex-wrap gap-2">
-                        <label className="text-xs font-bold text-[#008080]">KHUNG KỊCH BẢN PHÂN LOẠI</label>
+                        <label className="text-xs font-bold text-[#008080]">{isEN ? 'SCRIPT FRAME' : 'KHUNG KỊCH BẢN PHÂN LOẠI'}</label>
                         <div className="flex items-center space-x-2">
-                            <button onClick={handleCopy} title="Sao chép" className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>SAO CHÉP</button>
-                            <button onClick={handleExportTxt} title="Xuất file .txt" className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>XUẤT (TXT)</button>
+                            <button onClick={handleCopy} title={isEN ? 'Copy' : 'Sao chép'} className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>{isEN ? 'COPY' : 'SAO CHÉP'}</button>
+                            <button onClick={handleExportTxt} title={isEN ? 'Export to .txt' : 'Xuất file .txt'} className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>{isEN ? 'EXPORT (TXT)' : 'XUẤT (TXT)'}</button>
                             <select onChange={e => handleRefine('translate', e.target.value)} disabled={!outputScript || isLoading} className="text-xs obsidian-select !p-1 disabled:opacity-50">
-                                <option>DỊCH...</option>
+                                <option>{isEN ? 'TRANSLATE...' : 'DỊCH...'}</option>
                                 {Object.entries(languages).map(([name, code]) => <option key={code} value={code}>{name}</option>)}
                             </select>
                             <span className="text-xs text-[#CDAD5A] w-20 text-right">{copySuccess}</span>

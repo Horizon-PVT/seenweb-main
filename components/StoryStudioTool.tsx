@@ -1,6 +1,8 @@
 // File: components/StoryStudioTool.tsx (Hoàn Chỉnh - Tích hợp KDP Workflow & Spread View & Giới hạn Trang 1-100)
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import { BookIcon } from './AnimatedIcons';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -77,6 +79,10 @@ const Loader: React.FC<{ text: string }> = ({ text }) => (
 );
 
 const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
+  const router = useRouter();
+  const { t } = useTranslation('common');
+  const isEN = router.locale === 'en';
+
   const [phase, setPhase] = useState<Phase>('input');
   const [bookTitle, setBookTitle] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -87,7 +93,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState('Đang khởi tạo...');
+  const [loadingMessage, setLoadingMessage] = useState(isEN ? 'Initializing...' : 'Đang khởi tạo...');
 
   const [selectedTrimSize, setSelectedTrimSize] = useState<TrimSizeKey>('6x9 (Tiêu chuẩn)');
   const [coverUrl, setCoverUrl] = useState<string | undefined>(undefined);
@@ -292,7 +298,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col">
-          <label htmlFor="book-title" className="text-sm font-medium text-gray-300 mb-1">Tên Sách (Tiêu đề)</label>
+          <label htmlFor="book-title" className="text-sm font-medium text-gray-300 mb-1">{isEN ? 'Book Title' : 'Tên Sách (Tiêu đề)'}</label>
           <input
             id="book-title"
             type="text"
@@ -303,7 +309,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
           />
         </div>
         <div className="flex flex-col">
-          <label htmlFor="author-name" className="text-sm font-medium text-gray-300 mb-1">Tên Tác Giả</label>
+          <label htmlFor="author-name" className="text-sm font-medium text-gray-300 mb-1">{isEN ? 'Author Name' : 'Tên Tác Giả'}</label>
           <input
             id="author-name"
             type="text"
@@ -317,7 +323,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col">
-          <label htmlFor="trim-size" className="text-sm font-medium text-gray-300 mb-1">Kích thước In Ấn (KDP Trim Size)</label>
+          <label htmlFor="trim-size" className="text-sm font-medium text-gray-300 mb-1">{isEN ? 'Print Size (KDP Trim Size)' : 'Kích thước In Ấn (KDP Trim Size)'}</label>
           <select
             id="trim-size"
             value={selectedTrimSize}
@@ -332,7 +338,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="scenes" className="text-sm font-medium text-gray-300 mb-1">Số lượng Cảnh (Trang)</label>
+          <label htmlFor="scenes" className="text-sm font-medium text-gray-300 mb-1">{isEN ? 'Number of Scenes (Pages)' : 'Số lượng Cảnh (Trang)'}</label>
           <input
             id="scenes"
             type="number"
@@ -341,14 +347,14 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
             min="1" max="100"
             className="p-3 bg-[#1a1a08] border border-[#CDAD5A] text-white rounded-md focus:ring-1 focus:ring-[#CDAD5A]"
           />
-          <p className="text-xs text-gray-500 mt-1">Linh hoạt từ 1 đến 100 trang. Lưu ý: KDP yêu cầu tối thiểu **24 trang** in ấn.</p>
+          <p className="text-xs text-gray-500 mt-1">{isEN ? 'Flexible 1-100 pages. Note: KDP requires min 24 pages.' : 'Linh hoạt từ 1 đến 100 trang. Lưu ý: KDP yêu cầu tối thiểu **24 trang** in ấn.'}</p>
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold text-[#CDAD5A] pt-4">2. Nội dung và Phong cách</h3>
+      <h3 className="text-lg font-semibold text-[#CDAD5A] pt-4">{isEN ? '2. Content & Style' : '2. Nội dung và Phong cách'}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col">
-          <label htmlFor="language" className="text-sm font-medium text-gray-300 mb-1">Ngôn ngữ Sách</label>
+          <label htmlFor="language" className="text-sm font-medium text-gray-300 mb-1">{isEN ? 'Book Language' : 'Ngôn ngữ Sách'}</label>
           <select
             id="language"
             value={language}
@@ -362,7 +368,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor="style" className="text-sm font-medium text-gray-300 mb-1">Phong cách Minh họa</label>
+          <label htmlFor="style" className="text-sm font-medium text-gray-300 mb-1">{isEN ? 'Illustration Style' : 'Phong cách Minh họa'}</label>
           <select
             id="style"
             value={style}
@@ -377,13 +383,13 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
       </div>
 
       <div className="flex flex-col">
-        <label htmlFor="story-idea" className="text-sm font-medium text-gray-300 mb-1">Tóm tắt Cốt truyện</label>
+        <label htmlFor="story-idea" className="text-sm font-medium text-gray-300 mb-1">{isEN ? 'Story Summary' : 'Tóm tắt Cốt truyện'}</label>
         <textarea
           id="story-idea"
           value={storyIdea}
           onChange={(e) => setStoryIdea(e.target.value)}
           rows={6}
-          placeholder="Ví dụ: Một chú rồng con màu xanh tên là Draco không thích thở lửa. Cậu ấy muốn tạo ra những bong bóng xà phòng tuyệt đẹp để tặng bạn bè trong khu rừng phép thuật."
+          placeholder={isEN ? "Example: A blue dragon named Draco who doesn't like breathing fire..." : "Ví dụ: Một chú rồng con màu xanh tên là Draco không thích thở lửa. Cậu ấy muốn tạo ra những bong bóng xà phòng tuyệt đẹp để tặng bạn bè trong khu rừng phép thuật."}
           className="p-3 bg-[#1a1a08] border border-[#CDAD5A] text-white rounded-md focus:ring-1 focus:ring-[#CDAD5A] resize-none"
         />
       </div>
@@ -393,23 +399,23 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
         disabled={!storyIdea || !bookTitle || !authorName || isLoading}
         className="w-full bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-md transition-all hover:bg-transparent hover:text-[#008080] disabled:opacity-50"
       >
-        KÍCH HOẠT XÂY DỰNG SÁCH (1. Phân Tích Cảnh)
+        {isEN ? 'ACTIVATE BOOK BUILDING (1. Scene Analysis)' : 'KÍCH HOẠT XÂY DỰNG SÁCH (1. Phân Tích Cảnh)'}
       </button>
     </div>
   );
 
   const renderProcessPhase = () => (
     <div className="space-y-6 pt-4">
-      <p className="text-gray-300 text-center">Đang vẽ từng cảnh... Vui lòng chờ cho đến khi tất cả ảnh được tạo.</p>
+      <p className="text-gray-300 text-center">{isEN ? 'Painting each scene... Please wait until all images are generated.' : 'Đang vẽ từng cảnh... Vui lòng chờ cho đến khi tất cả ảnh được tạo.'}</p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {scenes.map((scene, index) => (
           <div key={scene.id} className="relative aspect-square bg-[#1a1a08] rounded-lg overflow-hidden border-2" style={{ borderColor: scene.imageUrl ? '#008080' : '#CDAD5A' }}>
-            <div className="absolute top-0 left-0 right-0 p-2 bg-black/60 text-center text-xs text-white font-bold z-10">Cảnh {scene.id}</div>
+            <div className="absolute top-0 left-0 right-0 p-2 bg-black/60 text-center text-xs text-white font-bold z-10">{isEN ? 'Scene' : 'Cảnh'} {scene.id}</div>
             {scene.imageUrl ? (
               <img src={scene.imageUrl} alt={`Cảnh ${scene.id}`} className="w-full h-full object-cover" />
             ) : (
               <div className="flex items-center justify-center h-full text-center text-gray-500 text-xs p-2">
-                {error?.includes(`Cảnh ${scene.id}`) ? 'LỖI' : 'Đang vẽ...'}
+                {error?.includes(`Cảnh ${scene.id}`) ? (isEN ? 'ERROR' : 'LỖI') : (isEN ? 'Drawing...' : 'Đang vẽ...')}
               </div>
             )}
           </div>
@@ -423,7 +429,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
         disabled={isLoading || scenes.some(s => !s.imageUrl)}
         className="w-full bg-red-600 text-white font-bold py-3 px-5 border-2 border-red-600 rounded-md transition-all hover:bg-transparent hover:text-red-600 disabled:opacity-50"
       >
-        BỎ QUA VÀ ĐẾN BƯỚC XUẤT BẢN
+        {isEN ? 'SKIP TO PUBLISHING' : 'BỎ QUA VÀ ĐẾN BƯỚC XUẤT BẢN'}
       </button>
     </div>
   );
@@ -596,7 +602,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
       </div>
 
       <div className="bg-gray-800 p-4 rounded-lg">
-        <h5 className="font-bold text-[#CDAD5A] mb-2">Bước 2: Tạo File Bìa Cuối Cùng (PDF Print Ready)</h5>
+        <h5 className="font-bold text-[#CDAD5A] mb-2">{isEN ? 'Step 2: Create Final Cover PDF (Print Ready)' : 'Bước 2: Tạo File Bìa Cuối Cùng (PDF Print Ready)'}</h5>
         <ol className="list-decimal list-inside text-sm text-gray-300 space-y-1">
           <li>Truy cập: [**KDP Cover Calculator**](https://kdp.amazon.com/cover-calculator)</li>
           <li>Nhập các thông số Trim Size, Số Trang ({scenes.length}), Loại Giấy (White/Cream) và **Tải Mẫu Bìa (Template)**.</li>
@@ -607,7 +613,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
       </div>
 
       <div className="bg-gray-800 p-4 rounded-lg">
-        <h5 className="font-bold text-[#CDAD5A] mb-2">Bước 3: Tải Lên Amazon KDP</h5>
+        <h5 className="font-bold text-[#CDAD5A] mb-2">{isEN ? 'Step 3: Upload to Amazon KDP' : 'Bước 3: Tải Lên Amazon KDP'}</h5>
         <ol className="list-decimal list-inside text-sm text-gray-300 space-y-1">
           <li>Tạo Paperback mới trên KDP.</li>
           <li>**Trang 1 (Details):** Điền Tiêu đề, Tác giả, **Mô tả (Dùng Blurb đã tạo)**, Keywords, Categories.</li>
@@ -624,15 +630,15 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
       </div>
 
       <div className="bg-red-900/50 p-3 rounded-md text-sm text-red-300">
-        **⚠️ Ghi chú quan trọng:** Nếu Previewer báo lỗi **Margin** hoặc **Bleed** trên bìa, anh phải chỉnh sửa lại file Bìa PDF theo Template KDP và tải lên lại, không được bỏ qua.
+        **⚠️ {isEN ? 'Important Note:' : 'Ghi chú quan trọng:'}** {isEN ? 'If Previewer reports Margin or Bleed errors on the cover, you must adjust the Cover PDF according to the KDP Template and re-upload. Do not ignore.' : 'Nếu Previewer báo lỗi **Margin** hoặc **Bleed** trên bìa, anh phải chỉnh sửa lại file Bìa PDF theo Template KDP và tải lên lại, không được bỏ qua.'}
       </div>
     </div>
   );
 
   const renderOutputPhase = () => (
     <div className="space-y-6 pt-4">
-      <h3 className="xl font-semibold text-[#008080] text-center">🎉 Sách Đã Hoàn Thành!</h3>
-      <p className="text-gray-300 text-center">Tổng cộng {scenes.length} trang. Sách được thiết lập cho kích thước **{selectedTrimSize}** (Cắt Lề {selectedKDP.bleed}mm).</p>
+      <h3 className="xl font-semibold text-[#008080] text-center">{isEN ? '🎉 Book Completed!' : '🎉 Sách Đã Hoàn Thành!'}</h3>
+      <p className="text-gray-300 text-center">{isEN ? `Total ${scenes.length} pages. Book set to ${selectedTrimSize} (Bleed ${selectedKDP.bleed}mm).` : `Tổng cộng ${scenes.length} trang. Sách được thiết lập cho kích thước **${selectedTrimSize}** (Cắt Lề ${selectedKDP.bleed}mm).`}</p>
 
       <div className="flex flex-col md:flex-row gap-4 sticky bottom-0 bg-[#1a1a08]/80 backdrop-blur-sm p-4 rounded-lg z-10 border-t border-gray-700">
         <button
@@ -640,19 +646,19 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
           className="flex-grow bg-[#CDAD5A] text-black font-bold py-3 px-5 border-2 border-[#CDAD5A] rounded-md transition-all hover:bg-transparent hover:text-[#CDAD5A] disabled:opacity-50"
           disabled={isLoading || isGeneratingCover}
         >
-          1. XUẤT BẢN PDF NỘI DUNG (300 DPI)
+          {isEN ? '1. PUBLISH CONTENT PDF (300 DPI)' : '1. XUẤT BẢN PDF NỘI DUNG (300 DPI)'}
         </button>
         <button
           onClick={handleGenerateCover}
           className={`flex-grow font-bold py-3 px-5 border-2 rounded-md transition-all ${isGeneratingCover ? 'bg-gray-600 text-white' : 'bg-[#66334C] text-white hover:bg-transparent hover:text-[#66334C]'}`}
           disabled={isLoading || isGeneratingCover}
         >
-          {isGeneratingCover ? 'Đang tạo BÌA...' : '2. TẠO BÌA NGHỆ THUẬT (16:9)'}
+          {isGeneratingCover ? (isEN ? 'Generating COVER...' : 'Đang tạo BÌA...') : (isEN ? '2. GENERATE ART COVER (16:9)' : '2. TẠO BÌA NGHỆ THUẬT (16:9)')}
         </button>
       </div>
 
       <div className="pt-4 border-t border-gray-700">
-        <h4 className="text-lg font-semibold text-[#CDAD5A] mb-3">Tài sản Bìa Sách</h4>
+        <h4 className="text-lg font-semibold text-[#CDAD5A] mb-3">{isEN ? 'Book Cover Assets' : 'Tài sản Bìa Sách'}</h4>
         <div className="flex flex-col items-center justify-center space-y-3 p-4 bg-gray-900 rounded-lg">
           {coverUrl ? (
             <>
@@ -668,7 +674,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
                 download={`KDP_Cover_Asset_${bookTitle.replace(/\s/g, '_')}.jpeg`}
                 className="bg-[#008080] text-white font-bold py-2 px-4 rounded-md transition-all hover:bg-transparent hover:text-[#008080] border-2 border-[#008080]"
               >
-                3. Tải Xuống Ảnh Bìa Gốc (JPEG)
+                {isEN ? '3. Download Cover Asset (JPEG)' : '3. Tải Xuống Ảnh Bìa Gốc (JPEG)'}
               </a>
             </>
           ) : (
@@ -676,7 +682,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
               className="w-full max-w-lg bg-gray-700 flex items-center justify-center text-center text-gray-400 p-8 rounded-lg"
               style={{ aspectRatio: '16 / 9' }}
             >
-              Chưa có bìa. Vui lòng bấm "TẠO BÌA NGHỆ THUẬT".
+              {isEN ? 'No cover yet. Please click "GENERATE ART COVER".' : 'Chưa có bìa. Vui lòng bấm "TẠO BÌA NGHỆ THUẬT".'}
             </div>
           )}
         </div>
@@ -689,7 +695,7 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
             onClick={() => setOutputView('preview')}
             className={`px-4 py-2 font-semibold transition-colors ${outputView === 'preview' ? 'text-[#CDAD5A] border-b-2 border-[#CDAD5A]' : 'text-gray-400 hover:text-white'}`}
           >
-            👁️ Xem Trước Sách (Spread View)
+            {isEN ? '👁️ Preview Book (Spread View)' : '👁️ Xem Trước Sách (Spread View)'}
           </button>
           <button
             onClick={() => setOutputView('workflow')}
@@ -708,12 +714,12 @@ const StoryStudioTool: React.FC<NarrativeStudioToolProps> = ({ onBack }) => {
   return (
     <div className="h-full flex flex-col p-2 md:p-6 text-white overflow-hidden font-sans">
       <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-r from-[#CDAD5A]/50 via-[#66334C]/50 to-[#CDAD5A]/50 text-center text-xs font-bold text-black backdrop-blur-sm z-20">
-        SỨC MẠNH NARRATIVE STUDIO CHỈ DÀNH CHO MAGISTRATE VÀ TOÀN TRI.
+        {isEN ? 'NARRATIVE STUDIO POWER - MAGISTRATE & SUPER ONLY' : 'SỨC MẠNH NARRATIVE STUDIO CHỈ DÀNH CHO MAGISTRATE VÀ TOÀN TRI.'}
       </div>
 
       <div className="flex justify-between items-center pt-6">
         <h2 className="text-xl md:text-2xl text-center font-playfair text-[#E0E0E0] tracking-wider">IX. NARRATIVE STUDIO (KDP PRO)</h2>
-        <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2 z-10">&times; Trở Về</button>
+        <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2 z-10">&times; {isEN ? 'Back' : 'Trở Về'}</button>
       </div>
 
       <div className="flex-grow min-h-0 overflow-y-auto pb-4">

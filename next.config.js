@@ -8,7 +8,10 @@ const withMDX = require("@next/mdx")({
   },
 });
 
+const { i18n } = require("./next-i18next.config");
+
 const nextConfig = {
+  i18n,
   reactStrictMode: true,
   poweredByHeader: false,
 

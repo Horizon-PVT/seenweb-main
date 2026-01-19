@@ -1,7 +1,8 @@
 // File: components/TextToSpeechTool.tsx (Multi-provider TTS with Vietnamese Upsell)
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-
+import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 interface TextToSpeechToolProps {
     onBack: () => void;
 }
@@ -181,6 +182,10 @@ const splitTextIntoChunks = (text: string, maxChars = 500): string[] => {
 
 const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     const { data: session } = useSession();
+    const router = useRouter();
+    const { t } = useTranslation('common');
+    const isEN = router.locale === 'en';
+
     const [mode, setMode] = useState<'text' | 'srt'>('text');
     const [scriptText, setScriptText] = useState('');
     const [srtSegments, setSrtSegments] = useState<SrtSegment[]>([]);
@@ -344,11 +349,13 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     return (
         <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-2 tts-bg relative">
             <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-r from-[#CDAD5A]/50 via-[#006666]/50 to-[#CDAD5A]/50 text-center text-xs font-bold text-black backdrop-blur-sm z-20">
-                SỬ DỤNG CÔNG NGHỆ OPENAI TTS (PREMIUM)
+                {isEN ? 'USING OPENAI TTS TECHNOLOGY (PREMIUM)' : 'SỬ DỤNG CÔNG NGHỆ OPENAI TTS (PREMIUM)'}
             </div>
             <div className="flex justify-between items-center pt-6">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#E0E0E0] tracking-wider">X. LỒNG TIẾNG (OPENAI)</h2>
-                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2 z-10">&times; Trở Về</button>
+                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#E0E0E0] tracking-wider">
+                    {isEN ? 'TEXT TO SPEECH (OPENAI)' : 'X. LỒNG TIẾNG (OPENAI)'}
+                </h2>
+                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2 z-10">&times; {isEN ? 'Back' : 'Trở Về'}</button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 flex-grow min-h-0">
@@ -359,10 +366,11 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     <div className="bg-[#003333]/80 border border-[#008080]/50 p-3 rounded-sm flex gap-3 items-start shadow-lg backdrop-blur-md">
                         <div className="text-2xl pt-1">🌍</div>
                         <div>
-                            <h3 className="text-[#CDAD5A] font-bold text-xs uppercase tracking-wide">Hỗ trợ đa ngôn ngữ tự động</h3>
+                            <h3 className="text-[#CDAD5A] font-bold text-xs uppercase tracking-wide">{isEN ? 'Automatic Multi-language Support' : 'Hỗ trợ đa ngôn ngữ tự động'}</h3>
                             <p className="text-[10px] text-gray-300 leading-tight mt-1">
-                                Hệ thống tự động nhận diện và đọc chuẩn giọng bản xứ cho <strong>hơn 50 ngôn ngữ</strong> (Anh, Nhật, Hàn, Pháp...).
-                                Chỉ cần nhập văn bản, AI sẽ xử lý ngữ điệu tự nhiên nhất.
+                                {isEN
+                                    ? 'The system automatically detects and reads in native accents for over 50 languages (English, Japanese, Korean, French...). Just input text, AI handles the prosody.'
+                                    : 'Hệ thống tự động nhận diện và đọc chuẩn giọng bản xứ cho hơn 50 ngôn ngữ (Anh, Nhật, Hàn, Pháp...). Chỉ cần nhập văn bản, AI sẽ xử lý ngữ điệu tự nhiên nhất.'}
                             </p>
                         </div>
                     </div>
@@ -371,23 +379,25 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     <div className="bg-[#CDAD5A]/10 border border-[#CDAD5A]/30 p-3 rounded-sm flex gap-3 items-center shadow-lg backdrop-blur-md animate-pulse-slow">
                         <div className="text-xl">⚠️</div>
                         <div>
-                            <h3 className="text-[#CDAD5A] font-bold text-[10px] uppercase tracking-wide">Tối ưu trải nghiệm</h3>
+                            <h3 className="text-[#CDAD5A] font-bold text-[10px] uppercase tracking-wide">{isEN ? 'Experience Optimization' : 'Tối ưu trải nghiệm'}</h3>
                             <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
-                                Vui lòng chia nhỏ các file thành các đoạn <strong>dưới 10 phút</strong> để tối ưu trải nhiệm và tốc độ xử lý nhanh nhất , tránh quá tải hệ thống.
+                                {isEN
+                                    ? 'Please split files into segments under 10 minutes to optimize experience and processing speed, avoiding system overload.'
+                                    : 'Vui lòng chia nhỏ các file thành các đoạn dưới 10 phút để tối ưu trải nhiệm và tốc độ xử lý nhanh nhất , tránh quá tải hệ thống.'}
                             </p>
                         </div>
                     </div>
                     {/* Mode Toggle */}
                     <div className="flex bg-black/30 p-1 rounded-sm border border-gray-700">
-                        <button onClick={() => setMode('text')} className={`flex-1 py-2 text-xs font-bold transition-all ${mode === 'text' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}>VĂN BẢN (TEXT)</button>
-                        <button onClick={() => setMode('srt')} className={`flex-1 py-2 text-xs font-bold transition-all ${mode === 'srt' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}>FILE PHỤ ĐỀ (SRT)</button>
+                        <button onClick={() => setMode('text')} className={`flex-1 py-2 text-xs font-bold transition-all ${mode === 'text' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}>{isEN ? 'TEXT' : 'VĂN BẢN (TEXT)'}</button>
+                        <button onClick={() => setMode('srt')} className={`flex-1 py-2 text-xs font-bold transition-all ${mode === 'srt' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}>{isEN ? 'SRT FILE' : 'FILE PHỤ ĐỀ (SRT)'}</button>
                     </div>
 
                     <div>
                         <label className="text-sm font-bold text-[#CDAD5A] font-playfair flex justify-between">
-                            NỘI DUNG
+                            {isEN ? 'CONTENT' : 'NỘI DUNG'}
                             <label className="cursor-pointer text-xs text-[#008080] hover:underline">
-                                📂 Dán hoặc Tải file
+                                {isEN ? '📂 Paste or Upload File' : '📂 Dán hoặc Tải file'}
                                 <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} accept=".txt,.md,.srt" />
                             </label>
                         </label>
@@ -396,13 +406,13 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             value={scriptText}
                             onChange={e => setScriptText(e.target.value)}
                             onDrop={handleDrop}
-                            placeholder={mode === 'text' ? "Nhập văn bản (Tiếng Việt, Anh, Nhật... tùy ý)..." : "Nội dung file SRT..."}
+                            placeholder={mode === 'text' ? (isEN ? "Enter text (Vietnamese, English, Japanese...)..." : "Nhập văn bản (Tiếng Việt, Anh, Nhật... tùy ý)...") : (isEN ? "SRT file content..." : "Nội dung file SRT...")}
                             className="w-full h-48 obsidian-textarea focus:border-[#CDAD5A] bronze font-mono text-xs leading-relaxed"
                         ></textarea>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-[#008080] font-playfair">CHỌN LOẠI GIỌNG NÓI</label>
+                        <label className="text-sm font-bold text-[#008080] font-playfair">{isEN ? 'SELECT VOICE TYPE' : 'CHỌN LOẠI GIỌNG NÓI'}</label>
 
                         {/* Provider Tabs - Only 2 tabs now */}
                         <div className="flex bg-black/30 p-1 rounded-sm border border-gray-700 mb-2">
@@ -410,13 +420,13 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                 onClick={() => { setVoiceProvider('openai'); setSelectedVoiceApiName('alloy'); }}
                                 className={`flex-1 py-2 text-xs font-bold transition-all ${voiceProvider === 'openai' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}
                             >
-                                🌍 Quốc Tế
+                                {isEN ? '🌍 International' : '🌍 Quốc Tế'}
                             </button>
                             <button
                                 onClick={() => { setVoiceProvider('vietnamese'); setSelectedVoiceApiName('banmai'); }}
                                 className={`flex-1 py-2 text-xs font-bold transition-all ${voiceProvider === 'vietnamese' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
                             >
-                                🇻🇳 Tiếng Việt
+                                {isEN ? '🇻🇳 Vietnamese' : '🇻🇳 Tiếng Việt'}
                             </button>
                         </div>
 
@@ -425,14 +435,14 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             <select value={selectedVoiceApiName} onChange={e => setSelectedVoiceApiName(e.target.value)} className="w-full obsidian-select py-2">
                                 {voiceProvider === 'openai' && (
                                     <>
-                                        <optgroup label="--- GIỌNG NAM ---">
+                                        <optgroup label={isEN ? "--- MALE ---" : "--- GIỌNG NAM ---"}>
                                             {openaiVoices.filter(v => v.gender === 'Nam').map(voice => (
                                                 <option key={voice.apiName} value={voice.apiName}>
                                                     ♂️ {voice.name} - {voice.description}
                                                 </option>
                                             ))}
                                         </optgroup>
-                                        <optgroup label="--- GIỌNG NỮ ---">
+                                        <optgroup label={isEN ? "--- FEMALE ---" : "--- GIỌNG NỮ ---"}>
                                             {openaiVoices.filter(v => v.gender === 'Nữ').map(voice => (
                                                 <option key={voice.apiName} value={voice.apiName}>
                                                     ♀️ {voice.name} - {voice.description}
@@ -482,7 +492,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                         {/* Speed Control - show for all providers */}
                         <div className="mt-3 p-3 bg-black/20 rounded-sm border border-gray-700">
                             <label className="text-xs text-gray-400 flex justify-between items-center mb-2">
-                                <span>⚡ Tốc độ đọc:</span>
+                                <span>⚡ {isEN ? 'Speed:' : 'Tốc độ đọc:'}</span>
                                 <span className="text-[#CDAD5A] font-bold">{speed.toFixed(1)}x</span>
                             </label>
                             <div className="flex items-center gap-2">
@@ -501,13 +511,13 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                         </div>
 
                         <p className="text-[10px] text-gray-400 italic text-center">
-                            {voiceProvider === 'openai' && '* Giọng OpenAI hỗ trợ 40+ ngôn ngữ tự động.'}
-                            {voiceProvider === 'vietnamese' && '* Giọng Việt Nam chuẩn với nhiều vùng miền.'}
+                            {voiceProvider === 'openai' && (isEN ? '* OpenAI voices support 40+ languages properly.' : '* Giọng OpenAI hỗ trợ 40+ ngôn ngữ tự động.')}
+                            {voiceProvider === 'vietnamese' && (isEN ? '* Vietnamese voices with regional accents.' : '* Giọng Việt Nam chuẩn với nhiều vùng miền.')}
                         </p>
                     </div>
 
                     <button ref={buttonRef} onClick={handleGenerateSpeech} disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow-strong disabled:bg-gray-600 disabled:cursor-not-allowed">
-                        {isLoading ? (progress || "ĐANG XỬ LÝ...") : "TẠO GIỌNG NÓI NGAY"}
+                        {isLoading ? (progress || (isEN ? "PROCESSING..." : "ĐANG XỬ LÝ...")) : (isEN ? "GENERATE AUDIO NOW" : "TẠO GIỌNG NÓI NGAY")}
                     </button>
                 </div>
 
@@ -552,7 +562,10 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                     <div className="flex items-center gap-4 pt-2">
                         <button onClick={handleDownload} disabled={!audioBuffer} className="flex-grow bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all hover:bg-transparent hover:text-[#008080] disabled:opacity-50">
-                            TẢI XUỐNG (.WAV)
+                            {isEN ? 'DOWNLOAD AUDIO' : 'TẢI XUỐNG AUDIO'}
+                        </button>
+                        <button onClick={onBack} className="bg-gray-700 text-white font-bold py-3 px-5 border-2 border-gray-700 rounded-sm hover:bg-transparent hover:text-gray-400 transition-all">
+                            X
                         </button>
                     </div>
                 </div>

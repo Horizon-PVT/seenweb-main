@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-
+import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 type Aspect = "16:9" | "1:1" | "9:16";
 
 type RefUpload = {
@@ -32,6 +33,10 @@ async function safeJson(res: Response) {
 }
 
 const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  const router = useRouter();
+  const { t } = useTranslation('common');
+  const isEN = router.locale === 'en';
+
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState<Aspect>("16:9");
   const [numImages, setNumImages] = useState<number>(2);
@@ -232,7 +237,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           onClick={onBack}
           className={`px-4 py-2 rounded-xl text-[10px] uppercase border border-white/10 bg-white/5 hover:bg-white/10 font-bold ${gold}`}
         >
-          ← Quay lại Menu
+          ← {isEN ? 'Back to Menu' : 'Quay lại Menu'}
         </button>
 
         <h1 className="text-xl font-black tracking-wide">
@@ -243,7 +248,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           onClick={clearRefs}
           className="px-3 py-2 rounded-xl text-[10px] uppercase border border-white/10 bg-white/5 hover:bg-white/10 font-bold text-white/80"
         >
-          Clear Refs
+          {isEN ? 'Clear Refs' : 'Clear Refs'}
         </button>
       </header>
 
@@ -251,15 +256,15 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         {/* LEFT: History */}
         <aside className="w-[220px] border-r border-white/5 p-4 flex flex-col gap-4 bg-white/[0.02]">
           <div className="flex justify-between items-center">
-            <span className="text-[10px] opacity-60 font-bold tracking-widest">LỊCH SỬ</span>
+            <span className="text-[10px] opacity-60 font-bold tracking-widest">{isEN ? 'HISTORY' : 'LỊCH SỬ'}</span>
             <button onClick={handleClear} className="text-[9px] text-red-300 hover:text-red-200">
-              Xóa
+              {isEN ? 'CLEAR ALL' : 'XÓA HẾT'}
             </button>
           </div>
 
           <div className="flex flex-col gap-3 overflow-auto pr-1">
             {archive.length === 0 && (
-              <div className="text-[10px] opacity-45">Chưa có ảnh. Generate để lưu vào kho.</div>
+              <div className="text-[10px] opacity-45">{isEN ? 'No images yet. Generate to save to archive.' : 'Chưa có ảnh. Generate để lưu vào kho.'}</div>
             )}
             {archive.map((img, i) => (
               // eslint-disable-next-line @next/next/no-img-element
@@ -284,7 +289,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               {isLoading ? (
                 <div className="flex flex-col items-center gap-4 animate-pulse">
                   <div className="w-16 h-16 border-4 border-[#F5C542] border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(245,197,66,0.2)]" />
-                  <div className="text-sm text-[#F5C542] font-bold tracking-widest">ĐANG SÁNG TẠO TÁC PHẨM...</div>
+                  <div className="text-sm text-[#F5C542] font-bold tracking-widest">{isEN ? 'GENERATING ARTWORK...' : 'ĐANG SÁNG TẠO TÁC PHẨM...'}</div>
                 </div>
               ) : images.length > 0 ? (
                 <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
@@ -298,12 +303,12 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         src={img}
                         onClick={() => setSelected(img)}
                         className={`w-full h-auto object-cover cursor-pointer ${aspectRatio === "1:1" ? "aspect-square" :
-                            aspectRatio === "9:16" ? "aspect-[9/16]" : "aspect-video"
+                          aspectRatio === "9:16" ? "aspect-[9/16]" : "aspect-video"
                           }`}
                         alt={`generated-${i}`}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                        <span className="bg-black/60 text-white text-xs px-3 py-1 rounded-full border border-white/20">Click để xem</span>
+                        <span className="bg-black/60 text-white text-xs px-3 py-1 rounded-full border border-white/20">{isEN ? 'Click to view' : 'Click để xem'}</span>
                       </div>
                     </div>
                   ))}
@@ -313,10 +318,10 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   <div className="w-16 h-16 bg-[#F5C542]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#F5C542]/20 text-3xl">
                     🎨
                   </div>
-                  <div className={`text-xl font-bold ${gold} mb-2 tracking-wide`}>STUDIO ĐÃ SẴN SÀNG</div>
+                  <div className={`text-xl font-bold ${gold} mb-2 tracking-wide`}>{isEN ? 'STUDIO READY' : 'STUDIO ĐÃ SẴN SÀNG'}</div>
                   <div className={`text-sm ${soft} leading-relaxed max-w-md mx-auto`}>
-                    Hãy mô tả ý tưởng của bạn bên dưới. <br />
-                    Kết hợp <strong>Style Reference</strong> và <strong>Face Lock</strong> để có kết quả chuyên nghiệp nhất.
+                    {isEN ? 'Describe your idea below.' : 'Hãy mô tả ý tưởng của bạn bên dưới.'} <br />
+                    {isEN ? 'Combine Style Reference and Face Lock for professional results.' : 'Kết hợp <strong>Style Reference</strong> và <strong>Face Lock</strong> để có kết quả chuyên nghiệp nhất.'}
                   </div>
                 </div>
               )}
@@ -336,7 +341,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     if (!submitDisabled) handleSubmit();
                   }
                 }}
-                placeholder="Mô tả ý tưởng của anh (Ví dụ: Mèo máy Doraemon phong cách Cyberpunk)..."
+                placeholder={isEN ? "Describe your idea (e.g., Doraemon robot cat in Cyberpunk style)..." : "Mô tả ý tưởng của anh (Ví dụ: Mèo máy Doraemon phong cách Cyberpunk)..."}
                 className="flex-grow bg-transparent border-none focus:ring-0 text-white px-5 py-3 text-sm outline-none placeholder:text-white/30"
               />
 
@@ -346,7 +351,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 onClick={handleMagicPrompt}
                 disabled={isMagic}
                 className={`px-4 py-2.5 rounded-xl font-bold uppercase text-[10px] border border-white/10 bg-white/5 hover:bg-white/10 ${gold} disabled:opacity-50 transition-colors flex flex-col items-center leading-none gap-0.5 min-w-[60px]`}
-                title="Tự động viết lại prompt hay hơn"
+                title={isEN ? "Automatically rewrite prompt for better results" : "Tự động viết lại prompt hay hơn"}
               >
                 <span>✨</span>
                 <span>{isMagic ? "..." : "Magic"}</span>
@@ -357,7 +362,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   value={aspectRatio}
                   onChange={(e) => setAspectRatio(e.target.value as Aspect)}
                   className="bg-black/40 border border-white/10 text-white text-[10px] rounded-lg px-2 py-1 outline-none hover:bg-white/5 cursor-pointer"
-                  title="Tỉ lệ ảnh"
+                  title={isEN ? "Aspect Ratio" : "Tỉ lệ ảnh"}
                 >
                   <option value="16:9">16:9</option>
                   <option value="1:1">1:1</option>
@@ -368,12 +373,12 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   value={numImages}
                   onChange={(e) => setNumImages(parseInt(e.target.value, 10))}
                   className="bg-black/40 border border-white/10 text-white text-[10px] rounded-lg px-2 py-1 outline-none hover:bg-white/5 cursor-pointer"
-                  title="Số lượng ảnh"
+                  title={isEN ? "Number of Images" : "Số lượng ảnh"}
                 >
-                  <option value={1}>1 ảnh</option>
-                  <option value={2}>2 ảnh</option>
-                  <option value={3}>3 ảnh</option>
-                  <option value={4}>4 ảnh</option>
+                  <option value={1}>{isEN ? "1 image" : "1 ảnh"}</option>
+                  <option value={2}>{isEN ? "2 images" : "2 ảnh"}</option>
+                  <option value={3}>{isEN ? "3 images" : "3 ảnh"}</option>
+                  <option value={4}>{isEN ? "4 images" : "4 ảnh"}</option>
                 </select>
               </div>
 
@@ -382,7 +387,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 disabled={submitDisabled}
                 className={`ml-1 text-white px-6 py-3.5 rounded-xl font-black uppercase text-[11px] tracking-wider transition-all disabled:opacity-50 disabled:grayscale hover:shadow-[0_0_20px_#C1121F] ${redBtn}`}
               >
-                Tạo Ảnh
+                {isEN ? "Generate Image" : "Tạo Ảnh"}
               </button>
             </div>
           </div>
@@ -399,7 +404,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           {/* Style reference */}
           <div className="mb-6">
             <span className={`text-[10px] opacity-70 font-bold tracking-widest block mb-3 ${gold}`}>
-              PHONG CÁCH THAM CHIẾU
+              {isEN ? 'STYLE REFERENCE' : 'PHONG CÁCH THAM CHIẾU'}
             </span>
 
             <div className={`rounded-2xl ${panel} p-3`}>
@@ -422,7 +427,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   <img src={URL.createObjectURL(styleRef)} className="w-full h-full object-cover" alt="style-ref" />
                 ) : (
                   <div className="h-full flex items-center justify-center opacity-40 text-xs">
-                    Upload style để giữ tone/ánh sáng/vibe
+                    {isEN ? 'Upload style to maintain tone/lighting/vibe' : 'Upload style để giữ tone/ánh sáng/vibe'}
                   </div>
                 )}
               </div>
@@ -433,7 +438,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <div className="mb-6">
             <div className="flex items-end justify-between mb-3">
               <span className={`text-[10px] opacity-70 font-bold tracking-widest block ${gold}`}>
-                NHÂN VẬT THAM CHIẾU
+                {isEN ? 'CHARACTER REFERENCE' : 'NHÂN VẬT THAM CHIẾU'}
               </span>
               <label className={`text-[10px] font-bold uppercase px-3 py-2 rounded-xl cursor-pointer text-white ${redBtn}`}>
                 + Add
@@ -463,7 +468,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
               {characterRefs.length === 0 && (
                 <div className={`col-span-2 text-xs ${soft} ${panel} rounded-2xl p-4`}>
-                  Thêm 1–3 ảnh nhân vật để đồng nhất gương mặt/identity.
+                  {isEN ? 'Add 1–3 character images to unify face/identity.' : 'Thêm 1–3 ảnh nhân vật để đồng nhất gương mặt/identity.'}
                 </div>
               )}
             </div>
@@ -473,9 +478,9 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <div className={`rounded-2xl ${panel} p-4`}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className={`text-xs font-bold ${gold}`}>Auto khóa Face Lock</div>
+                <div className={`text-xs font-bold ${gold}`}>{isEN ? 'Auto Face Lock' : 'Auto khóa Face Lock'}</div>
                 <div className="text-[10px] text-white/55 mt-1">
-                  Giữ identity theo character refs (khuyến nghị bật)
+                  {isEN ? 'Maintain identity based on character refs (recommended)' : 'Giữ identity theo character refs (khuyến nghị bật)'}
                 </div>
               </div>
 

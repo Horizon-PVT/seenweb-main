@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'next-i18next';
 
 const AffiliateSection: React.FC = () => {
+  const { t } = useTranslation('common');
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -16,7 +18,7 @@ const AffiliateSection: React.FC = () => {
     }
   };
 
-  // 20 tên đời thường Việt Nam (loop proof)
+  // 20 proof data entries (loop proof)
   const proofData = [
     { name: "Nguyễn Hương Ly", commission: "63.400.000 VND" },
     { name: "Trần Văn Nam", commission: "64.500.000 VND" },
@@ -53,13 +55,13 @@ const AffiliateSection: React.FC = () => {
     <section id="affiliate" className="py-20 bg-gradient-to-b from-black to-gray-900">
       <div className="container mx-auto px-6">
         <h2 className="text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-yellow-400 bg-clip-text text-transparent">
-          Tham Gia Affiliate – Kiếm Tiền Trọn Đời Với SeenYT
+          {t('affiliate.title', 'Join Affiliate – Earn Lifetime Commission with SeenYT')}
         </h2>
 
-        {/* Khung chung neon + nền sáng đẹp */}
+        {/* Neon frame */}
         <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-3xl border-4 border-cyan-500/50 shadow-2xl shadow-cyan-500/40 p-8 lg:p-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Trái: CTA tròn đỏ-vàng phập phồng */}
+            {/* Left: CTA button */}
             <div className="lg:col-span-3 flex justify-center">
               <button
                 onClick={handleJoinClick}
@@ -68,32 +70,32 @@ const AffiliateSection: React.FC = () => {
                 <div className="absolute inset-0 rounded-full border-8 border-yellow-400 animate-ping opacity-75"></div>
                 <div className="absolute inset-0 rounded-full border-8 border-red-400 animate-ping delay-150 opacity-75"></div>
                 <span className="text-3xl font-bold text-white z-10 px-8">
-                  BẤM ĐÂY ĐỂ THAM GIA<br />AFFILIATE
+                  {t('affiliate.ctaButton', 'CLICK HERE TO JOIN')}<br />{t('affiliate.ctaButtonLine2', 'AFFILIATE')}
                 </span>
               </button>
             </div>
 
-            {/* Giữa: Video tự host mp4 autoplay loop muted */}
+            {/* Center: Video */}
             <div className="lg:col-span-6">
               <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-cyan-500/70">
-                <video 
+                <video
                   className="w-full h-auto"
                   autoPlay
                   loop
                   muted
                   playsInline
-                  poster="/images/affiliate/video-thumbnail.jpg" // Thumbnail fallback
+                  poster="/images/affiliate/video-thumbnail.jpg"
                 >
                   <source src="/videos/demo-seenyt.mp4" type="video/mp4" />
-                  Trình duyệt không hỗ trợ video.
+                  {t('affiliate.videoNotSupported', 'Your browser does not support video.')}
                 </video>
               </div>
             </div>
 
-            {/* Phải: Proof 3 ô (cao bằng video) */}
+            {/* Right: Proof boxes */}
             <div className="lg:col-span-3 bg-gray-800/90 p-8 rounded-2xl border border-cyan-600 h-full flex flex-col justify-center">
               <h3 className="text-2xl font-bold text-center mb-8 text-yellow-400">
-                Affiliate Đã Kiếm Được
+                {t('affiliate.earningsTitle', 'Affiliates Have Earned')}
               </h3>
               <div className="space-y-6">
                 {proofData.slice(currentIndex, currentIndex + 3).map((item, idx) => (
@@ -110,7 +112,7 @@ const AffiliateSection: React.FC = () => {
                 ))}
               </div>
               <p className="text-center text-sm text-gray-400 mt-6">
-                Hoa hồng realtime • Bạn có thể là người tiếp theo!
+                {t('affiliate.realtimeNote', 'Realtime commissions • You could be next!')}
               </p>
             </div>
           </div>

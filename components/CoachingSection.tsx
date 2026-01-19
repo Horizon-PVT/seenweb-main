@@ -3,8 +3,10 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 
 const CoachingSection: React.FC = () => {
+    const { t } = useTranslation('common');
     const router = useRouter();
 
     const handleZaloContact = () => {
@@ -21,14 +23,14 @@ const CoachingSection: React.FC = () => {
                 {/* Text Content */}
                 <div className="w-full md:w-1/2 z-10">
                     <div className="inline-block px-3 py-1 bg-[#CDAD5A]/10 border border-[#CDAD5A]/30 rounded-full mb-4">
-                        <span className="text-[#CDAD5A] text-xs font-bold tracking-widest uppercase">Premium Service</span>
+                        <span className="text-[#CDAD5A] text-xs font-bold tracking-widest uppercase">{t('coaching.badge', 'Premium Service')}</span>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-bold text-white font-playfair mb-6 leading-tight">
-                        Coaching 1-1 <br />
-                        <span className="text-[#CDAD5A]">YouTube & Affiliate</span>
+                        {t('coaching.title', 'Coaching 1-1')} <br />
+                        <span className="text-[#CDAD5A]">{t('coaching.titleHighlight', 'YouTube & Affiliate')}</span>
                     </h2>
                     <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                        Bạn muốn đi nhanh hơn và xa hơn? Chương trình huấn luyện cá nhân hóa giúp bạn xây dựng đế chế nội dung số và tạo thu nhập thụ động bền vững cùng Mr. Seen.
+                        {t('coaching.description', 'Want to go faster and further? Personalized coaching program helps you build your digital content empire and create sustainable passive income with Mr. Seen.')}
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -36,13 +38,13 @@ const CoachingSection: React.FC = () => {
                             onClick={handleZaloContact}
                             className="px-6 py-3 bg-[#CDAD5A] text-black font-bold uppercase tracking-wider hover:bg-white hover:shadow-[0_0_15px_rgba(205,173,90,0.5)] transition-all rounded-sm text-sm"
                         >
-                            Liên hệ Zalo Tư Vấn
+                            {t('coaching.ctaZalo', 'Contact via Zalo')}
                         </button>
                         <Link
                             href="/coaching"
                             className="px-6 py-3 border border-white/20 text-white font-bold uppercase tracking-wider hover:border-[#CDAD5A] hover:text-[#CDAD5A] transition-all rounded-sm text-sm flex items-center justify-center"
                         >
-                            Tìm Hiểu Thêm
+                            {t('coaching.ctaLearnMore', 'Learn More')}
                         </Link>
                     </div>
                 </div>
@@ -59,8 +61,8 @@ const CoachingSection: React.FC = () => {
                         />
                         {/* Overlay Badge */}
                         <div className="absolute bottom-6 right-6 z-20 bg-black/80 backdrop-blur-sm border border-[#CDAD5A] p-4 rounded-sm shadow-xl hidden md:block">
-                            <p className="text-[#CDAD5A] font-bold text-2xl">High-Ticket</p>
-                            <p className="text-gray-300 text-xs text-right">Mastery Program</p>
+                            <p className="text-[#CDAD5A] font-bold text-2xl">{t('coaching.badgeTitle', 'High-Ticket')}</p>
+                            <p className="text-gray-300 text-xs text-right">{t('coaching.badgeSubtitle', 'Mastery Program')}</p>
                         </div>
                     </div>
                 </div>

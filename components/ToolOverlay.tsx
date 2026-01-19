@@ -1,6 +1,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 
 import ScriptwriterTool from "./ScriptwriterTool";
 import SeoTool from "./SeoTool";
@@ -26,6 +27,8 @@ type Props = {
 
 const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
   const router = useRouter();
+  const { t } = useTranslation('common');
+  const isEN = router.locale === 'en';
 
   // ✅ Registry để:
   // - render đúng component theo id
@@ -42,27 +45,27 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
     }
   > = {
     scriptwriter: {
-      name: "Viết kịch bản YouTube",
+      name: isEN ? "YouTube Scriptwriter" : "Viết kịch bản YouTube",
       render: ({ onBack, tools, onToolSelect }) => (
         <ScriptwriterTool tools={tools} onToolSelect={onToolSelect} onBack={onBack} />
       ),
     },
     seo: {
-      name: "SEO YouTube tối ưu",
+      name: isEN ? "YouTube SEO Pro" : "SEO YouTube tối ưu",
       render: ({ onBack }) => <SeoTool onBack={onBack} />,
     },
     "rival-scanner": {
-      name: "Phân tích đối thủ",
+      name: isEN ? "Competitor Analysis" : "Phân tích đối thủ",
       render: ({ onBack, tools, onToolSelect }) => (
         <RivalScannerTool onBack={onBack} tools={tools} onToolSelect={onToolSelect} />
       ),
     },
     "hidden-channel-finder": {
-      name: "Tìm kênh ẩn",
+      name: isEN ? "Hidden Channel Finder" : "Tìm kênh ẩn",
       render: ({ onBack }) => <HiddenChannelFinderTool onBack={onBack} />,
     },
     "script-refiner": {
-      name: "Viết lại kịch bản nâng cao",
+      name: isEN ? "Advanced Script Refiner" : "Viết lại kịch bản nâng cao",
       render: ({ onBack }) => <ScriptRefinerTool onBack={onBack} />,
     },
     "micro-niche-miner": {
@@ -138,7 +141,7 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
                 onClick={onBack}
                 className="px-3 py-2 rounded-lg border border-[#CDAD5A]/40 text-[#CDAD5A] font-bold hover:bg-[#CDAD5A]/10 transition"
               >
-                ← Quay lại bảng công cụ
+                ← {isEN ? 'Back to Tools' : 'Quay lại bảng công cụ'}
               </button>
 
               <div className="hidden md:block">
@@ -146,7 +149,7 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
                   {entry?.name || "TOOL"}
                 </div>
                 <div className="text-xs text-gray-400">
-                  Chế độ toàn màn hình (Full-page workspace)
+                  {isEN ? 'Full-page workspace' : 'Chế độ toàn màn hình (Full-page workspace)'}
                 </div>
               </div>
             </div>
@@ -172,16 +175,16 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
                   <div className="min-h-[calc(100vh-56px)] flex items-center justify-center px-6">
                     <div className="max-w-xl w-full bg-black/40 border border-[#CDAD5A]/30 rounded-2xl p-6 text-center">
                       <div className="text-[#CDAD5A] font-black text-xl">
-                        Tool không tồn tại
+                        {isEN ? 'Tool Not Found' : 'Tool không tồn tại'}
                       </div>
                       <div className="text-gray-300 mt-2">
-                        Không tìm thấy toolId: <span className="font-mono">{toolId}</span>
+                        {isEN ? 'Cannot find toolId:' : 'Không tìm thấy toolId:'} <span className="font-mono">{toolId}</span>
                       </div>
                       <button
                         onClick={onBack}
                         className="mt-5 px-4 py-2 rounded-lg bg-[#CDAD5A] text-black font-bold hover:opacity-90 transition"
                       >
-                        Quay về bảng công cụ
+                        {isEN ? 'Back to Tools' : 'Quay về bảng công cụ'}
                       </button>
                     </div>
                   </div>

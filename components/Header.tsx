@@ -1,12 +1,15 @@
-// File: components/Header.tsx
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { useSession, signOut } from "next-auth/react";
+import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
+  const { t } = useTranslation('common');
+  const router = useRouter();
 
   // QUAN TRỌNG: tránh trạng thái "vừa redirect xong nhưng session đang hydrate"
   const isLoadingSession = status === "loading";
@@ -28,6 +31,10 @@ const Header: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });
+  };
+
+  const changeLanguage = (locale: string) => {
+    router.push({ pathname: router.pathname, query: router.query }, router.asPath, { locale });
   };
 
   return (
@@ -61,7 +68,7 @@ const Header: React.FC = () => {
             onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
             className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
           >
-            Bảng công cụ
+            {t('menu.tools', 'Bảng công cụ')}
           </a>
 
           <a
@@ -69,7 +76,7 @@ const Header: React.FC = () => {
             onClick={(e) => handleNavClick(e, "#pricing")}
             className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
           >
-            Bảng giá
+            {t('menu.pricing', 'Bảng giá')}
           </a>
 
 
@@ -81,19 +88,36 @@ const Header: React.FC = () => {
             href="/affiliate"
             className="text-[#00a3a3] hover:text-[#4ddcdc] transition-colors duration-300 font-semibold text-sm uppercase"
           >
-            Trở thành đối tác
+            {t('menu.affiliate', 'Trở thành đối tác')}
           </Link>
 
           <Link
             href="/tuyendung"
             className="text-cyan-400 hover:text-cyan-300 transition-colors duration-300 font-bold text-sm tracking-wide bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-500/20 hover:border-cyan-500/50"
           >
-            TUYỂN DỤNG
+            {t('menu.hiring', 'TUYỂN DỤNG')}
           </Link>
         </nav>
 
         {/* RIGHT SIDE */}
         <div className="flex items-center space-x-4">
+
+          {/* Language Switcher */}
+          <div className="flex items-center gap-2 mr-2">
+            <button
+              onClick={() => changeLanguage('vi')}
+              className={`text-sm font-bold ${router.locale === 'vi' ? 'text-[#CDAD5A]' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              VI
+            </button>
+            <span className="text-gray-600">|</span>
+            <button
+              onClick={() => changeLanguage('en')}
+              className={`text-sm font-bold ${router.locale === 'en' ? 'text-[#CDAD5A]' : 'text-gray-500 hover:text-gray-300'}`}
+            >
+              EN
+            </button>
+          </div>
           {isLoadingSession ? (
             <span className="text-white/60 text-sm font-semibold">
               Đang kiểm tra...
@@ -107,7 +131,7 @@ const Header: React.FC = () => {
                 onClick={handleLogout}
                 className="bg-red-500 px-4 py-2 rounded-sm text-white text-sm hover:bg-red-600 transition-all"
               >
-                ĐĂNG XUẤT
+                {t('menu.logout', 'ĐĂNG XUẤT')}
               </button>
             </div>
           ) : (

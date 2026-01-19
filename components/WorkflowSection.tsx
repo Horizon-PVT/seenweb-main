@@ -1,41 +1,43 @@
 import React from "react";
 import { useRouter } from "next/router";
-
-const STEPS = [
-    {
-        step: 1,
-        title: "Chọn đúng video nên làm",
-        desc: "Hệ thống phân tích thị trường và đối thủ để chỉ ra video dễ làm, ít cạnh tranh và có người xem.",
-        toolId: "micro-niche-miner",
-        toolName: "Micro Niche Miner",
-        icon: "🎯",
-        color: "from-blue-500 to-cyan-400",
-        cta: "Chỉ tôi nên làm video gì →"
-    },
-    {
-        step: 2,
-        title: "Có sẵn kịch bản để làm theo",
-        desc: "Cung cấp sẵn hook, kịch bản và nội dung từng đoạn. Không cần nghĩ – chỉ cần làm theo.",
-        toolId: "scriptwriter",
-        toolName: "Scriptwriter",
-        icon: "✍️",
-        color: "from-purple-500 to-pink-500",
-        cta: "Lấy kịch bản video →"
-    },
-    {
-        step: 3,
-        title: "Đăng đúng cách để có cơ hội lên view",
-        desc: "Gợi ý tiêu đề, mô tả, tag và hướng thumbnail để video không đăng đại, không đoán mò.",
-        toolId: "seo",
-        toolName: "SEO Tool + Thumbnail",
-        icon: "🚀",
-        color: "from-amber-400 to-orange-500",
-        cta: "Chuẩn bị đăng video →"
-    },
-];
+import { useTranslation } from "next-i18next";
 
 export default function WorkflowSection() {
     const router = useRouter();
+    const { t } = useTranslation('common');
+
+    const STEPS = [
+        {
+            step: 1,
+            title: t('workflow.step1.title', 'Chọn đúng video nên làm'),
+            desc: t('workflow.step1.desc', 'Hệ thống phân tích thị trường và đối thủ để chỉ ra video dễ làm, ít cạnh tranh và có người xem.'),
+            toolId: "micro-niche-miner",
+            toolName: "Micro Niche Miner",
+            icon: "🎯",
+            color: "from-blue-500 to-cyan-400",
+            cta: t('workflow.step1.cta', 'Chỉ tôi nên làm video gì →')
+        },
+        {
+            step: 2,
+            title: t('workflow.step2.title', 'Có sẵn kịch bản để làm theo'),
+            desc: t('workflow.step2.desc', 'Cung cấp sẵn hook, kịch bản và nội dung từng đoạn. Không cần nghĩ – chỉ cần làm theo.'),
+            toolId: "scriptwriter",
+            toolName: "Scriptwriter",
+            icon: "✍️",
+            color: "from-purple-500 to-pink-500",
+            cta: t('workflow.step2.cta', 'Lấy kịch bản video →')
+        },
+        {
+            step: 3,
+            title: t('workflow.step3.title', 'Đăng đúng cách để có cơ hội lên view'),
+            desc: t('workflow.step3.desc', 'Gợi ý tiêu đề, mô tả, tag và hướng thumbnail để video không đăng đại, không đoán mò.'),
+            toolId: "seo",
+            toolName: "SEO Tool + Thumbnail",
+            icon: "🚀",
+            color: "from-amber-400 to-orange-500",
+            cta: t('workflow.step3.cta', 'Chuẩn bị đăng video →')
+        },
+    ];
 
     const handleOpenTool = (toolId: string) => {
         router.push(
@@ -53,10 +55,10 @@ export default function WorkflowSection() {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-black text-white mb-4 uppercase tracking-tight">
-                        Quy Trình <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">3 Bước Để Làm Video Có Cơ Hội Lên View</span>
+                        {t('workflow.title', 'Quy Trình')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">{t('workflow.title_highlight', '3 Bước Để Làm Video Có Cơ Hội Lên View')}</span>
                     </h2>
                     <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                        Hệ thống dẫn bạn đi từ "chưa biết làm gì" → "có video sẵn để đăng".
+                        {t('workflow.subtitle', 'Hệ thống dẫn bạn đi từ "chưa biết làm gì" → "có video sẵn để đăng".')}
                     </p>
                 </div>
 
@@ -75,7 +77,7 @@ export default function WorkflowSection() {
                             </div>
 
                             <div className="absolute top-4 right-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                Bước {item.step}
+                                {t('workflow.step', 'Bước')} {item.step}
                             </div>
 
                             <h3 className="text-2xl font-bold text-white mb-3">{item.title}</h3>

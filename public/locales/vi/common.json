@@ -1,0 +1,366 @@
+{
+    "menu": {
+        "home": "Trang chủ",
+        "tools": "Bảng công cụ",
+        "pricing": "Bảng giá",
+        "community": "Cộng đồng",
+        "login": "Đăng nhập",
+        "logout": "Đăng xuất",
+        "affiliate": "Trở thành đối tác",
+        "hiring": "TUYỂN DỤNG"
+    },
+    "nav": {
+        "all": "Tất cả",
+        "newbie": "Dành cho người mới",
+        "hot": "Đang thịnh hành",
+        "content": "Sáng tạo nội dung",
+        "research": "Nghiên cứu thị trường",
+        "learning": "GÓC HỌC WIN!",
+        "developer": "Nhà Phát Triển"
+    },
+    "sections": {
+        "trending": "Đang Thịnh Hành",
+        "content_creation": "Sáng Tạo Nội Dung",
+        "research": "Nghiên Cứu Thị Trường",
+        "learning": "Góc Học Win!",
+        "developer": "Nhà Phát Triển"
+    },
+    "studio": {
+        "subtitle": "Khơi nguồn sáng tạo với bộ công cụ AI tối thượng. Thiết kế tinh tế, hiệu năng vượt trội."
+    },
+    "hero": {
+        "title": "Giúp bạn tìm đúng ngách và",
+        "title_highlight": "làm video có khả năng lên view",
+        "subtitle": "Không cần kinh nghiệm, chỉ cần làm theo từng bước.",
+        "cta_free": "Dùng thử miễn phí",
+        "cta_community": "GIA NHẬP CỘNG ĐỒNG",
+        "bullet1_q": "Không biết làm gì?",
+        "bullet1_a": "Chỉ cho bạn video nên làm",
+        "bullet2_q": "Không biết viết?",
+        "bullet2_a": "Có sẵn kịch bản",
+        "bullet3_q": "Không rành SEO?",
+        "bullet3_a": "Hướng dẫn đăng đúng cách",
+        "trust_line": "Phù hợp YouTuber mới • Không cần kinh nghiệm • Có gói miễn phí"
+    },
+    "badges": {
+        "hot": "HOT",
+        "new": "MỚI",
+        "exclusive": "ĐỘC QUYỀN",
+        "coming_soon": "SẮP RA MẮT",
+        "for_beginners": "DÀNH CHO NGƯỜI MỚI"
+    },
+    "workflow": {
+        "title": "Quy Trình",
+        "title_highlight": "3 Bước Để Làm Video Có Cơ Hội Lên View",
+        "subtitle": "Hệ thống dẫn bạn đi từ \"chưa biết làm gì\" → \"có video sẵn để đăng\".",
+        "step": "Bước",
+        "step1": {
+            "title": "Chọn đúng video nên làm",
+            "desc": "Hệ thống phân tích thị trường và đối thủ để chỉ ra video dễ làm, ít cạnh tranh và có người xem.",
+            "cta": "Chỉ tôi nên làm video gì →"
+        },
+        "step2": {
+            "title": "Có sẵn kịch bản để làm theo",
+            "desc": "Cung cấp sẵn hook, kịch bản và nội dung từng đoạn. Không cần nghĩ – chỉ cần làm theo.",
+            "cta": "Lấy kịch bản video →"
+        },
+        "step3": {
+            "title": "Đăng đúng cách để có cơ hội lên view",
+            "desc": "Gợi ý tiêu đề, mô tả, tag và hướng thumbnail để video không đăng đại, không đoán mò.",
+            "cta": "Chuẩn bị đăng video →"
+        }
+    },
+    "stats": {
+        "users": "YouTuber đang dùng",
+        "videos": "Video được tạo",
+        "views": "Views đạt được",
+        "satisfaction": "Hài lòng"
+    },
+    "testimonials": {
+        "title": "Cảm Nhận Từ Cộng Đồng",
+        "subtitle": "Những câu chuyện thành công thực tế",
+        "1": {
+            "quote": "Từ 0 views lên 100k views chỉ trong 1 videos nhờ công cụ đào ngách. Thật không thể tin nổi!"
+        },
+        "2": {
+            "quote": "Kịch bản AI viết quá hay, mình chỉ cần đọc theo. Tiết kiệm 80% thời gian nghĩ nội dung."
+        },
+        "3": {
+            "quote": "Công cụ phân tích đối thủ giúp mình tìm ra lỗ hổng thị trường ngay lập tức."
+        },
+        "4": {
+            "quote": "Mình là newbie nhưng đã kiếm được $500 tháng đầu tiên nhờ làm theo roadmap."
+        },
+        "5": {
+            "quote": "Giọng đọc AI quá tự nhiên, không ai nhận ra là máy đọc luôn."
+        }
+    },
+    "coaching": {
+        "badge": "Dịch Vụ Cao Cấp",
+        "title": "Coaching 1-1",
+        "titleHighlight": "YouTube & Affiliate",
+        "description": "Bạn muốn đi nhanh hơn và xa hơn? Chương trình huấn luyện cá nhân hóa giúp bạn xây dựng đế chế nội dung số và tạo thu nhập thụ động bền vững cùng Mr. Seen.",
+        "ctaZalo": "Liên Hệ Zalo Tư Vấn",
+        "ctaLearnMore": "Tìm Hiểu Thêm",
+        "badgeTitle": "High-Ticket",
+        "badgeSubtitle": "Mastery Program"
+    },
+    "affiliate": {
+        "title": "Tham Gia Affiliate – Kiếm Tiền Trọn Đời Với SeenYT",
+        "ctaButton": "BẤM ĐÂY ĐỂ THAM GIA",
+        "ctaButtonLine2": "AFFILIATE",
+        "earningsTitle": "Affiliate Đã Kiếm Được",
+        "realtimeNote": "Hoa hồng realtime • Bạn có thể là người tiếp theo!",
+        "videoNotSupported": "Trình duyệt không hỗ trợ video."
+    },
+    "promotions": {
+        "title": "Chương Trình Khuyến Mãi & Affiliate Hot",
+        "affiliate_basic": "Affiliate Cơ Bản",
+        "join_affiliate": "Tham Gia Affiliate",
+        "tier_bonus": "Tier & Bonus",
+        "view_tiers": "Xem Tier & Bonus",
+        "tet_event": "Event Tết",
+        "join_tet": "Tham Gia Event Tết",
+        "new_user": "User Mới",
+        "register_now": "Đăng Ký Ngay",
+        "upgrade_vip": "Nâng Gói VIP"
+    },
+    "faq": {
+        "title": "CÂU HỎI THƯỜNG GẶP",
+        "q1": "Tôi là người mới hoàn toàn, SeenYT có dễ dùng không?",
+        "a1": "Cực kỳ dễ! Chúng tôi thiết kế giao diện dành riêng cho người không rành công nghệ. Có quy trình 3 bước cầm tay chỉ việc, bạn chỉ cần làm theo hướng dẫn là có video.",
+        "q2": "SeenYT có giúp video của tôi lên xu hướng không?",
+        "a2": "Có! Công cụ của chúng tôi sử dụng AI để phân tích thuật toán YouTube, tìm ra các chủ đề đang hot và hướng dẫn bạn cách tối ưu (SEO, Thumbnail, Kịch bản) để tăng tối đa cơ hội được đề xuất.",
+        "q3": "Tôi có thể kiếm tiền từ các video tạo bởi SeenYT không?",
+        "a3": "Chắc chắn rồi. Bạn sở hữu 100% bản quyền video tạo ra. Rất nhiều người dùng của chúng tôi đã bật kiếm tiền và nhận doanh thu từ YouTube cũng như Affiliate.",
+        "cta_text": "Sẵn sàng bước vào trận chiến?",
+        "cta_button": "Chọn Gói TOÀN TRI Ngay"
+    },
+    "finalCTA": {
+        "title": "HÃY BƯỚC VÀO TRẬN CHIẾN, ĐỪNG CHỈ LÀ KHÁN GIẢ.",
+        "choosePlan": "Chọn Gói TOÀN TRI",
+        "joinCommunity": "Đăng ký CỘNG ĐỒNG SEENYT"
+    },
+    "tools": {
+        "virtual-mc": {
+            "name": "Tạo MC Ảo (Idol AI) - Nhép Miệng",
+            "short": "Tạo MC ảo nói chuyện từ ảnh chụp.",
+            "long": "Công cụ tạo MC ảo nói chuyện từ ảnh chụp. Tự động hóa video dẫn chương trình, tin tức hoặc đào tạo mà không cần quay hình trực tiếp."
+        },
+        "image-forge": {
+            "name": "Tạo Ảnh - Thiết Kế Thumbnail AI",
+            "short": "Thiết kế Thumbnail AI High CTR.",
+            "long": "Thiết kế ảnh thu nhỏ (Thumbnail) bằng trí tuệ nhân tạo. Tự động phân tích màu sắc và bố cục gây kích thích cú nhấp chuột (High CTR)."
+        },
+        "text-to-speech": {
+            "name": "Chuyển Văn Bản -> Giọng Nói",
+            "short": "Chuyển văn bản thành giọng nói cảm xúc.",
+            "long": "Chuyển đổi văn bản thành giọng nói cảm xúc. Hỗ trợ đa ngôn ngữ và nhiều chất giọng tự nhiên như người thật."
+        },
+        "seo": {
+            "name": "Tối Ưu SEO & Từ Khóa",
+            "short": "Tối ưu từ khóa chuẩn thuật toán YouTube 2026.",
+            "long": "Công cụ phân tích và tối ưu hóa từ khóa chuẩn thuật toán YouTube 2026. Hỗ trợ tạo tiêu đề, thẻ tag và mô tả video."
+        },
+        "micro-niche-miner": {
+            "name": "Đào Ngách CPM Cao",
+            "short": "Phân tích thị trường ngách siêu nhỏ.",
+            "long": "Phân tích sâu vào các thị trường ngách siêu nhỏ (Micro-niche) để tối ưu khả năng lên TOP."
+        },
+        "dubbing": {
+            "name": "AI Dubbing Studio (Lồng Tiếng)",
+            "short": "Tự động dịch thuật và lồng tiếng Video.",
+            "long": "Biến video quốc tế thành video của bạn. Tự động dịch thuật, lồng tiếng Việt, khớp khẩu hình (Auto-Dubbing)."
+        },
+        "velocity": {
+            "name": "Tạo Video Bằng AI",
+            "short": "Tạo video Faceless tự động.",
+            "long": "Phần mềm tạo video Faceless (không lộ mặt) tự động. Hỗ trợ kho Stock video chất lượng cao."
+        },
+        "scriptwriter": {
+            "name": "Viết Kịch Bản Viral",
+            "short": "Viết kịch bản chuẩn cấu trúc viral.",
+            "long": "Công cụ viết kịch bản chuẩn cấu trúc viral. Tập trung tối ưu 30 giây đầu (Hook) để giữ chân người xem."
+        },
+        "narrative-studio": {
+            "name": "Kể Chuyện Lịch Sử / Story",
+            "short": "Sáng tạo cốt truyện và dẫn dắt nội dung.",
+            "long": "Công cụ hỗ trợ sáng tạo cốt truyện và dẫn dắt nội dung chuyên sâu. Giúp xây dựng kịch bản có chiều sâu."
+        },
+        "script-refiner": {
+            "name": "Chỉnh Sửa & Nâng Cấp Kịch Bản",
+            "short": "Tối ưu hóa văn bản, chỉnh sửa giọng văn.",
+            "long": "Giải pháp tối ưu hóa văn bản AI giúp cải thiện câu từ, chỉnh sửa giọng văn cho tự nhiên và chuyên nghiệp hơn."
+        },
+        "rival-scanner": {
+            "name": "Phân Tích Kênh Đối Thủ",
+            "short": "Quét và phân tích chiến lược đối thủ.",
+            "long": "Quét và phân tích sâu chiến lược của đối thủ cạnh tranh. Cung cấp dữ liệu về từ khóa hiệu quả nhất."
+        },
+        "hidden-channel-finder": {
+            "name": "Tìm Ngách Xanh",
+            "short": "Khám phá kênh YouTube nhỏ tăng trưởng nhanh.",
+            "long": "Công cụ khám phá các kênh YouTube nhỏ đang có tốc độ tăng trưởng đột biến. Giúp tìm thấy những chủ đề ngách chưa bão hòa."
+        },
+        "thay-youtube": {
+            "name": "Thầy YouTube - Giáo Án 30 Ngày",
+            "short": "Giáo án 30 ngày cầm tay chỉ việc.",
+            "long": "Đồng hành cùng bạn trong 30 ngày đầu làm YouTube. Cung cấp giáo án chi tiết hàng ngày, tool hỗ trợ."
+        },
+        "niche-engine": {
+            "name": "Thư viện ngách thắng 100%",
+            "short": "Chọn ngách & Sinh kịch bản Long Video.",
+            "long": "Hệ thống Long Video Engine giúp bạn chọn ngách chiến thắng, phân tích cơ hội và sinh gói triển khai nội dung chi tiết."
+        },
+        "future-eye": {
+            "name": "FUTURE-EYE AI - Video Tương Lai",
+            "short": "Sản xuất video documentary chất lượng quốc tế.",
+            "long": "Công cụ AI chuyên dụng để sản xuất video YouTube ngách Tương lai/Thiên tai/Công nghệ. Tự động tạo 12 chủ đề, viết kịch bản 2000 từ."
+        }
+    },
+    "pricing": {
+        "title": "Bảng giá",
+        "monthly": "Tháng",
+        "yearly": "Năm",
+        "save2months": "Tiết kiệm ~2 tháng",
+        "mostPopular": "PHỔ BIẾN NHẤT",
+        "useFree": "DÙNG MIỄN PHÍ",
+        "startStarter": "BẮT ĐẦU VỚI STARTER",
+        "upgradePro": "NÂNG CẤP PRO",
+        "upgradeVip": "NÂNG CẤP VIP",
+        "promoPlaceholder": "Nhập mã khuyến mại",
+        "apply": "Áp dụng",
+        "invalidCode": "Mã không hợp lệ",
+        "connectionError": "Lỗi kết nối",
+        "discountSaved": "Giảm",
+        "codeApplied": "Mã",
+        "applied": "đã được áp dụng",
+        "needSupport": "Cần hỗ trợ 1–1 hoặc coaching?",
+        "viewCoaching": "Xem chương trình Coaching 1-1",
+        "payForPlan": "Thanh toán gói",
+        "activationEmail": "Email nhận kích hoạt",
+        "enterEmail": "Nhập email của bạn",
+        "autoActivate": "Sau khi thanh toán, gói sẽ được kích hoạt tự động ngay lập tức!",
+        "creatingLink": "Đang tạo link...",
+        "payNow": "💳 THANH TOÁN NGAY",
+        "redirectNote": "Bạn sẽ được chuyển tới trang thanh toán. Sau khi thanh toán thành công, gói sẽ",
+        "autoActivated": "tự động được kích hoạt",
+        "instantly": "ngay lập tức!",
+        "invalidEmail": "⚠️ Vui lòng nhập email hợp lệ!",
+        "paymentError": "Lỗi",
+        "cannotCreateLink": "Không thể tạo link thanh toán",
+        "serverError": "Lỗi kết nối server.",
+        "features": {
+            "free1": "✅ Đào Ngách CPM Cao (1 lượt/ngày)",
+            "free2": "⚠️ Viết Kịch Bản (xem trước)",
+            "free3": "⚠️ Tối Ưu SEO (xem trước)",
+            "free4": "✅ Thư viện ngách (5 ngách đầu)",
+            "free5": "✅ Thầy YouTube (Day 1-5)",
+            "starter1": "Tất cả tính năng FREE (không giới hạn)",
+            "starter2": "✅ Viết Kịch Bản (đầy đủ + copy)",
+            "starter3": "✅ Tối Ưu SEO (đầy đủ + copy)",
+            "starter4": "✅ Phân Tích Kênh Đối Thủ",
+            "starter5": "✅ Thầy YouTube (Day 6-20)",
+            "starter6": "✅ 10 credits AI Dubbing",
+            "starter7": "Hỗ trợ qua email",
+            "pro1": "Tất cả tính năng STARTER",
+            "pro2": "✅ Tìm Ngách Xanh (Kênh ẩn)",
+            "pro3": "✅ Kể Chuyện Lịch Sử / Story",
+            "pro4": "✅ Chỉnh Sửa & Nâng Cấp Kịch Bản",
+            "pro5": "✅ Tạo Thumbnail AI",
+            "pro6": "✅ Text-to-Speech OpenAI (500k ký tự)",
+            "pro7": "✅ Thư viện ngách (20+ ngách)",
+            "pro8": "✅ 30 credits AI Dubbing",
+            "pro9": "Ưu tiên hỗ trợ",
+            "vip1": "Tất cả tính năng gói PRO",
+            "vip2": "✅ AI Dubbing Studio (100 credits)",
+            "vip3": "✅ Tạo Video AI (Velocity)",
+            "vip4": "✅ Tạo MC Ảo (Virtual MC)",
+            "vip5": "✅ Thầy YouTube (Day 21-30)",
+            "vip6": "✅ Text-to-Speech không giới hạn",
+            "vip7": "Support 1-1 qua Zalo (Siêu tốc)"
+        }
+    },
+    "footer": {
+        "copyright": "© 2025 SeenYT. Bảo lưu mọi quyền.",
+        "tagline": "Sang phẳng cuộc chơi YouTube bằng sức mạnh của AI tiên tiến nhất.",
+        "affiliate_program": "Affiliate Program",
+        "company": "Sản phẩm của Công Ty CP Dịch Vụ Quốc Tế NTC",
+        "navigation": "Điều Hướng",
+        "info": "Thông Tin",
+        "tools_board": "Bảng Công Cụ",
+        "pricing_link": "Bảng Giá",
+        "coaching": "Coaching 1-1",
+        "legal": "Pháp Lý",
+        "legal_info": "Thông Tin Pháp Lý",
+        "terms": "Điều Khoản Dịch Vụ",
+        "privacy": "Chính Sách Bảo Mật",
+        "disclaimer": "Tuyên Bố Miễn Trừ",
+        "aup": "Chính Sách Sử Dụng Hợp Lệ",
+        "contact": "Liên Hệ"
+    },
+    "common": {
+        "loading": "Đang tải...",
+        "error": "Đã xảy ra lỗi.",
+        "back": "Quay lại",
+        "submit": "Gửi",
+        "cancel": "Hủy",
+        "close": "Đóng",
+        "generate": "Tạo",
+        "copy": "Sao chép",
+        "copied": "Đã sao chép!",
+        "download": "Tải xuống",
+        "save": "Lưu",
+        "reset": "Đặt lại"
+    },
+    "toolUI": {
+        "enterKeyword": "Vui lòng nhập từ khóa để tìm kiếm.",
+        "seedKeyword": "TỪ KHÓA KHỞI ĐẦU",
+        "outputLanguage": "NGÔN NGỮ ĐẦU RA",
+        "searching": "ĐANG TÌM KIẾM...",
+        "activateSearch": "KÍCH HOẠT TÌM KIẾM",
+        "generating": "ĐANG TẠO...",
+        "processing": "ĐANG XỬ LÝ...",
+        "analyzing": "ĐANG PHÂN TÍCH...",
+        "serverError": "Lỗi server, vui lòng thử lại.",
+        "enterPrompt": "Vui lòng nhập thông tin.",
+        "noResults": "Không tìm thấy kết quả.",
+        "hiddenChannel": {
+            "title": "TÌM KÊNH ẨN & XU HƯỚNG BÙNG NỔ",
+            "risingChannels": "KÊNH ẨN ĐANG BÙNG NỔ",
+            "trendingVideos": "VIDEO ĐANG VIRAL",
+            "upcomingTrends": "DỰ ĐOÁN XU HƯỚNG SẮP TỚI",
+            "strengths": "Điểm mạnh"
+        },
+        "scriptwriter": {
+            "title": "KIẾN TẠO THIÊN HÀ: LÕI KỊCH BẢN",
+            "rawData": "TẠO DỮ LIỆU GỐC",
+            "goal": "MỤC TIÊU",
+            "level": "CẤP ĐỘ",
+            "tone": "TÔNG GIỌNG",
+            "format": "ĐỊNH DẠNG",
+            "style": "PHONG CÁCH",
+            "length": "ĐỘ DÀI",
+            "initStructure": "KHỞI TẠO CẤU TRÚC",
+            "scriptFrame": "KHUNG KỊCH BẢN PHÂN LOẠI",
+            "copyBtn": "SAO CHÉP",
+            "exportTxt": "XUẤT (TXT)",
+            "translateTo": "DỊCH...",
+            "refine": "TINH CHỈNH VĨ MÔ",
+            "consistency": "ĐỒNG NHẤT NHÂN VẬT",
+            "connect": "KẾT NỐI HỢP THÀNH"
+        },
+        "seo": {
+            "title": "TỐI ƯU SEO & TỪ KHÓA",
+            "videoTitle": "TIÊU ĐỀ VIDEO",
+            "description": "MÔ TẢ",
+            "tags": "THẺ TAG",
+            "optimize": "TỐI ƯU SEO"
+        },
+        "microNiche": {
+            "title": "ĐÀO NGÁCH CPM CAO",
+            "macroNiche": "NGÁCH VĨ MÔ",
+            "analyze": "PHÂN TÍCH NGÁCH"
+        }
+    }
+}

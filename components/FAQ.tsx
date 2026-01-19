@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 
 const FAQ: React.FC = () => {
+    const { t } = useTranslation('common');
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     const toggleAccordion = (index: number) => {
@@ -9,16 +11,16 @@ const FAQ: React.FC = () => {
 
     const faqItems = [
         {
-            question: "Tôi là người mới hoàn toàn, SeenYT có dễ dùng không?",
-            answer: "Cực kỳ dễ! Chúng tôi thiết kế giao diện dành riêng cho người không rành công nghệ. Có quy trình 3 bước cầm tay chỉ việc, bạn chỉ cần làm theo hướng dẫn là có video."
+            question: t('faq.q1', "Tôi là người mới hoàn toàn, SeenYT có dễ dùng không?"),
+            answer: t('faq.a1', "Cực kỳ dễ! Chúng tôi thiết kế giao diện dành riêng cho người không rành công nghệ. Có quy trình 3 bước cầm tay chỉ việc, bạn chỉ cần làm theo hướng dẫn là có video.")
         },
         {
-            question: "SeenYT có giúp video của tôi lên xu hướng không?",
-            answer: "Có! Công cụ của chúng tôi sử dụng AI để phân tích thuật toán YouTube, tìm ra các chủ đề đang hot và hướng dẫn bạn cách tối ưu (SEO, Thumbnail, Kịch bản) để tăng tối đa cơ hội được đề xuất."
+            question: t('faq.q2', "SeenYT có giúp video của tôi lên xu hướng không?"),
+            answer: t('faq.a2', "Có! Công cụ của chúng tôi sử dụng AI để phân tích thuật toán YouTube, tìm ra các chủ đề đang hot và hướng dẫn bạn cách tối ưu (SEO, Thumbnail, Kịch bản) để tăng tối đa cơ hội được đề xuất.")
         },
         {
-            question: "Tôi có thể kiếm tiền từ các video tạo bởi SeenYT không?",
-            answer: "Chắc chắn rồi. Bạn sở hữu 100% bản quyền video tạo ra. Rất nhiều người dùng của chúng tôi đã bật kiếm tiền và nhận doanh thu từ YouTube cũng như Affiliate."
+            question: t('faq.q3', "Tôi có thể kiếm tiền từ các video tạo bởi SeenYT không?"),
+            answer: t('faq.a3', "Chắc chắn rồi. Bạn sở hữu 100% bản quyền video tạo ra. Rất nhiều người dùng của chúng tôi đã bật kiếm tiền và nhận doanh thu từ YouTube cũng như Affiliate.")
         }
     ];
 
@@ -26,7 +28,7 @@ const FAQ: React.FC = () => {
         <section id="faq" className="py-24 bg-gradient-to-b from-gray-900/50 to-black">
             <div className="container mx-auto px-4 max-w-4xl">
                 <h2 className="text-4xl md:text-5xl font-playfair text-[#CDAD5A] text-center mb-16">
-                    CÂU HỎI THƯỜNG GẶP
+                    {t('faq.title', 'CÂU HỎI THƯỜNG GẶP')}
                 </h2>
 
                 <div className="space-y-4">
@@ -60,12 +62,12 @@ const FAQ: React.FC = () => {
                 </div>
 
                 <div className="text-center mt-16">
-                    <p className="text-xl text-gray-300 mb-6 font-light italic">Sẵn sàng bước vào trận chiến?</p>
+                    <p className="text-xl text-gray-300 mb-6 font-light italic">{t('faq.cta_text', 'Sẵn sàng bước vào trận chiến?')}</p>
                     <a
                         href="#pricing"
                         className="inline-block bg-[#008080] text-white font-bold py-4 px-12 text-lg border-2 border-[#008080] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow"
                     >
-                        Chọn Gói TOÀN TRI Ngay
+                        {t('faq.cta_button', 'Chọn Gói TOÀN TRI Ngay')}
                     </a>
                 </div>
             </div>

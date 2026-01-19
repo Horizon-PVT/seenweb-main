@@ -1,6 +1,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useTranslation } from 'next-i18next';
 
 const CodeRain = dynamic(
   () => import("./CodeRain"),
@@ -8,6 +9,7 @@ const CodeRain = dynamic(
 );
 
 const Footer: React.FC = () => {
+  const { t } = useTranslation('common');
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     targetId: string
@@ -30,20 +32,20 @@ const Footer: React.FC = () => {
               SeenYT
             </h4>
             <p className="text-gray-500 max-w-md">
-              Sang phẳng cuộc chơi YouTube bằng sức mạnh của AI tiên tiến nhất.
+              {t('footer.tagline', 'Level the YouTube playing field with the power of advanced AI.')}
             </p>
             <div className="flex flex-wrap gap-4 mt-3">
               <Link href="/affiliate" className="text-[#CDAD5A] hover:text-yellow-400 font-semibold">
-                💰 Affiliate Program
+                💰 {t('footer.affiliate_program', 'Affiliate Program')}
               </Link>
               <span className="text-gray-600">|</span>
-              <span className="text-gray-400 text-sm">Sản phẩm của Công Ty CP Dịch Vụ Quốc Tế NTC</span>
+              <span className="text-gray-400 text-sm">{t('footer.company', 'A product of NTC International Services JSC')}</span>
             </div>
           </div>
 
           {/* Cột 2 – Điều hướng */}
           <div>
-            <h5 className="text-lg font-semibold text-white mb-4">Điều Hướng</h5>
+            <h5 className="text-lg font-semibold text-white mb-4">{t('footer.navigation', 'Navigation')}</h5>
             <ul className="space-y-2 text-gray-400">
               <li>
                 <a
@@ -51,7 +53,7 @@ const Footer: React.FC = () => {
                   onClick={(e) => handleNavClick(e, "#about")}
                   className="hover:text-[#CDAD5A]"
                 >
-                  Thông Tin
+                  {t('footer.info', 'Information')}
                 </a>
               </li>
               <li>
@@ -60,7 +62,7 @@ const Footer: React.FC = () => {
                   onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
                   className="hover:text-[#CDAD5A]"
                 >
-                  Bảng Công Cụ
+                  {t('footer.tools_board', 'Tools Board')}
                 </a>
               </li>
               <li>
@@ -69,12 +71,12 @@ const Footer: React.FC = () => {
                   onClick={(e) => handleNavClick(e, "#pricing")}
                   className="hover:text-[#CDAD5A]"
                 >
-                  Bảng Giá
+                  {t('footer.pricing_link', 'Pricing')}
                 </a>
               </li>
               <li>
                 <Link href="/coaching" className="hover:text-[#CDAD5A]">
-                  Coaching 1-1
+                  {t('footer.coaching', '1-on-1 Coaching')}
                 </Link>
               </li>
 
@@ -83,36 +85,36 @@ const Footer: React.FC = () => {
 
           {/* Cột 3 – Pháp lý */}
           <div>
-            <h5 className="text-lg font-semibold text-white mb-4">Pháp Lý</h5>
+            <h5 className="text-lg font-semibold text-white mb-4">{t('footer.legal', 'Legal')}</h5>
             <ul className="space-y-2 text-gray-400">
               <li>
                 <Link href="/legal" className="hover:text-[#CDAD5A]">
-                  Thông Tin Pháp Lý
+                  {t('footer.legal_info', 'Legal Information')}
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="hover:text-[#CDAD5A]">
-                  Điều Khoản Dịch Vụ
+                  {t('footer.terms', 'Terms of Service')}
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className="hover:text-[#CDAD5A]">
-                  Chính Sách Bảo Mật
+                  {t('footer.privacy', 'Privacy Policy')}
                 </Link>
               </li>
               <li>
                 <Link href="/disclaimer" className="hover:text-[#CDAD5A]">
-                  Tuyên Bố Miễn Trừ
+                  {t('footer.disclaimer', 'Disclaimer')}
                 </Link>
               </li>
               <li>
                 <Link href="/aup" className="hover:text-[#CDAD5A]">
-                  Chính Sách Sử Dụng Hợp Lệ
+                  {t('footer.aup', 'Acceptable Use Policy')}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-[#CDAD5A]">
-                  Liên Hệ
+                  {t('footer.contact', 'Contact')}
                 </Link>
               </li>
             </ul>
@@ -122,7 +124,7 @@ const Footer: React.FC = () => {
         {/* Bản quyền */}
         <div className="mt-12 border-t border-gray-800/50 pt-6 text-center text-gray-600">
           <p>
-            &copy; {new Date().getFullYear()} SeenYT. All rights reserved.
+            {t('footer.copyright', '© 2025 SeenYT. All rights reserved.')}
           </p>
         </div>
       </div>

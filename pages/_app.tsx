@@ -9,7 +9,9 @@ import WelcomePopupManager from "@/components/WelcomePopupManager";
 // THÊM DÒNG NÀY ĐỂ DÙNG GTM CHÍNH THỨC
 import { GoogleTagManager } from '@next/third-parties/google';
 
-export default function App({
+import { appWithTranslation } from 'next-i18next';
+
+function App({
   Component,
   pageProps: { session, ...pageProps },
 }: AppProps) {
@@ -90,3 +92,5 @@ export default function App({
     </SessionProvider>
   );
 }
+
+export default appWithTranslation(App);

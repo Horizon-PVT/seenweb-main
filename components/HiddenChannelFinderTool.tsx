@@ -2,6 +2,7 @@
 // BẢN FULL HOÀN CHỈNH 100% – ĐÃ FIX LỖI SYNTAX, CHẠY NGON NGAY
 
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'next-i18next';
 
 interface RisingChannel {
   name: string;
@@ -30,9 +31,9 @@ const Loader: React.FC = () => (
   <div className="flex flex-col items-center justify-center h-full text-center">
     <div className="w-32 h-32 animate-pulse text-[#008080]">
       <svg viewBox="0 0 100 100" className="w-full h-full">
-        <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="none" opacity="0.3"/>
+        <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="none" opacity="0.3" />
         <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset="100">
-          <animate attributeName="strokeDashoffset" from="251" to="0" dur="4s" repeatCount="indefinite"/>
+          <animate attributeName="strokeDashoffset" from="251" to="0" dur="4s" repeatCount="indefinite" />
         </circle>
       </svg>
     </div>
@@ -43,6 +44,7 @@ const Loader: React.FC = () => (
 );
 
 const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [output, setOutput] = useState<OutputData | null>(null);
@@ -53,7 +55,7 @@ const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!seedQuery.trim()) {
-      setError('Vui lòng nhập từ khóa để tìm kiếm.');
+      setError(t('toolUI.enterKeyword', 'Vui lòng nhập từ khóa để tìm kiếm.'));
       return;
     }
 
@@ -95,7 +97,7 @@ const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) =
       {/* Header */}
       <div className="flex justify-between items-center border-b border-[#CDAD5A]/20 pb-4">
         <h2 className="text-2xl font-bold text-[#CDAD5A] font-playfair tracking-wider">
-          TÌM KÊNH ẨN & XU HƯỚNG BÙNG NỔ
+          {t('toolUI.hiddenChannel.title', 'TÌM KÊNH ẨN & XU HƯỚNG BÙNG NỔ')}
         </h2>
         <button onClick={onBack} className="text-gray-400 hover:text-white text-2xl">&times;</button>
       </div>
@@ -104,7 +106,7 @@ const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) =
         {/* Form bên trái */}
         <form onSubmit={handleSubmit} className="lg:col-span-3 flex flex-col space-y-5">
           <div>
-            <label className="block text-[#CDAD5A] font-bold mb-2">TỪ KHÓA KHỞI ĐẦU</label>
+            <label className="block text-[#CDAD5A] font-bold mb-2">{t('toolUI.seedKeyword', 'TỪ KHÓA KHỞI ĐẦU')}</label>
             <textarea
               value={seedQuery}
               onChange={(e) => setSeedQuery(e.target.value)}
@@ -114,7 +116,7 @@ const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) =
           </div>
 
           <div>
-            <label className="block text-[#CDAD5A] font-bold mb-2">NGÔN NGỮ ĐẦU RA</label>
+            <label className="block text-[#CDAD5A] font-bold mb-2">{t('toolUI.outputLanguage', 'NGÔN NGỮ ĐẦU RA')}</label>
             <select
               value={outputLanguage}
               onChange={(e) => setOutputLanguage(e.target.value)}
@@ -131,7 +133,7 @@ const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) =
             disabled={isLoading}
             className="w-full py-4 bg-[#008080] hover:bg-transparent border-2 border-[#008080] text-white font-bold text-lg rounded transition-all duration-300 disabled:opacity-50"
           >
-            {isLoading ? 'ĐANG TÌM KIẾM...' : 'KÍCH HOẠT TÌM KIẾM'}
+            {isLoading ? t('toolUI.searching', 'ĐANG TÌM KIẾM...') : t('toolUI.activateSearch', 'KÍCH HOẠT TÌM KIẾM')}
           </button>
 
           {error && <p className="text-red-400 text-center font-medium">{error}</p>}

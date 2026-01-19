@@ -1,41 +1,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useTranslation } from 'next-i18next';
 
 interface PricingTableProps {
   setSelectedPlan?: (plan: string) => void;
   userEmail?: string;
 }
-
-const featuresMap = {
-  FREE: [
-    "✅ Đào Ngách CPM Cao (1 lượt/ngày)",
-    "⚠️ Viết Kịch Bản (xem trước)",
-    "⚠️ Tối Ưu SEO (xem trước)",
-    "✅ Thư viện ngách (5 ngách đầu)",
-    "✅ Thầy YouTube (Day 1-5)",
-  ],
-  STARTER: [
-    "Tất cả tính năng FREE (không giới hạn)",
-    "✅ Viết Kịch Bản (đầy đủ + copy)",
-    "✅ Tối Ưu SEO (đầy đủ + copy)",
-    "✅ Phân Tích Kênh Đối Thủ",
-    "✅ Thầy YouTube (Day 6-20)",
-    "✅ 10 credits AI Dubbing",
-    "Hỗ trợ qua email",
-  ],
-  PRO: [
-    "Tất cả tính năng STARTER",
-    "✅ Tìm Ngách Xanh (Kênh ẩn)",
-    "✅ Kể Chuyện Lịch Sử / Story",
-    "✅ Chỉnh Sửa & Nâng Cấp Kịch Bản",
-    "✅ Tạo Thumbnail AI",
-    "✅ Text-to-Speech OpenAI (500k ký tự)",
-    "✅ Thư viện ngách (20+ ngách)",
-    "✅ 30 credits AI Dubbing",
-    "Ưu tiên hỗ trợ",
-  ],
-};
 
 const planToRole: Record<string, string> = {
   "STARTER": "CREATIVE",
@@ -55,6 +26,7 @@ const PricingCard = ({
   isFree,
   isYearly,
   onUpgrade,
+  t,
 }: {
   plan: string;
   priceMonthly: string;
@@ -67,6 +39,7 @@ const PricingCard = ({
   isFree?: boolean;
   isYearly: boolean;
   onUpgrade: (plan: string, amount: number, role: string, yearly: boolean) => void;
+  t: any;
 }) => {
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState<any>(null);
@@ -94,10 +67,10 @@ const PricingCard = ({
       if (res.ok) {
         setPromoApplied(data);
       } else {
-        setPromoError(data.error || 'Mã không hợp lệ');
+        setPromoError(data.error || t('pricing.invalidCode', 'Mã không hợp lệ'));
       }
     } catch (error) {
-      setPromoError('Lỗi kết nối');
+      setPromoError(t('pricing.connectionError', 'Lỗi kết nối'));
     } finally {
       setApplyingPromo(false);
     }
@@ -106,7 +79,6 @@ const PricingCard = ({
   const handleClick = () => {
     if (isFree) return;
     if (isFree) return;
-    // VIP now uses standard payment flow
 
     const baseAmount = isYearly
       ? plan === "STARTER" ? 1490000 : plan === "VIP" ? 5490000 : 3990000
@@ -131,7 +103,7 @@ const PricingCard = ({
     >
       {isFeatured && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-600 text-black font-black text-sm px-6 py-2 rounded-full shadow-xl z-10 whitespace-nowrap">
-          PHỔ BIẾN NHẤT
+          {t('pricing.mostPopular', 'MOST POPULAR')}
         </div>
       )}
       <h3 className="text-2xl font-bold mb-3 text-white tracking-wide">{plan}</h3>
@@ -144,7 +116,7 @@ const PricingCard = ({
             <h2 className="text-4xl font-bold mb-2 tracking-tight text-green-400">
               {finalAmount.toLocaleString('vi-VN')} đ
             </h2>
-            <p className="text-sm text-yellow-400 font-semibold mb-4">🎉 Giảm {promoApplied.discount.toLocaleString('vi-VN')} đ</p>
+            <p className="text-sm text-yellow-400 font-semibold mb-4">🎉 {t('pricing.discountSaved', 'Saved')} {promoApplied.discount.toLocaleString('vi-VN')} đ</p>
           </>
         ) : (
           <h2 className="text-4xl font-bold mb-6 tracking-tight" style={{ color }}>
@@ -166,7 +138,7 @@ const PricingCard = ({
           <div className="flex space-x-2">
             <input
               type="text"
-              placeholder="Nhập mã khuyến mại"
+              placeholder={t('pricing.promoPlaceholder', 'Enter promo code')}
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
               className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
@@ -176,11 +148,11 @@ const PricingCard = ({
               disabled={applyingPromo || !promoCode.trim()}
               className="px-4 py-2 bg-[#CDAD5A] text-black font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
             >
-              {applyingPromo ? '...' : 'Áp dụng'}
+              {applyingPromo ? '...' : t('pricing.apply', 'Apply')}
             </button>
           </div>
           {promoError && <p className="text-red-400 text-xs text-left">{promoError}</p>}
-          {promoApplied && <p className="text-green-400 text-xs text-left">✓ Mã "{promoApplied.code}" đã được áp dụng</p>}
+          {promoApplied && <p className="text-green-400 text-xs text-left">✓ {t('pricing.codeApplied', 'Code')} "{promoApplied.code}" {t('pricing.applied', 'applied')}</p>}
         </div>
       )}
 
@@ -188,13 +160,14 @@ const PricingCard = ({
         onClick={handleClick}
         className="mt-4 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl"
       >
-        {isFree ? "DÙNG MIỄN PHÍ" : isVip ? "NÂNG CẤP VIP" : plan === "STARTER" ? "BẮT ĐẦU VỚI STARTER" : "NÂNG CẤP PRO"}
+        {isFree ? t('pricing.useFree', 'USE FREE') : isVip ? t('pricing.upgradeVip', 'UPGRADE VIP') : plan === "STARTER" ? t('pricing.startStarter', 'START WITH STARTER') : t('pricing.upgradePro', 'UPGRADE PRO')}
       </button>
     </div>
   );
 };
 
 export default function PricingTable({ userEmail }: PricingTableProps) {
+  const { t } = useTranslation('common');
   const { data: session } = useSession();
   const [isYearly, setIsYearly] = useState(false);
   const [showQR, setShowQR] = useState(false);
@@ -205,16 +178,54 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
   const [selectedAmount, setSelectedAmount] = useState(0);
   const [selectedRole, setSelectedRole] = useState("");
   const [isSelectedYearly, setIsSelectedYearly] = useState(false);
-  // PayOS automatic payment only
 
   const loggedInEmail = session?.user?.email || userEmail || "";
   const [customerEmail, setCustomerEmail] = useState(loggedInEmail);
 
-  // Bank info (anh chỉnh ở đây hoặc .env nếu muốn)
   const BANK_INFO = {
-    BANK_ID: "BIDV", // Mã ngân hàng (BIDV, MB, VCB, TPB, v.v.)
+    BANK_ID: "BIDV",
     ACCOUNT_NO: "8837301927",
-    ACCOUNT_NAME: "Pham Van Tung", // Tên chủ TK (URL encode tự động)
+    ACCOUNT_NAME: "Pham Van Tung",
+  };
+
+  // Translated features
+  const featuresMap = {
+    FREE: [
+      t('pricing.features.free1', '✅ High CPM Niche Finder (1x/day)'),
+      t('pricing.features.free2', '⚠️ Scriptwriter (preview only)'),
+      t('pricing.features.free3', '⚠️ SEO Tool (preview only)'),
+      t('pricing.features.free4', '✅ Niche Library (first 5 niches)'),
+      t('pricing.features.free5', '✅ YouTube Teacher (Day 1-5)'),
+    ],
+    STARTER: [
+      t('pricing.features.starter1', 'All FREE features (unlimited)'),
+      t('pricing.features.starter2', '✅ Scriptwriter (full + copy)'),
+      t('pricing.features.starter3', '✅ SEO Tool (full + copy)'),
+      t('pricing.features.starter4', '✅ Competitor Analysis'),
+      t('pricing.features.starter5', '✅ YouTube Teacher (Day 6-20)'),
+      t('pricing.features.starter6', '✅ 10 AI Dubbing credits'),
+      t('pricing.features.starter7', 'Email support'),
+    ],
+    PRO: [
+      t('pricing.features.pro1', 'All STARTER features'),
+      t('pricing.features.pro2', '✅ Blue Ocean Niche Finder'),
+      t('pricing.features.pro3', '✅ Story/History Generator'),
+      t('pricing.features.pro4', '✅ Script Refiner & Upgrader'),
+      t('pricing.features.pro5', '✅ AI Thumbnail Designer'),
+      t('pricing.features.pro6', '✅ OpenAI TTS (500k chars)'),
+      t('pricing.features.pro7', '✅ Niche Library (20+ niches)'),
+      t('pricing.features.pro8', '✅ 30 AI Dubbing credits'),
+      t('pricing.features.pro9', 'Priority support'),
+    ],
+    VIP: [
+      t('pricing.features.vip1', 'All PRO features'),
+      t('pricing.features.vip2', '✅ AI Dubbing Studio (100 credits)'),
+      t('pricing.features.vip3', '✅ AI Video Generator (Velocity)'),
+      t('pricing.features.vip4', '✅ Virtual MC Creator'),
+      t('pricing.features.vip5', '✅ YouTube Teacher (Day 21-30)'),
+      t('pricing.features.vip6', '✅ Unlimited Text-to-Speech'),
+      t('pricing.features.vip7', '1-on-1 Zalo Support (Fast track)'),
+    ],
   };
 
   const handleUpgrade = (plan: string, amount: number, role: string, yearly: boolean) => {
@@ -223,53 +234,12 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
     setSelectedRole(role);
     setIsSelectedYearly(yearly);
     setCustomerEmail(loggedInEmail || customerEmail);
-    setShowQR(true); // Chỉ mở QR, không gửi Telegram
+    setShowQR(true);
   };
 
-  const handleConfirmPaid = async () => {
-    if (!customerEmail || !customerEmail.includes("@")) {
-      setMessage("⚠️ Vui lòng nhập email hợp lệ!");
-      return;
-    }
-
-    setLoading(true);
-    setMessage("");
-
-    // Tạo nội dung CK unique với ngày hiện tại để tránh trùng
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const baseContent = `${customerEmail.split("@")[0].toUpperCase()}`;
-    const orderCode = `SEENWEB ${selectedPlan} ${baseContent} ${today} ${isSelectedYearly ? "12M" : "1M"}`;
-
-    try {
-      const res = await fetch("/api/notify/telegram", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: customerEmail,
-          plan: selectedPlan,
-          role: selectedRole,
-          amount: selectedAmount,
-          orderCode: orderCode, // Unique nhờ có ngày
-          note: "Khách báo đã chuyển khoản xong (thủ công)",
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setMessage("✅ Đã gửi thông báo thành công! Hệ thống sẽ tự động kích hoạt .");
-      } else {
-        setMessage("❌ Lỗi: " + (data.error || "Không xác định"));
-      }
-    } catch (err) {
-      setMessage("❌ Lỗi kết nối server.");
-    }
-    setLoading(false);
-  };
-
-  // Handle PayOS automatic payment
   const handlePayOSPayment = async () => {
     if (!customerEmail || !customerEmail.includes("@")) {
-      setMessage("⚠️ Vui lòng nhập email hợp lệ!");
+      setMessage(t('pricing.invalidEmail', '⚠️ Please enter a valid email!'));
       return;
     }
 
@@ -285,35 +255,20 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
           amount: selectedAmount,
           plan: selectedPlan,
           role: selectedRole,
-          note: `${selectedPlan} - ${isSelectedYearly ? "Năm" : "Tháng"}`,
+          note: `${selectedPlan} - ${isSelectedYearly ? t('pricing.yearly', 'Yearly') : t('pricing.monthly', 'Monthly')}`,
         }),
       });
 
       const data = await res.json();
       if (data.success && data.data.paymentUrl) {
-        // Redirect to PayOS payment page
         window.location.href = data.data.paymentUrl;
       } else {
-        setMessage("❌ Lỗi: " + (data.error || "Không thể tạo link thanh toán"));
+        setMessage("❌ " + t('pricing.paymentError', 'Error') + ": " + (data.error || t('pricing.cannotCreateLink', 'Cannot create payment link')));
       }
     } catch (err) {
-      setMessage("❌ Lỗi kết nối server.");
+      setMessage("❌ " + t('pricing.serverError', 'Server connection error.'));
     }
     setLoading(false);
-  };
-
-  // Sinh QR động từ VietQR
-  const generateQRUrl = () => {
-    if (!customerEmail || !customerEmail.includes("@")) return "";
-
-    const username = customerEmail.split("@")[0].toUpperCase();
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const addInfo = `SEENWEB ${selectedPlan} ${username} ${today} ${isSelectedYearly ? "12M" : "1M"}`;
-
-    const encodedName = encodeURIComponent(BANK_INFO.ACCOUNT_NAME);
-    const encodedInfo = encodeURIComponent(addInfo);
-
-    return `https://img.vietqr.io/image/${BANK_INFO.BANK_ID}-${BANK_INFO.ACCOUNT_NO}-compact2.png?amount=${selectedAmount}&addInfo=${encodedInfo}&accountName=${encodedName}`;
   };
 
   return (
@@ -325,13 +280,13 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
               onClick={() => setIsYearly(false)}
               className={`px-6 py-2 rounded-full transition ${!isYearly ? "bg-yellow-500 text-black font-bold" : "text-gray-400"}`}
             >
-              Tháng
+              {t('pricing.monthly', 'Monthly')}
             </button>
             <button
               onClick={() => setIsYearly(true)}
               className={`px-6 py-2 rounded-full transition ${isYearly ? "bg-yellow-500 text-black font-bold" : "text-gray-400"}`}
             >
-              Năm (Tiết kiệm ~2 tháng)
+              {t('pricing.yearly', 'Yearly')} ({t('pricing.save2months', 'Save ~2 months')})
             </button>
           </div>
         </div>
@@ -347,67 +302,54 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             isFree
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
+            t={t}
           />
-          {/* STARTER - Popular */}
           <PricingCard
             plan="STARTER"
             priceMonthly="149.000 đ"
             priceYearly="1.490.000 đ"
             features={featuresMap.STARTER}
-            color="#00FFFF" // Changed from Creative Gold to Cyan/Blueish for Starter? Or keep Gold? Prompt says STARTER is HIGHLIGHT. Let's make STARTER Gold (#CDAD5A) and PRO Purple/Red? Check prompt.
-            // Prompt: STARTER (HIGHLIGHT). PRO (Red/Pink?). 
-            // Old: Creative (Gold), Super (Cyan), VIP (Magenta).
-            // Let's make STARTER #CDAD5A (Gold) and PRO #A855F7 (Purple) to match Hero? Or keeping PRO as premium.
-            // Let's use Gold for STARTER as it's "Highlights".
+            color="#CDAD5A"
             glow="0 0 30px rgba(205,173,90,0.6)"
             isFeatured
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
+            t={t}
           />
-          {/* PRO */}
           <PricingCard
             plan="PRO"
             priceMonthly="399.000 đ"
             priceYearly="3.990.000 đ"
             features={featuresMap.PRO}
-            color="#A855F7" // Purple
+            color="#A855F7"
             glow="0 0 40px rgba(168,85,247,0.8)"
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
+            t={t}
           />
-          {/* VIP - New High Tier */}
           <PricingCard
             plan="VIP"
             priceMonthly="549.000 đ"
             priceYearly="5.490.000 đ"
-            features={[
-              "Tất cả tính năng gói PRO",
-              "✅ AI Dubbing Studio (100 credits)",
-              "✅ Tạo Video AI (Velocity)",
-              "✅ Tạo MC Ảo (Virtual MC)",
-              "✅ Thầy YouTube (Day 21-30)",
-              "✅ Text-to-Speech không giới hạn",
-              "Support 1-1 qua Zalo (Siêu tốc)",
-            ]}
-            color="#FF00FF" // Magenta / Neon Pink for VIP
+            features={featuresMap.VIP}
+            color="#FF00FF"
             glow="0 0 50px rgba(255,0,255,0.8)"
             isVip
             isYearly={isYearly}
             onUpgrade={handleUpgrade}
+            t={t}
           />
         </div>
 
-        {/* Text VIP Only */}
         <div className="text-center mt-12">
           <p className="text-gray-400 text-sm">
-            Cần hỗ trợ 1–1 hoặc coaching?{" "}
+            {t('pricing.needSupport', 'Need 1-on-1 support or coaching?')}{" "}
             <Link href="/coaching" className="text-[#CDAD5A] font-bold hover:underline">
-              Xem chương trình Coaching 1-1
+              {t('pricing.viewCoaching', 'View 1-on-1 Coaching Program')}
             </Link>
           </p>
         </div>
 
-        {/* Modal QR */}
         {showQR && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowQR(false)}>
             <div
@@ -418,35 +360,33 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
                 ✕
               </button>
 
-
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Thanh toán gói {selectedPlan}</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('pricing.payForPlan', 'Pay for')} {selectedPlan}</h2>
               <p className="text-lg font-bold text-green-600 mb-6">{selectedAmount.toLocaleString("vi-VN")} đ</p>
 
               <div className="text-left bg-gray-50 p-4 rounded-xl text-sm mb-6 border border-gray-200">
-                <p className="font-bold text-gray-800 mb-2">Email nhận kích hoạt:</p>
+                <p className="font-bold text-gray-800 mb-2">{t('pricing.activationEmail', 'Email for activation')}:</p>
                 <input
                   type="email"
-                  placeholder="nhập email của bạn"
+                  placeholder={t('pricing.enterEmail', 'Enter your email')}
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   className="w-full p-3 border border-blue-500 rounded-lg text-base text-gray-900"
                   disabled={!!loggedInEmail}
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  Sau khi thanh toán, gói sẽ được kích hoạt tự động ngay lập tức!
+                  {t('pricing.autoActivate', 'After payment, your plan will be activated instantly!')}
                 </p>
               </div>
 
-              {/* PayOS Automatic Payment */}
               <button
                 onClick={handlePayOSPayment}
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold py-4 rounded-xl text-lg hover:shadow-lg transition disabled:opacity-50"
               >
-                {loading ? "Đang tạo link..." : "💳 THANH TOÁN NGAY"}
+                {loading ? t('pricing.creatingLink', 'Creating link...') : t('pricing.payNow', '💳 PAY NOW')}
               </button>
               <p className="mt-4 text-xs text-gray-500 text-center">
-                Bạn sẽ được chuyển tới trang thanh toán. Sau khi thanh toán thành công, gói sẽ <b>tự động được kích hoạt</b> ngay lập tức! ✨
+                {t('pricing.redirectNote', 'You will be redirected to the payment page. After successful payment, your plan will be')} <b>{t('pricing.autoActivated', 'auto-activated')}</b> {t('pricing.instantly', 'instantly!')} ✨
               </p>
             </div>
           </div>
