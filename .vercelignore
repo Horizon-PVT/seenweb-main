@@ -1,0 +1,2 @@
+# Ignore Chrome extension folder - it uses browser APIs not available in Node.js
+chrome-extension/
