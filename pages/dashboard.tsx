@@ -48,6 +48,22 @@ export default function Dashboard() {
     }
   }, [status, router]);
 
+  // Auto-open tool from URL param (extension integration)
+  useEffect(() => {
+    if (!loading && router.query.tool) {
+      const toolId = router.query.tool as string;
+      // Valid tool IDs from toolMap
+      const validTools = [
+        'micro-niche-miner', 'scriptwriter', 'seo', 'rival-scanner',
+        'hidden-channel-finder', 'script-refiner', 'image-forge',
+        'text-to-speech', 'ai-dubbing-studio', 'velocity', 'virtual-mc'
+      ];
+      if (validTools.includes(toolId)) {
+        setActiveTool(toolId);
+      }
+    }
+  }, [loading, router.query.tool]);
+
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
     setActiveTool(null); // Close any open tool when switching tabs

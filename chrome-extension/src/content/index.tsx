@@ -1,0 +1,171 @@
+import { createRoot } from 'react-dom/client';
+import Widget from './Widget';
+import ChannelWidget from './ChannelWidget';
+import StudioWidget from './StudioWidget';
+// @ts-ignore
+import styles from '../index.css?inline';
+// Create a style element for Tailwind/Custom CSS
+const styleSheet = document.createElement('style');
+styleSheet.textContent = styles;
+document.head.appendChild(styleSheet);
+
+const VIDEO_WIDGET_ID = 'seenyt-video-widget';
+const CHANNEL_WIDGET_ID = 'seenyt-channel-widget';
+
+function getPageType() {
+    const url = window.location.href;
+    if (url.includes('studio.youtube.com')) return 'studio';
+    if (url.includes('/watch?v=')) return 'video';
+    if (url.includes('/@') || url.includes('/channel/') || url.includes('/c/')) return 'channel';
+    return 'other';
+}
+
+// ========== VIDEO PAGE INJECTION ==========
+function injectVideoWidget() {
+    if (getPageType() !== 'video') return;
+
+    // Check if already injected
+    if (document.getElementById(VIDEO_WIDGET_ID)) return;
+
+    // Target the secondary column (Sidebar) or below Description
+    // YouTube's DOM changes often, so we try a few reliable targets
+    const targetSelectors = [
+        '#secondary-inner', // Right sidebar (Desktop)
+        '#columns #secondary', // Right sidebar alt
+        '#below', // Below video player
+        'ytd-watch-metadata', // Metadata area
+    ];
+
+    let targetElement = null;
+    for (const selector of targetSelectors) {
+        const el = document.querySelector(selector);
+        if (el) {
+            targetElement = el;
+            console.log(`[SeenYT] Found video target: ${selector}`);
+            break;
+        }
+    }
+
+    if (!targetElement) return;
+
+    const container = document.createElement('div');
+    container.id = VIDEO_WIDGET_ID;
+    container.style.cssText = `display: block; width: 100%; margin-bottom: 12px; z-index: 2000;`;
+
+    if (targetElement.firstChild) {
+        targetElement.insertBefore(container, targetElement.firstChild);
+    } else {
+        targetElement.appendChild(container);
+    }
+
+    try {
+        const root = createRoot(container);
+        root.render(<Widget />);
+        console.log('[SeenYT] Video Widget injected successfully');
+    } catch (error) {
+        console.error('[SeenYT] Video Widget render error:', error);
+    }
+}
+
+// ========== CHANNEL PAGE INJECTION ==========
+function injectChannelWidget() {
+    if (getPageType() !== 'channel') return;
+    if (document.getElementById(CHANNEL_WIDGET_ID)) return;
+
+    // Target: Insert AFTER the tabs bar and BEFORE the video content
+    // This positions it exactly where the user wants (below tabs, above videos)
+
+    const insertionTargets = [
+        '#contents.ytd-two-column-browse-results-renderer', // Main content area
+        '#contents.ytd-section-list-renderer', // Section content
+        'ytd-rich-grid-renderer', // Video grid
+        '#primary > #primary-inner' // Primary inner
+    ];
+
+    for (const selector of insertionTargets) {
+        const target = document.querySelector(selector);
+        if (target && target.parentNode) {
+            const container = document.createElement('div');
+            container.id = CHANNEL_WIDGET_ID;
+            container.style.cssText = `
+                display: block;
+                width: 100%;
+                padding: 12px 24px;
+                background: transparent;
+                z-index: 100;
+            `;
+
+            // Insert BEFORE the content (so it appears after tabs but before videos)
+            target.parentNode.insertBefore(container, target);
+            console.log(`[SeenYT] Channel widget injected before: ${selector}`);
+
+            try {
+                const root = createRoot(container);
+                root.render(<ChannelWidget />);
+            } catch (error) {
+                console.error('[SeenYT] Render error:', error);
+            }
+            return;
+        }
+    }
+
+    // Fallback: Append to tabs container
+    const tabsContainer = document.querySelector('#tabs-inner-container, #tabsContent');
+    if (tabsContainer) {
+        const container = document.createElement('div');
+        container.id = CHANNEL_WIDGET_ID;
+        container.style.cssText = `display: block; width: 100%; margin-top: 8px; padding: 0 24px;`;
+        tabsContainer.appendChild(container);
+        try {
+            const root = createRoot(container);
+            root.render(<ChannelWidget />);
+            console.log('[SeenYT] Channel widget appended to tabs');
+        } catch (e) { console.error(e); }
+    }
+}
+
+// ========== STUDIO PAGE INJECTION ==========
+const STUDIO_WIDGET_ID = 'seenyt-studio-widget';
+
+function injectStudioWidget() {
+    if (getPageType() !== 'studio') return;
+    if (document.getElementById(STUDIO_WIDGET_ID)) return;
+
+    const container = document.createElement('div');
+    container.id = STUDIO_WIDGET_ID;
+    container.style.cssText = 'position: fixed; top: 80px; right: 16px; z-index: 9999;';
+    document.body.appendChild(container);
+
+    try {
+        const root = createRoot(container);
+        root.render(<StudioWidget />);
+        console.log('[SeenYT] Studio widget injected');
+    } catch (e) {
+        console.error('[SeenYT] Studio injection error:', e);
+    }
+}
+
+// ========== OBSERVER & INIT ==========
+const observer = new MutationObserver(() => {
+    if (getPageType() === 'video') injectVideoWidget();
+    if (getPageType() === 'channel') injectChannelWidget();
+    if (getPageType() === 'studio') injectStudioWidget();
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
+
+// Initial run
+setTimeout(() => {
+    if (getPageType() === 'video') injectVideoWidget();
+    if (getPageType() === 'channel') injectChannelWidget();
+    if (getPageType() === 'studio') injectStudioWidget();
+}, 1000);
+
+// Handle YouTube's SPA navigation events
+window.addEventListener('yt-navigate-finish', () => {
+    setTimeout(() => {
+        if (getPageType() === 'video') injectVideoWidget();
+        if (getPageType() === 'channel') injectChannelWidget();
+        if (getPageType() === 'studio') injectStudioWidget();
+    }, 1000);
+});

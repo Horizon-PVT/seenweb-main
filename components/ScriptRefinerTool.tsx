@@ -55,6 +55,22 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
     const outputRef = useRef<HTMLDivElement>(null);
 
     // --- Các hàm helper giữ nguyên ---
+
+    // Read URL params from extension (source=extension)
+    React.useEffect(() => {
+        if (router.query.source === 'extension') {
+            const { title, desc, video } = router.query;
+            let prefillText = '';
+            if (title) prefillText += `Tiêu đề: ${title}\n\n`;
+            if (desc) prefillText += `Mô tả video:\n${desc}\n\n`;
+            if (video) prefillText += `Video ID: ${video}\n`;
+
+            if (prefillText) {
+                setOriginalScript(prefillText.trim());
+            }
+        }
+    }, [router.query]);
+
     const handleCopy = () => {
         if (output?.refinedScript) {
             navigator.clipboard.writeText(output.refinedScript).then(() => {
