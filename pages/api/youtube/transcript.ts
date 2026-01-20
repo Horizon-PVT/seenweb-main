@@ -46,17 +46,46 @@ export default async function handler(
 
         const html = await videoPageRes.text();
 
-        // Step 2: Extract ytInitialPlayerResponse
-        const playerResponseMatch = html.match(/var ytInitialPlayerResponse = ({.+?});/);
-        if (!playerResponseMatch) {
-            throw new Error('Could not find ytInitialPlayerResponse');
+        // Step 2: Extract ytInitialPlayerResponse - try multiple patterns
+        let playerResponse: any = null;
+
+        // Pattern 1: var ytInitialPlayerResponse = ...
+        let match = html.match(/var ytInitialPlayerResponse\s*=\s*({.+?});/);
+        if (!match) {
+            // Pattern 2: ytInitialPlayerResponse = ... (without var)
+            match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
+        }
+        if (!match) {
+            // Pattern 3: Look for playerResponse in embedded data
+            match = html.match(/"playerResponse":\s*"({.+?})"/);
+            if (match) {
+                // Need to unescape JSON string
+                try {
+                    playerResponse = JSON.parse(JSON.parse(`"${match[1]}"`));
+                } catch (e) {
+                    console.error('[Transcript API] Failed to parse escaped playerResponse:', e);
+                }
+            }
         }
 
-        const playerResponse = JSON.parse(playerResponseMatch[1]);
+        if (!playerResponse && match) {
+            playerResponse = JSON.parse(match[1]);
+        }
+
+        if (!playerResponse) {
+            console.error('[Transcript API] Could not extract playerResponse. HTML length:', html.length);
+            throw new Error('Could not find ytInitialPlayerResponse in page HTML');
+        }
+
+        console.log('[Transcript API] PlayerResponse found, checking captions...');
         const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
 
         if (!captionTracks || captionTracks.length === 0) {
-            return res.status(404).json({ success: false, error: 'No captions available' });
+            console.log('[Transcript API] No caption tracks in playerResponse');
+            return res.status(404).json({
+                success: false,
+                error: 'No captions available for this video'
+            });
         }
 
         // Step 3: Prefer Vietnamese, then English, then first available
