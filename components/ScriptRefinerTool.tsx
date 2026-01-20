@@ -263,7 +263,25 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
                 <form onSubmit={handleSubmit} className="lg:col-span-4 flex flex-col space-y-3 pr-2 overflow-y-auto">
                     {/* Original Script Input */}
                     <div>
-                        <label className="text-sm font-bold text-[#CDAD5A] font-playfair">{isEN ? 'ORIGINAL CONTENT' : 'NỘI DUNG NGUYÊN BẢN'}</label>
+                        <div className="flex justify-between items-end mb-1">
+                            <label className="text-sm font-bold text-[#CDAD5A] font-playfair">{isEN ? 'ORIGINAL CONTENT' : 'NỘI DUNG NGUYÊN BẢN'}</label>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    try {
+                                        const text = await navigator.clipboard.readText();
+                                        if (text) setOriginalScript(text);
+                                        else alert('Clipboard trống!');
+                                    } catch (e) {
+                                        // Manual paste fallback suggestion if permission denied
+                                        alert('Không thể đọc clipboard tự động. Vui lòng bấm vào ô bên dưới và ấn Ctrl+V (hoặc Cmd+V) để dán.');
+                                    }
+                                }}
+                                className="text-[10px] px-2 py-1 bg-[#CDAD5A]/10 border border-[#CDAD5A] text-[#CDAD5A] rounded hover:bg-[#CDAD5A] hover:text-black transition-colors"
+                            >
+                                {isEN ? 'Paste from Clipboard' : 'Dán từ Clipboard'}
+                            </button>
+                        </div>
                         <textarea value={originalScript} onChange={e => setOriginalScript(e.target.value)} placeholder={isEN ? "Paste script or raw text here..." : "Dán kịch bản hoặc văn bản gốc vào đây..."} className="w-full h-48 obsidian-textarea focus:border-[#008080]"></textarea>
                     </div>
                     {/* Rewrite Options */}

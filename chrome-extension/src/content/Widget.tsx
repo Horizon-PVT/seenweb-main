@@ -450,7 +450,20 @@ const Widget = () => {
                                                         .trim();
                                                 }
 
-                                                // 4. Save to extension storage
+                                                // 4. Copy to Clipboard (Fallback & Primary)
+                                                // Prepare content for clipboard
+                                                const fullContent = transcript
+                                                    ? `📺 ${data.title}\nVideo ID: ${data.videoId}\n\n--- TRANSCRIPT ---\n\n${transcript}`
+                                                    : `📺 ${data.title}\nVideo ID: ${data.videoId}\n\n(Không tìm thấy transcript, vui lòng copy thủ công description)`;
+
+                                                try {
+                                                    await navigator.clipboard.writeText(fullContent);
+                                                    console.log('[SeenYT] Copied to clipboard');
+                                                } catch (err) {
+                                                    console.error('[SeenYT] Clipboard failed', err);
+                                                }
+
+                                                // 5. Save to extension storage (Backup)
                                                 if (transcript) {
                                                     await chrome.storage.local.set({
                                                         [`transcript_${data.videoId}`]: {
@@ -458,18 +471,16 @@ const Widget = () => {
                                                             timestamp: Date.now()
                                                         }
                                                     });
-                                                    console.log('[SeenYT] Transcript saved to storage');
                                                 }
                                             }
                                         }
                                     } catch (e) {
                                         console.error('[SeenYT] Auto-transcript failed:', e);
-                                        // Continue anyway, dashboard will try its own fetch or show error
                                     }
 
                                     setGeneratingScript(false);
-                                    // 5. Open Dashboard
-                                    window.open(`https://seenyt.net/dashboard?tool=script-refiner&source=extension&video=${data.videoId}&title=${encodeURIComponent(data.title)}&desc=${encodeURIComponent(data.description.substring(0, 500))}`, '_blank');
+                                    // 6. Open Dashboard
+                                    window.open(`https://seenyt.net/dashboard?tool=script-refiner&source=extension&video=${data.videoId}&title=${encodeURIComponent(data.title)}`, '_blank');
                                 }}
                                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-bold text-white text-center transition-colors"
                             >
