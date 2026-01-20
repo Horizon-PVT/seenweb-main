@@ -56,20 +56,36 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
 
     // --- Các hàm helper giữ nguyên ---
 
-    // Read URL params from extension (source=extension)
-    React.useEffect(() => {
-        if (router.query.source === 'extension') {
-            const { title, desc, video } = router.query;
-            let prefillText = '';
-            if (title) prefillText += `Tiêu đề: ${title}\n\n`;
-            if (desc) prefillText += `Mô tả video:\n${desc}\n\n`;
-            if (video) prefillText += `Video ID: ${video}\n`;
+    // Read URL params from extension and fetch transcript
+    const [fetchingTranscript, setFetchingTranscript] = React.useState(false);
 
-            if (prefillText) {
-                setOriginalScript(prefillText.trim());
-            }
+    React.useEffect(() => {
+        if (router.query.source === 'extension' && router.query.video) {
+            const videoId = router.query.video as string;
+            const title = router.query.title as string || '';
+
+            // Set loading state with title
+            setOriginalScript(`Đang tải transcript cho: ${title}\n\nVideo ID: ${videoId}\n\nVui lòng đợi...`);
+            setFetchingTranscript(true);
+
+            // Fetch transcript from API
+            fetch(`/api/youtube-transcript?videoId=${videoId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.transcript) {
+                        setOriginalScript(`📺 ${title}\n\n--- TRANSCRIPT ---\n\n${data.transcript}`);
+                    } else {
+                        setOriginalScript(`📺 ${title}\n\n⚠️ Không lấy được transcript: ${data.error || 'Video không có phụ đề'}\n\nVideo ID: ${videoId}`);
+                    }
+                })
+                .catch(err => {
+                    setOriginalScript(`📺 ${title}\n\n⚠️ Lỗi khi lấy transcript: ${err.message}\n\nVideo ID: ${videoId}`);
+                })
+                .finally(() => {
+                    setFetchingTranscript(false);
+                });
         }
-    }, [router.query]);
+    }, [router.query.source, router.query.video, router.query.title]);
 
     const handleCopy = () => {
         if (output?.refinedScript) {
