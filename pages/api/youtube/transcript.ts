@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { YoutubeTranscript } from 'youtube-transcript';
 
 interface TranscriptSegment {
     time: string;
@@ -32,105 +33,31 @@ export default async function handler(
     try {
         console.log('[Transcript API] Fetching for videoId:', videoId);
 
-        // Step 1: Get video page to extract caption tracks
-        const videoPageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept-Language': 'en-US,en;q=0.9,vi;q=0.8'
-            }
-        });
+        // Fetch transcript using youtube-transcript library
+        const transcriptData = await YoutubeTranscript.fetchTranscript(videoId);
 
-        if (!videoPageRes.ok) {
-            throw new Error(`Failed to fetch video page: ${videoPageRes.status}`);
-        }
-
-        const html = await videoPageRes.text();
-
-        // Step 2: Extract ytInitialPlayerResponse - try multiple patterns
-        let playerResponse: any = null;
-
-        // Pattern 1: var ytInitialPlayerResponse = ...
-        let match = html.match(/var ytInitialPlayerResponse\s*=\s*({.+?});/);
-        if (!match) {
-            // Pattern 2: ytInitialPlayerResponse = ... (without var)
-            match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
-        }
-        if (!match) {
-            // Pattern 3: Look for playerResponse in embedded data
-            match = html.match(/"playerResponse":\s*"({.+?})"/);
-            if (match) {
-                // Need to unescape JSON string
-                try {
-                    playerResponse = JSON.parse(JSON.parse(`"${match[1]}"`));
-                } catch (e) {
-                    console.error('[Transcript API] Failed to parse escaped playerResponse:', e);
-                }
-            }
-        }
-
-        if (!playerResponse && match) {
-            playerResponse = JSON.parse(match[1]);
-        }
-
-        if (!playerResponse) {
-            console.error('[Transcript API] Could not extract playerResponse. HTML length:', html.length);
-            throw new Error('Could not find ytInitialPlayerResponse in page HTML');
-        }
-
-        console.log('[Transcript API] PlayerResponse found, checking captions...');
-        const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-
-        if (!captionTracks || captionTracks.length === 0) {
-            console.log('[Transcript API] No caption tracks in playerResponse');
+        if (!transcriptData || transcriptData.length === 0) {
             return res.status(404).json({
                 success: false,
                 error: 'No captions available for this video'
             });
         }
 
-        // Step 3: Prefer Vietnamese, then English, then first available
-        const track = captionTracks.find((t: any) => t.languageCode === 'vi')
-            || captionTracks.find((t: any) => t.languageCode === 'en')
-            || captionTracks[0];
-
-        console.log('[Transcript API] Selected language:', track.languageCode);
-
-        // Step 4: Fetch transcript XML
-        const transcriptRes = await fetch(track.baseUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
-
-        if (!transcriptRes.ok) {
-            throw new Error(`Failed to fetch transcript: ${transcriptRes.status}`);
-        }
-
-        const xmlText = await transcriptRes.text();
-
-        // Step 5: Parse XML
-        const segments: TranscriptSegment[] = [];
-        const textMatches = xmlText.matchAll(/<text start="([^"]+)"[^>]*>([^<]+)<\/text>/g);
-
-        for (const match of textMatches) {
-            const startSeconds = parseFloat(match[1]);
-            const mins = Math.floor(startSeconds / 60);
-            const secs = Math.floor(startSeconds % 60);
+        // Convert to our format
+        const segments: TranscriptSegment[] = transcriptData.map((item: any) => {
+            const seconds = Math.floor(item.offset / 1000);
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
             const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-            let text = match[2];
-            // Decode HTML entities
-            text = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-
-            segments.push({ time: timeStr, text: text.trim() });
-        }
+            return { time: timeStr, text: item.text.trim() };
+        });
 
         const fullTranscript = segments.map(s => s.text).join(' ');
 
-        // Step 6: Extract keywords (simple frequency analysis)
+        // Extract keywords (simple frequency analysis)
         const keywords = extractKeywords(fullTranscript);
 
-        // Step 7: Sentiment analysis (simple)
+        // Sentiment analysis (simple)
         const sentiment = analyzeSentiment(fullTranscript);
 
         console.log('[Transcript API] Success:', segments.length, 'segments');
@@ -141,14 +68,25 @@ export default async function handler(
             segments,
             keywords,
             sentiment,
-            language: track.languageCode
+            language: 'auto' // Library auto-detects
         });
 
     } catch (error: any) {
         console.error('[Transcript API] Error:', error);
+
+        // Better error messages
+        let errorMessage = 'Internal server error';
+        if (error.message?.includes('Could not retrieve video information')) {
+            errorMessage = 'Video not found or is private';
+        } else if (error.message?.includes('No transcript')) {
+            errorMessage = 'No captions available for this video';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
         return res.status(500).json({
             success: false,
-            error: error.message || 'Internal server error'
+            error: errorMessage
         });
     }
 }
