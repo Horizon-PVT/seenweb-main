@@ -10,6 +10,7 @@ export default defineConfig({
                 popup: resolve(__dirname, 'src/popup/index.html'),
                 content: resolve(__dirname, 'src/content/index.tsx'),
                 background: resolve(__dirname, 'src/background/index.ts'),
+                inpage: resolve(__dirname, 'src/content/inpage.ts'),
             },
             output: {
                 entryFileNames: 'assets/[name].js',

@@ -22,112 +22,6 @@ const Widget = () => {
     const [remixPrompt, setRemixPrompt] = useState('');
     const [generatingScript, setGeneratingScript] = useState(false);
 
-    // New Premium Features State
-    const [transcript, setTranscript] = useState('');
-    const [segments, setSegments] = useState<Array<{ time: string, text: string }>>([]);
-    const [summary, setSummary] = useState('');
-    const [loadingSummary, setLoadingSummary] = useState(false);
-    const [showTranscript, setShowTranscript] = useState(false);
-
-    // Handler: Get AI Summary
-    const handleGetSummary = async () => {
-        if (!transcript) {
-            alert('⚠️ Vui lòng extract transcript trước!');
-            return;
-        }
-
-        setLoadingSummary(true);
-        try {
-            const response = await fetch('https://seenyt.net/api/ai/summarize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ transcript })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setSummary(data.summary);
-                console.log('[SeenYT] ✅ Summary generated');
-            } else {
-                throw new Error('API failed');
-            }
-        } catch (error) {
-            console.error('[SeenYT] Summary error:', error);
-            alert('❌ Không thể tạo summary. Vui lòng thử lại.');
-        } finally {
-            setLoadingSummary(false);
-        }
-    };
-
-    // Handler: Extract Transcript with Segments
-    const handleExtractTranscript = async () => {
-        if (!data) return;
-
-        try {
-            const getFullTranscript = (videoId: string): Promise<{ transcript: string, segments: any[], error: string | null }> => {
-                return new Promise((resolve) => {
-                    const requestId = Math.random().toString(36).substring(7);
-
-                    const listener = (event: MessageEvent) => {
-                        if (event.data?.type === 'SEENYT_FULL_TRANSCRIPT_RESULT' && event.data.requestId === requestId) {
-                            window.removeEventListener('message', listener);
-                            resolve({
-                                transcript: event.data.transcript || '',
-                                segments: event.data.segments || [],
-                                error: event.data.error || null
-                            });
-                        }
-                    };
-                    window.addEventListener('message', listener);
-
-                    const existingScript = document.querySelector('script[data-seenyt-inpage]');
-                    if (existingScript) {
-                        setTimeout(() => {
-                            window.postMessage({
-                                type: 'SEENYT_GET_FULL_TRANSCRIPT',
-                                requestId,
-                                videoId
-                            }, '*');
-                        }, 100);
-                    } else {
-                        const script = document.createElement('script');
-                        script.src = chrome.runtime.getURL('assets/inpage.js');
-                        script.setAttribute('data-seenyt-inpage', 'true');
-                        script.onload = () => {
-                            setTimeout(() => {
-                                window.postMessage({
-                                    type: 'SEENYT_GET_FULL_TRANSCRIPT',
-                                    requestId,
-                                    videoId
-                                }, '*');
-                            }, 200);
-                        };
-                        (document.head || document.documentElement).appendChild(script);
-                    }
-
-                    setTimeout(() => {
-                        window.removeEventListener('message', listener);
-                        resolve({ transcript: '', segments: [], error: 'Timeout' });
-                    }, 15000);
-                });
-            };
-
-            const result = await getFullTranscript(data.videoId);
-
-            if (result.transcript) {
-                setTranscript(result.transcript);
-                setSegments(result.segments);
-                setShowTranscript(true);
-                console.log('[SeenYT] ✅ Transcript extracted:', result.segments.length, 'segments');
-            } else {
-                alert(`❌ Không lấy được transcript\n\nLý do: ${result.error || 'Video không có captions'}`);
-            }
-        } catch (error) {
-            console.error('[SeenYT] Transcript error:', error);
-            alert('❌ Lỗi khi extract transcript');
-        }
-    };
-
     const parseMetric = (str: string | undefined): number => {
         if (!str) return 0;
         const n = parseFloat(str.replace(/,/g, ''));
@@ -388,107 +282,6 @@ const Widget = () => {
                             <svg className="w-5 h-5 ml-auto group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </button>
 
-                        {/* PREMIUM FEATURES - NEW */}
-                        <div className="grid grid-cols-2 gap-2">
-                            {/* Extract Transcript Button */}
-                            <button
-                                onClick={handleExtractTranscript}
-                                disabled={!!transcript}
-                                className={`p-3 rounded-xl flex flex-col items-center gap-2 group transition-all shadow-sm hover:shadow-md border ${transcript
-                                        ? 'bg-green-50 border-green-200 cursor-default'
-                                        : 'bg-white hover:bg-purple-50/30 border-slate-100 hover:border-purple-200'
-                                    }`}
-                            >
-                                <div className={`p-2 rounded-full transition-transform ${!transcript && 'group-hover:scale-110'}`}
-                                    style={{ background: transcript ? '#dcfce7' : '#faf5ff' }}
-                                >
-                                    <span className="text-lg">{transcript ? '✅' : '📝'}</span>
-                                </div>
-                                <div className="text-center">
-                                    <p className={`text-[10px] font-bold ${transcript ? 'text-green-600' : 'text-slate-700 group-hover:text-purple-600'}`}>
-                                        {transcript ? 'Transcript Ready!' : 'Extract Transcript'}
-                                    </p>
-                                    {transcript && (
-                                        <p className="text-[8px] text-green-500">{segments.length} segments</p>
-                                    )}
-                                </div>
-                            </button>
-
-                            {/* AI Summary Button */}
-                            <button
-                                onClick={handleGetSummary}
-                                disabled={!transcript || loadingSummary}
-                                className={`p-3 rounded-xl flex flex-col items-center gap-2 group transition-all shadow-sm hover:shadow-md border ${!transcript
-                                        ? 'bg-slate-50 border-slate-100 opacity-50 cursor-not-allowed'
-                                        : summary
-                                            ? 'bg-blue-50 border-blue-200'
-                                            : 'bg-white hover:bg-blue-50/30 border-slate-100 hover:border-blue-200'
-                                    }`}
-                            >
-                                <div className={`p-2 rounded-full transition-transform ${transcript && !summary && !loadingSummary && 'group-hover:scale-110'}`}
-                                    style={{ background: summary ? '#dbeafe' : !transcript ? '#f1f5f9' : '#eff6ff' }}
-                                >
-                                    {loadingSummary ? (
-                                        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        <span className="text-lg">{summary ? '🎯' : '⚡'}</span>
-                                    )}
-                                </div>
-                                <div className="text-center">
-                                    <p className={`text-[10px] font-bold ${!transcript ? 'text-slate-400' : summary ? 'text-blue-600' : 'text-slate-700 group-hover:text-blue-600'
-                                        }`}>
-                                        {loadingSummary ? 'Generating...' : summary ? 'Summary Done!' : 'AI Summary'}
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
-
-                        {/* Show Transcript/Summary if available */}
-                        {(transcript || summary) && (
-                            <div className="bg-gradient-to-br from-slate-50 to-white p-3 rounded-xl border border-slate-200 space-y-3">
-                                {/* Transcript Toggle */}
-                                {transcript && (
-                                    <div>
-                                        <button
-                                            onClick={() => setShowTranscript(!showTranscript)}
-                                            className="w-full flex items-center justify-between p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                                        >
-                                            <span className="text-xs font-bold text-slate-700">📝 Transcript ({segments.length} segments)</span>
-                                            <span className="text-slate-400">{showTranscript ? '▼' : '▶'}</span>
-                                        </button>
-                                        {showTranscript && (
-                                            <div className="mt-2 max-h-[200px] overflow-y-auto bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                                {segments.slice(0, 10).map((seg, idx) => (
-                                                    <div key={idx} className="text-[10px] hover:bg-slate-50 p-1.5 rounded">
-                                                        <span className="font-mono text-blue-600 mr-2">{seg.time}</span>
-                                                        <span className="text-slate-700">{seg.text}</span>
-                                                    </div>
-                                                ))}
-                                                {segments.length > 10 && (
-                                                    <p className="text-[9px] text-slate-400 text-center pt-2 border-t">
-                                                        +{segments.length - 10} more segments...
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Summary Display */}
-                                {summary && (
-                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-200">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-sm">🎯</span>
-                                            <span className="text-xs font-bold text-blue-900">AI Summary</span>
-                                        </div>
-                                        <div className="text-[10px] text-slate-700 leading-relaxed whitespace-pre-wrap max-h-[150px] overflow-y-auto">
-                                            {summary}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
                         {/* Other tools grid */}
                         <div className="grid grid-cols-2 gap-2">
                             <a href="https://seenyt.net/dashboard#script" target="_blank" className="bg-white hover:bg-blue-50/30 border border-slate-100 hover:border-blue-200 p-2.5 rounded-xl transition-all group flex items-center gap-3 shadow-sm hover:shadow-md">
@@ -631,110 +424,200 @@ const Widget = () => {
 
 
                                     try {
-                                        // FIXED: Use SEENYT_GET_FULL_TRANSCRIPT which exists in inpage.ts
-                                        const getFullTranscript = (videoId: string): Promise<{ transcript: string, error: string | null, debug: any }> => {
+                                        // 1. Get Player Data via Script Injection (Reliable & Fast & CSP Safe)
+                                        // Uses inpage.js to either access global variable or call internal API
+                                        const getPlayerData = (videoId: string): Promise<any> => {
                                             return new Promise((resolve) => {
                                                 const requestId = Math.random().toString(36).substring(7);
 
-                                                // Listen for the response from inpage.ts
+                                                // Listen for the response
                                                 const listener = (event: MessageEvent) => {
-                                                    if (event.data?.type === 'SEENYT_FULL_TRANSCRIPT_RESULT' && event.data.requestId === requestId) {
+                                                    if (event.data?.type === 'SEENYT_PLAYER_DATA_RESULT' && event.data.requestId === requestId) {
                                                         window.removeEventListener('message', listener);
-                                                        resolve({
-                                                            transcript: event.data.transcript || '',
-                                                            error: event.data.error || null,
-                                                            debug: event.data.debug || {}
-                                                        });
+                                                        resolve(event.data.data);
                                                     }
                                                 };
                                                 window.addEventListener('message', listener);
 
-                                                // Ensure inpage.js is loaded
-                                                const existingScript = document.querySelector('script[data-seenyt-inpage]');
-                                                if (existingScript) {
-                                                    // Script already loaded, just send message
+                                                // Inject external script (CSP Safe)
+                                                // We rely on the script being already loaded or loading it now
+                                                const script = document.createElement('script');
+                                                script.src = chrome.runtime.getURL('assets/inpage.js');
+                                                script.onload = function () {
                                                     setTimeout(() => {
                                                         window.postMessage({
-                                                            type: 'SEENYT_GET_FULL_TRANSCRIPT',
+                                                            type: 'SEENYT_GET_PLAYER_DATA_REQUEST',
                                                             requestId,
-                                                            videoId
+                                                            videoId // Critical for API fetch
                                                         }, '*');
                                                     }, 100);
-                                                } else {
-                                                    // Load script first
-                                                    const script = document.createElement('script');
-                                                    script.src = chrome.runtime.getURL('assets/inpage.js');
-                                                    script.setAttribute('data-seenyt-inpage', 'true');
-                                                    script.onload = function () {
-                                                        console.log('[SeenYT] Inpage script loaded');
-                                                        setTimeout(() => {
-                                                            window.postMessage({
-                                                                type: 'SEENYT_GET_FULL_TRANSCRIPT',
-                                                                requestId,
-                                                                videoId
-                                                            }, '*');
-                                                        }, 200);
-                                                    };
-                                                    (document.head || document.documentElement).appendChild(script);
-                                                }
+                                                    (this as any).remove();
+                                                };
+                                                (document.head || document.documentElement).appendChild(script);
 
-                                                // Timeout fallback (15 seconds)
-                                                setTimeout(() => {
-                                                    window.removeEventListener('message', listener);
-                                                    resolve({ transcript: '', error: 'Timeout', debug: { timeout: true } });
-                                                }, 15000);
+                                                // Timeout fallback
+                                                setTimeout(() => resolve(null), 3000);
                                             });
                                         };
 
-                                        console.log('[SeenYT] Starting full transcript extraction...');
-                                        const result = await getFullTranscript(data.videoId);
+                                        console.log('[SeenYT] Extracting player data (Advanced Mode)...');
+                                        const playerData = await getPlayerData(data.videoId);
 
+                                        let captionTracks = playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
 
-                                        console.log('[SeenYT] Transcript extraction result:', {
-                                            hasTranscript: !!result.transcript,
-                                            transcriptLength: result.transcript.length,
-                                            error: result.error,
-                                            debug: result.debug
-                                        });
+                                        // Fallback: Fetch & Regex (Last resort)
+                                        if (!captionTracks) {
+                                            console.warn('[SeenYT] Advanced extraction failed/empty. Trying HTML regex fallback...');
+                                            try {
+                                                const response = await fetch(window.location.href);
+                                                const html = await response.text();
+
+                                                let regex = /"captionTracks":(\[.*?\])/;
+                                                let match = html.match(regex);
+
+                                                if (!match) {
+                                                    regex = /\\"captionTracks\\":(\\[.*?\\])/;
+                                                    match = html.match(regex);
+                                                }
+
+                                                if (match) {
+                                                    const jsonStr = match[1].replace(/\\"/g, '"');
+                                                    try {
+                                                        captionTracks = JSON.parse(jsonStr);
+                                                    } catch (e) {
+                                                        try { captionTracks = JSON.parse(match[1]); } catch (e2) { }
+                                                    }
+                                                }
+                                            } catch (fetchErr) {
+                                                console.error('[SeenYT] Fallback regex failed', fetchErr);
+                                            }
+                                        }
+
+                                        let finalTranscript = '';
+
+                                        if (captionTracks && captionTracks.length > 0) {
+                                            const track = captionTracks.find((t: any) => t.languageCode === 'vi') || captionTracks[0];
+
+                                            if (track) {
+                                                console.log('[SeenYT] Found track using base:', track.baseUrl);
+
+                                                // PROXY FETCH HELPER (Uses inpage.js)
+                                                // This ensures the fetch happens in the MAIN world with correct cookies/headers
+                                                const proxyFetch = (url: string): Promise<{ success: boolean, data?: string, status?: number }> => {
+                                                    return new Promise((resolve) => {
+                                                        const requestId = Math.random().toString(36).substring(7);
+                                                        const listener = (event: MessageEvent) => {
+                                                            if (event.data?.type === 'SEENYT_main_world_FETCH_RESULT' && event.data.requestId === requestId) {
+                                                                window.removeEventListener('message', listener);
+                                                                resolve({
+                                                                    success: event.data.success,
+                                                                    data: event.data.data,
+                                                                    status: event.data.status
+                                                                });
+                                                            }
+                                                        };
+                                                        window.addEventListener('message', listener);
+
+                                                        // Send Request
+                                                        setTimeout(() => {
+                                                            window.postMessage({
+                                                                type: 'SEENYT_main_world_FETCH_REQUEST',
+                                                                requestId,
+                                                                url
+                                                            }, '*');
+                                                        }, 50);
+
+                                                        // Timeout
+                                                        setTimeout(() => {
+                                                            window.removeEventListener('message', listener);
+                                                            resolve({ success: false, status: 408 }); // Timeout
+                                                        }, 8000);
+                                                    });
+                                                };
+
+                                                const fetchTranscript = async (url: string, format: 'json3' | 'xml') => {
+                                                    try {
+                                                        const targetUrl = format === 'json3' ? url + '&fmt=json3' : url;
+                                                        console.log(`[SeenYT] Proxy fetching (${format})...`);
+
+                                                        const res = await proxyFetch(targetUrl);
+                                                        console.log(`[SeenYT] Proxy Result (${format}):`, res.status, res.success);
+
+                                                        if (!res.success || !res.data) throw new Error(`Status ${res.status}`);
+                                                        return { text: res.data, format };
+                                                    } catch (e) {
+                                                        console.warn(`[SeenYT] Fetch failed for ${format}:`, e);
+                                                        return null;
+                                                    }
+                                                };
+
+                                                // Retry Strategy: JSON3 -> XML
+                                                let result = await fetchTranscript(track.baseUrl, 'json3');
+                                                if (!result) {
+                                                    console.log('[SeenYT] JSON3 failed, retrying XML...');
+                                                    result = await fetchTranscript(track.baseUrl, 'xml');
+                                                }
+
+                                                if (result) {
+                                                    const { text, format } = result;
+                                                    if (format === 'json3') {
+                                                        try {
+                                                            const subData = JSON.parse(text);
+                                                            if (subData.events) {
+                                                                finalTranscript = subData.events
+                                                                    .map((e: any) => e.segs?.map((s: any) => s.utf8).join('') || '')
+                                                                    .join(' ')
+                                                                    .replace(/\s+/g, ' ')
+                                                                    .trim();
+                                                            }
+                                                        } catch (jsonErr) { console.error('[SeenYT] JSON Parse Error'); }
+                                                    } else {
+                                                        if (text.includes('<text')) {
+                                                            const parser = new DOMParser();
+                                                            const xmlDoc = parser.parseFromString(text, "text/xml");
+                                                            const texts = xmlDoc.getElementsByTagName("text");
+                                                            for (let i = 0; i < texts.length; i++) {
+                                                                finalTranscript += (texts[i].textContent || "") + " ";
+                                                            }
+                                                            finalTranscript = finalTranscript.replace(/\s+/g, ' ').trim();
+                                                            finalTranscript = finalTranscript.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+                                                        }
+                                                    }
+                                                } else {
+                                                    console.error('[SeenYT] All fetch attempts failed.');
+                                                }
+                                            }
+                                        } else {
+                                            console.error('[SeenYT] No captions found even with API.');
+                                        }
 
                                         // Prepare clipboard content
                                         let fullContent = '';
-                                        if (result.transcript) {
-                                            fullContent = `📺 ${data.title}\\nVideo ID: ${data.videoId}\\n\\n--- TRANSCRIPT ---\\n\\n${result.transcript}`;
+                                        if (finalTranscript) {
+                                            fullContent = `📺 ${data.title}\nVideo ID: ${data.videoId}\n\n--- TRANSCRIPT ---\n\n${finalTranscript}`;
 
                                             // Save to storage
                                             await chrome.storage.local.set({
                                                 [`transcript_${data.videoId}`]: {
-                                                    transcript: result.transcript,
+                                                    transcript: finalTranscript,
                                                     timestamp: Date.now()
                                                 }
                                             });
-
-                                            console.log('[SeenYT] ✅ Transcript extracted:', result.transcript.length, 'characters');
                                         } else {
-                                            fullContent = `📺 ${data.title}\\nVideo ID: ${data.videoId}\\n\\n⚠️ Không lấy được phụ đề\\nLý do: ${result.error || 'Video không có captions'}`;
-                                            console.warn('[SeenYT] ❌ No transcript found:', result.error);
+                                            fullContent = `📺 ${data.title}\nVideo ID: ${data.videoId}\n\n(Chưa tìm được transcript. Vui lòng copy thủ công description)`;
                                         }
 
                                         // Copy to Clipboard
                                         try {
                                             await navigator.clipboard.writeText(fullContent);
-                                            console.log('[SeenYT] Clipboard updated successfully');
-
-                                            // User feedback
-                                            if (!result.transcript) {
-                                                alert(`❌ Không lấy được phụ đề\\n\\nLý do: ${result.error || 'Video không có captions'}\\n\\nĐã copy thông tin cơ bản. Bạn có thể paste kịch bản thủ công.`);
-                                            } else {
-                                                // Success notification
-                                                const notification = document.createElement('div');
-                                                notification.textContent = '✅ Đã copy transcript vào clipboard!';
-                                                notification.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 999999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
-                                                document.body.appendChild(notification);
-                                                setTimeout(() => notification.remove(), 3000);
+                                            console.log('[SeenYT] Clipboard update success');
+                                            // Optional feedback
+                                            if (!finalTranscript) {
+                                                alert('Không tìm thấy phụ đề (Captions) cho video này. Đã copy thông tin cơ bản.');
                                             }
                                         } catch (err) {
                                             console.warn('[SeenYT] Clipboard write failed', err);
-                                            alert('❌ Không thể copy vào clipboard. Vui lòng thử lại.');
+                                            alert('Không thể copy clipboard. Vui lòng thao tác thủ công.');
                                         }
 
                                     } catch (e) {
