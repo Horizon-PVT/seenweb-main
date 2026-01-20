@@ -22,7 +22,9 @@
                 "*://*.youtube.com/channel/*",
                 "*://*.youtube.com/c/*",
                 "*://*.youtube.com/@*",
-                "*://studio.youtube.com/*"
+                "*://studio.youtube.com/*",
+                "*://*.seenyt.net/*",
+                "*://localhost/*"
             ],
             "js": [
                 "assets/content.js"

@@ -12,13 +12,67 @@ document.head.appendChild(styleSheet);
 const VIDEO_WIDGET_ID = 'seenyt-video-widget';
 const CHANNEL_WIDGET_ID = 'seenyt-channel-widget';
 
+// ========== DASHBOARD BRIDGE ==========
+function runDashboardBridge() {
+    console.log('[SeenYT] Dashboard Bridge Active');
+
+    // Listen for messages from the web page
+    window.addEventListener('message', async (event) => {
+        // We accept messages from seenyt.net or localhost
+        if (event.source !== window) return; // Only accept same-window messages for security if using postMessage wrapper, BUT
+        // If the web page sends postMessage, source is window.
+
+        if (event.data?.type === 'SEENYT_GET_TRANSCRIPT') {
+            const { videoId } = event.data;
+            console.log('[SeenYT] Bridge received request for:', videoId);
+
+            try {
+                const result = await chrome.storage.local.get(`transcript_${videoId}`);
+                const data = result[`transcript_${videoId}`];
+
+                if (data) {
+                    window.postMessage({
+                        type: 'SEENYT_TRANSCRIPT_RESULT',
+                        videoId,
+                        transcript: data.transcript,
+                        error: null
+                    }, '*');
+                } else {
+                    window.postMessage({
+                        type: 'SEENYT_TRANSCRIPT_RESULT',
+                        videoId,
+                        transcript: null,
+                        error: 'Transcript not found in extension storage'
+                    }, '*');
+                }
+            } catch (e: any) {
+                window.postMessage({
+                    type: 'SEENYT_TRANSCRIPT_RESULT',
+                    videoId,
+                    transcript: null,
+                    error: e.message
+                }, '*');
+            }
+        }
+    });
+}
+
 function getPageType() {
     const url = window.location.href;
+    if (url.includes('seenyt.net') && url.includes('dashboard')) return 'dashboard';
+    if (url.includes('localhost') && url.includes('dashboard')) return 'dashboard';
+
     if (url.includes('studio.youtube.com')) return 'studio';
     if (url.includes('/watch?v=')) return 'video';
     if (url.includes('/@') || url.includes('/channel/') || url.includes('/c/')) return 'channel';
     return 'other';
 }
+
+// Check for dashboard immediately
+if (getPageType() === 'dashboard') {
+    runDashboardBridge();
+}
+
 
 // ========== VIDEO PAGE INJECTION ==========
 function injectVideoWidget() {

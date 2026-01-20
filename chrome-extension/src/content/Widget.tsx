@@ -417,13 +417,64 @@ const Widget = () => {
                             <button onClick={() => setShowRemix(false)} className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">
                                 Hủy
                             </button>
-                            <a
-                                href={`https://seenyt.net/dashboard?tool=script-refiner&source=extension&video=${data.videoId}&title=${encodeURIComponent(data.title)}&desc=${encodeURIComponent(data.description.substring(0, 500))}`}
-                                target="_blank"
+                            <button
+                                onClick={async () => {
+                                    if (generatingScript) return;
+                                    setGeneratingScript(true);
+
+                                    try {
+                                        // 1. Fetch current page to get caption tracks (with cookies!)
+                                        const response = await fetch(window.location.href);
+                                        const html = await response.text();
+
+                                        // 2. Extract captionTracks
+                                        const regex = /"captionTracks":(\[.*?\])/;
+                                        const match = html.match(regex);
+
+                                        if (match) {
+                                            const tracks = JSON.parse(match[1]);
+                                            // Prefer VI then EN
+                                            const track = tracks.find((t: any) => t.languageCode === 'vi') || tracks[0];
+
+                                            if (track) {
+                                                // 3. Fetch transcript XML/JSON
+                                                const subRes = await fetch(track.baseUrl + '&fmt=json3');
+                                                const subData = await subRes.json();
+
+                                                let transcript = '';
+                                                if (subData.events) {
+                                                    transcript = subData.events
+                                                        .map((e: any) => e.segs?.map((s: any) => s.utf8).join('') || '')
+                                                        .join(' ')
+                                                        .replace(/\s+/g, ' ')
+                                                        .trim();
+                                                }
+
+                                                // 4. Save to extension storage
+                                                if (transcript) {
+                                                    await chrome.storage.local.set({
+                                                        [`transcript_${data.videoId}`]: {
+                                                            transcript,
+                                                            timestamp: Date.now()
+                                                        }
+                                                    });
+                                                    console.log('[SeenYT] Transcript saved to storage');
+                                                }
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.error('[SeenYT] Auto-transcript failed:', e);
+                                        // Continue anyway, dashboard will try its own fetch or show error
+                                    }
+
+                                    setGeneratingScript(false);
+                                    // 5. Open Dashboard
+                                    window.open(`https://seenyt.net/dashboard?tool=script-refiner&source=extension&video=${data.videoId}&title=${encodeURIComponent(data.title)}&desc=${encodeURIComponent(data.description.substring(0, 500))}`, '_blank');
+                                }}
                                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-bold text-white text-center transition-colors"
                             >
-                                {generatingScript ? 'Đang tạo...' : 'Tạo Script 🚀'}
-                            </a>
+                                {generatingScript ? 'Đang xử lý...' : 'Tạo Script 🚀'}
+                            </button>
                         </div>
                     </div>
                 </div>
