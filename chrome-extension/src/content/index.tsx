@@ -57,6 +57,37 @@ function runDashboardBridge() {
     });
 }
 
+// ========== AUTH SYNC BRIDGE ==========
+function runAuthSync() {
+    // Only run on seenyt.net
+    if (!window.location.host.includes('seenyt.net')) return;
+
+    console.log('[SeenYT] Auth Sync Active');
+
+    // Poll for localStorage changes (set by extension-callback.tsx)
+    const checkAuth = () => {
+        const email = localStorage.getItem('seenyt_email');
+        if (email) {
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                chrome.storage.local.get(['seenyt_email'], (result) => {
+                    if (result.seenyt_email !== email) {
+                        chrome.storage.local.set({ seenyt_email: email }, () => {
+                            console.log('[SeenYT] Synced new email to extension:', email);
+                        });
+                    }
+                });
+            }
+        }
+    };
+
+    setInterval(checkAuth, 2000);
+}
+
+// Run Auth Sync
+if (window.location.host.includes('seenyt.net')) {
+    runAuthSync();
+}
+
 function getPageType() {
     const url = window.location.href;
     if (url.includes('seenyt.net') && url.includes('dashboard')) return 'dashboard';
