@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 
 export default function SuccessPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   const { code, desc, status: payStatus, orderCode } = router.query;
@@ -12,38 +12,62 @@ export default function SuccessPage() {
   // Chặn bắn event lặp (do router/query thay đổi nhiều lần)
   const firedRef = useRef(false);
 
+  // Removed redundant declaration
+
   useEffect(() => {
     if (!router.isReady) return;
 
-    const isPaid = code === '00' && payStatus === 'PAID';
+    const checkPaymentStatus = async () => {
+      if (!orderCode) return;
 
-    if (isPaid) {
-      setStatus('success');
-
-      // BẮN EVENT VÀO DATALAYER ĐỂ GTM BẮT CHẮC
-      if (!firedRef.current) {
-        firedRef.current = true;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const w: any = window;
-        w.dataLayer = w.dataLayer || [];
-        w.dataLayer.push({
-          event: 'purchase_success',          // custom event cho GTM
-          event_name: 'purchase',             // để mapping GA4 cho chuẩn
-          transaction_id: String(orderCode || ''),
-          order_code: String(orderCode || ''),
-          description: String(desc || ''),
-          // Nếu em có giá trị gói thì mở comment:
-          // value: 649000,
-          // currency: 'VND',
+      try {
+        // Gọi API kiểm tra lại trạng thái đơn hàng (đề phòng Webhook bị miss)
+        const res = await fetch('/api/payment/check-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderCode })
         });
-      }
+        const data = await res.json();
 
-      setTimeout(() => router.push('/dashboard'), 5000); // Auto về dashboard 5s
+        if (data.success && data.status === 'PAID') {
+          setStatus('success');
+
+          // Force update session để nhận Role mới
+          update();
+
+          // GTM Event
+          if (!firedRef.current) {
+            firedRef.current = true;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const w: any = window;
+            w.dataLayer = w.dataLayer || [];
+            w.dataLayer.push({
+              event: 'purchase_success',
+              transaction_id: String(orderCode),
+              order_code: String(orderCode),
+              description: String(desc || ''),
+            });
+          }
+
+          setTimeout(() => router.push('/dashboard'), 4000);
+        } else {
+          // Nếu PayOS bảo chưa thanh toán
+          setStatus('error');
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus('error');
+      }
+    };
+
+    // Chạy kiểm tra
+    if (code === '00' || payStatus === 'PAID') {
+      checkPaymentStatus();
     } else {
-      setStatus('error');
+      // Trường hợp hủy hoặc lỗi ngay từ URL
+      if (code && code !== '00') setStatus('error');
     }
-  }, [router.isReady, code, payStatus, orderCode, desc, router]);
+  }, [router.isReady, code, payStatus, orderCode, desc, router, update]);
 
   if (status === 'loading') {
     return <div className="flex justify-center items-center h-screen">Đang xử lý...</div>;
