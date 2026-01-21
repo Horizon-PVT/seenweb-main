@@ -159,6 +159,13 @@ const Widget = () => {
 
     // Check auth status
     const checkAuth = useCallback(async (emailOverride?: string, isPolling = false) => {
+        // Stop if extension context is invalid (zombie script)
+        try {
+            if (typeof chrome !== 'undefined' && chrome.runtime && !chrome.runtime?.id) {
+                return; // Context invalidated
+            }
+        } catch { return; }
+
         if (!isPolling) setAuthLoading(true);
         try {
             const email = emailOverride || await getSavedEmail();
@@ -212,8 +219,17 @@ const Widget = () => {
                 }
             } else {
                 setUser(null);
+                if (!isPolling && emailOverride) {
+                    alert('Đăng nhập thất bại hoặc tài khoản không tồn tại. Vui lòng thử lại.');
+                }
             }
-        } catch (e) {
+        } catch (e: any) {
+            // Handle context invalidation (User reloaded extension but not page)
+            if (e?.message?.includes('Extension context invalidated')) {
+                console.warn('[SeenYT] Extension context invalidated. Please refresh the page.');
+                setUser(null);
+                return;
+            }
             if (!isPolling) console.error('Auth check error:', e);
             setUser(null);
         } finally {

@@ -44,10 +44,11 @@ export default async function handler(
             return res.status(200).json({ authenticated: false });
         }
 
-        // Tìm user trong DB
-        const user = await prisma.user.findUnique({
+        // Tìm user trong DB hoặc tạo mới (Auto-Signup)
+        let user = await prisma.user.findUnique({
             where: { email },
             select: {
+                id: true,
                 email: true,
                 name: true,
                 image: true,
@@ -60,7 +61,27 @@ export default async function handler(
         });
 
         if (!user) {
-            return res.status(200).json({ authenticated: false });
+            // Auto create free user
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    name: email.split('@')[0],
+                    role: 'FREE',
+                    dailyUsage: 0,
+                    maxDailyUsage: 3
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    image: true,
+                    role: true,
+                    dailyUsage: true,
+                    maxDailyUsage: true,
+                    membershipExpiry: true,
+                    lastUsageDate: true,
+                }
+            });
         }
 
         // Check và reset daily usage nếu sang ngày mới
