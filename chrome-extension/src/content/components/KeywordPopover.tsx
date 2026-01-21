@@ -1,4 +1,4 @@
-// KeywordPopover.tsx - Keyword Insights Popover Component
+// KeywordPopover.tsx - Keyword Insights Popover Component (Offline Version)
 import { useState, useEffect, useRef } from 'react';
 
 interface KeywordInsight {
@@ -8,11 +8,6 @@ interface KeywordInsight {
     trend: 'rising' | 'stable' | 'declining';
     score: number;
     relatedKeywords: string[];
-    topVideos?: {
-        title: string;
-        views: string;
-        age: string;
-    }[];
 }
 
 interface Props {
@@ -22,17 +17,14 @@ interface Props {
     position: { x: number; y: number };
 }
 
-const API_BASE = 'https://seenyt.net';
-
 const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
     const [data, setData] = useState<KeywordInsight | null>(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isOpen && keyword) {
-            fetchKeywordData();
+            analyzeKeyword();
         }
     }, [isOpen, keyword]);
 
@@ -50,33 +42,74 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen, onClose]);
 
-    const fetchKeywordData = async () => {
+    // Local keyword analysis (heuristic-based)
+    const analyzeKeyword = () => {
         setLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`${API_BASE}/api/extension/keyword`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ keyword }),
-            });
 
-            if (!res.ok) throw new Error('API Error');
-            const result = await res.json();
-            setData(result);
-        } catch (err) {
-            setError('Không thể tải dữ liệu');
-            // Fallback data
+        setTimeout(() => {
+            const words = keyword.toLowerCase().split(' ');
+            const wordCount = words.length;
+
+            // Heuristic scoring based on keyword characteristics
+            let volumeScore = 50;
+            let competitionScore = 50;
+
+            // Long-tail keywords usually have lower competition
+            if (wordCount >= 3) {
+                competitionScore -= 20;
+                volumeScore -= 10;
+            } else if (wordCount === 1) {
+                competitionScore += 20;
+                volumeScore += 20;
+            }
+
+            // Common high-volume keywords
+            const highVolumePatterns = /youtube|kiếm tiền|làm|cách|hướng dẫn|tutorial|how to|free|miễn phí/i;
+            if (highVolumePatterns.test(keyword)) {
+                volumeScore += 30;
+                competitionScore += 20;
+            }
+
+            // Trend estimation (newer topics trend higher)
+            const trendingPatterns = /2026|2025|ai|chatgpt|gemini|mới|new|trend/i;
+            const isTrending = trendingPatterns.test(keyword);
+
+            // Calculate opportunity score
+            const opportunityScore = Math.round(
+                100 - competitionScore + (volumeScore / 2) + (isTrending ? 15 : 0)
+            );
+
+            // Determine categories
+            let volume: KeywordInsight['volume'] = 'medium';
+            if (volumeScore >= 70) volume = 'very-high';
+            else if (volumeScore >= 50) volume = 'high';
+            else if (volumeScore < 30) volume = 'low';
+
+            let competition: KeywordInsight['competition'] = 'medium';
+            if (competitionScore >= 60) competition = 'high';
+            else if (competitionScore < 40) competition = 'low';
+
+            const trend: KeywordInsight['trend'] = isTrending ? 'rising' : (wordCount >= 3 ? 'stable' : 'stable');
+
+            // Generate related keywords
+            const relatedKeywords = [
+                `cách ${words[0]}`,
+                `${keyword} cho người mới`,
+                `hướng dẫn ${keyword}`,
+                `${keyword} 2026`,
+                `${words[0]} tips`
+            ];
+
             setData({
                 keyword,
-                volume: 'medium',
-                competition: 'medium',
-                trend: 'stable',
-                score: 50,
-                relatedKeywords: [`cách ${keyword}`, `${keyword} hay nhất`, `hướng dẫn ${keyword}`],
+                volume,
+                competition,
+                trend,
+                score: Math.min(100, Math.max(0, opportunityScore)),
+                relatedKeywords
             });
-        } finally {
             setLoading(false);
-        }
+        }, 600);
     };
 
     const getVolumeConfig = (vol: string) => {
@@ -104,13 +137,12 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
         }
     };
 
-
     if (!isOpen) return null;
 
     return (
         <div
             ref={popoverRef}
-            className="fixed z-[10000] bg-white rounded-xl shadow-2xl border border-slate-200 w-72 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="fixed z-[10000] bg-white rounded-xl shadow-2xl border border-slate-200 w-72 overflow-hidden"
             style={{
                 top: Math.min(position.y, window.innerHeight - 400),
                 left: Math.min(position.x, window.innerWidth - 300),
@@ -152,17 +184,11 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
                                         cy="50"
                                         r="42"
                                         fill="none"
-                                        stroke="url(#kw-gradient)"
+                                        stroke={data.score >= 70 ? '#34d399' : data.score >= 40 ? '#fbbf24' : '#f87171'}
                                         strokeWidth="10"
                                         strokeLinecap="round"
                                         strokeDasharray={`${data.score * 2.64} 264`}
                                     />
-                                    <defs>
-                                        <linearGradient id="kw-gradient">
-                                            <stop offset="0%" stopColor={data.score >= 70 ? '#34d399' : data.score >= 40 ? '#fbbf24' : '#f87171'} />
-                                            <stop offset="100%" stopColor={data.score >= 70 ? '#059669' : data.score >= 40 ? '#d97706' : '#dc2626'} />
-                                        </linearGradient>
-                                    </defs>
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <span className={`text-2xl font-black ${data.score >= 70 ? 'text-emerald-600' : data.score >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
@@ -170,11 +196,13 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
                                     </span>
                                 </div>
                             </div>
+                            <p className="text-[9px] text-slate-400 mt-2">
+                                {data.score >= 70 ? '✅ Cơ hội tốt!' : data.score >= 40 ? '⚡ Khả thi' : '⚠️ Cạnh tranh cao'}
+                            </p>
                         </div>
 
                         {/* Metrics Grid */}
                         <div className="grid grid-cols-3 gap-2">
-                            {/* Volume */}
                             <div className="text-center p-2 rounded-lg bg-slate-50">
                                 <span className="text-lg block mb-1">{getVolumeConfig(data.volume).icon}</span>
                                 <p className="text-[9px] text-slate-500 uppercase font-bold">Volume</p>
@@ -183,7 +211,6 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
                                 </p>
                             </div>
 
-                            {/* Competition */}
                             <div className="text-center p-2 rounded-lg bg-slate-50">
                                 <span className="text-lg block mb-1">{getCompetitionConfig(data.competition).icon}</span>
                                 <p className="text-[9px] text-slate-500 uppercase font-bold">Cạnh tranh</p>
@@ -192,7 +219,6 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
                                 </p>
                             </div>
 
-                            {/* Trend */}
                             <div className="text-center p-2 rounded-lg bg-slate-50">
                                 <span className="text-lg block mb-1">{getTrendConfig(data.trend).icon}</span>
                                 <p className="text-[9px] text-slate-500 uppercase font-bold">Xu hướng</p>
@@ -203,46 +229,24 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
                         </div>
 
                         {/* Related Keywords */}
-                        {data.relatedKeywords.length > 0 && (
-                            <div>
-                                <p className="text-[10px] text-slate-500 uppercase font-bold mb-2 flex items-center gap-1">
-                                    <span>🔗</span> Keywords liên quan
-                                </p>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {data.relatedKeywords.slice(0, 5).map((kw, i) => (
-                                        <span
-                                            key={i}
-                                            className="px-2 py-1 text-[9px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer transition-colors"
-                                            onClick={() => {
-                                                window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(kw)}`, '_blank');
-                                            }}
-                                        >
-                                            {kw}
-                                        </span>
-                                    ))}
-                                </div>
+                        <div>
+                            <p className="text-[10px] text-slate-500 uppercase font-bold mb-2 flex items-center gap-1">
+                                <span>🔗</span> Keywords liên quan
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {data.relatedKeywords.map((kw, i) => (
+                                    <span
+                                        key={i}
+                                        className="px-2 py-1 text-[9px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer transition-colors"
+                                        onClick={() => {
+                                            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(kw)}`, '_blank');
+                                        }}
+                                    >
+                                        {kw}
+                                    </span>
+                                ))}
                             </div>
-                        )}
-
-                        {/* Top Videos */}
-                        {data.topVideos && data.topVideos.length > 0 && (
-                            <div>
-                                <p className="text-[10px] text-slate-500 uppercase font-bold mb-2 flex items-center gap-1">
-                                    <span>🎬</span> Top Videos
-                                </p>
-                                <div className="space-y-2">
-                                    {data.topVideos.slice(0, 3).map((video, i) => (
-                                        <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-slate-50">
-                                            <span className="text-sm font-bold text-slate-400">{i + 1}</span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[10px] font-medium text-slate-700 truncate">{video.title}</p>
-                                                <p className="text-[9px] text-slate-400">{video.views} views • {video.age}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        </div>
 
                         {/* Action */}
                         <button
@@ -253,13 +257,11 @@ const KeywordPopover = ({ keyword, isOpen, onClose, position }: Props) => {
                         >
                             <span>🔎</span> Tìm trên YouTube
                         </button>
-                    </div>
-                )}
 
-                {!loading && error && !data && (
-                    <div className="text-center py-6">
-                        <span className="text-3xl mb-2 block">❌</span>
-                        <p className="text-xs text-slate-500">{error}</p>
+                        {/* Disclaimer */}
+                        <p className="text-[8px] text-slate-400 text-center">
+                            * Phân tích dựa trên pattern. Deploy APIs để có data chính xác hơn.
+                        </p>
                     </div>
                 )}
             </div>

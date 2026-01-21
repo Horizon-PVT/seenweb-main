@@ -26,73 +26,158 @@ interface Props {
     };
 }
 
-const API_BASE = 'https://seenyt.net';
 
 const SEOScoreCard = ({ videoData }: Props) => {
     const [data, setData] = useState<SEOScoreData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [expanded, setExpanded] = useState(false);
 
     useEffect(() => {
-        fetchSEOScore();
+        // Calculate locally - no API needed
+        setLoading(true);
+        setTimeout(() => {
+            setData(calculateLocalScore(videoData));
+            setLoading(false);
+        }, 500); // Small delay for UX
     }, [videoData.title]);
 
-    const fetchSEOScore = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`${API_BASE}/api/extension/seo-score`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: videoData.title,
-                    description: videoData.description,
-                    tags: videoData.tags,
-                    hasThumbnail: true,
-                }),
-            });
-
-            if (!res.ok) throw new Error('API Error');
-            const result = await res.json();
-            setData(result);
-        } catch (err) {
-            setError('Không thể tính SEO Score');
-            // Fallback: calculate locally
-            setData(calculateLocalScore(videoData));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Local fallback calculation
+    // Full local SEO calculation
     const calculateLocalScore = (vd: Props['videoData']): SEOScoreData => {
-        let titleScore = 70;
-        let descScore = 60;
-        let tagScore = 50;
+        const titleResult = scoreTitle(vd.title);
+        const descResult = scoreDescription(vd.description);
+        const tagResult = scoreTags(vd.tags);
+        const thumbResult = { score: 85, issues: [] }; // Assume has thumbnail
 
-        if (vd.title.length > 30 && vd.title.length < 70) titleScore += 15;
-        if (/[?!]|\d/.test(vd.title)) titleScore += 10;
-
-        if (vd.description.length > 100) descScore += 20;
-        if (/(subscribe|đăng ký)/i.test(vd.description)) descScore += 10;
-
-        if (vd.tags.length >= 5) tagScore += 20;
-        if (vd.tags.length >= 10) tagScore += 10;
-
-        const overall = Math.round(titleScore * 0.3 + descScore * 0.25 + tagScore * 0.25 + 80 * 0.2);
+        const overall = Math.round(
+            titleResult.score * 0.30 +
+            descResult.score * 0.25 +
+            tagResult.score * 0.25 +
+            thumbResult.score * 0.20
+        );
 
         return {
             overallScore: overall,
-            grade: overall >= 80 ? 'A' : overall >= 65 ? 'B' : overall >= 50 ? 'C' : 'D',
+            grade: overall >= 90 ? 'A' : overall >= 75 ? 'B' : overall >= 60 ? 'C' : overall >= 40 ? 'D' : 'F',
             breakdown: {
-                title: { score: titleScore, issues: [] },
-                description: { score: descScore, issues: [] },
-                tags: { score: tagScore, issues: [] },
-                thumbnail: { score: 80, issues: [] },
+                title: titleResult,
+                description: descResult,
+                tags: tagResult,
+                thumbnail: thumbResult,
             },
-            tips: ['Phân tích offline - kết nối API để có kết quả chi tiết hơn'],
+            tips: generateTips({ title: titleResult, description: descResult, tags: tagResult, thumbnail: thumbResult }),
         };
+    };
+
+    // Title scoring
+    const scoreTitle = (title: string): SEOBreakdown => {
+        const issues: string[] = [];
+        let score = 100;
+
+        if (title.length < 30) {
+            score -= 20;
+            issues.push('Title quá ngắn (< 30 ký tự)');
+        } else if (title.length > 70) {
+            score -= 15;
+            issues.push('Title quá dài, YouTube sẽ cắt bớt');
+        } else if (title.length > 60) {
+            score -= 5;
+        }
+
+        if (title === title.toUpperCase() && title.length > 10) {
+            score -= 10;
+            issues.push('Không nên viết toàn chữ IN HOA');
+        }
+
+        const hasNumbers = /\d/.test(title);
+        const hasEmotional = /(đừng|bí mật|sai lầm|tránh|tuyệt vời|kinh ngạc|why|how|secret)/i.test(title);
+
+        if (!hasNumbers && !hasEmotional && !/[?!]/.test(title)) {
+            score -= 10;
+            issues.push('Thiếu hook (số, câu hỏi, từ gợi cảm xúc)');
+        }
+
+        if (hasNumbers) score = Math.min(100, score + 5);
+        if (hasEmotional) score = Math.min(100, score + 5);
+
+        return { score: Math.max(0, score), issues };
+    };
+
+    // Description scoring
+    const scoreDescription = (desc: string): SEOBreakdown => {
+        const issues: string[] = [];
+        let score = 100;
+
+        if (desc.length < 100) {
+            score -= 30;
+            issues.push('Description quá ngắn');
+        } else if (desc.length < 200) {
+            score -= 15;
+            issues.push('Nên viết description dài hơn');
+        }
+
+        if (!/(https?:\/\/|www\.)/i.test(desc)) {
+            score -= 10;
+            issues.push('Thiếu link trong description');
+        }
+
+        if (!/(subscribe|đăng ký|follow|theo dõi|like)/i.test(desc)) {
+            score -= 10;
+            issues.push('Thiếu Call-to-Action');
+        }
+
+        if (/\d{1,2}:\d{2}/.test(desc)) score = Math.min(100, score + 10);
+        if (!/#\w+/.test(desc)) {
+            score -= 5;
+            issues.push('Nên thêm hashtags');
+        }
+
+        return { score: Math.max(0, score), issues };
+    };
+
+    // Tags scoring
+    const scoreTags = (tags: string[]): SEOBreakdown => {
+        const issues: string[] = [];
+        let score = 100;
+
+        if (tags.length === 0) {
+            score -= 40;
+            issues.push('Không có tags');
+        } else if (tags.length < 5) {
+            score -= 20;
+            issues.push(`Quá ít tags (${tags.length}/15)`);
+        } else if (tags.length < 8) {
+            score -= 10;
+            issues.push('Nên thêm tags (8-15 tối ưu)');
+        }
+
+        const longTailTags = tags.filter(t => t.split(' ').length >= 3);
+        if (longTailTags.length === 0 && tags.length > 0) {
+            score -= 15;
+            issues.push('Thiếu long-tail keywords');
+        }
+
+        return { score: Math.max(0, score), issues };
+    };
+
+    // Generate tips from issues
+    const generateTips = (breakdown: SEOScoreData['breakdown']): string[] => {
+        const tips: string[] = [];
+        const areas = [
+            { name: 'Title', data: breakdown.title },
+            { name: 'Description', data: breakdown.description },
+            { name: 'Tags', data: breakdown.tags },
+        ].sort((a, b) => a.data.score - b.data.score);
+
+        for (const area of areas) {
+            for (const issue of area.data.issues.slice(0, 2)) {
+                tips.push(issue);
+                if (tips.length >= 4) break;
+            }
+            if (tips.length >= 4) break;
+        }
+
+        if (tips.length === 0) tips.push('SEO đã tối ưu tốt! Tiếp tục duy trì.');
+        return tips;
     };
 
     const getScoreColor = (score: number) => {
@@ -132,10 +217,7 @@ const SEOScoreCard = ({ videoData }: Props) => {
     if (!data) {
         return (
             <div className="bg-red-50 p-4 rounded-xl border border-red-200 text-center">
-                <span className="text-red-600 text-sm">{error || 'Lỗi không xác định'}</span>
-                <button onClick={fetchSEOScore} className="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg">
-                    Thử lại
-                </button>
+                <span className="text-red-600 text-sm">Đang tính toán...</span>
             </div>
         );
     }
