@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import SEOScoreCard from './components/SEOScoreCard';
 import AIActionsPanel from './components/AIActionsPanel';
 import KeywordPopover from './components/KeywordPopover';
@@ -6,6 +6,11 @@ import RevenueEstimator from './components/RevenueEstimator';
 import TitleTester from './components/TitleTester';
 import ChannelSpyPanel from './components/ChannelSpyPanel';
 import TrendPanel from './components/TrendPanel';
+import UpgradeModal from './components/UpgradeModal';
+import LockedOverlay from './components/LockedOverlay';
+import UsageBanner from './components/UsageBanner';
+
+const API_BASE = 'https://seenyt.net';
 
 interface VideoData {
     videoId: string;
@@ -21,7 +26,21 @@ interface VideoData {
     vph: string;
 }
 
+interface UserData {
+    email: string;
+    name: string | null;
+    image: string | null;
+    role: string;
+    dailyUsage: number;
+    maxDailyUsage: number;
+    isPro: boolean;
+}
+
 type TabType = 'stats' | 'seo' | 'ai' | 'spy' | 'trends' | 'tools' | 'more';
+
+// Tính năng bị khóa cho FREE
+const LOCKED_TABS: TabType[] = ['ai', 'spy'];
+
 
 const Widget = () => {
     const [data, setData] = useState<VideoData | null>(null);
@@ -29,12 +48,91 @@ const Widget = () => {
     const [activeTab, setActiveTab] = useState<TabType>('stats');
     const [darkMode, setDarkMode] = useState(false);
 
+    // Auth state
+    const [user, setUser] = useState<UserData | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeFeature, setUpgradeFeature] = useState('default');
+
+    // Usage tracking
+    const [remainingUsage, setRemainingUsage] = useState<Record<string, number>>({
+        'seo-score': 3,
+        'ab-tester': 2,
+        'trends': 3,
+    });
+
     // Keyword Popover State
     const [keywordPopover, setKeywordPopover] = useState<{
         isOpen: boolean;
         keyword: string;
         position: { x: number; y: number };
     }>({ isOpen: false, keyword: '', position: { x: 0, y: 0 } });
+
+    // Get saved email from Chrome storage
+    const getSavedEmail = useCallback(async (): Promise<string | null> => {
+        try {
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                return new Promise((resolve) => {
+                    chrome.storage.local.get(['seenyt_email'], (result) => {
+                        resolve(result.seenyt_email || null);
+                    });
+                });
+            }
+            return localStorage.getItem('seenyt_email');
+        } catch {
+            return null;
+        }
+    }, []);
+
+    // Save email to Chrome storage
+    const saveEmail = useCallback(async (email: string) => {
+        try {
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                chrome.storage.local.set({ seenyt_email: email });
+            } else {
+                localStorage.setItem('seenyt_email', email);
+            }
+        } catch {
+            // Ignore errors
+        }
+    }, []);
+
+    // Check auth status
+    const checkAuth = useCallback(async () => {
+        setAuthLoading(true);
+        try {
+            const email = await getSavedEmail();
+            if (!email) {
+                setUser(null);
+                setAuthLoading(false);
+                return;
+            }
+
+            const res = await fetch(`${API_BASE}/api/extension/auth-check?email=${encodeURIComponent(email)}`);
+            const data = await res.json();
+
+            if (data.authenticated && data.user) {
+                setUser(data.user);
+                // Update remaining usage based on role
+                if (data.user.isPro) {
+                    setRemainingUsage({ 'seo-score': 999, 'ab-tester': 999, 'trends': 999 });
+                } else {
+                    setRemainingUsage({
+                        'seo-score': Math.max(0, 3 - data.user.dailyUsage),
+                        'ab-tester': Math.max(0, 2 - data.user.dailyUsage),
+                        'trends': Math.max(0, 3 - data.user.dailyUsage),
+                    });
+                }
+            } else {
+                setUser(null);
+            }
+        } catch (e) {
+            console.error('Auth check error:', e);
+            setUser(null);
+        } finally {
+            setAuthLoading(false);
+        }
+    }, [getSavedEmail]);
 
     // Detect YouTube dark mode
     useEffect(() => {
@@ -50,6 +148,21 @@ const Widget = () => {
         observer.observe(document.documentElement, { attributes: true });
         return () => observer.disconnect();
     }, []);
+
+    // Check auth on mount
+    useEffect(() => {
+        checkAuth();
+
+        // Listen for auth callback from web
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'SEENYT_AUTH' && event.data?.email) {
+                saveEmail(event.data.email);
+                checkAuth();
+            }
+        };
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [checkAuth, saveEmail]);
 
     const parseMetric = (str: string | undefined): number => {
         if (!str) return 0;
@@ -191,6 +304,30 @@ const Widget = () => {
         });
     };
 
+    const handleLogin = () => {
+        window.open(`${API_BASE}/login?source=extension`, '_blank');
+    };
+
+    const handleUpgrade = (feature?: string) => {
+        setUpgradeFeature(feature || 'default');
+        setShowUpgradeModal(true);
+    };
+
+    const handleTabClick = (tab: TabType) => {
+        // Check if tab is locked for FREE users
+        if (!user?.isPro && LOCKED_TABS.includes(tab)) {
+            handleUpgrade(tab);
+            return;
+        }
+        setActiveTab(tab);
+    };
+
+    // Determine if feature is accessible
+    const canAccessTab = (tab: TabType) => {
+        if (user?.isPro) return true;
+        return !LOCKED_TABS.includes(tab);
+    };
+
     // Theme classes
     const theme = {
         bg: darkMode ? 'bg-slate-900' : 'bg-white',
@@ -209,11 +346,11 @@ const Widget = () => {
         </div>
     );
 
-    const tabs: { key: TabType; label: string; icon: string; gradient: string }[] = [
+    const tabs: { key: TabType; label: string; icon: string; gradient: string; locked?: boolean }[] = [
         { key: 'stats', label: 'STATS', icon: '📊', gradient: 'from-orange-500 to-red-500' },
         { key: 'seo', label: 'SEO', icon: '🎯', gradient: 'from-emerald-500 to-teal-500' },
-        { key: 'ai', label: 'AI', icon: '✨', gradient: 'from-purple-500 to-pink-500' },
-        { key: 'spy', label: 'SPY', icon: '🕵️', gradient: 'from-indigo-500 to-purple-500' },
+        { key: 'ai', label: 'AI', icon: '✨', gradient: 'from-purple-500 to-pink-500', locked: !user?.isPro },
+        { key: 'spy', label: 'SPY', icon: '🕵️', gradient: 'from-indigo-500 to-purple-500', locked: !user?.isPro },
         { key: 'trends', label: 'TRENDS', icon: '📈', gradient: 'from-orange-500 to-amber-500' },
         { key: 'tools', label: 'TOOLS', icon: '🔧', gradient: 'from-red-500 to-orange-500' },
         { key: 'more', label: 'MORE', icon: '⚡', gradient: 'from-blue-500 to-cyan-500' },
@@ -233,13 +370,39 @@ const Widget = () => {
                         <span className="text-[9px] text-red-500 font-bold uppercase tracking-widest">VidIQ Killer 🔥</span>
                     </div>
                 </div>
-                <button
-                    onClick={() => setDarkMode(!darkMode)}
-                    className={`p-2 rounded-lg ${darkMode ? 'bg-slate-700 text-yellow-400' : 'bg-slate-100 text-slate-600'} hover:scale-105 transition-transform`}
-                    title="Toggle Dark Mode"
-                >
-                    {darkMode ? '☀️' : '🌙'}
-                </button>
+
+                <div className="flex items-center gap-2">
+                    {/* User badge / Login button */}
+                    {authLoading ? (
+                        <div className="w-16 h-6 bg-slate-200 rounded animate-pulse"></div>
+                    ) : user ? (
+                        <button
+                            onClick={() => user.isPro ? null : handleUpgrade()}
+                            className={`px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1 ${user.isPro
+                                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-black'
+                                : `${darkMode ? 'bg-slate-700' : 'bg-slate-100'} ${darkMode ? 'text-slate-300' : 'text-slate-600'}`
+                                }`}
+                        >
+                            {user.isPro ? '✨' : '🔒'} {user.role}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleLogin}
+                            className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] font-bold rounded-lg hover:shadow-md transition-all"
+                        >
+                            Đăng nhập
+                        </button>
+                    )}
+
+                    {/* Dark mode toggle */}
+                    <button
+                        onClick={() => setDarkMode(!darkMode)}
+                        className={`p-2 rounded-lg ${darkMode ? 'bg-slate-700 text-yellow-400' : 'bg-slate-100 text-slate-600'} hover:scale-105 transition-transform`}
+                        title="Toggle Dark Mode"
+                    >
+                        {darkMode ? '☀️' : '🌙'}
+                    </button>
+                </div>
             </div>
 
             {/* Tabs */}
@@ -247,10 +410,10 @@ const Widget = () => {
                 {tabs.map((tab) => (
                     <button
                         key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
+                        onClick={() => handleTabClick(tab.key)}
                         className={`px-2 py-1.5 rounded-lg text-[8px] font-bold transition-all relative overflow-hidden flex items-center gap-1 flex-shrink-0 ${activeTab === tab.key
-                                ? 'text-white shadow-md'
-                                : `${darkMode ? 'text-slate-400 hover:text-white hover:bg-slate-700' : 'text-slate-500 hover:text-slate-700 hover:bg-white'}`
+                            ? 'text-white shadow-md'
+                            : `${darkMode ? 'text-slate-400 hover:text-white hover:bg-slate-700' : 'text-slate-500 hover:text-slate-700 hover:bg-white'}`
                             }`}
                     >
                         {activeTab === tab.key && (
@@ -258,6 +421,9 @@ const Widget = () => {
                         )}
                         <span className="relative z-10">{tab.icon}</span>
                         <span className="relative z-10">{tab.label}</span>
+                        {tab.locked && (
+                            <span className="relative z-10 text-[7px] ml-0.5">🔒</span>
+                        )}
                     </button>
                 ))}
             </div>
@@ -311,6 +477,15 @@ const Widget = () => {
                 {/* TAB: SEO */}
                 {activeTab === 'seo' && (
                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                        {!user?.isPro && (
+                            <UsageBanner
+                                remaining={remainingUsage['seo-score'] || 0}
+                                total={3}
+                                feature="seo-score"
+                                onUpgrade={() => handleUpgrade('seo')}
+                                darkMode={darkMode}
+                            />
+                        )}
                         <SEOScoreCard videoData={{ title: data.title, description: data.description, tags: data.tags }} />
                     </div>
                 )}
@@ -318,20 +493,37 @@ const Widget = () => {
                 {/* TAB: AI */}
                 {activeTab === 'ai' && (
                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
-                        <AIActionsPanel videoData={{ title: data.title, description: data.description, tags: data.tags }} />
+                        {canAccessTab('ai') ? (
+                            <AIActionsPanel videoData={{ title: data.title, description: data.description, tags: data.tags }} />
+                        ) : (
+                            <LockedOverlay feature="ai" onUpgrade={() => handleUpgrade('ai')} darkMode={darkMode} />
+                        )}
                     </div>
                 )}
 
                 {/* TAB: SPY */}
                 {activeTab === 'spy' && (
                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
-                        <ChannelSpyPanel />
+                        {canAccessTab('spy') ? (
+                            <ChannelSpyPanel />
+                        ) : (
+                            <LockedOverlay feature="spy" onUpgrade={() => handleUpgrade('spy')} darkMode={darkMode} />
+                        )}
                     </div>
                 )}
 
                 {/* TAB: TRENDS */}
                 {activeTab === 'trends' && (
                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                        {!user?.isPro && (
+                            <UsageBanner
+                                remaining={remainingUsage['trends'] || 0}
+                                total={3}
+                                feature="trends"
+                                onUpgrade={() => handleUpgrade('trends')}
+                                darkMode={darkMode}
+                            />
+                        )}
                         <TrendPanel currentTags={data.tags} currentTitle={data.title} />
                     </div>
                 )}
@@ -394,26 +586,6 @@ const Widget = () => {
                                     <p className={`text-[10px] font-bold ${darkMode ? 'text-white' : 'text-slate-700'}`}>Niche Engine</p>
                                     <p className={`text-[8px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Tìm ngách vàng</p>
                                 </a>
-                                <a href="https://seenyt.net/?tool=rival-scanner" target="_blank" className={`p-2.5 rounded-lg ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-red-50'} border ${darkMode ? 'border-slate-600' : 'border-slate-200'} transition-all hover:scale-[1.02] group`}>
-                                    <span className="text-xl block mb-1 group-hover:scale-110 transition-transform">🕵️</span>
-                                    <p className={`text-[10px] font-bold ${darkMode ? 'text-white' : 'text-slate-700'}`}>Rival Scanner</p>
-                                    <p className={`text-[8px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Soi đối thủ</p>
-                                </a>
-                                <a href="https://seenyt.net/?tool=scriptwriter" target="_blank" className={`p-2.5 rounded-lg ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-indigo-50'} border ${darkMode ? 'border-slate-600' : 'border-slate-200'} transition-all hover:scale-[1.02] group`}>
-                                    <span className="text-xl block mb-1 group-hover:scale-110 transition-transform">📝</span>
-                                    <p className={`text-[10px] font-bold ${darkMode ? 'text-white' : 'text-slate-700'}`}>Script Writer</p>
-                                    <p className={`text-[8px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Tạo kịch bản</p>
-                                </a>
-                                <a href="https://seenyt.net/?tool=image-forge" target="_blank" className={`p-2.5 rounded-lg ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-yellow-50'} border ${darkMode ? 'border-slate-600' : 'border-slate-200'} transition-all hover:scale-[1.02] group`}>
-                                    <span className="text-xl block mb-1 group-hover:scale-110 transition-transform">🖼️</span>
-                                    <p className={`text-[10px] font-bold ${darkMode ? 'text-white' : 'text-slate-700'}`}>Image Forge</p>
-                                    <p className={`text-[8px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Tạo ảnh AI</p>
-                                </a>
-                                <a href="https://seenyt.net/tools/future-eye" target="_blank" className={`p-2.5 rounded-lg ${darkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-white hover:bg-cyan-50'} border ${darkMode ? 'border-slate-600' : 'border-slate-200'} transition-all hover:scale-[1.02] group`}>
-                                    <span className="text-xl block mb-1 group-hover:scale-110 transition-transform">🔮</span>
-                                    <p className={`text-[10px] font-bold ${darkMode ? 'text-white' : 'text-slate-700'}`}>Future Eye</p>
-                                    <p className={`text-[8px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Dự đoán trend</p>
-                                </a>
                                 <a href="https://seenyt.net/?tool=all" target="_blank" className="p-2.5 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 transition-all hover:scale-[1.02] group">
                                     <span className="text-xl block mb-1 group-hover:scale-110 transition-transform">⚡</span>
                                     <p className="text-[10px] font-bold text-white">Tất cả Tools</p>
@@ -425,11 +597,28 @@ const Widget = () => {
                 )}
             </div>
 
-            {/* Footer */}
+            {/* Footer with soft upsell */}
             <div className={`${darkMode ? 'bg-slate-800' : 'bg-slate-50/80'} px-4 py-2 flex justify-between items-center border-t ${darkMode ? 'border-slate-700' : 'border-slate-100'}`}>
-                <span className={`text-[9px] ${darkMode ? 'text-slate-500' : 'text-slate-400'} font-medium`}>Powered by SeenYT AI</span>
+                {!user?.isPro ? (
+                    <button
+                        onClick={() => handleUpgrade()}
+                        className={`text-[9px] ${darkMode ? 'text-yellow-500' : 'text-yellow-600'} font-medium hover:underline`}
+                    >
+                        💎 Mở khóa AI + Spy chỉ 149K
+                    </button>
+                ) : (
+                    <span className={`text-[9px] ${darkMode ? 'text-slate-500' : 'text-slate-400'} font-medium`}>Powered by SeenYT AI</span>
+                )}
                 <a href="https://seenyt.net" target="_blank" className="text-[9px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-80 transition-opacity">Open Dashboard →</a>
             </div>
+
+            {/* Upgrade Modal */}
+            <UpgradeModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                feature={upgradeFeature}
+                darkMode={darkMode}
+            />
 
             {/* Keyword Popover */}
             <KeywordPopover
