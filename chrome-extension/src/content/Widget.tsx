@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import SEOScoreCard from './components/SEOScoreCard';
+import AIActionsPanel from './components/AIActionsPanel';
+import KeywordPopover from './components/KeywordPopover';
 
 interface VideoData {
     videoId: string;
@@ -14,119 +17,24 @@ interface VideoData {
     vph: string; // Views Per Hour
 }
 
+type TabType = 'stats' | 'seo' | 'ai' | 'tools' | 'assets';
+
 const Widget = () => {
     const [data, setData] = useState<VideoData | null>(null);
     const [copied, setCopied] = useState(false);
-    const [activeTab, setActiveTab] = useState<'stats' | 'tools' | 'assets'>('stats');
+    const [activeTab, setActiveTab] = useState<TabType>('stats');
     const [showRemix, setShowRemix] = useState(false);
-    const [remixPrompt, setRemixPrompt] = useState('');
-    const [generatingScript, setGeneratingScript] = useState(false);
 
-    // New Premium Features State
-    const [transcript, setTranscript] = useState('');
-    const [segments, setSegments] = useState<Array<{ time: string, text: string }>>([]);
-    const [summary, setSummary] = useState('');
-    const [loadingSummary, setLoadingSummary] = useState(false);
-    const [showTranscript, setShowTranscript] = useState(false);
+    // Manual Transcript State
+    const [manualTranscript, setManualTranscript] = useState('');
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    // Handler: Get AI Summary
-    const handleGetSummary = async () => {
-        if (!transcript) {
-            alert('⚠️ Vui lòng extract transcript trước!');
-            return;
-        }
-
-        setLoadingSummary(true);
-        try {
-            const response = await fetch('https://seenyt.net/api/ai/summarize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ transcript })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setSummary(data.summary);
-                console.log('[SeenYT] ✅ Summary generated');
-            } else {
-                throw new Error('API failed');
-            }
-        } catch (error) {
-            console.error('[SeenYT] Summary error:', error);
-            alert('❌ Không thể tạo summary. Vui lòng thử lại.');
-        } finally {
-            setLoadingSummary(false);
-        }
-    };
-
-    // Handler: Extract Transcript with Segments
-    const handleExtractTranscript = async () => {
-        if (!data) return;
-
-        try {
-            const getFullTranscript = (videoId: string): Promise<{ transcript: string, segments: any[], error: string | null }> => {
-                return new Promise((resolve) => {
-                    const requestId = Math.random().toString(36).substring(7);
-
-                    const listener = (event: MessageEvent) => {
-                        if (event.data?.type === 'SEENYT_FULL_TRANSCRIPT_RESULT' && event.data.requestId === requestId) {
-                            window.removeEventListener('message', listener);
-                            resolve({
-                                transcript: event.data.transcript || '',
-                                segments: event.data.segments || [],
-                                error: event.data.error || null
-                            });
-                        }
-                    };
-                    window.addEventListener('message', listener);
-
-                    const existingScript = document.querySelector('script[data-seenyt-inpage]');
-                    if (existingScript) {
-                        setTimeout(() => {
-                            window.postMessage({
-                                type: 'SEENYT_GET_FULL_TRANSCRIPT',
-                                requestId,
-                                videoId
-                            }, '*');
-                        }, 100);
-                    } else {
-                        const script = document.createElement('script');
-                        script.src = chrome.runtime.getURL('assets/inpage.js');
-                        script.setAttribute('data-seenyt-inpage', 'true');
-                        script.onload = () => {
-                            setTimeout(() => {
-                                window.postMessage({
-                                    type: 'SEENYT_GET_FULL_TRANSCRIPT',
-                                    requestId,
-                                    videoId
-                                }, '*');
-                            }, 200);
-                        };
-                        (document.head || document.documentElement).appendChild(script);
-                    }
-
-                    setTimeout(() => {
-                        window.removeEventListener('message', listener);
-                        resolve({ transcript: '', segments: [], error: 'Timeout' });
-                    }, 15000);
-                });
-            };
-
-            const result = await getFullTranscript(data.videoId);
-
-            if (result.transcript) {
-                setTranscript(result.transcript);
-                setSegments(result.segments);
-                setShowTranscript(true);
-                console.log('[SeenYT] ✅ Transcript extracted:', result.segments.length, 'segments');
-            } else {
-                alert(`❌ Không lấy được transcript\n\nLý do: ${result.error || 'Video không có captions'}`);
-            }
-        } catch (error) {
-            console.error('[SeenYT] Transcript error:', error);
-            alert('❌ Lỗi khi extract transcript');
-        }
-    };
+    // Keyword Popover State
+    const [keywordPopover, setKeywordPopover] = useState<{
+        isOpen: boolean;
+        keyword: string;
+        position: { x: number; y: number };
+    }>({ isOpen: false, keyword: '', position: { x: 0, y: 0 } });
 
     const parseMetric = (str: string | undefined): number => {
         if (!str) return 0;
@@ -155,7 +63,6 @@ const Widget = () => {
         if (viewCountMeta) {
             views = parseInt(viewCountMeta.getAttribute('content') || '0');
         } else {
-            // Fallback: scrape from visible view count text
             const viewTextElem = document.querySelector('#info-container #info yt-formatted-string.ytd-video-view-count-renderer')
                 || document.querySelector('ytd-video-view-count-renderer span.view-count');
             if (viewTextElem) {
@@ -170,14 +77,12 @@ const Widget = () => {
             ? keywordsMeta.getAttribute('content')?.split(',').map(t => t.trim()).filter(Boolean) || []
             : [];
 
-        // Likes - Updated selectors for 2024/2025 YouTube UI
+        // Likes
         let likes = '0';
         const likeSelectors = [
             'ytd-menu-renderer like-button-view-model button[aria-label*="like"] .yt-spec-button-shape-next__button-text-content',
             'like-button-view-model .yt-spec-button-shape-next__button-text-content',
             '#segmented-like-button button[aria-label] .yt-spec-button-shape-next__button-text-content',
-            'ytd-toggle-button-renderer.style-scope.ytd-segmented-like-dislike-button-renderer #text',
-            '#top-level-buttons-computed ytd-toggle-button-renderer:first-child #text'
         ];
         for (const selector of likeSelectors) {
             const el = document.querySelector(selector);
@@ -189,16 +94,11 @@ const Widget = () => {
 
         // Comments count
         let comments = '0';
-        const commentSelectors = [
-            'ytd-comments-header-renderer #count yt-formatted-string span:first-child',
-            'ytd-comments-header-renderer h2 yt-formatted-string span',
-            '#comments #count .count-text span'
-        ];
+        const commentSelectors = ['ytd-comments-header-renderer #count yt-formatted-string span:first-child'];
         for (const selector of commentSelectors) {
             const el = document.querySelector(selector);
             if (el && el.textContent?.trim()) {
                 const text = el.textContent.trim();
-                // Extract just the number
                 const match = text.match(/[\d,\.]+/);
                 if (match) {
                     comments = match[0];
@@ -209,8 +109,7 @@ const Widget = () => {
 
         // Description
         const descElem = document.querySelector('#description-inline-expander yt-attributed-string')
-            || document.querySelector('#description-inline-expander .yt-core-attributed-string')
-            || document.querySelector('ytd-text-inline-expander yt-attributed-string');
+            || document.querySelector('#description-inline-expander .yt-core-attributed-string');
         const description = descElem?.textContent?.trim() || '';
 
         // Publish Date - for VPH calculation
@@ -241,7 +140,7 @@ const Widget = () => {
             views,
             likes,
             comments,
-            description: description.substring(0, 100) + '...',
+            description,
             thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
             engagementRate: engagement,
             publishDate,
@@ -275,6 +174,49 @@ const Widget = () => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     };
 
+    // Handle tag click for keyword insights
+    const handleTagClick = (tag: string, event: React.MouseEvent) => {
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
+        setKeywordPopover({
+            isOpen: true,
+            keyword: tag,
+            position: { x: rect.left, y: rect.bottom + 5 }
+        });
+    };
+
+    // --- REMIX HANDLER ---
+    const handleRemix = async (prompt?: string) => {
+        if (!data) return;
+        setIsProcessing(true);
+
+        try {
+            // Prepare content
+            let fullContent = `📺 VIDEO: ${data.title}\nID: ${data.videoId}\nLINK: https://youtu.be/${data.videoId}\n\n`;
+
+            if (manualTranscript.trim()) {
+                fullContent += `--- TRANSCRIPT ---\n${manualTranscript}`;
+            } else {
+                fullContent += `(Chưa có transcript - Hãy dán vào tool)`;
+            }
+
+            if (prompt) {
+                fullContent += `\n\n--- YÊU CẦU ---\n${prompt}`;
+            }
+
+            // Copy to Clipboard
+            await navigator.clipboard.writeText(fullContent);
+
+            // Open Dashboard
+            window.open(`https://seenyt.net/dashboard?tool=script-refiner&source=extension&video=${data.videoId}&manual=true`, '_blank');
+
+        } catch (e) {
+            alert('Lỗi: Không thể copy vào clipboard. Vui lòng thử lại.');
+        } finally {
+            setIsProcessing(false);
+            setShowRemix(false);
+        }
+    };
+
     if (!data) return (
         <div className="w-full bg-white border-2 border-red-600 rounded-xl p-4 mb-4 flex items-center justify-center gap-3 shadow-lg">
             <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
@@ -282,244 +224,186 @@ const Widget = () => {
         </div>
     );
 
+    const tabs: { key: TabType; label: string; icon: string; gradient: string }[] = [
+        { key: 'stats', label: 'STATS', icon: '📊', gradient: 'from-orange-500 to-red-500' },
+        { key: 'seo', label: 'SEO', icon: '🎯', gradient: 'from-emerald-500 to-teal-500' },
+        { key: 'ai', label: 'AI', icon: '✨', gradient: 'from-purple-500 to-pink-500' },
+        { key: 'tools', label: 'TOOLS', icon: '🔧', gradient: 'from-red-500 to-orange-500' },
+        { key: 'assets', label: 'ASSETS', icon: '📦', gradient: 'from-blue-500 to-cyan-500' },
+    ];
+
     return (
         <div className="bg-white text-gray-900 font-sans border-2 border-red-600 rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(220,38,38,0.2)] mb-4 relative z-[2000] group hover:shadow-[0_6px_30px_rgba(220,38,38,0.3)] transition-shadow duration-300">
 
-            {/* Header - BIG BRAND */}
+            {/* Header */}
             <div className="bg-gradient-to-r from-red-50 via-white to-white px-4 py-3 border-b border-red-100 flex justify-between items-center relative z-10">
                 <div className="flex items-center gap-3">
-                    {/* Big Logo Icon */}
                     <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center shadow-lg transform -skew-x-3">
                         <span className="text-white font-black text-lg italic">S</span>
                     </div>
-                    {/* Big Brand Name */}
                     <div className="flex flex-col">
                         <span className="text-xl font-black text-slate-800 tracking-tight leading-none">SEENYT<span className="text-red-600">.net</span></span>
-                        <span className="text-[9px] text-red-500 font-bold uppercase tracking-widest">Video Analytics</span>
+                        <span className="text-[9px] text-red-500 font-bold uppercase tracking-widest">VidIQ Killer 🔥</span>
                     </div>
-                </div>
-
-                {/* Tab Navigation */}
-                <div className="flex bg-slate-100/80 p-1 rounded-lg border border-slate-200">
-                    <button
-                        onClick={() => setActiveTab('stats')}
-                        className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all relative overflow-hidden ${activeTab === 'stats' ? 'text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        {activeTab === 'stats' && <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500" />}
-                        <span className="relative z-10">STATS</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('tools')}
-                        className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all relative overflow-hidden ${activeTab === 'tools' ? 'text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        {activeTab === 'tools' && <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500" />}
-                        <span className="relative z-10">TOOLS</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('assets')}
-                        className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all relative overflow-hidden ${activeTab === 'assets' ? 'text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        {activeTab === 'assets' && <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400" />}
-                        <span className="relative z-10">ASSETS</span>
-                    </button>
                 </div>
             </div>
 
+            {/* Tabs */}
+            <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex gap-1 overflow-x-auto">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold transition-all relative overflow-hidden flex items-center gap-1 flex-shrink-0 ${activeTab === tab.key
+                                ? 'text-white shadow-md'
+                                : 'text-slate-500 hover:text-slate-700 hover:bg-white'
+                            }`}
+                    >
+                        {activeTab === tab.key && (
+                            <div className={`absolute inset-0 bg-gradient-to-r ${tab.gradient}`} />
+                        )}
+                        <span className="relative z-10">{tab.icon}</span>
+                        <span className="relative z-10">{tab.label}</span>
+                    </button>
+                ))}
+            </div>
+
             {/* Content Area */}
-            <div className="p-4 min-h-[140px] relative z-10 bg-gradient-to-b from-white to-slate-50/50">
+            <div className="p-4 min-h-[200px] relative z-10 bg-gradient-to-b from-white to-slate-50/50">
 
                 {/* TAB: STATS */}
                 {activeTab === 'stats' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                        {/* Metrics Cards */}
                         <div className="grid grid-cols-4 gap-2">
-                            <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-orange-400 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Views</p>
                                 <p className="text-xl font-black text-slate-900">{formatViews(data.views)}</p>
                             </div>
-                            <div className="bg-white p-2.5 rounded-xl border border-red-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group bg-gradient-to-br from-red-50 to-white">
+                            <div className="bg-white p-2.5 rounded-xl border border-red-200 shadow-sm bg-gradient-to-br from-red-50 to-white">
                                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 to-red-600 opacity-100" />
                                 <p className="text-[10px] text-red-600 font-bold uppercase tracking-wider mb-1">VPH 🔥</p>
                                 <p className="text-xl font-black text-red-600">{data.vph}</p>
                             </div>
-                            <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-green-400 to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Engagement</p>
                                 <p className={`text-xl font-black ${parseFloat(data.engagementRate) > 5 ? 'text-emerald-600' : 'text-slate-900'}`}>{data.engagementRate}%</p>
                             </div>
-                            <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Likes</p>
                                 <p className="text-xl font-black text-orange-600">{data.likes}</p>
                             </div>
                         </div>
 
-                        {/* Tags Preview */}
+                        {/* Tags Preview with click for insights */}
                         <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
                             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
                                 <span className="text-base">🏷️</span>
                                 <span className="text-sm font-bold text-slate-800 uppercase">Video Tags ({data.tags.length})</span>
+                                <span className="text-[9px] text-slate-400 ml-auto">Click tag để xem insights</span>
                             </div>
                             <div className="flex flex-wrap gap-2.5">
                                 {data.tags.slice(0, 12).map((tag, index) => (
-                                    <span key={index} className="text-sm text-slate-900 bg-orange-100 hover:bg-orange-200 px-3 py-1.5 rounded-lg border border-orange-300 transition-colors font-semibold shadow-sm">
+                                    <button
+                                        key={index}
+                                        onClick={(e) => handleTagClick(tag, e)}
+                                        className="text-sm text-slate-900 bg-orange-100 hover:bg-orange-200 px-3 py-1.5 rounded-lg border border-orange-300 transition-colors font-semibold shadow-sm hover:scale-105"
+                                    >
                                         #{tag}
-                                    </span>
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     </div>
                 )}
 
+                {/* TAB: SEO */}
+                {activeTab === 'seo' && (
+                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                        <SEOScoreCard
+                            videoData={{
+                                title: data.title,
+                                description: data.description,
+                                tags: data.tags
+                            }}
+                        />
+                    </div>
+                )}
+
+                {/* TAB: AI */}
+                {activeTab === 'ai' && (
+                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                        <AIActionsPanel
+                            videoData={{
+                                title: data.title,
+                                description: data.description,
+                                tags: data.tags
+                            }}
+                        />
+                    </div>
+                )}
+
                 {/* TAB: TOOLS */}
                 {activeTab === 'tools' && (
-                    <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-200">
-                        {/* REMIX THIS IDEA - Prominent CTA */}
+                    <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+
+                        {/* 1. MANUAL TRANSCRIPT INPUT AREA */}
+                        <div className="bg-orange-50/50 p-3 rounded-xl border border-orange-200">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">📝</span>
+                                    <span className="text-xs font-bold text-slate-700">Dán Transcript Video</span>
+                                </div>
+                                <a
+                                    href="https://chromewebstore.google.com/detail/youtube-summary-with-chat/nmmicjeknamkfloonkhhcjmomieiodli"
+                                    target="_blank"
+                                    className="text-[9px] text-blue-600 hover:underline flex items-center gap-1 bg-white px-2 py-1 rounded border border-blue-100"
+                                >
+                                    <span>⬇️ Cài Tool lấy text</span>
+                                </a>
+                            </div>
+                            <textarea
+                                value={manualTranscript}
+                                onChange={(e) => setManualTranscript(e.target.value)}
+                                placeholder="📋 Dán nội dung transcript copy từ tool khác vào đây..."
+                                className="w-full text-[10px] p-2 rounded-lg border border-slate-200 focus:outline-none focus:border-orange-400 min-h-[60px] resize-none"
+                            />
+                        </div>
+
+                        {/* 2. REMIX BUTTON */}
                         <button
                             onClick={() => setShowRemix(true)}
-                            className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white p-3 rounded-xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all group"
+                            className={`w-full p-4 rounded-xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transition-all group ${manualTranscript.length > 50
+                                ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white'
+                                : 'bg-white border-2 border-slate-200 text-slate-400 hover:border-red-400 hover:text-red-500'
+                                }`}
                         >
                             <span className="text-2xl">🔥</span>
                             <div className="text-left">
                                 <p className="font-bold text-sm">Remix This Idea</p>
-                                <p className="text-[10px] text-red-100">Tạo script mới từ video này</p>
+                                <p className={`text-[10px] ${manualTranscript.length > 50 ? 'text-red-100' : 'text-slate-400'}`}>
+                                    {manualTranscript.length > 50 ? '✅ Đã có transcript - Sẵn sàng!' : '⚠️ Chưa có transcript (vẫn tạo được)'}
+                                </p>
                             </div>
                             <svg className="w-5 h-5 ml-auto group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </button>
 
-                        {/* PREMIUM FEATURES - NEW */}
-                        <div className="grid grid-cols-2 gap-2">
-                            {/* Extract Transcript Button */}
-                            <button
-                                onClick={handleExtractTranscript}
-                                disabled={!!transcript}
-                                className={`p-3 rounded-xl flex flex-col items-center gap-2 group transition-all shadow-sm hover:shadow-md border ${transcript
-                                        ? 'bg-green-50 border-green-200 cursor-default'
-                                        : 'bg-white hover:bg-purple-50/30 border-slate-100 hover:border-purple-200'
-                                    }`}
-                            >
-                                <div className={`p-2 rounded-full transition-transform ${!transcript && 'group-hover:scale-110'}`}
-                                    style={{ background: transcript ? '#dcfce7' : '#faf5ff' }}
-                                >
-                                    <span className="text-lg">{transcript ? '✅' : '📝'}</span>
-                                </div>
-                                <div className="text-center">
-                                    <p className={`text-[10px] font-bold ${transcript ? 'text-green-600' : 'text-slate-700 group-hover:text-purple-600'}`}>
-                                        {transcript ? 'Transcript Ready!' : 'Extract Transcript'}
-                                    </p>
-                                    {transcript && (
-                                        <p className="text-[8px] text-green-500">{segments.length} segments</p>
-                                    )}
-                                </div>
-                            </button>
-
-                            {/* AI Summary Button */}
-                            <button
-                                onClick={handleGetSummary}
-                                disabled={!transcript || loadingSummary}
-                                className={`p-3 rounded-xl flex flex-col items-center gap-2 group transition-all shadow-sm hover:shadow-md border ${!transcript
-                                        ? 'bg-slate-50 border-slate-100 opacity-50 cursor-not-allowed'
-                                        : summary
-                                            ? 'bg-blue-50 border-blue-200'
-                                            : 'bg-white hover:bg-blue-50/30 border-slate-100 hover:border-blue-200'
-                                    }`}
-                            >
-                                <div className={`p-2 rounded-full transition-transform ${transcript && !summary && !loadingSummary && 'group-hover:scale-110'}`}
-                                    style={{ background: summary ? '#dbeafe' : !transcript ? '#f1f5f9' : '#eff6ff' }}
-                                >
-                                    {loadingSummary ? (
-                                        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        <span className="text-lg">{summary ? '🎯' : '⚡'}</span>
-                                    )}
-                                </div>
-                                <div className="text-center">
-                                    <p className={`text-[10px] font-bold ${!transcript ? 'text-slate-400' : summary ? 'text-blue-600' : 'text-slate-700 group-hover:text-blue-600'
-                                        }`}>
-                                        {loadingSummary ? 'Generating...' : summary ? 'Summary Done!' : 'AI Summary'}
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
-
-                        {/* Show Transcript/Summary if available */}
-                        {(transcript || summary) && (
-                            <div className="bg-gradient-to-br from-slate-50 to-white p-3 rounded-xl border border-slate-200 space-y-3">
-                                {/* Transcript Toggle */}
-                                {transcript && (
-                                    <div>
-                                        <button
-                                            onClick={() => setShowTranscript(!showTranscript)}
-                                            className="w-full flex items-center justify-between p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                                        >
-                                            <span className="text-xs font-bold text-slate-700">📝 Transcript ({segments.length} segments)</span>
-                                            <span className="text-slate-400">{showTranscript ? '▼' : '▶'}</span>
-                                        </button>
-                                        {showTranscript && (
-                                            <div className="mt-2 max-h-[200px] overflow-y-auto bg-white p-3 rounded-lg border border-slate-200 space-y-2">
-                                                {segments.slice(0, 10).map((seg, idx) => (
-                                                    <div key={idx} className="text-[10px] hover:bg-slate-50 p-1.5 rounded">
-                                                        <span className="font-mono text-blue-600 mr-2">{seg.time}</span>
-                                                        <span className="text-slate-700">{seg.text}</span>
-                                                    </div>
-                                                ))}
-                                                {segments.length > 10 && (
-                                                    <p className="text-[9px] text-slate-400 text-center pt-2 border-t">
-                                                        +{segments.length - 10} more segments...
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Summary Display */}
-                                {summary && (
-                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-200">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-sm">🎯</span>
-                                            <span className="text-xs font-bold text-blue-900">AI Summary</span>
-                                        </div>
-                                        <div className="text-[10px] text-slate-700 leading-relaxed whitespace-pre-wrap max-h-[150px] overflow-y-auto">
-                                            {summary}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Other tools grid */}
-                        <div className="grid grid-cols-2 gap-2">
-                            <a href="https://seenyt.net/dashboard#script" target="_blank" className="bg-white hover:bg-blue-50/30 border border-slate-100 hover:border-blue-200 p-2.5 rounded-xl transition-all group flex items-center gap-3 shadow-sm hover:shadow-md">
-                                <span className="text-lg bg-blue-50 p-1.5 rounded-lg group-hover:bg-blue-100 transition-colors">✍️</span>
+                        {/* 3. Other Tools */}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                            <a href="https://seenyt.net/dashboard#rival" target="_blank" className="bg-white hover:bg-purple-50/30 border border-slate-100 hover:border-purple-200 p-2.5 rounded-xl transition-all group flex items-center gap-3 shadow-sm hover:shadow-md">
+                                <span className="text-lg bg-purple-50 p-1.5 rounded-lg group-hover:bg-purple-100 transition-colors">🕵️</span>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-700 group-hover:text-blue-600">Script Writer</p>
-                                    <p className="text-[8px] text-slate-500">Tạo kịch bản AI</p>
-                                </div>
-                            </a>
-
-                            <a href="https://seenyt.net/dashboard#seo" target="_blank" className="bg-white hover:bg-indigo-50/30 border border-slate-100 hover:border-indigo-200 p-2.5 rounded-xl transition-all group flex items-center gap-3 shadow-sm hover:shadow-md">
-                                <span className="text-lg bg-indigo-50 p-1.5 rounded-lg group-hover:bg-indigo-100 transition-colors">🚀</span>
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-700 group-hover:text-indigo-600">SEO Optimizer</p>
-                                    <p className="text-[8px] text-slate-500">Tối ưu tiêu đề/tag</p>
-                                </div>
-                            </a>
-
-                            <a href="https://seenyt.net/dashboard#rival" target="_blank" className="bg-white hover:bg-red-50/30 border border-slate-100 hover:border-red-200 p-2.5 rounded-xl transition-all group flex items-center gap-3 shadow-sm hover:shadow-md">
-                                <span className="text-lg bg-red-50 p-1.5 rounded-lg group-hover:bg-red-100 transition-colors">🕵️</span>
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-700 group-hover:text-red-600">Rival Spy</p>
+                                    <p className="text-[10px] font-bold text-slate-700 group-hover:text-purple-600">Competitor Spy</p>
                                     <p className="text-[8px] text-slate-500">Soi đối thủ</p>
                                 </div>
                             </a>
-
-                            <a href="https://seenyt.net/dashboard#niche" target="_blank" className="bg-white hover:bg-purple-50/30 border border-slate-100 hover:border-purple-200 p-2.5 rounded-xl transition-all group flex items-center gap-3 shadow-sm hover:shadow-md">
-                                <span className="text-lg bg-purple-50 p-1.5 rounded-lg group-hover:bg-purple-100 transition-colors">💎</span>
+                            <a href="https://seenyt.net/dashboard#niche" target="_blank" className="bg-white hover:bg-emerald-50/30 border border-slate-100 hover:border-emerald-200 p-2.5 rounded-xl transition-all group flex items-center gap-3 shadow-sm hover:shadow-md">
+                                <span className="text-lg bg-emerald-50 p-1.5 rounded-lg group-hover:bg-emerald-100 transition-colors">💎</span>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-700 group-hover:text-purple-600">Niche Finder</p>
-                                    <p className="text-[8px] text-slate-500">Tìm ngách ngon</p>
+                                    <p className="text-[10px] font-bold text-slate-700 group-hover:text-emerald-600">Niche Finder</p>
+                                    <p className="text-[8px] text-slate-500">Tìm ngách</p>
                                 </div>
                             </a>
                         </div>
@@ -545,13 +429,16 @@ const Widget = () => {
                             </button>
                         </div>
 
-                        <div className="bg-slate-50/50 p-2.5 rounded-lg border border-dashed border-slate-200 text-center">
-                            <p className="text-[10px] text-slate-500 mb-2">More assets coming soon...</p>
-                            <div className="flex justify-center gap-2 opacity-30">
-                                <span className="text-xl grayscale">🎵</span>
-                                <span className="text-xl grayscale">📝</span>
-                                <span className="text-xl grayscale">📊</span>
-                            </div>
+                        {/* Thumbnail Preview */}
+                        <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                            <p className="text-[10px] font-bold text-slate-600 mb-2 flex items-center gap-1">
+                                <span>🖼️</span> Thumbnail Preview
+                            </p>
+                            <img
+                                src={data.thumbnailUrl}
+                                alt="Thumbnail"
+                                className="w-full rounded-lg shadow-sm border border-slate-200"
+                            />
                         </div>
                     </div>
                 )}
@@ -563,11 +450,10 @@ const Widget = () => {
                 <a href="https://seenyt.net" target="_blank" className="text-[9px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-80 transition-opacity">Open Dashboard →</a>
             </div>
 
-            {/* REMIX MODAL OVERLAY */}
+            {/* REMIX MODAL */}
             {showRemix && data && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] backdrop-blur-sm" onClick={() => setShowRemix(false)}>
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
-                        {/* Modal Header */}
                         <div className="bg-gradient-to-r from-red-600 to-red-500 px-5 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <span className="text-2xl">🔥</span>
@@ -576,185 +462,43 @@ const Widget = () => {
                                     <p className="text-red-100 text-xs">Tạo script mới từ ý tưởng video</p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowRemix(false)} className="text-white/80 hover:text-white">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
+                            <button onClick={() => setShowRemix(false)} className="text-white/80 hover:text-white">✕</button>
                         </div>
 
-                        {/* Modal Content */}
                         <div className="p-5 space-y-4">
-                            {/* Source Video Info */}
                             <div className="bg-slate-50 p-3 rounded-lg">
                                 <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Video gốc</p>
                                 <p className="text-sm font-semibold text-slate-800 line-clamp-2">{data.title}</p>
                             </div>
 
-                            {/* Remix Options */}
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 mb-1 block">Góc nhìn mới</label>
-                                    <input
-                                        type="text"
-                                        value={remixPrompt}
-                                        onChange={(e) => setRemixPrompt(e.target.value)}
-                                        placeholder="VD: Giải thích cho người mới bắt đầu..."
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-2">
-                                    <button className="p-2 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg text-center transition-colors">
-                                        <span className="text-lg">📝</span>
-                                        <p className="text-[9px] font-bold text-slate-600">Tóm tắt</p>
-                                    </button>
-                                    <button className="p-2 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg text-center transition-colors">
-                                        <span className="text-lg">🎬</span>
-                                        <p className="text-[9px] font-bold text-slate-600">Script mới</p>
-                                    </button>
-                                    <button className="p-2 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg text-center transition-colors">
-                                        <span className="text-lg">💡</span>
-                                        <p className="text-[9px] font-bold text-slate-600">Ý tưởng</p>
-                                    </button>
-                                </div>
+                            {/* Options */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button disabled={isProcessing} onClick={() => handleRemix('Hãy tóm tắt và rút ra bài học chính từ video này.')} className="p-3 bg-white hover:bg-slate-50 border hover:border-red-200 rounded-xl text-center group transition-all disabled:opacity-50">
+                                    <span className="text-2xl mb-1 block group-hover:scale-110 transition-transform">📝</span>
+                                    <span className="text-xs font-bold text-slate-600">{isProcessing ? '...' : 'Tóm Tắt'}</span>
+                                </button>
+                                <button disabled={isProcessing} onClick={() => handleRemix('Hãy viết lại kịch bản này theo phong cách hài hước/thú vị hơn.')} className="p-3 bg-white hover:bg-slate-50 border hover:border-red-200 rounded-xl text-center group transition-all disabled:opacity-50">
+                                    <span className="text-2xl mb-1 block group-hover:scale-110 transition-transform">🎬</span>
+                                    <span className="text-xs font-bold text-slate-600">{isProcessing ? 'Processing' : 'Remix Script'}</span>
+                                </button>
                             </div>
-                        </div>
 
-                        {/* Modal Footer */}
-                        <div className="bg-slate-50 px-5 py-4 flex gap-3">
-                            <button onClick={() => setShowRemix(false)} className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">
-                                Hủy
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    if (generatingScript) return;
-                                    setGeneratingScript(true);
-
-
-                                    try {
-                                        // FIXED: Use SEENYT_GET_FULL_TRANSCRIPT which exists in inpage.ts
-                                        const getFullTranscript = (videoId: string): Promise<{ transcript: string, error: string | null, debug: any }> => {
-                                            return new Promise((resolve) => {
-                                                const requestId = Math.random().toString(36).substring(7);
-
-                                                // Listen for the response from inpage.ts
-                                                const listener = (event: MessageEvent) => {
-                                                    if (event.data?.type === 'SEENYT_FULL_TRANSCRIPT_RESULT' && event.data.requestId === requestId) {
-                                                        window.removeEventListener('message', listener);
-                                                        resolve({
-                                                            transcript: event.data.transcript || '',
-                                                            error: event.data.error || null,
-                                                            debug: event.data.debug || {}
-                                                        });
-                                                    }
-                                                };
-                                                window.addEventListener('message', listener);
-
-                                                // Ensure inpage.js is loaded
-                                                const existingScript = document.querySelector('script[data-seenyt-inpage]');
-                                                if (existingScript) {
-                                                    // Script already loaded, just send message
-                                                    setTimeout(() => {
-                                                        window.postMessage({
-                                                            type: 'SEENYT_GET_FULL_TRANSCRIPT',
-                                                            requestId,
-                                                            videoId
-                                                        }, '*');
-                                                    }, 100);
-                                                } else {
-                                                    // Load script first
-                                                    const script = document.createElement('script');
-                                                    script.src = chrome.runtime.getURL('assets/inpage.js');
-                                                    script.setAttribute('data-seenyt-inpage', 'true');
-                                                    script.onload = function () {
-                                                        console.log('[SeenYT] Inpage script loaded');
-                                                        setTimeout(() => {
-                                                            window.postMessage({
-                                                                type: 'SEENYT_GET_FULL_TRANSCRIPT',
-                                                                requestId,
-                                                                videoId
-                                                            }, '*');
-                                                        }, 200);
-                                                    };
-                                                    (document.head || document.documentElement).appendChild(script);
-                                                }
-
-                                                // Timeout fallback (15 seconds)
-                                                setTimeout(() => {
-                                                    window.removeEventListener('message', listener);
-                                                    resolve({ transcript: '', error: 'Timeout', debug: { timeout: true } });
-                                                }, 15000);
-                                            });
-                                        };
-
-                                        console.log('[SeenYT] Starting full transcript extraction...');
-                                        const result = await getFullTranscript(data.videoId);
-
-
-                                        console.log('[SeenYT] Transcript extraction result:', {
-                                            hasTranscript: !!result.transcript,
-                                            transcriptLength: result.transcript.length,
-                                            error: result.error,
-                                            debug: result.debug
-                                        });
-
-                                        // Prepare clipboard content
-                                        let fullContent = '';
-                                        if (result.transcript) {
-                                            fullContent = `📺 ${data.title}\\nVideo ID: ${data.videoId}\\n\\n--- TRANSCRIPT ---\\n\\n${result.transcript}`;
-
-                                            // Save to storage
-                                            await chrome.storage.local.set({
-                                                [`transcript_${data.videoId}`]: {
-                                                    transcript: result.transcript,
-                                                    timestamp: Date.now()
-                                                }
-                                            });
-
-                                            console.log('[SeenYT] ✅ Transcript extracted:', result.transcript.length, 'characters');
-                                        } else {
-                                            fullContent = `📺 ${data.title}\\nVideo ID: ${data.videoId}\\n\\n⚠️ Không lấy được phụ đề\\nLý do: ${result.error || 'Video không có captions'}`;
-                                            console.warn('[SeenYT] ❌ No transcript found:', result.error);
-                                        }
-
-                                        // Copy to Clipboard
-                                        try {
-                                            await navigator.clipboard.writeText(fullContent);
-                                            console.log('[SeenYT] Clipboard updated successfully');
-
-                                            // User feedback
-                                            if (!result.transcript) {
-                                                alert(`❌ Không lấy được phụ đề\\n\\nLý do: ${result.error || 'Video không có captions'}\\n\\nĐã copy thông tin cơ bản. Bạn có thể paste kịch bản thủ công.`);
-                                            } else {
-                                                // Success notification
-                                                const notification = document.createElement('div');
-                                                notification.textContent = '✅ Đã copy transcript vào clipboard!';
-                                                notification.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 999999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
-                                                document.body.appendChild(notification);
-                                                setTimeout(() => notification.remove(), 3000);
-                                            }
-                                        } catch (err) {
-                                            console.warn('[SeenYT] Clipboard write failed', err);
-                                            alert('❌ Không thể copy vào clipboard. Vui lòng thử lại.');
-                                        }
-
-                                    } catch (e) {
-                                        console.error('[SeenYT] Process failed:', e);
-                                        alert('Có lỗi xảy ra. Đang mở dashboard...');
-                                    }
-
-                                    setGeneratingScript(false);
-                                    // Always Open Dashboard
-                                    window.open(`https://seenyt.net/dashboard?tool=script-refiner&source=extension&video=${data.videoId}&title=${encodeURIComponent(data.title)}`, '_blank');
-                                }}
-                                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-bold text-white text-center transition-colors"
-                            >
-                                {generatingScript ? 'Đang xử lý...' : 'Tạo Script 🚀'}
-                            </button>
+                            <p className="text-[10px] text-center text-slate-400">
+                                {manualTranscript ? '✅ Đã bao gồm transcript bạn dán' : '⚠️ Sẽ mở Dashboard để bạn dán transcript thủ công'}
+                            </p>
                         </div>
                     </div>
                 </div>
             )}
-        </div >
+
+            {/* Keyword Popover */}
+            <KeywordPopover
+                keyword={keywordPopover.keyword}
+                isOpen={keywordPopover.isOpen}
+                onClose={() => setKeywordPopover(prev => ({ ...prev, isOpen: false }))}
+                position={keywordPopover.position}
+            />
+        </div>
     );
 };
 

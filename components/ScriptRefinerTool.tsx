@@ -59,64 +59,19 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
     // Read URL params from extension and fetch transcript
     const [fetchingTranscript, setFetchingTranscript] = React.useState(false);
 
+    // Updated Handlers for Manual Workflow
     React.useEffect(() => {
         if (router.query.source === 'extension' && router.query.video) {
-            const videoId = router.query.video as string;
             const title = router.query.title as string || '';
+            const isManual = router.query.manual === 'true';
 
-            // Set loading state with title
-            setOriginalScript(`Đang tải transcript cho: ${title}\n\nVideo ID: ${videoId}\n\nVui lòng đợi...`);
-            setFetchingTranscript(true);
-
-            // Try to get transcript from Extension Bridge first (Client-side)
-            const fetchFromApi = () => {
-                fetch(`/api/youtube-transcript?videoId=${videoId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.transcript) {
-                            setOriginalScript(`📺 ${title}\n\n--- TRANSCRIPT ---\n\n${data.transcript}`);
-                        } else {
-                            setOriginalScript(`📺 ${title}\n\n⚠️ Không lấy được transcript: ${data.message || data.error || 'Video không có phụ đề'}\n\nVideo ID: ${videoId}`);
-                        }
-                    })
-                    .catch(err => {
-                        setOriginalScript(`📺 ${title}\n\n⚠️ Lỗi khi lấy transcript: ${err.message}\n\nVideo ID: ${videoId}`);
-                    })
-                    .finally(() => {
-                        setFetchingTranscript(false);
-                    });
-            };
-
-            let receivedFromExtension = false;
-            const handleMessage = (event: MessageEvent) => {
-                if (event.data?.type === 'SEENYT_TRANSCRIPT_RESULT' && event.data.videoId === videoId) {
-                    receivedFromExtension = true;
-                    if (event.data.transcript) {
-                        setOriginalScript(`📺 ${title}\n\n--- TRANSCRIPT ---\n\n${event.data.transcript}`);
-                        setFetchingTranscript(false);
-                    } else {
-                        // Extension didn't have it, try API
-                        fetchFromApi();
-                    }
-                    window.removeEventListener('message', handleMessage);
-                }
-            };
-
-            window.addEventListener('message', handleMessage);
-            // Ask extension
-            window.postMessage({ type: 'SEENYT_GET_TRANSCRIPT', videoId }, '*');
-
-            // Fallback if extension doesn't reply in 1s
-            setTimeout(() => {
-                if (!receivedFromExtension) {
-                    window.removeEventListener('message', handleMessage);
-                    fetchFromApi();
-                }
-            }, 1000);
-
-            return () => window.removeEventListener('message', handleMessage);
+            if (isManual) {
+                setOriginalScript(`👋 Đã nhận tín hiệu từ Extension!\n\nKịch bản đã được copy vào Clipboard.\n\n👉 Vui lòng bấm Ctrl+V (hoặc Cmd+V) để dán vào đây.\n\nVideo: ${title}`);
+            } else {
+                setOriginalScript(`Video: ${title}\n\nVui lòng dán kịch bản vào đây.`);
+            }
         }
-    }, [router.query.source, router.query.video, router.query.title]);
+    }, [router.query.source, router.query.video, router.query.title, router.query.manual]);
 
     const handleCopy = () => {
         if (output?.refinedScript) {

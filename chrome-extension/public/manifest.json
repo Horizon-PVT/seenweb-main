@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "SeenYT - YouTube AI Tools",
-    "version": "1.0.0",
-    "description": "Công cụ phân tích YouTube thông minh. Xem tags, views, và nhiều hơn nữa!",
+    "name": "SeenYT - VidIQ Killer 🔥",
+    "version": "2.0.0",
+    "description": "Đánh bại VidIQ! SEO Score, AI Suggestions, Keyword Insights & nhiều hơn nữa!",
     "action": {
         "default_popup": "src/popup/index.html",
         "default_icon": {
@@ -34,11 +34,14 @@
     ],
     "permissions": [
         "storage",
-        "activeTab"
+        "activeTab",
+        "clipboardWrite"
     ],
     "host_permissions": [
         "*://*.youtube.com/*",
-        "*://studio.youtube.com/*"
+        "*://studio.youtube.com/*",
+        "*://*.seenyt.net/*",
+        "https://seenyt.net/*"
     ],
     "web_accessible_resources": [
         {

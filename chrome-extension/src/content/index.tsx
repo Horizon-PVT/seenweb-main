@@ -223,3 +223,41 @@ window.addEventListener('yt-navigate-finish', () => {
         if (getPageType() === 'studio') injectStudioWidget();
     }, 1000);
 });
+
+// ========== PROXY FETCH BRIDGE ==========
+// Listen for fetch requests from inpage.js (Main World)
+window.addEventListener('message', async (event) => {
+    if (event.source !== window) return;
+
+    if (event.data?.type === 'SEENYT_content_FETCH_REQUEST') {
+        const { requestId, url, options } = event.data;
+        console.log('[SeenYT-Bridge] Proxying fetch for:', url);
+
+        try {
+            // Forward to Background Script
+            const response = await chrome.runtime.sendMessage({
+                type: 'SEENYT_BG_FETCH',
+                url,
+                options
+            });
+
+            // Send result back to inpage.js
+            window.postMessage({
+                type: 'SEENYT_content_FETCH_RESULT',
+                requestId,
+                success: response.ok,
+                status: response.status,
+                text: response.text,
+                error: response.error
+            }, '*');
+        } catch (e: any) {
+            console.error('[SeenYT-Bridge] Error:', e);
+            window.postMessage({
+                type: 'SEENYT_content_FETCH_RESULT',
+                requestId,
+                success: false,
+                error: e.message
+            }, '*');
+        }
+    }
+});
