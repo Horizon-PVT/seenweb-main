@@ -11,25 +11,30 @@ export default function ExtensionCallback() {
         if (status === 'loading') return;
 
         if (session?.user?.email && !sent) {
-            // Send email to extension via postMessage
-            window.postMessage({
-                type: 'SEENYT_AUTH',
-                email: session.user.email,
-                name: session.user.name,
-                role: (session.user as any).role || 'FREE'
-            }, '*');
+            const email = session.user.email;
+            const role = (session.user as any).role || 'FREE';
+
+            // Save to localStorage - this persists across tabs
+            try {
+                localStorage.setItem('seenyt_email', email);
+                localStorage.setItem('seenyt_role', role);
+                localStorage.setItem('seenyt_name', session.user.name || '');
+                localStorage.setItem('seenyt_auth_timestamp', Date.now().toString());
+            } catch { }
+
+            // Broadcast to all tabs via BroadcastChannel
+            try {
+                const channel = new BroadcastChannel('seenyt_auth');
+                channel.postMessage({ type: 'AUTH_UPDATE', email, role });
+                channel.close();
+            } catch { }
 
             setSent(true);
 
-            // Also try to save to localStorage for cross-tab sync
-            try {
-                localStorage.setItem('seenyt_email', session.user.email);
-            } catch { }
-
-            // Auto close after 2 seconds
+            // Auto close after 3 seconds
             setTimeout(() => {
                 window.close();
-            }, 2000);
+            }, 3000);
         }
     }, [session, status, sent]);
 

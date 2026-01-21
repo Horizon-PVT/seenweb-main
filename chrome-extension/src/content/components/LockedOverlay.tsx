@@ -28,7 +28,27 @@ const FEATURE_INFO: Record<string, { icon: string; title: string; teaser: string
     },
 };
 
-const LockedOverlay = ({ feature, onUpgrade, darkMode = false }: Props) => {
+interface Props {
+    feature: string;
+    onUpgrade: () => void;
+    darkMode?: boolean;
+    lang?: 'VI' | 'EN';
+}
+
+const LockedOverlay = ({ feature, onUpgrade, darkMode = false, lang = 'VI' }: Props) => {
+    const t = {
+        VI: {
+            title: 'Tính năng Pro',
+            desc: 'Nâng cấp để mở khóa dữ liệu nâng cao',
+            unlock: 'Mở khóa chỉ 149K'
+        },
+        EN: {
+            title: 'Pro Feature',
+            desc: 'Upgrade to unlock advanced data',
+            unlock: 'Unlock for $9'
+        }
+    };
+    const text = t[lang];
     const info = FEATURE_INFO[feature] || { icon: '🔒', title: 'Tính năng Pro', teaser: 'Mở khóa tính năng này' };
 
     return (
@@ -64,23 +84,20 @@ const LockedOverlay = ({ feature, onUpgrade, darkMode = false }: Props) => {
                 </p>
 
                 {/* Pro badge */}
-                <div className="flex items-center gap-2 mb-4">
-                    <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
-                        ✨ PRO
-                    </span>
-                    <span className={`text-xs ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                        Tính năng trả phí
-                    </span>
+                <div className="flex flex-col items-center gap-2 mb-4">
+                    <h3 className={`font-bold text-sm mb-1 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                        {text.title}
+                    </h3>
+                    <p className={`text-[10px] mb-3 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {text.desc}
+                    </p>
+                    <button
+                        onClick={onUpgrade}
+                        className="bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-bold py-1.5 px-4 rounded-lg shadow-lg hover:shadow-red-500/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-1 mx-auto"
+                    >
+                        <span>🔓</span> {text.unlock}
+                    </button>
                 </div>
-
-                {/* Upgrade button */}
-                <button
-                    onClick={onUpgrade}
-                    className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-                >
-                    <span>🚀</span>
-                    <span>Mở khóa chỉ 149K</span>
-                </button>
 
                 {/* Sub text */}
                 <p className={`text-[10px] ${darkMode ? 'text-slate-600' : 'text-slate-400'} mt-3`}>

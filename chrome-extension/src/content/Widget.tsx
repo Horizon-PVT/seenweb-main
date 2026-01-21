@@ -49,6 +49,59 @@ const Widget = () => {
     const [darkMode, setDarkMode] = useState(false);
     const [lang, setLang] = useState<'VI' | 'EN'>('VI');
 
+    const T = {
+        VI: {
+            loading: 'Đang phân tích video...',
+            login: 'Đăng nhập',
+            upgrade: 'Nâng cấp',
+            unlock: 'Mở khóa',
+            free: 'Miễn phí',
+            pro: 'Pro',
+            remaining: 'Còn lượt',
+            outOfLimit: 'Hết lượt hôm nay!',
+            unlimited: 'Không giới hạn',
+            tabs: {
+                stats: 'THỐNG KÊ',
+                seo: 'SEO',
+                ai: 'AI',
+                spy: 'GÓC NHÌN',
+                trends: 'XU HƯỚNG',
+                abtest: 'A/B TEST',
+                tools: 'CÔNG CỤ'
+            },
+            upsell: {
+                main: 'Nâng cấp chỉ 149K',
+                sub: 'Mở khóa tất cả tính năng'
+            },
+            placeholder: 'Nhập email tài khoản SeenYT của bạn:'
+        },
+        EN: {
+            loading: 'Analysing Video...',
+            login: 'Login',
+            upgrade: 'Upgrade',
+            unlock: 'Unlock',
+            free: 'Free',
+            pro: 'Pro',
+            remaining: 'Remaining',
+            outOfLimit: 'Daily limit reached!',
+            unlimited: 'Unlimited',
+            tabs: {
+                stats: 'STATS',
+                seo: 'SEO',
+                ai: 'AI',
+                spy: 'SPY',
+                trends: 'TRENDS',
+                abtest: 'A/B TEST',
+                tools: 'TOOLS'
+            },
+            upsell: {
+                main: 'Upgrade for $9',
+                sub: 'Unlock all features'
+            },
+            placeholder: 'Enter your SeenYT account email:'
+        }
+    };
+
     // Auth state
     const [user, setUser] = useState<UserData | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -69,9 +122,10 @@ const Widget = () => {
         position: { x: number; y: number };
     }>({ isOpen: false, keyword: '', position: { x: 0, y: 0 } });
 
-    // Get saved email from Chrome storage
+    // Get saved email from Chrome storage or prompt
     const getSavedEmail = useCallback(async (): Promise<string | null> => {
         try {
+            // First try Chrome Storage
             if (typeof chrome !== 'undefined' && chrome.storage) {
                 return new Promise((resolve) => {
                     chrome.storage.local.get(['seenyt_email'], (result) => {
@@ -79,7 +133,7 @@ const Widget = () => {
                     });
                 });
             }
-            return localStorage.getItem('seenyt_email');
+            return null;
         } catch {
             return null;
         }
@@ -90,8 +144,6 @@ const Widget = () => {
         try {
             if (typeof chrome !== 'undefined' && chrome.storage) {
                 chrome.storage.local.set({ seenyt_email: email });
-            } else {
-                localStorage.setItem('seenyt_email', email);
             }
         } catch {
             // Ignore errors
@@ -99,14 +151,19 @@ const Widget = () => {
     }, []);
 
     // Check auth status
-    const checkAuth = useCallback(async () => {
+    const checkAuth = useCallback(async (emailOverride?: string) => {
         setAuthLoading(true);
         try {
-            const email = await getSavedEmail();
+            const email = emailOverride || await getSavedEmail();
             if (!email) {
                 setUser(null);
                 setAuthLoading(false);
                 return;
+            }
+
+            // Save email for next time
+            if (emailOverride) {
+                saveEmail(emailOverride);
             }
 
             const res = await fetch(`${API_BASE}/api/extension/auth-check?email=${encodeURIComponent(email)}`);
@@ -133,7 +190,7 @@ const Widget = () => {
         } finally {
             setAuthLoading(false);
         }
-    }, [getSavedEmail]);
+    }, [getSavedEmail, saveEmail]);
 
     // Detect YouTube dark mode
     useEffect(() => {
@@ -150,20 +207,17 @@ const Widget = () => {
         return () => observer.disconnect();
     }, []);
 
-    // Check auth on mount
+    // Check auth on mount and poll periodically
     useEffect(() => {
         checkAuth();
 
-        // Listen for auth callback from web
-        const handleMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'SEENYT_AUTH' && event.data?.email) {
-                saveEmail(event.data.email);
-                checkAuth();
-            }
-        };
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, [checkAuth, saveEmail]);
+        // Poll every 5 seconds to detect login changes
+        const interval = setInterval(() => {
+            checkAuth();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [checkAuth]);
 
     const parseMetric = (str: string | undefined): number => {
         if (!str) return 0;
@@ -305,9 +359,14 @@ const Widget = () => {
         });
     };
 
-    const handleLogin = () => {
-        // Open login then redirect to callback page
-        window.open(`${API_BASE}/login?callbackUrl=/extension-callback`, '_blank');
+    const handleLogin = async () => {
+        // Direct email input (works across tabs)
+        const email = window.prompt(T[lang].placeholder);
+        if (email && email.includes('@')) {
+            checkAuth(email);
+        } else if (email) {
+            alert('Email không hợp lệ. Vui lòng thử lại.');
+        }
     };
 
     const handleUpgrade = (feature?: string) => {
@@ -344,18 +403,18 @@ const Widget = () => {
     if (!data) return (
         <div className={`w-full ${theme.bg} border-2 ${theme.border} rounded-xl p-4 mb-4 flex items-center justify-center gap-3 shadow-lg`}>
             <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-red-600 text-sm font-bold tracking-wide">SEENYT.net - Analysing Video...</span>
+            <span className="text-red-600 text-sm font-bold tracking-wide">SEENYT.net - {T[lang].loading}</span>
         </div>
     );
 
     const tabs: { key: TabType; label: string; icon: string; gradient: string; locked?: boolean }[] = [
-        { key: 'stats', label: 'STATS', icon: '📊', gradient: 'from-orange-500 to-red-500' },
-        { key: 'seo', label: 'SEO', icon: '🎯', gradient: 'from-emerald-500 to-teal-500' },
-        { key: 'ai', label: 'AI', icon: '✨', gradient: 'from-purple-500 to-pink-500', locked: !user?.isPro },
-        { key: 'spy', label: 'SPY', icon: '🕵️', gradient: 'from-indigo-500 to-purple-500', locked: !user?.isPro },
-        { key: 'trends', label: 'TRENDS', icon: '📈', gradient: 'from-orange-500 to-amber-500' },
-        { key: 'tools', label: 'A/B TEST', icon: '🔀', gradient: 'from-red-500 to-orange-500' },
-        { key: 'more', label: 'TOOLS', icon: '🔧', gradient: 'from-blue-500 to-cyan-500' },
+        { key: 'stats', label: T[lang].tabs.stats, icon: '📊', gradient: 'from-orange-500 to-red-500' },
+        { key: 'seo', label: T[lang].tabs.seo, icon: '🎯', gradient: 'from-emerald-500 to-teal-500' },
+        { key: 'ai', label: T[lang].tabs.ai, icon: '✨', gradient: 'from-purple-500 to-pink-500', locked: !user?.isPro },
+        { key: 'spy', label: T[lang].tabs.spy, icon: '🕵️', gradient: 'from-indigo-500 to-purple-500', locked: !user?.isPro },
+        { key: 'trends', label: T[lang].tabs.trends, icon: '📈', gradient: 'from-orange-500 to-amber-500' },
+        { key: 'tools', label: T[lang].tabs.abtest, icon: '🔀', gradient: 'from-red-500 to-orange-500' },
+        { key: 'more', label: T[lang].tabs.tools, icon: '🔧', gradient: 'from-blue-500 to-cyan-500' },
     ];
 
     return (
@@ -403,7 +462,7 @@ const Widget = () => {
                             onClick={handleLogin}
                             className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] font-bold rounded-lg hover:shadow-md transition-all"
                         >
-                            Đăng nhập
+                            {T[lang].login}
                         </button>
                     )}
 
@@ -499,16 +558,20 @@ const Widget = () => {
                 {/* TAB: SEO */}
                 {activeTab === 'seo' && (
                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
-                        {!user?.isPro && (
-                            <UsageBanner
-                                remaining={remainingUsage['seo-score'] || 0}
-                                total={3}
-                                feature="seo-score"
-                                onUpgrade={() => handleUpgrade('seo')}
-                                darkMode={darkMode}
-                            />
+                        {canAccessTab('seo') ? (
+                            <div className="p-4">
+                                <UsageBanner
+                                    remaining={remainingUsage['seo-score']}
+                                    total={3}
+                                    onUpgrade={() => handleUpgrade('seo')}
+                                    darkMode={darkMode}
+                                    lang={lang}
+                                />
+                                <SEOScoreCard videoData={{ title: data.title, description: data.description, tags: data.tags }} />
+                            </div>
+                        ) : (
+                            <LockedOverlay feature="SEO Score" onUpgrade={() => handleUpgrade('seo')} darkMode={darkMode} lang={lang} />
                         )}
-                        <SEOScoreCard videoData={{ title: data.title, description: data.description, tags: data.tags }} />
                     </div>
                 )}
 
@@ -518,7 +581,7 @@ const Widget = () => {
                         {canAccessTab('ai') ? (
                             <AIActionsPanel videoData={{ title: data.title, description: data.description, tags: data.tags }} />
                         ) : (
-                            <LockedOverlay feature="ai" onUpgrade={() => handleUpgrade('ai')} darkMode={darkMode} />
+                            <LockedOverlay feature="AI Title & Tags" onUpgrade={() => handleUpgrade('ai')} darkMode={darkMode} lang={lang} />
                         )}
                     </div>
                 )}
@@ -529,7 +592,7 @@ const Widget = () => {
                         {canAccessTab('spy') ? (
                             <ChannelSpyPanel />
                         ) : (
-                            <LockedOverlay feature="spy" onUpgrade={() => handleUpgrade('spy')} darkMode={darkMode} />
+                            <LockedOverlay feature="Competitor Spy" onUpgrade={() => handleUpgrade('spy')} darkMode={darkMode} lang={lang} />
                         )}
                     </div>
                 )}
@@ -537,16 +600,20 @@ const Widget = () => {
                 {/* TAB: TRENDS */}
                 {activeTab === 'trends' && (
                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
-                        {!user?.isPro && (
-                            <UsageBanner
-                                remaining={remainingUsage['trends'] || 0}
-                                total={3}
-                                feature="trends"
-                                onUpgrade={() => handleUpgrade('trends')}
-                                darkMode={darkMode}
-                            />
+                        {canAccessTab('trends') ? (
+                            <div className="p-4">
+                                <UsageBanner
+                                    remaining={remainingUsage['trends']}
+                                    total={3}
+                                    onUpgrade={() => handleUpgrade('trends')}
+                                    darkMode={darkMode}
+                                    lang={lang}
+                                />
+                                <TrendPanel currentTags={data.tags} currentTitle={data.title} />
+                            </div>
+                        ) : (
+                            <LockedOverlay feature="Trends" onUpgrade={() => handleUpgrade('trends')} darkMode={darkMode} lang={lang} />
                         )}
-                        <TrendPanel currentTags={data.tags} currentTitle={data.title} />
                     </div>
                 )}
 

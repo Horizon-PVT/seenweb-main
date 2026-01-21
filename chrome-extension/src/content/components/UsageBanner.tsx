@@ -1,75 +1,53 @@
+import React from 'react';
+
 // UsageBanner.tsx - Banner hiển thị lượt còn lại và upsell nhẹ nhàng
 interface Props {
     remaining: number;
     total: number;
-    feature: string;
     onUpgrade: () => void;
     darkMode?: boolean;
+    lang?: 'VI' | 'EN';
 }
 
-const UsageBanner = ({ remaining, total, onUpgrade, darkMode = false }: Props) => {
-    const isLow = remaining <= 1;
-    const isOut = remaining <= 0;
+const UsageBanner = ({ remaining, total, onUpgrade, darkMode = false, lang = 'VI' }: Props) => {
+    const t = {
+        VI: {
+            out: 'Hết lượt hôm nay!',
+            low: 'Còn',
+            upgrade: 'Nâng cấp',
+            unlimited: 'Không giới hạn →'
+        },
+        EN: {
+            out: 'Daily limit reached!',
+            low: 'Remaining',
+            upgrade: 'Upgrade',
+            unlimited: 'Unlimited →'
+        }
+    };
+    const text = t[lang];
 
-    if (isOut) {
+    if (remaining <= 0) { // Depleted
         return (
-            <div className={`${darkMode ? 'bg-red-900/50 border-red-700' : 'bg-red-50 border-red-200'} border rounded-lg p-3 mb-3`}>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="text-lg">😢</span>
-                        <div>
-                            <p className={`text-xs font-bold ${darkMode ? 'text-red-300' : 'text-red-700'}`}>
-                                Hết lượt hôm nay!
-                            </p>
-                            <p className={`text-[10px] ${darkMode ? 'text-red-400' : 'text-red-500'}`}>
-                                Nâng cấp để dùng không giới hạn
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onUpgrade}
-                        className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[10px] font-bold rounded-lg hover:shadow-md transition-all"
-                    >
-                        Nâng cấp
-                    </button>
-                </div>
+            <div className={`text-[10px] py-1 px-2 rounded-lg flex items-center justify-between ${darkMode ? 'bg-red-900/30 text-red-200 border border-red-800' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                <span className="font-medium mr-1">{text.out}</span>
+                <button onClick={onUpgrade} className="font-bold underline ml-1 hover:text-red-500">{text.upgrade}</button>
             </div>
         );
     }
 
-    if (isLow) {
+    if (remaining <= 1) { // Low usage
         return (
-            <div className={`${darkMode ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-2 mb-3`}>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span>⚠️</span>
-                        <p className={`text-[10px] ${darkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>
-                            Còn <span className="font-bold">{remaining} lượt</span> hôm nay
-                        </p>
-                    </div>
-                    <button
-                        onClick={onUpgrade}
-                        className={`text-[9px] font-bold ${darkMode ? 'text-yellow-400' : 'text-yellow-600'} hover:underline`}
-                    >
-                        Không giới hạn →
-                    </button>
-                </div>
+            <div className={`text-[10px] py-1 px-2 rounded-lg flex items-center justify-between ${darkMode ? 'bg-orange-900/30 text-orange-200 border border-orange-800' : 'bg-orange-50 text-orange-600 border border-orange-100'}`}>
+                <span className="font-medium mr-1">{text.low} {remaining}</span>
+                <button onClick={onUpgrade} className="font-bold ml-1 hover:underline">{text.unlimited}</button>
             </div>
         );
     }
 
-    // Còn nhiều lượt → hiển thị nhẹ nhàng
+    // Normal usage
     return (
-        <div className={`${darkMode ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-lg p-2 mb-3 flex items-center justify-between`}>
-            <span className={`text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                Còn {remaining}/{total} lượt hôm nay
-            </span>
-            <button
-                onClick={onUpgrade}
-                className={`text-[9px] ${darkMode ? 'text-blue-400' : 'text-blue-500'} hover:underline`}
-            >
-                Pro: Không giới hạn
-            </button>
+        <div className={`text-[10px] py-1 px-2 rounded-lg text-center ${darkMode ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}>
+            {text.low} <span className={darkMode ? 'text-slate-200 font-bold' : 'text-slate-700 font-bold'}>{remaining}/{total}</span>
         </div>
     );
 };
