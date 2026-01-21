@@ -111,6 +111,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token }) {
       if (token.email) {
         try {
+          // Log trigger for debugging (optional if trigger arg was added, but strictly fetching DB here)
+          // console.log("JWT Callback Triggered for:", token.email); 
+
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email as string },
             select: {
@@ -122,6 +125,11 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (dbUser) {
+            // Log role change if needed, or just current role
+            if (token.role !== dbUser.role) {
+              console.log(`[NextAuth] Role refreshed for ${token.email}: ${token.role} -> ${dbUser.role}`);
+            }
+
             token.id = dbUser.id;
             token.role = dbUser.role;
             token.membershipExpiry = dbUser.membershipExpiry;
