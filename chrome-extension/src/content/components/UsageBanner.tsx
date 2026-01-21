@@ -1,5 +1,3 @@
-import React from 'react';
-
 // UsageBanner.tsx - Banner hiển thị lượt còn lại và upsell nhẹ nhàng
 interface Props {
     remaining: number;

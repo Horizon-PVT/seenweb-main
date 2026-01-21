@@ -83,13 +83,16 @@ export default async function handler(
         // Check membership còn hạn không
         const now = new Date();
         const expiry = user.membershipExpiry;
-        const isExpired = expiry ? new Date(expiry) < now : true;
 
-        // Nếu hết hạn và role không phải FREE → đã hết membership
-        const effectiveRole = (user.role !== 'FREE' && isExpired) ? 'FREE' : user.role;
+        // ADMIN always valid
+        const isAdmin = user.role === 'ADMIN';
+        const isExpired = (!isAdmin && expiry) ? new Date(expiry) < now : (!isAdmin && true);
 
-        // Xác định có phải Pro không (CREATIVE, SUPER, VIP)
-        const isPro = ['CREATIVE', 'SUPER', 'VIP'].includes(effectiveRole);
+        // Nếu hết hạn và role không phải FREE/ADMIN → đã hết membership
+        const effectiveRole = (!isAdmin && user.role !== 'FREE' && isExpired) ? 'FREE' : user.role;
+
+        // Xác định có phải Pro không (CREATIVE, SUPER, VIP, ADMIN)
+        const isPro = ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(effectiveRole);
 
         return res.status(200).json({
             authenticated: true,

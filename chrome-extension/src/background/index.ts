@@ -12,10 +12,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         const { url, options } = request;
         console.log('[SeenYT-BG] Fetching:', url);
 
-        // Force credentials to include cookies
         const fetchOptions = {
             ...options,
-            credentials: 'include' as RequestCredentials
+            cache: 'no-cache' // Force network request
         };
 
         fetch(url, fetchOptions)

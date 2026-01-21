@@ -125,7 +125,11 @@ const Widget = () => {
     // Get saved email from Chrome storage or prompt
     const getSavedEmail = useCallback(async (): Promise<string | null> => {
         try {
-            // First try Chrome Storage
+            // 1. Try localStorage first (fast, reliable on current page domain)
+            const local = localStorage.getItem('seenyt_email');
+            if (local) return local;
+
+            // 2. Try Chrome Storage (cross-context)
             if (typeof chrome !== 'undefined' && chrome.storage) {
                 return new Promise((resolve) => {
                     chrome.storage.local.get(['seenyt_email'], (result) => {
@@ -139,9 +143,12 @@ const Widget = () => {
         }
     }, []);
 
-    // Save email to Chrome storage
+    // Save email to Chrome storage AND localStorage
     const saveEmail = useCallback(async (email: string) => {
         try {
+            // Save to both for redundancy
+            localStorage.setItem('seenyt_email', email);
+
             if (typeof chrome !== 'undefined' && chrome.storage) {
                 chrome.storage.local.set({ seenyt_email: email });
             }
@@ -151,13 +158,13 @@ const Widget = () => {
     }, []);
 
     // Check auth status
-    const checkAuth = useCallback(async (emailOverride?: string) => {
-        setAuthLoading(true);
+    const checkAuth = useCallback(async (emailOverride?: string, isPolling = false) => {
+        if (!isPolling) setAuthLoading(true);
         try {
             const email = emailOverride || await getSavedEmail();
             if (!email) {
                 setUser(null);
-                setAuthLoading(false);
+                if (!isPolling) setAuthLoading(false);
                 return;
             }
 
@@ -166,13 +173,35 @@ const Widget = () => {
                 saveEmail(emailOverride);
             }
 
-            const res = await fetch(`${API_BASE}/api/extension/auth-check?email=${encodeURIComponent(email)}`);
-            const data = await res.json();
+            // Use Background Script to fetch (Bypass CSP/CORS)
+            let data;
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                const response = await new Promise<any>((resolve, reject) => {
+                    chrome.runtime.sendMessage({
+                        type: 'SEENYT_BG_FETCH',
+                        url: `${API_BASE}/api/extension/auth-check?email=${encodeURIComponent(email)}&_t=${Date.now()}`
+                    }, (res) => {
+                        if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+                        else resolve(res);
+                    });
+                });
+
+                if (!response.ok) throw new Error(response.error || 'Auth check failed');
+                data = JSON.parse(response.text);
+            } else {
+                // Fallback for non-extension env (localhost dev)
+                const res = await fetch(`${API_BASE}/api/extension/auth-check?email=${encodeURIComponent(email)}`);
+                data = await res.json();
+            }
 
             if (data.authenticated && data.user) {
-                setUser(data.user);
+                // Admin override: Treat ADMIN as PRO even if backend says false (due to expiry logic)
+                const isUserPro = data.user.isPro || data.user.role === 'ADMIN';
+                const userWithOverride = { ...data.user, isPro: isUserPro };
+
+                setUser(userWithOverride);
                 // Update remaining usage based on role
-                if (data.user.isPro) {
+                if (isUserPro) {
                     setRemainingUsage({ 'seo-score': 999, 'ab-tester': 999, 'trends': 999 });
                 } else {
                     setRemainingUsage({
@@ -185,10 +214,10 @@ const Widget = () => {
                 setUser(null);
             }
         } catch (e) {
-            console.error('Auth check error:', e);
+            if (!isPolling) console.error('Auth check error:', e);
             setUser(null);
         } finally {
-            setAuthLoading(false);
+            if (!isPolling) setAuthLoading(false);
         }
     }, [getSavedEmail, saveEmail]);
 
@@ -212,8 +241,9 @@ const Widget = () => {
         checkAuth();
 
         // Poll every 5 seconds to detect login changes
+        // Poll every 5 seconds to detect login changes (Silent Mode)
         const interval = setInterval(() => {
-            checkAuth();
+            checkAuth(undefined, true);
         }, 5000);
 
         return () => clearInterval(interval);
