@@ -67,7 +67,23 @@ model User {
   streakDays          Int             @default(0)
   lastActiveAt        DateTime?
 
+  // AI Voice Studio
+  voices              UserVoice[]
+
   @@map("users")
+}
+
+model UserVoice {
+  id        String   @id @default(cuid())
+  userId    String
+  voiceId   String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_voices")
 }
 
 model DubbingProject {

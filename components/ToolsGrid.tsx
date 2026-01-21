@@ -22,7 +22,7 @@ import ScriptRefinerTool from "./ScriptRefinerTool";
 import { MicroNicheMinerTool } from "./MicroNicheMinerTool";
 import ImageForgeTool from "./ImageForgeTool";
 import StoryStudioTool from "./StoryStudioTool";
-import TextToSpeechTool from "./TextToSpeechTool";
+import VoiceStudioTool from "./VoiceStudioTool";
 import VeocityTool from "./VeocityTool";
 import VirtualMCTool from "./VirtualMCTool";
 import UpgradeGate from "./UpgradeGate";
@@ -86,15 +86,15 @@ const toolsHot: Tool[] = [
   },
   {
     id: "text-to-speech",
-    name: "Chuyển Văn Bản -> Giọng Nói",
-    shortDescription: "Chuyển văn bản thành giọng nói cảm xúc.",
-    longDescription: "Chuyển đổi văn bản thành giọng nói cảm xúc. Hỗ trợ đa ngôn ngữ và nhiều chất giọng (vùng miền, giới tính) tự nhiên như người thật.",
-    seoKeywords: ["Voice AI", "Google TTS", "Giọng Đọc"],
-    features: ["100+ giọng", "Đa ngôn ngữ"],
-    icon: BookIcon,
-    component: TextToSpeechTool,
+    name: "AI Voice Studio (TTS + Clone)",
+    shortDescription: "Chuyển văn bản thành giọng nói & Clone giọng AI.",
+    longDescription: "Studio âm thanh AI tất cả trong một. Chuyển văn bản thành giọng nói đa ngôn ngữ, và đặc biệt tính năng Clone Giọng (Voice Cloning) chỉ từ 5 giây âm thanh mẫu.",
+    seoKeywords: ["Voice AI", "Clone Voice", "TTS"],
+    features: ["Voice Clone", "100+ giọng", "Đa ngôn ngữ"],
+    icon: MicrophoneIcon,
+    component: VoiceStudioTool,
     isHot: true,
-    isNewbie: true,
+    isNew: true,
     thumbColor: "from-teal-400 to-emerald-500",
     imageSrc: "/images/tool-tts.jpg",
   },
