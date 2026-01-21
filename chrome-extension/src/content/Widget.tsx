@@ -47,6 +47,7 @@ const Widget = () => {
     const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>('stats');
     const [darkMode, setDarkMode] = useState(false);
+    const [lang, setLang] = useState<'VI' | 'EN'>('VI');
 
     // Auth state
     const [user, setUser] = useState<UserData | null>(null);
@@ -305,7 +306,8 @@ const Widget = () => {
     };
 
     const handleLogin = () => {
-        window.open(`${API_BASE}/login?source=extension`, '_blank');
+        // Open login then redirect to callback page
+        window.open(`${API_BASE}/login?callbackUrl=/extension-callback`, '_blank');
     };
 
     const handleUpgrade = (feature?: string) => {
@@ -352,8 +354,8 @@ const Widget = () => {
         { key: 'ai', label: 'AI', icon: '✨', gradient: 'from-purple-500 to-pink-500', locked: !user?.isPro },
         { key: 'spy', label: 'SPY', icon: '🕵️', gradient: 'from-indigo-500 to-purple-500', locked: !user?.isPro },
         { key: 'trends', label: 'TRENDS', icon: '📈', gradient: 'from-orange-500 to-amber-500' },
-        { key: 'tools', label: 'TOOLS', icon: '🔧', gradient: 'from-red-500 to-orange-500' },
-        { key: 'more', label: 'MORE', icon: '⚡', gradient: 'from-blue-500 to-cyan-500' },
+        { key: 'tools', label: 'A/B TEST', icon: '🔀', gradient: 'from-red-500 to-orange-500' },
+        { key: 'more', label: 'TOOLS', icon: '🔧', gradient: 'from-blue-500 to-cyan-500' },
     ];
 
     return (
@@ -372,6 +374,17 @@ const Widget = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    {/* Upsell button - always visible for FREE users */}
+                    {!user?.isPro && !authLoading && (
+                        <button
+                            onClick={() => handleUpgrade()}
+                            className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[8px] font-bold rounded-lg hover:shadow-md transition-all flex items-center gap-1"
+                        >
+                            <span>🚀</span>
+                            <span>PRO</span>
+                        </button>
+                    )}
+
                     {/* User badge / Login button */}
                     {authLoading ? (
                         <div className="w-16 h-6 bg-slate-200 rounded animate-pulse"></div>
@@ -393,6 +406,15 @@ const Widget = () => {
                             Đăng nhập
                         </button>
                     )}
+
+                    {/* Language toggle */}
+                    <button
+                        onClick={() => setLang(lang === 'VI' ? 'EN' : 'VI')}
+                        className={`p-1.5 rounded-lg text-[9px] font-bold ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'} hover:scale-105 transition-transform`}
+                        title="Switch Language"
+                    >
+                        {lang}
+                    </button>
 
                     {/* Dark mode toggle */}
                     <button

@@ -104,7 +104,7 @@ function injectVideoWidget() {
 
     const container = document.createElement('div');
     container.id = VIDEO_WIDGET_ID;
-    container.style.cssText = `display: block; width: 100%; margin-bottom: 12px; z-index: 2000;`;
+    container.style.cssText = `display: block; width: 100%; margin-bottom: 12px; z-index: 99999; position: relative;`;
 
     if (targetElement.firstChild) {
         targetElement.insertBefore(container, targetElement.firstChild);
@@ -208,20 +208,33 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.body, { childList: true, subtree: true });
 
-// Initial run
-setTimeout(() => {
+// Initial run - try immediately and again after delays
+function runInjections() {
     if (getPageType() === 'video') injectVideoWidget();
     if (getPageType() === 'channel') injectChannelWidget();
     if (getPageType() === 'studio') injectStudioWidget();
-}, 1000);
+}
+
+// Run immediately
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    runInjections();
+} else {
+    document.addEventListener('DOMContentLoaded', runInjections);
+}
+
+// Also try after short delays for YouTube's slow loading
+setTimeout(runInjections, 500);
+setTimeout(runInjections, 1500);
+setTimeout(runInjections, 3000);
 
 // Handle YouTube's SPA navigation events
 window.addEventListener('yt-navigate-finish', () => {
-    setTimeout(() => {
-        if (getPageType() === 'video') injectVideoWidget();
-        if (getPageType() === 'channel') injectChannelWidget();
-        if (getPageType() === 'studio') injectStudioWidget();
-    }, 1000);
+    // Remove old widget first
+    const oldWidget = document.getElementById(VIDEO_WIDGET_ID);
+    if (oldWidget) oldWidget.remove();
+
+    setTimeout(runInjections, 500);
+    setTimeout(runInjections, 1500);
 });
 
 // ========== PROXY FETCH BRIDGE ==========

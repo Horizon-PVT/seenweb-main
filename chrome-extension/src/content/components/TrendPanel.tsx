@@ -21,7 +21,8 @@ const TrendPanel = ({ currentTags, currentTitle }: Props) => {
 
     useEffect(() => {
         analyzeLocalTrends();
-    }, [currentTitle, currentTags]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Only run once on mount
 
     const analyzeLocalTrends = () => {
         setLoading(true);
@@ -92,8 +93,8 @@ const TrendPanel = ({ currentTags, currentTitle }: Props) => {
                             key={i}
                             onClick={() => handleKeywordClick(kw)}
                             className={`px-2 py-1 text-[9px] font-medium rounded-lg transition-all ${activeKeyword === kw
-                                    ? 'bg-orange-500 text-white shadow-sm'
-                                    : 'bg-white border border-orange-200 text-orange-700 hover:bg-orange-100'
+                                ? 'bg-orange-500 text-white shadow-sm'
+                                : 'bg-white border border-orange-200 text-orange-700 hover:bg-orange-100'
                                 }`}
                         >
                             #{kw}
