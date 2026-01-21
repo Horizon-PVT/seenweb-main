@@ -48,10 +48,43 @@ async function setupAdmin() {
             console.log(`✅ Created new admin user ${adminEmail}`);
         }
 
-        console.log('\n📝 Admin credentials:');
-        console.log(`Email: ${adminEmail}`);
-        console.log(`Password: ${adminPassword}`);
-        console.log('\n⚠️  REMEMBER TO CHANGE THE PASSWORD AFTER FIRST LOGIN!\n');
+        const employees = [
+            'linhtrangyeubome7879@gmail.com',
+            'Nguyenhiep.victory@gmail.com'
+        ];
+
+        // Admin setup
+        // ... (Keep existing admin logic if needed, or just focus on employees)
+        // Let's keep Admin logic for safety
+        // ...
+
+        // Employee setup
+        for (const email of employees) {
+            const passwordHash = await bcrypt.hash('seenyt2024', 10);
+            const user = await prisma.user.findUnique({ where: { email } });
+
+            if (user) {
+                await prisma.user.update({
+                    where: { email },
+                    data: { role: 'VIP', dailyUsage: 0, maxDailyUsage: 9999 } // VIP role = highest after ADMIN
+                });
+                console.log(`✅ Updated employee ${email} to VIP`);
+            } else {
+                await prisma.user.create({
+                    data: {
+                        email,
+                        name: email.split('@')[0],
+                        role: 'VIP',
+                        passwordHash,
+                        dailyUsage: 0,
+                        maxDailyUsage: 9999
+                    }
+                });
+                console.log(`✅ Created employee ${email} as VIP`);
+            }
+        }
+
+        console.log('\n📝 Employee password: seenyt2024');
 
     } catch (error) {
         console.error('❌ Error setting up admin:', error);
