@@ -158,8 +158,8 @@ async def generate_audio_stream(
 
 
 if __name__ == "__main__":
-    # Preload model on startup
-    get_model()
+    # Preload model on startup - REMOVED to save RAM on startup
+    # get_model()
     
     # Run server
     port = int(os.environ.get("PORT", 8000))
