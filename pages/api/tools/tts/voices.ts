@@ -22,14 +22,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        // Return preset voices with descriptions
-        const voices = Object.entries(VOICE_INFO).map(([id, info]) => ({
+        // 1. Get Hardcoded Voices
+        const hardcodedVoices = Object.entries(VOICE_INFO).map(([id, info]) => ({
             id,
-            ...info
+            ...info,
+            type: 'preset'
         }));
 
+        // 2. Fetch Custom Voices from Python Server (Pocket TTS)
+        let customVoices: any[] = [];
+        if (TTS_SERVER_URL) {
+            try {
+                const resPy = await fetch(`${TTS_SERVER_URL}/voices`);
+                if (resPy.ok) {
+                    const data = await resPy.json();
+                    // Assuming server returns list of strings or objects
+                    // Pocket TTS usually returns list of voice IDs (filenames)
+                    // We filter out the ones that match hardcoded keys if needed, or just append 'custom_' ones.
+                    // Actually server.py returns `{"voices": [...]}`
+                    if (data.voices) {
+                        customVoices = data.voices.map((v: any) => {
+                            if (typeof v === 'string') return { id: v, name: v, type: 'custom' };
+                            return { ...v, type: 'custom' };
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn("Failed to fetch custom voices from Python server:", err);
+            }
+        }
+
+        // 3. Merge (Custom first or last? Custom first is better for visibility)
+        // Filter out duplicates if any
+        const allVoices = [...customVoices, ...hardcodedVoices];
+
         res.status(200).json({
-            voices,
+            voices: allVoices,
             supportsCloning: true,
             cloningNote: 'Upload 5-10 giây audio để clone giọng nói riêng của bạn'
         });

@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         // Check auth
         const session = await getServerSession(req, res, authOptions);
-        if (!session?.user?.email) {
+        if (!session?.user?.email && process.env.NODE_ENV !== 'development') {
             return res.status(401).json({ error: 'Please login to use TTS' });
         }
 
@@ -27,12 +27,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Check usage limits (if not PRO)
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { role: true, dailyUsage: true, maxDailyUsage: true }
-        });
+        let user;
+        if (session?.user?.email) {
+            user = await prisma.user.findUnique({
+                where: { email: session.user.email },
+                select: { role: true, dailyUsage: true, maxDailyUsage: true }
+            });
+        }
 
-        const isPro = user && ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(user.role);
+        const isPro = (process.env.NODE_ENV === 'development')
+            ? true
+            : (user && ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(user.role));
 
         // Free users: limit characters
         if (!isPro && text.length > 500) {
@@ -42,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
         }
 
-        // Call TTS server
+        // Call TTS server using FormData (Required by Server.py FastAPI Form)
         const formData = new FormData();
         formData.append('text', text);
         formData.append('voice', voice);
@@ -52,22 +57,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const ttsResponse = await fetch(`${TTS_SERVER_URL}/generate`, {
             method: 'POST',
-            body: formData
+            body: formData as any
         });
 
         if (!ttsResponse.ok) {
             const error = await ttsResponse.text();
-            throw new Error(`TTS Error: ${error}`);
+            console.error('TTS Server Error Details:', ttsResponse.status, error);
+            throw new Error(`TTS Error (${ttsResponse.status}): ${error}`);
         }
 
         // Get audio buffer
         const audioBuffer = await ttsResponse.arrayBuffer();
 
-        // Track usage
-        await prisma.user.update({
-            where: { email: session.user.email },
-            data: { dailyUsage: { increment: 1 } }
-        });
+        // Track usage (skip if dev bypass or no session)
+        if (session?.user?.email) {
+            await prisma.user.update({
+                where: { email: session.user.email },
+                data: { dailyUsage: { increment: 1 } }
+            });
+        }
 
         // Return audio
         res.setHeader('Content-Type', 'audio/wav');
@@ -85,6 +93,6 @@ export const config = {
         bodyParser: {
             sizeLimit: '1mb'
         },
-        responseLimit: false
+        responseLimit: false // Support large audio responses
     }
 };

@@ -7,6 +7,10 @@ import { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { trackEvent } from "@/lib/analytics";
 
+console.log("[DEBUG] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+console.log("[DEBUG] GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "Set" : "Missing");
+console.log("[DEBUG] NODE_ENV:", process.env.NODE_ENV);
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -94,8 +98,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         return true;
-      } catch (e) {
-        console.error("NextAuth signIn error:", e);
+      } catch (e: any) {
+        console.error("NextAuth signIn error DETAILED:", e.message, e.stack);
         return false;
       }
     },
