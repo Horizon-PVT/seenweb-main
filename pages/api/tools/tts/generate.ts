@@ -6,7 +6,7 @@ import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from '@/lib/prisma';
 
 // Railway TTS server URL (set in Vercel env vars)
-const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'http://localhost:8000';
+const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {

@@ -2,7 +2,7 @@
 // API endpoint to list available TTS voices
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'http://localhost:8000';
+const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
 
 // Preset voices with Vietnamese descriptions
 const VOICE_INFO = {

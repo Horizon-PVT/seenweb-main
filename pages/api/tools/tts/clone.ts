@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 import formidable from 'formidable';
 import fs from 'fs';
 
-const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'http://localhost:8000';
+const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
 
 export const config = {
     api: {
