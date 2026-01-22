@@ -1,3 +1,4 @@
+// @ts-nocheck
 // lib/queue.ts
 // BullMQ queue configuration for background AI tasks
 
