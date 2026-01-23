@@ -163,11 +163,11 @@ export default function AdminUsersPage() {
 
                 {/* Table */}
                 <div className="bg-white rounded-xl shadow overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm text-gray-800">
                         <thead className="bg-gray-100">
                             <tr>
                                 <th className="px-4 py-3 text-left">Email</th>
-                                <th className="px-4 py-3 text-left">Tên</th>
+                                <th className="px-4 py-3 text-left w-[200px]">Tên</th>
                                 <th className="px-4 py-3 text-center">Role</th>
                                 <th className="px-4 py-3 text-center">Usage</th>
                                 <th className="px-4 py-3 text-center">Hành động</th>
@@ -179,15 +179,15 @@ export default function AdminUsersPage() {
                             ) : users.length === 0 ? (
                                 <tr><td colSpan={5} className="text-center py-8">Không có user</td></tr>
                             ) : users.map(user => (
-                                <tr key={user.id} className="border-t hover:bg-gray-50">
-                                    <td className="px-4 py-3">{user.email}</td>
+                                <tr key={user.id} className="border-t hover:bg-gray-50 text-gray-800">
+                                    <td className="px-4 py-3 font-medium text-gray-900">{user.email}</td>
                                     <td className="px-4 py-3">{user.name || '-'}</td>
                                     <td className="px-4 py-3 text-center">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${user.role === 'ADMIN' ? 'bg-red-100 text-red-700' :
-                                                user.role === 'VIP' ? 'bg-yellow-100 text-yellow-700' :
-                                                    user.role === 'SUPER' ? 'bg-purple-100 text-purple-700' :
-                                                        user.role === 'CREATIVE' ? 'bg-blue-100 text-blue-700' :
-                                                            'bg-gray-100 text-gray-700'
+                                            user.role === 'VIP' ? 'bg-yellow-100 text-yellow-700' :
+                                                user.role === 'SUPER' ? 'bg-purple-100 text-purple-700' :
+                                                    user.role === 'CREATIVE' ? 'bg-blue-100 text-blue-700' :
+                                                        'bg-gray-100 text-gray-700'
                                             }`}>
                                             {user.role}
                                         </span>
