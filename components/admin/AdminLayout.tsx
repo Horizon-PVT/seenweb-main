@@ -16,6 +16,8 @@ import {
     LogOut,
     BarChart,
     Gift,
+    Wrench,
+    TrendingUp,
 } from 'lucide-react';
 
 interface AdminLayoutProps {

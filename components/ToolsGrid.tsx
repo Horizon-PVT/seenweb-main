@@ -277,6 +277,21 @@ const toolsDeveloper: Tool[] = [
     thumbColor: "from-purple-600 to-pink-600",
     imageSrc: "/images/tool-future-eye.jpg",
   },
+  {
+    id: "x-hot-news",
+    name: "X-Trend Hunter Pro",
+    shortDescription: "Săn trend X & Tạo video viral tự động.",
+    longDescription: "Công cụ Admin chuyên dụng: Quét hot trend từ X (Twitter), phân tích cơ hội viral và tự động viết kịch bản video đa ngôn ngữ (EN/JP/KR/ES).",
+    seoKeywords: ["X Trend", "Viral Script", "News Hunter"],
+    features: ["Scan X API", "Auto Script", "Multi-lang"],
+    icon: BinocularsIcon,
+    component: null as any,
+    isHot: true,
+    isExclusive: true,
+    isPro: true,
+    thumbColor: "from-blue-600 to-cyan-500",
+    imageSrc: "/images/tool-velocity.jpg", // Temporary reuse
+  },
 ];
 
 /* =========================
@@ -495,6 +510,12 @@ const ToolsGrid: React.FC = () => {
     // Special handling for Future Eye
     if (tool.id === 'future-eye') {
       router.push('/tools/future-eye');
+      return;
+    }
+
+    // Special handling for X Trend Hunter
+    if (tool.id === 'x-hot-news') {
+      router.push('/tools/x-trend-hunter');
       return;
     }
 
