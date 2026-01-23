@@ -46,6 +46,11 @@ export default function UpgradeGate({
     const [showSharePopup, setShowSharePopup] = useState(false);
     const hasUsedShare = typeof window !== 'undefined' && localStorage.getItem(SHARE_USED_KEY) === 'true';
 
+    // BYPASS ON LOCALHOST (Test Mode)
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        return null;
+    }
+
     if (!isOpen) return null;
 
     const handleUpgrade = () => {

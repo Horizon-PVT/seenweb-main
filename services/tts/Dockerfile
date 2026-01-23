@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python packages
 COPY requirements.txt .
+# Install CPU-only PyTorch first to reduce image size
+RUN pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code

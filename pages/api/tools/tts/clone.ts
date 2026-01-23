@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 import formidable from 'formidable';
 import fs from 'fs';
 
-const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'http://localhost:8000';
+const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
 
 export const config = {
     api: {
@@ -23,17 +23,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         // Check auth
         const session = await getServerSession(req, res, authOptions);
-        if (!session?.user?.email) {
+        if (!session?.user?.email && process.env.NODE_ENV !== 'development') {
             return res.status(401).json({ error: 'Please login to clone voices' });
         }
 
-        // Check if user is PRO (voice cloning is premium)
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { id: true, role: true }
-        });
+        // Check user role
+        let user;
+        if (session?.user?.email) {
+            user = await prisma.user.findUnique({
+                where: { email: session.user.email },
+                select: { id: true, role: true }
+            });
+        }
 
-        const isPro = user && ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(user.role);
+        const isPro = (process.env.NODE_ENV === 'development')
+            ? true
+            : (user && ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(user.role));
+
         if (!isPro) {
             return res.status(403).json({
                 error: 'Voice cloning is a PRO feature. Upgrade to unlock!',
@@ -55,38 +61,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Read file and send to TTS server
         const fileBuffer = fs.readFileSync(audioFile.filepath);
         const formData = new FormData();
-        formData.append('audio_file', new Blob([fileBuffer]), audioFile.originalFilename || 'voice.wav');
+        // Append Blob (Node 18+ compliant)
+        const blob = new Blob([fileBuffer], { type: audioFile.mimetype || 'audio/wav' });
+        formData.append('audio_file', blob, audioFile.originalFilename || 'voice.wav');
         formData.append('name', voiceName);
 
         const cloneResponse = await fetch(`${TTS_SERVER_URL}/clone`, {
             method: 'POST',
-            body: formData
+            body: formData as any
         });
 
         if (!cloneResponse.ok) {
             const error = await cloneResponse.text();
-            throw new Error(`Clone Error: ${error}`);
+            throw new Error(`Clone Error from Server: ${error}`);
         }
 
         const result = await cloneResponse.json();
 
-        // TODO: Save to database for persistence
-        // await prisma.userVoice.create({
-        //     data: {
-        //         userId: user.id,
-        //         voiceId: result.voice_id,
-        //         name: voiceName
-        //     }
-        // });
-
         // Cleanup temp file
-        fs.unlinkSync(audioFile.filepath);
+        try {
+            if (fs.existsSync(audioFile.filepath)) {
+                fs.unlinkSync(audioFile.filepath);
+            }
+        } catch (e) {
+            console.warn("Failed to cleanup temp file:", e);
+        }
 
         res.status(200).json({
             success: true,
             voiceId: result.voice_id,
             name: voiceName,
-            message: 'Voice cloned successfully! You can now use this voice for TTS.'
+            message: 'Voice cloned successfully! You can now use this voice for TTS.',
+            result: result
         });
 
     } catch (error: any) {

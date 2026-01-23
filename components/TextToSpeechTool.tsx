@@ -1,575 +1,240 @@
-// File: components/TextToSpeechTool.tsx (Multi-provider TTS with Vietnamese Upsell)
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useTranslation } from 'next-i18next';
+// File: components/TextToSpeechTool.tsx
+// REFACTORED: POCKET TTS + VIETNAM VOICE (EDGE)
+import React, { useState, useEffect } from 'react';
+
 interface TextToSpeechToolProps {
     onBack: () => void;
 }
 
-type Voice = {
-    name: string;
-    apiName: string;
-    gender: string;
-    description: string;
-};
-
-// *** DANH SÁCH GIỌNG ĐỌC OPENAI (Đã phân loại) ***
-const openaiVoices: Voice[] = [
-    // NAM
-    { name: "Onyx", apiName: "onyx", gender: "Nam", description: "Trầm ấm, Trưởng thành (Tin tức, Tài liệu)" },
-    { name: "Echo", apiName: "echo", gender: "Nam", description: "Vang, Ấm áp (Kể chuyện, Podcast)" },
-    { name: "Fable", apiName: "fable", gender: "Nam", description: "Giọng Anh (British), Thanh lịch" },
-    // NỮ
-    { name: "Alloy", apiName: "alloy", gender: "Nữ", description: "Trung tính, Đa năng (Giọng quốc dân)" },
-    { name: "Shimmer", apiName: "shimmer", gender: "Nữ", description: "Rõ ràng, Sắc sảo (Marketing, Sales)" },
-    { name: "Nova", apiName: "nova", gender: "Nữ", description: "Năng động, Trẻ trung (Video ngắn, Giải trí)" },
+// EDGE VOICES (VIETNAM)
+const VN_VOICES = [
+    { id: 'vi-VN-HoaiMyNeural', name: 'Hoài My (Nữ - Bắc - Thời Sự)', gender: 'Female' },
+    { id: 'vi-VN-NamMinhNeural', name: 'Nam Minh (Nam - Bắc - Truyện)', gender: 'Male' },
 ];
-
-// *** GIỌNG TIẾNG VIỆT - EDGE TTS (Free, dùng cho cả SRT & TEXT) ***
-const edgeVoices: Voice[] = [
-    { name: "Hoài My", apiName: "vi-VN-HoaiMyNeural", gender: "Nữ", description: "Nữ - Giọng Bắc (Miễn phí)" },
-    { name: "Nam Minh", apiName: "vi-VN-NamMinhNeural", gender: "Nam", description: "Nam - Giọng Bắc (Miễn phí)" },
-];
-
-// *** GIỌNG TIẾNG VIỆT - FPT.AI (Premium, chỉ dùng cho TEXT mode) ***
-const fptVoices: Voice[] = [
-    { name: "Ban Mai", apiName: "banmai", gender: "Nữ", description: "Nữ - Giọng Bắc trẻ (FPT)" },
-    { name: "Thu Minh", apiName: "thuminh", gender: "Nữ", description: "Nữ - Giọng Bắc (FPT)" },
-    { name: "Lệ Minh", apiName: "leminh", gender: "Nữ", description: "Nữ - Giọng Trung (FPT)" },
-    { name: "Mỹ An", apiName: "myan", gender: "Nữ", description: "Nữ - Giọng Nam (FPT)" },
-    { name: "Minh Quang", apiName: "minhquang", gender: "Nam", description: "Nam - Giọng Bắc (FPT)" },
-    { name: "Linh San", apiName: "linhsan", gender: "Nam", description: "Nam - Giọng Nam (FPT)" },
-];
-
-// Combined for TEXT mode
-const allVietnameseVoices: Voice[] = [...edgeVoices, ...fptVoices];
-
-// FPT voice IDs for backend routing
-const FPT_VOICE_IDS = ['banmai', 'thuminh', 'leminh', 'myan', 'minhquang', 'linhsan'];
-
-// Voice provider types (simplified to just openai vs vietnamese)
-type VoiceProvider = 'openai' | 'vietnamese';
-
-// Helper: Decode Audio
-const decode = (base64: string) => {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-};
-
-const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
-    // Với WAV header (được backend thêm vào), ta dùng decodeAudioData chuẩn của browser
-    // thay vì tự parse Int16Array như PCM raw.
-    // Tuy nhiên, nếu backend trả về WAV hợp lệ, ta có thể dùng ctx.decodeAudioData(buffer)
-    const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
-    return await ctx.decodeAudioData(arrayBuffer as ArrayBuffer);
-};
-
-const bufferToWav = (buffer: AudioBuffer): Blob => {
-    const numOfChan = buffer.numberOfChannels;
-    const length = buffer.length * numOfChan * 2 + 44;
-    const bufferArr = new ArrayBuffer(length);
-    const view = new DataView(bufferArr);
-    let offset = 0;
-    let pos = 0;
-
-    const setUint16 = (data: number) => { view.setUint16(pos, data, true); pos += 2; };
-    const setUint32 = (data: number) => { view.setUint32(pos, data, true); pos += 4; };
-
-    setUint32(0x46464952); // "RIFF"
-    setUint32(length - 8);
-    setUint32(0x45564157); // "WAVE"
-    setUint32(0x20746d66); // "fmt "
-    setUint32(16);
-    setUint16(1);
-    setUint16(numOfChan);
-    setUint32(buffer.sampleRate);
-    setUint32(buffer.sampleRate * 2 * numOfChan);
-    setUint16(numOfChan * 2);
-    setUint16(16);
-    setUint32(0x61746164); // "data"
-    setUint32(length - pos - 4);
-
-    const channels = Array.from({ length: buffer.numberOfChannels }, (_, i) => buffer.getChannelData(i));
-
-    while (pos < length) {
-        for (let i = 0; i < numOfChan; i++) {
-            let sample = Math.max(-1, Math.min(1, channels[i][offset]));
-            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
-            view.setInt16(pos, sample, true);
-            pos += 2;
-        }
-        offset++;
-    }
-
-    return new Blob([view], { type: 'audio/wav' });
-};
-
-const Loader: React.FC = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center">
-        <div className="w-24 h-24 text-[#CDAD5A]">
-            <svg viewBox="0 0 100 100" className="w-full h-full animate-pulse">
-                <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path d="M50 30 V 70" stroke="currentColor" strokeWidth="4" />
-                <path d="M30 50 H 70" stroke="currentColor" strokeWidth="4" />
-            </svg>
-        </div>
-        <p className="mt-4 text-sm font-semibold text-[#008080] tracking-widest animate-pulse">ĐANG TỔNG HỢP (OPENAI)...</p>
-    </div>
-);
-
-// Helper parseSRT (Giữ nguyên logic)
-interface SrtSegment {
-    id: string;
-    start: string;
-    end: string;
-    text: string;
-}
-const parseSRT = (content: string): SrtSegment[] => {
-    const segments: SrtSegment[] = [];
-    const blocks = content.trim().split(/\n\s*\n/);
-
-    for (const block of blocks) {
-        const lines = block.split('\n');
-        if (lines.length >= 3) {
-            const id = lines[0].trim();
-            const timeLine = lines[1].trim();
-            const text = lines.slice(2).join(' ').trim();
-
-            const timeMatch = timeLine.match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/);
-            if (timeMatch) {
-                segments.push({ id, start: timeMatch[1], end: timeMatch[2], text });
-            }
-        }
-    }
-    return segments;
-};
-
-
-const mergeAudioBuffers = (buffers: AudioBuffer[], ctx: AudioContext): AudioBuffer | null => {
-    if (!buffers.length) return null;
-    const totalLength = buffers.reduce((acc, b) => acc + b.length, 0);
-    const output = ctx.createBuffer(1, totalLength, buffers[0].sampleRate);
-    const channelData = output.getChannelData(0);
-    let offset = 0;
-    for (const buf of buffers) {
-        channelData.set(buf.getChannelData(0), offset);
-        offset += buf.length;
-    }
-    return output;
-};
-
-const splitTextIntoChunks = (text: string, maxChars = 500): string[] => {
-    const chunks: string[] = [];
-    const sentences = text.match(/[^.!?\n]+[.!?\n]*/g) || [text];
-    let currentChunk = "";
-
-    for (const sentence of sentences) {
-        if ((currentChunk + sentence).length > maxChars && currentChunk) {
-            chunks.push(currentChunk.trim());
-            currentChunk = "";
-        }
-        currentChunk += sentence;
-    }
-    if (currentChunk) chunks.push(currentChunk.trim());
-    return chunks;
-};
 
 const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
-    const { data: session } = useSession();
-    const router = useRouter();
-    const { t } = useTranslation('common');
-    const isEN = router.locale === 'en';
+    // Tab State
+    const [activeTab, setActiveTab] = useState<'POCKET' | 'EDGE'>('POCKET');
 
-    const [mode, setMode] = useState<'text' | 'srt'>('text');
+    // Common State
     const [scriptText, setScriptText] = useState('');
-    const [srtSegments, setSrtSegments] = useState<SrtSegment[]>([]);
-
-    // Voice provider: openai (international), edge (Vietnamese free), fpt (Vietnamese premium)
-    const [voiceProvider, setVoiceProvider] = useState<VoiceProvider>('openai');
-    const [selectedVoiceApiName, setSelectedVoiceApiName] = useState('alloy');
-    const [speed, setSpeed] = useState(1);
-
     const [isLoading, setIsLoading] = useState(false);
-    const [progress, setProgress] = useState(''); // New progress state
     const [error, setError] = useState('');
-    const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
-    const scriptTextAreaRef = useRef<HTMLTextAreaElement>(null);
-    const buttonRef = useRef<HTMLButtonElement>(null);
+    // Pocket State
+    const [pocketVoices, setPocketVoices] = useState<any[]>([]);
+    const [selectedPocketVoiceId, setSelectedPocketVoiceId] = useState<string>('');
+    const [showVoiceModal, setShowVoiceModal] = useState(false);
 
-    // Init Audio Context
+    // Clone State
+    const [showCloneModal, setShowCloneModal] = useState(false);
+    const [cloneFile, setCloneFile] = useState<File | null>(null);
+    const [cloneName, setCloneName] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
+
+    // Edge State
+    const [selectedEdgeVoice, setSelectedEdgeVoice] = useState('vi-VN-HoaiMyNeural');
+
+    // Load Pocket Voices
     useEffect(() => {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        return () => {
-            audioContextRef.current?.close();
-            if (audioSourceRef.current) audioSourceRef.current.stop();
-        };
-    }, []);
-
-    // Reset Vietnamese voice to Edge when switching to SRT mode
-    useEffect(() => {
-        if (mode === 'srt' && voiceProvider === 'vietnamese') {
-            // If current voice is FPT, switch to Edge
-            if (FPT_VOICE_IDS.includes(selectedVoiceApiName)) {
-                setSelectedVoiceApiName('vi-VN-HoaiMyNeural');
-            }
+        if (activeTab === 'POCKET' && pocketVoices.length === 0) {
+            fetch('/api/tools/tts/voices').then(res => res.json()).then(data => {
+                if (data.voices) {
+                    const processed = data.voices.map((v: any) => typeof v === 'string' ? { id: v, name: v, type: 'preset' } : v);
+                    setPocketVoices(processed);
+                    if (processed.length > 0) setSelectedPocketVoiceId(processed[0].id);
+                }
+            }).catch(console.error);
         }
-    }, [mode, voiceProvider, selectedVoiceApiName]);
+    }, [activeTab]);
 
-    // File Processing
-    const processFile = (file: File) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const content = e.target?.result as string;
-            if (file.name.endsWith('.srt')) {
-                setMode('srt');
-                setScriptText(content); // Show raw SRT
-                setSrtSegments(parseSRT(content));
-            } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-                setError("Chưa hỗ trợ file Word. Vui lòng copy nội dung và dán vào ô văn bản.");
-            } else {
-                setMode('text');
-                setScriptText(content);
-            }
-        };
-        reader.readAsText(file);
+    // Handlers
+    const handleCloneVoice = async () => {
+        if (!cloneFile || !cloneName) return setError("Thiếu file hoặc tên.");
+        if (!cloneFile.name.toLowerCase().endsWith('.wav')) {
+            return setError("Vui lòng dùng file đuôi .WAV (convertio.co) để tránh lỗi server.");
+        }
+        setIsUploading(true);
+        setError('');
+        try {
+            const formData = new FormData();
+            formData.append('audio', cloneFile);
+            formData.append('name', cloneName);
+            const res = await fetch('/api/tools/tts/clone', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Clone failed');
+            setPocketVoices(prev => [{ id: data.voiceId, name: data.name, type: 'custom' }, ...prev]);
+            setSelectedPocketVoiceId(data.voiceId);
+            setShowCloneModal(false);
+            setCloneFile(null);
+            setCloneName('');
+            alert("Clone thành công!");
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        if (e.dataTransfer.files?.[0]) processFile(e.dataTransfer.files[0]);
-    };
-
-    const handleGenerateSpeech = async () => {
-        if (!scriptText || !selectedVoiceApiName) {
-            setError("Vui lòng nhập nội dung.");
-            return;
-        }
-
+    const handleGenerate = async () => {
+        if (!scriptText.trim()) return setError("Nhập nội dung đi anh!");
         setIsLoading(true);
         setError('');
-        setProgress('');
-        setAudioBuffer(null);
-        stopAudio();
-
+        setAudioUrl(null);
         try {
-            const chunks = mode === 'text'
-                ? splitTextIntoChunks(scriptText, 800) // Chunk size ~800 chars to be safe
-                : [scriptText]; // SRT handling kept simple for now (or split logic needed for SRT too)
-
-            // If SRT is too long, we might need similar logic, but SRT structure is complex. 
-            // For now assuming Text mode is the main issue with "20 mins".
-
-            const buffers: AudioBuffer[] = [];
-
-            for (let i = 0; i < chunks.length; i++) {
-                setProgress(`Đang xử lý phần ${i + 1}/${chunks.length}...`);
-
-                const response = await fetch('/api/text-to-speech', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+            let res;
+            if (activeTab === 'POCKET') {
+                res = await fetch('/api/tools/tts/generate', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        mode: mode === 'srt' ? 'srt' : 'text', // Keep original mode if SRT
-                        scriptText: mode === 'text' ? chunks[i] : undefined,
-                        srtSegments: mode === 'srt' ? parseSRT(chunks[i]) : undefined,
-                        selectedVoiceApiName,
-                        voiceProvider, // 'openai' | 'edge' | 'fpt'
-                        speed
-                    }),
+                        text: scriptText,
+                        voice: selectedPocketVoiceId,
+                        customVoiceId: selectedPocketVoiceId.startsWith('custom_') ? selectedPocketVoiceId : undefined
+                    })
                 });
-
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error);
-
-                if (result.audioBase64 && audioContextRef.current) {
-                    const decodedBytes = decode(result.audioBase64);
-                    const buffer = await decodeAudioData(decodedBytes, audioContextRef.current, 24000, 1);
-                    buffers.push(buffer);
-                }
+            } else {
+                // EDGE (Vietnam)
+                res = await fetch('/api/tools/tts/edge', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: scriptText, voice: selectedEdgeVoice })
+                });
             }
 
-            if (buffers.length > 0 && audioContextRef.current) {
-                const finalBuffer = mergeAudioBuffers(buffers, audioContextRef.current);
-                setAudioBuffer(finalBuffer);
-                setProgress('Hoàn tất!');
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Lỗi: ${res.statusText}`);
             }
-
+            const blob = await res.blob();
+            setAudioUrl(URL.createObjectURL(blob));
         } catch (err: any) {
-            setError(`Lỗi: ${err.message}`);
+            setError(err.message);
         } finally {
             setIsLoading(false);
-            setProgress('');
         }
     };
 
-    const playAudio = useCallback(() => {
-        if (!audioBuffer || !audioContextRef.current) return;
-        if (audioSourceRef.current) audioSourceRef.current.stop();
-
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = audioBuffer;
-        source.playbackRate.value = speed;
-        source.connect(audioContextRef.current.destination);
-        source.start();
-        source.onended = () => setIsPlaying(false);
-        audioSourceRef.current = source;
-        setIsPlaying(true);
-    }, [audioBuffer, speed]);
-
-    const stopAudio = useCallback(() => {
-        if (audioSourceRef.current) {
-            audioSourceRef.current.stop();
-            audioSourceRef.current = null;
-        }
-        setIsPlaying(false);
-    }, []);
-
-    const handleDownload = () => {
-        if (!audioBuffer) return;
-        const wavBlob = bufferToWav(audioBuffer);
-        const url = URL.createObjectURL(wavBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `seenyt-audio-${Date.now()}.wav`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
+    const currentPocketName = pocketVoices.find(v => v.id === selectedPocketVoiceId)?.name || 'Chọn Giọng';
 
     return (
-        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-2 tts-bg relative">
-            <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-r from-[#CDAD5A]/50 via-[#006666]/50 to-[#CDAD5A]/50 text-center text-xs font-bold text-black backdrop-blur-sm z-20">
-                {isEN ? 'USING OPENAI TTS TECHNOLOGY (PREMIUM)' : 'SỬ DỤNG CÔNG NGHỆ OPENAI TTS (PREMIUM)'}
+        <div className="fixed inset-0 z-50 bg-[#0f111a] text-gray-200 font-sans flex flex-col">
+            {/* Header */}
+            <div className="h-16 border-b border-gray-800 bg-[#13151f] flex items-center justify-between px-6 shadow-md z-20">
+                <div className="flex items-center gap-3">
+                    <button onClick={onBack} className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 transition">←</button>
+                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">AUDIO STUDIO</h1>
+                </div>
+                {/* Tabs */}
+                <div className="flex bg-gray-900 rounded-lg p-1">
+                    <button
+                        onClick={() => setActiveTab('POCKET')}
+                        className={`px-4 py-1 rounded-md text-sm font-bold transition ${activeTab === 'POCKET' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >Pocket TTS (English/Clone)</button>
+                    <button
+                        onClick={() => setActiveTab('EDGE')}
+                        className={`px-4 py-1 rounded-md text-sm font-bold transition ${activeTab === 'EDGE' ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >Giọng Việt Nam Premium</button>
+                </div>
             </div>
-            <div className="flex justify-between items-center pt-6">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#E0E0E0] tracking-wider">
-                    {isEN ? 'TEXT TO SPEECH (OPENAI)' : 'X. LỒNG TIẾNG (OPENAI)'}
-                </h2>
-                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2 z-10">&times; {isEN ? 'Back' : 'Trở Về'}</button>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 flex-grow min-h-0">
-                {/* LEFT PANEL */}
-                <div className="lg:col-span-4 flex flex-col space-y-3 pr-2 overflow-y-auto">
+            {/* Main */}
+            <div className="flex-1 flex overflow-hidden">
+                {/* Editor */}
+                <div className="flex-1 bg-[#0f111a] flex flex-col p-6 relative">
+                    <textarea
+                        value={scriptText}
+                        onChange={(e) => setScriptText(e.target.value)}
+                        placeholder={activeTab === 'POCKET' ? "Enter text (English recommended)..." : "Nhập văn bản tiếng Việt..."}
+                        className="flex-1 bg-[#1a1d2d] border border-gray-800 rounded-xl p-6 resize-none outline-none focus:border-purple-500/50 transition mb-6"
+                    ></textarea>
 
-                    {/* --- TRUST BANNER (MỚI) --- */}
-                    <div className="bg-[#003333]/80 border border-[#008080]/50 p-3 rounded-sm flex gap-3 items-start shadow-lg backdrop-blur-md">
-                        <div className="text-2xl pt-1">🌍</div>
-                        <div>
-                            <h3 className="text-[#CDAD5A] font-bold text-xs uppercase tracking-wide">{isEN ? 'Automatic Multi-language Support' : 'Hỗ trợ đa ngôn ngữ tự động'}</h3>
-                            <p className="text-[10px] text-gray-300 leading-tight mt-1">
-                                {isEN
-                                    ? 'The system automatically detects and reads in native accents for over 50 languages (English, Japanese, Korean, French...). Just input text, AI handles the prosody.'
-                                    : 'Hệ thống tự động nhận diện và đọc chuẩn giọng bản xứ cho hơn 50 ngôn ngữ (Anh, Nhật, Hàn, Pháp...). Chỉ cần nhập văn bản, AI sẽ xử lý ngữ điệu tự nhiên nhất.'}
-                            </p>
-                        </div>
+                    <div className="flex gap-4">
+                        <button onClick={handleGenerate} disabled={isLoading} className={`flex-1 py-4 bg-gradient-to-r rounded-xl font-bold text-white shadow-lg transition disabled:opacity-50 ${activeTab === 'POCKET' ? 'from-purple-600 to-pink-600 hover:shadow-purple-500/20' : 'from-orange-600 to-red-600 hover:shadow-orange-500/20'}`}>
+                            {isLoading ? 'ĐANG XỬ LÝ...' : '⚡ TẠO AUDIO'}
+                        </button>
                     </div>
-
-                    {/* --- INSTRUCTION BANNER (NEW) --- */}
-                    <div className="bg-[#CDAD5A]/10 border border-[#CDAD5A]/30 p-3 rounded-sm flex gap-3 items-center shadow-lg backdrop-blur-md animate-pulse-slow">
-                        <div className="text-xl">⚠️</div>
-                        <div>
-                            <h3 className="text-[#CDAD5A] font-bold text-[10px] uppercase tracking-wide">{isEN ? 'Experience Optimization' : 'Tối ưu trải nghiệm'}</h3>
-                            <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
-                                {isEN
-                                    ? 'Please split files into segments under 10 minutes to optimize experience and processing speed, avoiding system overload.'
-                                    : 'Vui lòng chia nhỏ các file thành các đoạn dưới 10 phút để tối ưu trải nhiệm và tốc độ xử lý nhanh nhất , tránh quá tải hệ thống.'}
-                            </p>
-                        </div>
-                    </div>
-                    {/* Mode Toggle */}
-                    <div className="flex bg-black/30 p-1 rounded-sm border border-gray-700">
-                        <button onClick={() => setMode('text')} className={`flex-1 py-2 text-xs font-bold transition-all ${mode === 'text' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}>{isEN ? 'TEXT' : 'VĂN BẢN (TEXT)'}</button>
-                        <button onClick={() => setMode('srt')} className={`flex-1 py-2 text-xs font-bold transition-all ${mode === 'srt' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}>{isEN ? 'SRT FILE' : 'FILE PHỤ ĐỀ (SRT)'}</button>
-                    </div>
-
-                    <div>
-                        <label className="text-sm font-bold text-[#CDAD5A] font-playfair flex justify-between">
-                            {isEN ? 'CONTENT' : 'NỘI DUNG'}
-                            <label className="cursor-pointer text-xs text-[#008080] hover:underline">
-                                {isEN ? '📂 Paste or Upload File' : '📂 Dán hoặc Tải file'}
-                                <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} accept=".txt,.md,.srt" />
-                            </label>
-                        </label>
-                        <textarea
-                            ref={scriptTextAreaRef}
-                            value={scriptText}
-                            onChange={e => setScriptText(e.target.value)}
-                            onDrop={handleDrop}
-                            placeholder={mode === 'text' ? (isEN ? "Enter text (Vietnamese, English, Japanese...)..." : "Nhập văn bản (Tiếng Việt, Anh, Nhật... tùy ý)...") : (isEN ? "SRT file content..." : "Nội dung file SRT...")}
-                            className="w-full h-48 obsidian-textarea focus:border-[#CDAD5A] bronze font-mono text-xs leading-relaxed"
-                        ></textarea>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-[#008080] font-playfair">{isEN ? 'SELECT VOICE TYPE' : 'CHỌN LOẠI GIỌNG NÓI'}</label>
-
-                        {/* Provider Tabs - Only 2 tabs now */}
-                        <div className="flex bg-black/30 p-1 rounded-sm border border-gray-700 mb-2">
-                            <button
-                                onClick={() => { setVoiceProvider('openai'); setSelectedVoiceApiName('alloy'); }}
-                                className={`flex-1 py-2 text-xs font-bold transition-all ${voiceProvider === 'openai' ? 'bg-[#CDAD5A] text-black' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                {isEN ? '🌍 International' : '🌍 Quốc Tế'}
-                            </button>
-                            <button
-                                onClick={() => { setVoiceProvider('vietnamese'); setSelectedVoiceApiName('banmai'); }}
-                                className={`flex-1 py-2 text-xs font-bold transition-all ${voiceProvider === 'vietnamese' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                {isEN ? '🇻🇳 Vietnamese' : '🇻🇳 Tiếng Việt'}
-                            </button>
-                        </div>
-
-                        {/* Voice Select based on Provider */}
-                        <div className="grid grid-cols-1 gap-2 text-xs">
-                            <select value={selectedVoiceApiName} onChange={e => setSelectedVoiceApiName(e.target.value)} className="w-full obsidian-select py-2">
-                                {voiceProvider === 'openai' && (
-                                    <>
-                                        <optgroup label={isEN ? "--- MALE ---" : "--- GIỌNG NAM ---"}>
-                                            {openaiVoices.filter(v => v.gender === 'Nam').map(voice => (
-                                                <option key={voice.apiName} value={voice.apiName}>
-                                                    ♂️ {voice.name} - {voice.description}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                        <optgroup label={isEN ? "--- FEMALE ---" : "--- GIỌNG NỮ ---"}>
-                                            {openaiVoices.filter(v => v.gender === 'Nữ').map(voice => (
-                                                <option key={voice.apiName} value={voice.apiName}>
-                                                    ♀️ {voice.name} - {voice.description}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                    </>
-                                )}
-                                {voiceProvider === 'vietnamese' && (
-                                    <>
-                                        {/* SRT mode: Only show free Edge voices */}
-                                        {mode === 'srt' && (
-                                            <>
-                                                <optgroup label="--- GIỌNG MIỄN PHÍ (SRT) ---">
-                                                    {edgeVoices.map(voice => (
-                                                        <option key={voice.apiName} value={voice.apiName}>
-                                                            {voice.gender === 'Nữ' ? '♀️' : '♂️'} {voice.name} - {voice.description}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            </>
-                                        )}
-                                        {/* TEXT mode: Show all voices (Edge + FPT) */}
-                                        {mode === 'text' && (
-                                            <>
-                                                <optgroup label="--- GIỌNG MIỄN PHÍ ---">
-                                                    {edgeVoices.map(voice => (
-                                                        <option key={voice.apiName} value={voice.apiName}>
-                                                            {voice.gender === 'Nữ' ? '♀️' : '♂️'} {voice.name} - {voice.description}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                                <optgroup label="--- GIỌNG PREMIUM (FPT) ---">
-                                                    {fptVoices.map(voice => (
-                                                        <option key={voice.apiName} value={voice.apiName}>
-                                                            {voice.gender === 'Nữ' ? '♀️' : '♂️'} 👑 {voice.name} - {voice.description}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            </>
-                                        )}
-                                    </>
-                                )}
-                            </select>
-                        </div>
-
-                        {/* Speed Control - show for all providers */}
-                        <div className="mt-3 p-3 bg-black/20 rounded-sm border border-gray-700">
-                            <label className="text-xs text-gray-400 flex justify-between items-center mb-2">
-                                <span>⚡ {isEN ? 'Speed:' : 'Tốc độ đọc:'}</span>
-                                <span className="text-[#CDAD5A] font-bold">{speed.toFixed(1)}x</span>
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-gray-500">0.5x</span>
-                                <input
-                                    type="range"
-                                    min="0.5"
-                                    max="2.0"
-                                    step="0.1"
-                                    value={speed}
-                                    onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                                    className="flex-1 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#CDAD5A]"
-                                />
-                                <span className="text-[10px] text-gray-500">2.0x</span>
-                            </div>
-                        </div>
-
-                        <p className="text-[10px] text-gray-400 italic text-center">
-                            {voiceProvider === 'openai' && (isEN ? '* OpenAI voices support 40+ languages properly.' : '* Giọng OpenAI hỗ trợ 40+ ngôn ngữ tự động.')}
-                            {voiceProvider === 'vietnamese' && (isEN ? '* Vietnamese voices with regional accents.' : '* Giọng Việt Nam chuẩn với nhiều vùng miền.')}
-                        </p>
-                    </div>
-
-                    <button ref={buttonRef} onClick={handleGenerateSpeech} disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow-strong disabled:bg-gray-600 disabled:cursor-not-allowed">
-                        {isLoading ? (progress || (isEN ? "PROCESSING..." : "ĐANG XỬ LÝ...")) : (isEN ? "GENERATE AUDIO NOW" : "TẠO GIỌNG NÓI NGAY")}
-                    </button>
+                    {error && <p className="mt-2 text-red-500 text-sm bg-red-900/10 p-2 rounded">{error}</p>}
                 </div>
 
-                {/* RIGHT PANEL (Preview) */}
-                <div className="lg:col-span-6 flex flex-col space-y-3 min-h-0">
-                    <div className="h-48 flex items-center justify-center bg-black/30 border border-gray-700/50 rounded-sm overflow-hidden relative">
-                        {isLoading ? <Loader /> : (
-                            <div className="w-32 h-32 text-[#CDAD5A] relative">
-                                <svg viewBox="0 0 100 100" className="w-full h-full">
-                                    <rect x="40" y="20" width="20" height="40" rx="10" fill="currentColor" className="transition-all" style={{ filter: `drop-shadow(0 0 ${isPlaying ? '15px' : '5px'} #CDAD5A)` }} />
-                                    <path d="M50 60 V 80 H 45 V 90 H 55 V 80 H 50" stroke="currentColor" strokeWidth="2" fill="none" />
-                                    {isPlaying && (
-                                        <>
-                                            <circle cx="50" cy="40" r="15" stroke="#008080" strokeWidth="1" fill="none" className="animate-ping" style={{ animationDuration: '2s' }} />
-                                        </>
-                                    )}
-                                </svg>
+                {/* Sidebar */}
+                <div className="w-[350px] bg-[#13151f] border-l border-gray-800 p-6 flex flex-col gap-6 overflow-y-auto">
+
+                    {/* Controls based on Tab */}
+                    {activeTab === 'POCKET' ? (
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">GIỌNG ĐỌC (POCKET)</label>
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowVoiceModal(true)} className="flex-1 bg-[#1a1d2d] border border-gray-700 p-3 rounded-lg text-left font-bold text-sm hover:border-purple-500 transition">{currentPocketName}</button>
+                                <button onClick={() => setShowCloneModal(true)} className="px-3 bg-purple-900/20 text-purple-400 border border-purple-500/30 rounded-lg hover:bg-purple-900/40 transition" title="Clone Giọng Mới">+</button>
                             </div>
-                        )}
-                    </div>
-
-                    {error && <p className="text-red-500 text-center text-xs bg-red-900/20 p-2 rounded">{error}</p>}
-
-                    {audioBuffer && (
-                        <div className="p-4 bg-black/40 border border-[#008080]/30 rounded-sm flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4">
-                            <button onClick={isPlaying ? stopAudio : playAudio} className="w-12 h-12 flex items-center justify-center rounded-full bg-[#CDAD5A] text-black hover:scale-105 transition-transform">
-                                {isPlaying ? '■' : '▶'}
-                            </button>
-                            <div className="flex-1">
-                                <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                                    <div className={`h-full bg-[#008080] ${isPlaying ? 'animate-progress' : 'w-0'}`} style={{ animationDuration: `${audioBuffer.duration}s` }}></div>
-                                </div>
-                                <div className="flex justify-between text-xs text-gray-400 mt-1">
-                                    <span>0:00</span>
-                                    <span>{audioBuffer.duration.toFixed(1)}s</span>
-                                </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">GIỌNG ĐỌC (VIỆT NAM)</label>
+                            <div className="grid grid-cols-1 gap-2 bg-[#1a1d2d] p-2 rounded-lg border border-gray-800">
+                                {VN_VOICES.map(v => (
+                                    <button
+                                        key={v.id}
+                                        onClick={() => setSelectedEdgeVoice(v.id)}
+                                        className={`p-3 rounded text-left text-sm flex justify-between ${selectedEdgeVoice === v.id ? 'bg-orange-900/30 text-orange-400 font-bold border border-orange-500/50' : 'text-gray-400 hover:bg-gray-800 border border-transparent'}`}
+                                    >
+                                        <span>{v.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="mt-4 text-xs text-gray-500 italic">
+                                * Công nghệ Neural TTS thế hệ mới. Đọc diễn cảm, tự nhiên.
                             </div>
                         </div>
                     )}
 
-                    <div className="flex-grow"></div>
-
-                    <div className="flex items-center gap-4 pt-2">
-                        <button onClick={handleDownload} disabled={!audioBuffer} className="flex-grow bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all hover:bg-transparent hover:text-[#008080] disabled:opacity-50">
-                            {isEN ? 'DOWNLOAD AUDIO' : 'TẢI XUỐNG AUDIO'}
-                        </button>
-                        <button onClick={onBack} className="bg-gray-700 text-white font-bold py-3 px-5 border-2 border-gray-700 rounded-sm hover:bg-transparent hover:text-gray-400 transition-all">
-                            X
-                        </button>
+                    {/* Preview (Shared) */}
+                    <div className="bg-[#1a1d2d] p-4 rounded-xl border border-gray-800 mt-auto">
+                        <h4 className="text-xs font-bold text-gray-500 mb-3">KẾT QUẢ</h4>
+                        {audioUrl ? (
+                            <div>
+                                <audio controls src={audioUrl} className="w-full mb-3" autoPlay />
+                                <a href={audioUrl} download={`voice_${activeTab}.mp3`} className="block w-full text-center bg-gray-700 hover:bg-gray-600 py-2 rounded text-xs font-bold">Tải Xuống</a>
+                            </div>
+                        ) : (
+                            <div className="text-center text-gray-600 text-sm py-4">Chưa có audio</div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Modals for Pocket - Same */}
+            {showVoiceModal && (
+                <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-8 backdrop-blur-sm">
+                    {/* ... (Reuse existing modal markup) ... */}
+                    <div className="bg-[#13151f] w-full max-w-4xl h-[70vh] rounded-2xl border border-gray-700 flex flex-col p-4">
+                        <div className="flex justify-between mb-4">
+                            <h3 className="font-bold">Chọn Giọng Pocket</h3>
+                            <button onClick={() => setShowVoiceModal(false)}>✕</button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 overflow-y-auto">
+                            {pocketVoices.map(v => (
+                                <button key={v.id} onClick={() => { setSelectedPocketVoiceId(v.id); setShowVoiceModal(false); }} className={`p-4 rounded border ${selectedPocketVoiceId === v.id ? 'border-purple-500 bg-purple-900/20' : 'border-gray-700'}`}>
+                                    {v.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showCloneModal && (
+                <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-[#1a1d2d] w-full max-w-md p-6 rounded-xl border border-gray-700">
+                        <h3 className="text-xl font-bold mb-4">Clone Giọng Mới</h3>
+                        <div className="text-yellow-500 text-xs mb-4">Lưu ý: Chỉ hỗ trợ file .WAV. Tên file không dấu.</div>
+                        <input className="w-full bg-black/20 border border-gray-700 rounded p-2 mb-4" placeholder="Tên gợi nhớ..." value={cloneName} onChange={e => setCloneName(e.target.value)} />
+                        <input type="file" accept=".wav" onChange={e => e.target.files && setCloneFile(e.target.files[0])} className="mb-4 text-sm text-gray-400" />
+                        <button onClick={handleCloneVoice} disabled={isUploading} className="w-full bg-purple-600 py-2 rounded font-bold text-white disabled:opacity-50">{isUploading ? 'Đang Upload...' : 'Clone Auto'}</button>
+                        <button onClick={() => setShowCloneModal(false)} className="w-full mt-2 text-gray-500">Hủy</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

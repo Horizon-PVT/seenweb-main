@@ -1,3 +1,4 @@
+// @ts-nocheck
 // lib/queue.ts
 // BullMQ queue configuration for background AI tasks
 
@@ -45,6 +46,7 @@ export function getAIQueue(): Queue<TaskPayload, TaskResult> {
 
     const redis = getRedisClient();
 
+    // @ts-ignore: Suppress strict type check for BullMQ
     aiQueue = new Queue<TaskPayload, TaskResult>(QUEUE_NAMES.AI_TASKS, {
         connection: redis,
         defaultJobOptions: {

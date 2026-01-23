@@ -45,6 +45,7 @@ export interface Tool {
   isPro?: boolean;
   isExclusive?: boolean;
   isNew?: boolean;
+  isComingSoon?: boolean; // New Flag
   thumbColor?: string;
   videoSrc?: string;
   imageSrc?: string;
@@ -67,6 +68,7 @@ const toolsHot: Tool[] = [
     isHot: true,
     isPro: true,
     isExclusive: true,
+    isComingSoon: true, // SUSPENDED
     thumbColor: "from-pink-500 to-rose-500",
     imageSrc: "/images/tool-virtual-mc.jpg",
   },
@@ -133,7 +135,7 @@ const toolsContent: Tool[] = [
   {
     id: "dubbing",
     name: "AI Dubbing Studio (Lồng Tiếng)",
-    shortDescription: "Tự động dịch thuật và lồng tiếng Video.",
+    shortDescription: "Tạo video lồng tiếng tự động từ URL.",
     longDescription: "Biến video quốc tế thành video của bạn. Tự động dịch thuật, lồng tiếng Việt, khớp khẩu hình (Auto-Dubbing). Hỗ trợ tải video TikTok/YouTube và xuất bản nhanh chóng.",
     seoKeywords: ["Dubbing", "Lồng Tiếng", "Video Translator"],
     features: ["Auto Dub", "Voice AI", "Multi-Language"],
@@ -141,6 +143,7 @@ const toolsContent: Tool[] = [
     component: null as any, // Loaded in Overlay
     isHot: true,
     isNew: true,
+    isComingSoon: true, // SUSPENDED
     thumbColor: "from-yellow-500 to-amber-600",
     imageSrc: "/images/tool-dubbing-new.jpg",
   },
@@ -296,12 +299,17 @@ const CapCutCard: React.FC<{
   const toolShortDesc = t(`tools.${tool.id}.short`, tool.shortDescription);
   const toolLongDesc = t(`tools.${tool.id}.long`, tool.longDescription);
 
+  const handleClick = () => {
+    if (tool.isComingSoon) return; // Prevent click
+    onOpen();
+  };
+
   return (
     <div
-      onClick={onOpen}
+      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex flex-col bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-white/10 ring-1 ring-black/5 select-none"
+      className={`group relative flex flex-col bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-white/10 ring-1 ring-black/5 select-none ${tool.isComingSoon ? 'opacity-80 grayscale pointer-events-none' : ''}`}
       style={{ animationDelay: `${index * 50}ms` }}
     >
       {/* 1. THUMBNAIL AREA - COMPACT */}
@@ -326,7 +334,6 @@ const CapCutCard: React.FC<{
         ) : (
           <>
             <div className="absolute inset-0 bg-white/10 opacity-20" />
-            {/* Static Icon */}
             <div className="transition-all duration-300 transform group-hover:scale-110">
               <Icon className="w-8 h-8 text-white drop-shadow-md" />
             </div>
@@ -334,9 +341,18 @@ const CapCutCard: React.FC<{
         )}
 
         {/* Lock Overlay */}
-        {isLocked && (
+        {isLocked && !tool.isComingSoon && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-30 backdrop-blur-[1px]">
             <svg className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-9v2H6V8a6 6 0 1112 0zm-2 0V8a4 4 0 10-8 0v2h8z" /></svg>
+          </div>
+        )}
+
+        {/* COMING SOON OVERLAY */}
+        {tool.isComingSoon && (
+          <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40 backdrop-blur-sm">
+            <span className="text-yellow-400 text-xs font-black uppercase tracking-wider border border-yellow-400/50 px-2 py-1 rounded bg-black/50">
+              Development
+            </span>
           </div>
         )}
       </div>
@@ -346,35 +362,31 @@ const CapCutCard: React.FC<{
 
         {/* BADGES */}
         <div className="flex flex-wrap gap-0.5 mb-1">
-          {tool.isHot && <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">🔥 {t('badges.hot', 'HOT')}</span>}
-          {tool.isExclusive && <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">💎 {t('badges.exclusive', 'EXCLUSIVE')}</span>}
-          {tool.isNew && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">🚀 {t('badges.new', 'NEW')}</span>}
-          {tool.isNewbie && !tool.isHot && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">🌱 {t('badges.for_beginners', 'FOR BEGINNERS')}</span>}
+          {tool.isComingSoon ? (
+            <span className="text-[9px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">🛠️ DEV MODE</span>
+          ) : (
+            <>
+              {tool.isHot && <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">🔥 {t('badges.hot', 'HOT')}</span>}
+              {tool.isExclusive && <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">💎 {t('badges.exclusive', 'EXCLUSIVE')}</span>}
+              {tool.isNew && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">🚀 {t('badges.new', 'NEW')}</span>}
+              {tool.isNewbie && !tool.isHot && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">🌱 {t('badges.for_beginners', 'FOR BEGINNERS')}</span>}
+            </>
+          )}
         </div>
 
         {/* TOOL NAME */}
-        <h3 className="text-sm font-extrabold text-gray-800 group-hover:text-blue-600 transition-colors truncate w-full mb-0.5">
+        <h3 className={`text-sm font-extrabold transition-colors truncate w-full mb-0.5 ${tool.isComingSoon ? 'text-gray-400' : 'text-gray-800 group-hover:text-blue-600'}`}>
           {toolName}
         </h3>
 
         <p className="text-[11px] text-gray-500 line-clamp-1 leading-snug">
           {toolShortDesc}
         </p>
-
-        {/* HOVER REVEAL */}
-        <div className={`absolute inset-x-0 bottom-0 bg-white p-2 border-t border-gray-100 shadow-[-2px_-5px_15px_rgba(0,0,0,0.05)] transition-transform duration-300 transform ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
-          <p className="text-[10px] text-gray-600 leading-relaxed line-clamp-2">
-            {toolLongDesc}
-          </p>
-        </div>
       </div>
     </div>
   );
 };
 
-/* =========================
-   SECTION
-   ========================= */
 /* =========================
    SECTION
    ========================= */
