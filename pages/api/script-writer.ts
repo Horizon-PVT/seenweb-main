@@ -104,30 +104,49 @@ Trình bày dạng văn bản chia đoạn rõ ràng:
 (Kèm các ghi chú [SFX: Tiếng mưa rơi...] hoặc [Tone: Giọng trầm ấm...] trong ngoặc vuông).`;
 
     } else {
-      // === MODE: VISUAL SCRIPT (DEFAULT) ===
-      prompt = `Bạn là Đạo Diễn Hình Ảnh & Chiến Lược Gia YouTube (Top 1% Global).
-Nhiệm vụ: Viết một kịch bản Video Viral KHÔNG PHẢI ĐỂ ĐỌC, MÀ ĐỂ XEM.
+      // === MODE: VISUAL SCRIPT - OPTIMIZED FOR AI VIDEO GENERATION (RUNWAY/PIKA/KLING) ===
+      prompt = `You are an Expert AI Video Director & Prompt Engineer.
+Your task: Create a PRODUCTION-READY video script optimized for AI video generation tools (Runway Gen-3, Pika, Kling, etc.).
 
-**THÔNG SỐ ĐẦU VÀO**:
-- Ý tưởng gốc: "${idea}"
-- Ngôn ngữ Đầu ra: **Detect & Match Input Language** (Nếu Idea là Anh -> Viết Anh).
-- Mục tiêu: ${goal} -> **Áp dụng Framework: ${framework}** (${frameworkDesc}).
-- Tông giọng: ${tone}
-- Thời lượng: ${length} phút.
-- Chiến lược độ dài: ${durationContext}
+**INPUT PARAMETERS**:
+- Topic: "${idea}"
+- Goal: ${goal} → Apply Framework: ${framework}
+- Tone: ${tone}
+- Duration: ${length} minutes
+- Strategy: ${durationContext}
 
-**YÊU CẦU CỐT LÕI (VISUAL-FIRST THINKING)**:
-1. **No Talking Heads**: Hạn chế cảnh người ngồi nói. Hãy mô tả B-Roll, Meme, Text Overlay, Chuyển cảnh.
-2. **Retention Engineering**: Cứ mỗi 60 giây phải có một "Pattern Interrupt" (Thay đổi góc máy, âm thanh lạ, câu hỏi sốc) để đánh thức não bộ người xem.
-3. **Open Loop**: Gieo một bí mật ở đầu video và hứa sẽ tiết lộ ở cuối.
+**CRITICAL RULES FOR AI VIDEO TOOLS**:
+1. Each visual segment MUST be 5-8 seconds (AI tools limit: ~8s/clip)
+2. Visual prompts MUST be in ENGLISH (AI tools work best with English)
+3. Audio/Voiceover can be in the SAME LANGUAGE as the input topic
+4. ONE main subject per scene (avoid multiple characters/complex compositions)
+5. SIMPLE actions only (walk, turn, look, smile - not complex sequences)
 
-**ĐỊNH DẠNG OUTPUT (BẮT BUỘC DÙNG MARKDOWN TABLE)**:
-Hãy trình bày kịch bản dưới dạng Bảng Markdown gồm 2 cột:
-| VISUAL (Mắt thấy) | AUDIO (Tai nghe) |
-| :--- | :--- |
-| [00:00-00:15] Mô tả chi tiết cảnh quay, hành động, text hiện trên màn hình... | Lời thoại (Dialogue) hoặc Lời bình (Voiceover). Kèm chỉ dẫn cảm xúc trong ngoặc đơn (Vd: Hào hứng). |
+**VISUAL PROMPT FORMAT** (Copy-paste ready):
+\`[Shot], [Camera], [Subject], [Setting], [Action], [Lighting]. [Style keywords].\`
 
-*Lưu ý: Cột VISUAL phải chiếm 50% trọng lượng kịch bản. Đừng chỉ viết mỗi Audio.*`;
+Example:
+\`Medium shot, slow dolly in, young woman in white dress, autumn forest, turns toward camera with gentle smile, golden hour lighting. Cinematic, warm tones, 4K.\`
+
+**SCENE CONTINUITY RULES**:
+- Keep SAME character appearance across all scenes (describe clothing, hair, features consistently)
+- Use MATCH CUTS: End position of scene N = Start position of scene N+1
+- Maintain consistent COLOR PALETTE and LIGHTING STYLE
+- Note TRANSITION type: Cut / Fade / Dissolve
+
+**OUTPUT FORMAT** (Markdown Table - 4 columns):
+
+| ⏱️ TIME | 🎬 VISUAL PROMPT (English, AI-Ready) | 🎤 AUDIO | 🔗 CONTINUITY |
+|:---|:---|:---|:---|
+| 00:00-00:06 | Medium shot, static, [subject], [setting], [action], [lighting]. Cinematic, [style]. | (Voiceover in original language) | → Next: same subject, reverse angle |
+| 00:06-00:12 | Close-up, slow zoom in, [continuation]... | ... | ← Match cut from previous |
+
+**IMPORTANT**:
+- Visual prompts: MAX 25-30 words, single sentence
+- Always specify: shot type, camera movement, subject, setting, action, lighting
+- End each prompt with style keywords: "Cinematic, 4K, film grain" etc.
+- Character description must be IDENTICAL across ALL scenes
+- For ${length} minutes video, create approximately ${Math.ceil(Number(length) * 60 / 7)} segments`;
     }
     // --- Hết Prompt ---
 

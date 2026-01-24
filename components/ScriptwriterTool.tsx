@@ -262,9 +262,9 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow min-h-0">
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="md:col-span-1 flex flex-col space-y-3 pr-2 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4 flex-grow min-h-0">
+                {/* Form - Compact Left Panel */}
+                <form onSubmit={handleSubmit} className="flex flex-col space-y-2 pr-2 overflow-y-auto text-xs">
                     <div>
                         <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'RAW DATA INPUT' : 'TẠO DỮ LIỆU GỐC'}</label>
                         <textarea value={idea} onChange={e => setIdea(e.target.value)} placeholder={isEN ? 'Enter your idea, topic...' : 'Nhập ý tưởng sơ bộ, chủ đề...'} className="w-full h-24 obsidian-textarea"></textarea>
@@ -319,8 +319,8 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                     {error && <p className="text-red-500 text-center text-xs">{error}</p>}
                 </form>
 
-                {/* Output section */}
-                <div className="md:col-span-2 flex flex-col space-y-2 min-h-0">
+                {/* Output section - Larger Right Panel */}
+                <div className="flex flex-col space-y-2 min-h-0">
                     <div className="flex justify-between items-center flex-wrap gap-2">
                         <label className="text-xs font-bold text-[#008080]">{isEN ? 'SCRIPT FRAME' : 'KHUNG KỊCH BẢN PHÂN LOẠI'}</label>
                         <div className="flex items-center space-x-2">
@@ -362,30 +362,39 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                                                 {/* Text Intro */}
                                                 <div className="whitespace-pre-wrap text-gray-300 font-sans">{textBefore}</div>
 
-                                                {/* Styled Grid Table */}
+                                                {/* Styled Grid Table - 3 Columns */}
                                                 <div className="border border-gray-700 rounded-lg overflow-hidden">
                                                     {/* Header */}
-                                                    <div className="grid grid-cols-2 bg-gray-900 border-b border-gray-700">
-                                                        <div className="p-3 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-2">
-                                                            <span>👁️</span> VISUAL (Mắt thấy)
+                                                    <div className="grid grid-cols-[50%_15%_35%] bg-gray-900 border-b border-gray-700">
+                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-2 text-xs">
+                                                            <span>🎬</span> TIME + VISUAL PROMPT
                                                         </div>
-                                                        <div className="p-3 font-bold text-[#CDAD5A] uppercase tracking-wider flex items-center gap-2">
-                                                            <span>👂</span> AUDIO (Tai nghe)
+                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-1 text-xs">
+                                                            <span>🔗</span> LINK
+                                                        </div>
+                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider flex items-center gap-2 text-xs">
+                                                            <span>🎤</span> AUDIO
                                                         </div>
                                                     </div>
                                                     {/* Body */}
                                                     <div className="divide-y divide-gray-700 bg-black/40">
                                                         {bodyRows.map((row, idx) => {
                                                             const cols = row.split('|').filter(c => c.trim() !== '').map(c => c.trim());
-                                                            // Handle cases where pipe might be inside text (limitation of simple split, but okay for strict AI output)
                                                             if (cols.length < 2) return null;
+                                                            // Handle 3 or 4 columns from AI output
+                                                            const visualCol = cols[0] + (cols[1] ? ' - ' + cols[1] : ''); // Combine TIME + VISUAL
+                                                            const continuityCol = cols.length >= 4 ? cols[3] : (cols.length >= 3 ? cols[2] : '-');
+                                                            const audioCol = cols.length >= 4 ? cols[2] : (cols.length >= 3 ? cols[1] : cols[1] || '-');
                                                             return (
-                                                                <div key={idx} className="grid grid-cols-2 hover:bg-gray-800/30 transition-colors">
-                                                                    <div className="p-3 border-r border-gray-700 text-gray-300 whitespace-pre-wrap">
-                                                                        {cols[0]}
+                                                                <div key={idx} className="grid grid-cols-[50%_15%_35%] hover:bg-gray-800/30 transition-colors">
+                                                                    <div className="p-2 border-r border-gray-700 text-gray-300 whitespace-pre-wrap text-xs">
+                                                                        {visualCol}
                                                                     </div>
-                                                                    <div className="p-3 text-gray-200 whitespace-pre-wrap font-sans">
-                                                                        {cols[1]}
+                                                                    <div className="p-2 border-r border-gray-700 text-gray-400 whitespace-pre-wrap text-xs italic">
+                                                                        {continuityCol}
+                                                                    </div>
+                                                                    <div className="p-2 text-gray-200 whitespace-pre-wrap font-sans text-xs">
+                                                                        {audioCol}
                                                                     </div>
                                                                 </div>
                                                             );
