@@ -16,6 +16,10 @@ const VOICE_INFO = {
     azelma: { name: 'Azelma', gender: 'female', accent: 'American', description: 'Giọng nữ chuyên nghiệp, rõ ràng' }
 };
 
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { prisma } from '@/lib/prisma';
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -29,31 +33,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             type: 'preset'
         }));
 
-        // 2. Fetch Custom Voices from Python Server (Pocket TTS)
+        // 2. Fetch User's Custom Voices from DB
         let customVoices: any[] = [];
-        if (TTS_SERVER_URL) {
-            try {
-                const resPy = await fetch(`${TTS_SERVER_URL}/voices`);
-                if (resPy.ok) {
-                    const data = await resPy.json();
-                    // Assuming server returns list of strings or objects
-                    // Pocket TTS usually returns list of voice IDs (filenames)
-                    // We filter out the ones that match hardcoded keys if needed, or just append 'custom_' ones.
-                    // Actually server.py returns `{"voices": [...]}`
-                    if (data.voices) {
-                        customVoices = data.voices.map((v: any) => {
-                            if (typeof v === 'string') return { id: v, name: v, type: 'custom' };
-                            return { ...v, type: 'custom' };
-                        });
-                    }
-                }
-            } catch (err) {
-                console.warn("Failed to fetch custom voices from Python server:", err);
+        const session = await getServerSession(req, res, authOptions);
+
+        if (session?.user?.email) {
+            // Find user first to get ID
+            const user = await prisma.user.findUnique({
+                where: { email: session.user.email },
+                select: { id: true }
+            });
+
+            if (user) {
+                const userVoices = await prisma.userVoice.findMany({
+                    where: { userId: user.id },
+                    orderBy: { createdAt: 'desc' }
+                });
+
+                customVoices = userVoices.map(v => ({
+                    id: v.voiceId,
+                    name: v.name,
+                    type: 'custom',
+                    expiresAt: v.expiresAt
+                }));
             }
         }
 
-        // 3. Merge (Custom first or last? Custom first is better for visibility)
-        // Filter out duplicates if any
+        // 3. Merge
         const allVoices = [...customVoices, ...hardcodedVoices];
 
         res.status(200).json({

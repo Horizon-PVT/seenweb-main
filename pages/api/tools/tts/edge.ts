@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { createHash } from 'crypto';
 import https from 'https';
-import { getAudioUrl } from 'google-tts-api';
+
 
 export const config = {
     api: {

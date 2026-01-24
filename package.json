@@ -70,6 +70,7 @@
     "swr": "^2.3.8",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
+    "wavefile": "^11.0.0",
     "ws": "^8.18.0",
     "youtube-captions-scraper": "^2.0.3",
     "youtube-transcript": "^1.2.1"
