@@ -57,7 +57,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const ttsResponse = await fetch(`${TTS_SERVER_URL}/generate`, {
             method: 'POST',
-            body: formData as any
+            body: formData as any,
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
         });
 
         if (!ttsResponse.ok) {

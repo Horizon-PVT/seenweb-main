@@ -95,7 +95,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const cloneResponse = await fetch(`${TTS_SERVER_URL}/clone`, {
             method: 'POST',
-            body: formData as any
+            body: formData as any,
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
         });
 
         if (!cloneResponse.ok) {

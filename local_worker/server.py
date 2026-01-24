@@ -56,6 +56,25 @@ def get_model():
         print("TTS model loaded successfully!")
     return tts_model
 
+def load_saved_voices():
+    """Load saved custom voices from disk"""
+    global voice_states
+    voices_dir = "voices"
+    if not os.path.exists(voices_dir):
+        os.makedirs(voices_dir)
+    
+    print("Loading saved voices...")
+    model = get_model()
+    for filename in os.listdir(voices_dir):
+        if filename.endswith(".wav"):
+            voice_id = filename[:-4] # Remove .wav
+            path = os.path.join(voices_dir, filename)
+            try:
+                voice_states[voice_id] = model.get_state_for_audio_prompt(path)
+                print(f"Loaded voice: {voice_id}")
+            except Exception as e:
+                print(f"Failed to load {filename}: {e}")
+
 def get_voice_state(voice: str):
     """Get or create voice state for a voice"""
     global voice_states
@@ -104,20 +123,27 @@ def split_text_into_chunks(text: str, max_chars: int = MAX_CHUNK_CHARS) -> List[
 
 def parse_srt(srt_content: str) -> List[dict]:
     """Parse SRT file content into list of {index, start, end, text}"""
+    # Normalize line endings (Windows CRLF -> Unix LF)
+    srt_content = srt_content.replace('\r\n', '\n').replace('\r', '\n')
+    
     pattern = re.compile(
         r'(\d+)\s*\n'
-        r'(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})\s*\n'
+        r'(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,\.]\d{3})\s*\n'
         r'((?:(?!\n\n).)*)',
         re.DOTALL
     )
     
     entries = []
     for match in pattern.finditer(srt_content):
+        text = match.group(4).replace('\n', ' ').strip()
+        # Skip empty text entries
+        if not text:
+            continue
         entries.append({
             "index": int(match.group(1)),
-            "start": match.group(2),
-            "end": match.group(3),
-            "text": match.group(4).replace('\n', ' ').strip()
+            "start": match.group(2).replace('.', ','),  # Normalize timestamp separator
+            "end": match.group(3).replace('.', ','),
+            "text": text
         })
     
     return entries
@@ -129,11 +155,22 @@ async def health_check():
     return {"status": "ok", "service": "SeenYT TTS Server", "version": "2.0.0"}
 
 
+
+# Startup event to load voices
+@app.on_event("startup")
+async def startup_event():
+    get_model()
+    load_saved_voices()
+
 @app.get("/voices")
 async def list_voices():
-    """List available preset voices"""
+    """List available preset and custom voices"""
+    # Get list of custom voice IDs that are currently loaded
+    custom_voice_ids = [vid for vid in voice_states.keys() if vid.startswith("custom_")]
+    
     return {
         "voices": PRESET_VOICES,
+        "custom_voices": custom_voice_ids,
         "description": "Use these voice names in the 'voice' parameter"
     }
 
@@ -202,8 +239,14 @@ async def generate_from_srt(
     voice: str = Form("alba", description="Voice name"),
     custom_voice_id: Optional[str] = Form(None, description="Custom voice ID")
 ):
-    """Generate audio from SRT file - combines all subtitle entries into one audio"""
+    """Generate audio from SRT file - respects timing by inserting silence"""
     try:
+        # Helper to convert timestamp to seconds
+        def timestamp_to_seconds(ts):
+            h, m, s_ms = ts.split(':')
+            s, ms = s_ms.split(',')
+            return int(h) * 3600 + int(m) * 60 + int(s) + int(ms) / 1000.0
+
         # Read and parse SRT file
         content = await srt_file.read()
         srt_text = content.decode('utf-8')
@@ -212,49 +255,77 @@ async def generate_from_srt(
         if not entries:
             raise HTTPException(status_code=400, detail="No valid SRT entries found")
         
-        # Combine all text
-        full_text = " ".join([entry["text"] for entry in entries])
-        print(f"SRT: {len(entries)} entries, {len(full_text)} chars total")
+        print(f"SRT Processing: {len(entries)} entries")
         
-        # Generate audio using existing endpoint logic
         model = get_model()
-        
         if custom_voice_id and custom_voice_id in voice_states:
             voice_state = voice_states[custom_voice_id]
         elif voice in PRESET_VOICES:
             voice_state = get_voice_state(voice)
         else:
             raise HTTPException(status_code=400, detail=f"Invalid voice: {voice}")
-        
-        # Split and generate
-        chunks = split_text_into_chunks(full_text)
+            
         audio_segments = []
+        current_time_sec = 0.0
+        sample_rate = model.sample_rate
+        last_end_sec = 0.0  # Track the final end time
         
-        for i, chunk in enumerate(chunks):
-            print(f"  SRT [{i+1}/{len(chunks)}] {chunk[:40]}...")
-            chunk_audio = model.generate_audio(voice_state, chunk)
-            audio_segments.append(chunk_audio.numpy())
+        for i, entry in enumerate(entries):
+            start_sec = timestamp_to_seconds(entry["start"])
+            end_sec = timestamp_to_seconds(entry["end"])
+            text = entry["text"]
+            last_end_sec = max(last_end_sec, end_sec)  # Track overall end
+            
+            # 1. Add leading silence to reach START time
+            gap_to_start = start_sec - current_time_sec
+            if gap_to_start > 0.01:  # >10ms
+                silence_samples = int(gap_to_start * sample_rate)
+                audio_segments.append(np.zeros(silence_samples, dtype=np.float32))
+                current_time_sec = start_sec  # Jump to start time
+            
+            print(f"  SRT [{i+1}/{len(entries)}] t={start_sec:.2f}s-{end_sec:.2f}s: '{text[:25]}...'")
+            
+            # 2. Generate audio for this segment
+            chunk_audio = model.generate_audio(voice_state, text)
+            chunk_numpy = chunk_audio.numpy()
+            audio_segments.append(chunk_numpy)
+            
+            audio_duration = len(chunk_numpy) / sample_rate
+            current_time_sec += audio_duration
+            
+            # 3. If TTS finished BEFORE the END time, add padding silence
+            # This ensures the next segment starts at the correct time
+            if current_time_sec < end_sec:
+                padding = end_sec - current_time_sec
+                if padding > 0.01:  # >10ms
+                    padding_samples = int(padding * sample_rate)
+                    audio_segments.append(np.zeros(padding_samples, dtype=np.float32))
+                    current_time_sec = end_sec  # Jump to end time
         
-        # Combine with silence
-        if len(audio_segments) > 1:
-            silence = np.zeros(int(model.sample_rate * 0.3), dtype=audio_segments[0].dtype)
-            combined = []
-            for i, seg in enumerate(audio_segments):
-                combined.append(seg)
-                if i < len(audio_segments) - 1:
-                    combined.append(silence)
-            final_audio = np.concatenate(combined)
+        # 4. After all entries, add trailing silence to match SRT total duration
+        if current_time_sec < last_end_sec:
+            trailing = last_end_sec - current_time_sec
+            if trailing > 0.01:
+                audio_segments.append(np.zeros(int(trailing * sample_rate), dtype=np.float32))
+                print(f"  Added {trailing:.2f}s trailing silence to match SRT duration")
+        
+        # Concatenate all
+        if audio_segments:
+            final_audio = np.concatenate(audio_segments)
         else:
-            final_audio = audio_segments[0]
+            final_audio = np.zeros(int(sample_rate), dtype=np.float32)
+        
+        total_duration = len(final_audio) / sample_rate
+        print(f"SRT Output: {total_duration:.2f}s (Target: {last_end_sec:.2f}s)")
         
         audio_bytes = io.BytesIO()
-        scipy.io.wavfile.write(audio_bytes, model.sample_rate, final_audio)
+        scipy.io.wavfile.write(audio_bytes, sample_rate, final_audio)
         audio_bytes.seek(0)
         
         return StreamingResponse(
             audio_bytes,
             media_type="audio/wav",
-            headers={"Content-Disposition": f"attachment; filename=srt_audio_{uuid.uuid4().hex[:8]}.wav"}
+            headers={"Content-Disposition": f"attachment; filename=srt_synced_{uuid.uuid4().hex[:8]}.wav"}
         )
         
     except Exception as e:
@@ -291,16 +362,30 @@ async def clone_voice(
         try:
             model = get_model()
             voice_id = f"custom_{uuid.uuid4().hex[:12]}"
-            voice_states[voice_id] = model.get_state_for_audio_prompt(tmp_path)
+            
+            # Save permanently to voices directory
+            save_path = f"voices/{voice_id}.wav"
+            if not os.path.exists("voices"):
+                os.makedirs("voices")
+                
+            # Move sanitised tmp file to save_path
+            import shutil
+            shutil.move(tmp_path, save_path)
+            
+            # Load state from permanent file
+            voice_states[voice_id] = model.get_state_for_audio_prompt(save_path)
             
             return {
                 "voice_id": voice_id,
                 "name": name or f"Custom Voice {voice_id[-6:]}",
                 "status": "success",
-                "message": "Voice cloned successfully!"
+                "message": "Voice cloned successfully! Saved permanently."
             }
-        finally:
-            os.unlink(tmp_path)
+        except Exception as e:
+            # If fail, cleanup tmp
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+            raise e
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

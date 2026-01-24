@@ -66,7 +66,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 response = await fetch(`${TTS_SERVER_URL}/generate`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
                 });
             }
 
@@ -95,7 +98,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const response = await fetch(`${TTS_SERVER_URL}/generate-dialogue`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'
+                }
             });
 
             if (!response.ok) {

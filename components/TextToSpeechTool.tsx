@@ -2,7 +2,8 @@
 // REDESIGNED: 3-column layout, 2 tabs, dialogue mode
 // Color scheme: Red + White + Black text (Phong thủy)
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import VoiceGalleryModal from './VoiceGalleryModal';
 
 interface TextToSpeechToolProps {
     onBack: () => void;
@@ -24,6 +25,8 @@ const VN_VOICES = [
 const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     // Tab State: 'text' or 'file'
     const [activeTab, setActiveTab] = useState<'text' | 'file'>('text');
+    const [showVoiceGallery, setShowVoiceGallery] = useState(false);
+    const [galleryTarget, setGalleryTarget] = useState<'voice1' | 'voice2'>('voice1'); // For dialogue mode
 
     // Common State
     const [scriptText, setScriptText] = useState('');
@@ -66,8 +69,24 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     const [cloneName, setCloneName] = useState('');
     const [isUploading, setIsUploading] = useState(false);
 
-    // All voices combined
-    const allVoices = [...VN_VOICES, ...PRESET_VOICES, ...clonedVoices.map(v => ({ ...v, gender: 'Custom' }))];
+    // Prepare voice lists for gallery
+    const combinedPresetVoices = useMemo(() => {
+        // Tag them as 'preset'
+        const vn = VN_VOICES.map(v => ({ ...v, type: 'preset' as const }));
+        const intl = PRESET_VOICES.map(v => ({ ...v, type: 'preset' as const }));
+        return [...vn, ...intl];
+    }, []);
+
+    const combinedCustomVoices = useMemo(() => {
+        return clonedVoices.map(v => ({ ...v, gender: 'Custom', type: 'custom' as const }));
+    }, [clonedVoices]);
+
+    // Helper to get voice name
+    const getVoiceName = (id: string) => {
+        const all = [...combinedPresetVoices, ...combinedCustomVoices];
+        const v = all.find(x => x.id === id);
+        return v ? v.name : id;
+    };
 
     // Handle Clone Voice
     const handleCloneVoice = async () => {
@@ -90,6 +109,28 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
             setError(err.message);
         } finally {
             setIsUploading(false);
+        }
+    };
+
+    // Handle Delete Voice
+    const handleDeleteVoice = async (idToDelete: string) => {
+        if (!idToDelete.startsWith('custom_')) return;
+        if (!confirm("Bạn chắc chắn muốn xóa giọng này?")) return;
+
+        try {
+            const res = await fetch('/api/tools/tts/delete-voice', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ voiceId: idToDelete })
+            });
+            if (!res.ok) throw new Error("Lỗi xóa giọng");
+
+            setClonedVoices(prev => prev.filter(v => v.id !== idToDelete));
+            if (voice1 === idToDelete) setVoice1('vi-VN-HoaiMyNeural');
+            if (voice2 === idToDelete) setVoice2('vi-VN-NamMinhNeural');
+
+        } catch (err: any) {
+            alert("Xóa thất bại: " + err.message);
         }
     };
 
@@ -244,58 +285,20 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                 {/* LEFT COLUMN - Instructions */}
                 <div className="w-64 bg-gray-50 border-r border-gray-200 p-6 overflow-y-auto">
                     <h3 className="text-lg font-bold text-red-600 mb-4">📖 Hướng Dẫn</h3>
-
-                    {activeTab === 'text' ? (
-                        <div className="space-y-4 text-sm text-gray-600">
-                            <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                <span className="font-bold text-red-500">Bước 1:</span>
-                                <p>Nhập văn bản cần đọc vào ô giữa</p>
-                            </div>
-                            <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                <span className="font-bold text-red-500">Bước 2:</span>
-                                <p>Chọn giọng đọc bên phải</p>
-                            </div>
-                            <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                <span className="font-bold text-red-500">Bước 3:</span>
-                                <p>Nhấn "Tạo Audio" và đợi kết quả</p>
-                            </div>
-
-                            {dialogueMode && (
-                                <div className="p-3 bg-red-50 rounded-lg border border-red-200 mt-4">
-                                    <span className="font-bold text-red-600">💬 Chế độ Hội thoại:</span>
-                                    <p className="mt-2">Dùng [A] và [B] để đánh dấu:</p>
-                                    <pre className="mt-2 text-xs bg-white p-2 rounded border">
-                                        {`[A] Xin chào!
-[B] Chào bạn!
-[A] Hôm nay thế nào?`}
-                                    </pre>
-                                </div>
-                            )}
+                    <div className="space-y-4 text-sm text-gray-600">
+                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                            <span className="font-bold text-red-500">Bước 1:</span>
+                            <p>{activeTab === 'text' ? 'Nhập nội dung' : 'Upload file'}</p>
                         </div>
-                    ) : (
-                        <div className="space-y-4 text-sm text-gray-600">
-                            <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                <span className="font-bold text-red-500">Bước 1:</span>
-                                <p>Upload file .txt hoặc .srt</p>
-                            </div>
-                            <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                <span className="font-bold text-red-500">Bước 2:</span>
-                                <p>Chọn giọng đọc (Preset hoặc Clone)</p>
-                            </div>
-                            <div className="p-3 bg-white rounded-lg border border-gray-200">
-                                <span className="font-bold text-red-500">Bước 3:</span>
-                                <p>Nhấn "TẠO AUDIO"</p>
-                            </div>
-                            <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                                <span className="font-bold text-yellow-700">💡 Lưu ý:</span>
-                                <ul className="list-disc pl-4 mt-1 space-y-1">
-                                    <li>Upload file <b>.txt/.srt</b>.</li>
-                                    <li>Nên dùng file <b>.WAV</b> để Clone giọng tốt nhất.</li>
-                                    <li>Giọng Clone được lưu trữ trong <b>30 ngày</b>.</li>
-                                </ul>
-                            </div>
+                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                            <span className="font-bold text-red-500">Bước 2:</span>
+                            <p>Chọn giọng đọc (Bấm nút bên phải)</p>
                         </div>
-                    )}
+                        <div className="p-3 bg-white rounded-lg border border-gray-200">
+                            <span className="font-bold text-red-500">Bước 3:</span>
+                            <p>Nhấn "Tạo Audio"</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* CENTER COLUMN - Main Editor */}
@@ -310,20 +313,14 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                     className="hidden"
                                     onChange={handleImportText}
                                 />
-                                <button
-                                    onClick={() => importInputRef.current?.click()}
-                                    className="text-sm flex items-center gap-1 text-red-600 hover:bg-red-50 px-3 py-1 rounded-lg transition"
-                                >
+                                <button onClick={() => importInputRef.current?.click()} className="text-sm flex items-center gap-1 text-red-600 hover:bg-red-50 px-3 py-1 rounded-lg transition">
                                     📥 Import file (.txt)
                                 </button>
                             </div>
                             <textarea
                                 value={scriptText}
                                 onChange={(e) => setScriptText(e.target.value)}
-                                placeholder={dialogueMode
-                                    ? "[A] Xin chào!\n[B] Chào bạn, hôm nay thế nào?\n[A] Tôi khỏe, cảm ơn!"
-                                    : "Nhập văn bản cần chuyển thành giọng nói..."
-                                }
+                                placeholder="Nhập văn bản cần chuyển thành giọng nói..."
                                 className="flex-1 bg-white border-2 border-gray-200 rounded-xl p-6 resize-none outline-none focus:border-red-400 transition text-gray-800 text-lg"
                             />
                             <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
@@ -333,14 +330,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                         </>
                     ) : (
                         <div className="flex-1 bg-white border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center">
-                            <input
-                                type="file"
-                                ref={srtInputRef}
-                                accept=".srt,.txt"
-                                className="hidden"
-                                onChange={(e) => setSrtFile(e.target.files?.[0] || null)}
-                            />
-
+                            <input type="file" ref={srtInputRef} accept=".srt,.txt" className="hidden" onChange={(e) => setSrtFile(e.target.files?.[0] || null)} />
                             {srtFile ? (
                                 <div className="text-center">
                                     <div className="text-6xl mb-4">📄</div>
@@ -416,67 +406,37 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                         </div>
                     </div>
 
-                    {/* Voice Selection */}
+                    {/* Voice Selection Trigger */}
                     <div className="mb-6">
-                        <label className="block text-sm font-bold text-red-600 mb-2">
-                            🎙️ Giọng đọc {dialogueMode ? '[A]' : ''}
-                        </label>
-                        <select
-                            value={voice1}
-                            onChange={(e) => setVoice1(e.target.value)}
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-red-400 outline-none bg-white"
-                        >
-                            <optgroup label="Giọng Việt Nam">
-                                {VN_VOICES.map(v => (
-                                    <option key={v.id} value={v.id}>{v.name}</option>
-                                ))}
-                            </optgroup>
-                            <optgroup label="Giọng Quốc Tế">
-                                {PRESET_VOICES.map(v => (
-                                    <option key={v.id} value={v.id}>{v.name}</option>
-                                ))}
-                            </optgroup>
-                            {clonedVoices.length > 0 && (
-                                <optgroup label="Giọng Clone">
-                                    {clonedVoices.map(v => (
-                                        <option key={v.id} value={v.id}>{v.name}</option>
-                                    ))}
-                                </optgroup>
-                            )}
-                        </select>
-
+                        <label className="block text-sm font-bold text-red-600 mb-2">🎙️ Giọng đọc {dialogueMode && '[A]'}</label>
                         <button
-                            onClick={() => setShowCloneModal(true)}
-                            className="mt-2 w-full py-2 border-2 border-dashed border-red-300 text-red-500 rounded-lg hover:bg-red-50 transition text-sm font-medium"
+                            onClick={() => { setGalleryTarget('voice1'); setShowVoiceGallery(true); }}
+                            className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-red-400 bg-white flex justify-between items-center transition"
                         >
-                            + Clone Giọng Mới
+                            <span className="font-medium text-gray-800 truncate">{getVoiceName(voice1)}</span>
+                            <span className="text-gray-400">▼</span>
                         </button>
                     </div>
 
-                    {/* Voice 2 (only in dialogue mode) */}
                     {dialogueMode && (
                         <div className="mb-6">
-                            <label className="block text-sm font-bold text-red-600 mb-2">
-                                🎙️ Giọng đọc [B]
-                            </label>
-                            <select
-                                value={voice2}
-                                onChange={(e) => setVoice2(e.target.value)}
-                                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-red-400 outline-none bg-white"
+                            <label className="block text-sm font-bold text-red-600 mb-2">🎙️ Giọng đọc [B]</label>
+                            <button
+                                onClick={() => { setGalleryTarget('voice2'); setShowVoiceGallery(true); }}
+                                className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-red-400 bg-white flex justify-between items-center transition"
                             >
-                                <optgroup label="Giọng Việt Nam">
-                                    {VN_VOICES.map(v => (
-                                        <option key={v.id} value={v.id}>{v.name}</option>
-                                    ))}
-                                </optgroup>
-                                <optgroup label="Giọng Quốc Tế">
-                                    {PRESET_VOICES.map(v => (
-                                        <option key={v.id} value={v.id}>{v.name}</option>
-                                    ))}
-                                </optgroup>
-                            </select>
+                                <span className="font-medium text-gray-800 truncate">{getVoiceName(voice2)}</span>
+                                <span className="text-gray-400">▼</span>
+                            </button>
                         </div>
                     )}
+
+                    <button
+                        onClick={() => setShowCloneModal(true)}
+                        className="mt-2 w-full py-2 border-2 border-dashed border-red-300 text-red-500 rounded-lg hover:bg-red-50 transition text-sm font-medium"
+                    >
+                        + Clone Giọng Mới
+                    </button>
 
                     {/* Speed Slider */}
                     <div className="mb-6">
@@ -491,23 +451,6 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             step="0.1"
                             value={speed}
                             onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                            className="w-full accent-red-500"
-                        />
-                    </div>
-
-                    {/* Volume Slider */}
-                    <div className="mb-6">
-                        <div className="flex justify-between mb-2">
-                            <label className="text-sm font-bold text-gray-700">🔊 Âm lượng</label>
-                            <span className="text-sm text-red-500 font-bold">{Math.round(volume * 100)}%</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={volume}
-                            onChange={(e) => setVolume(parseFloat(e.target.value))}
                             className="w-full accent-red-500"
                         />
                     </div>
@@ -535,56 +478,45 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                 </div>
             </div>
 
+            {/* Voice Gallery Modal */}
+            <VoiceGalleryModal
+                isOpen={showVoiceGallery}
+                onClose={() => setShowVoiceGallery(false)}
+                onSelect={(id) => {
+                    if (galleryTarget === 'voice1') setVoice1(id);
+                    else setVoice2(id);
+                    setShowVoiceGallery(false); // Close after selection
+                }}
+                currentVoiceId={galleryTarget === 'voice1' ? voice1 : voice2}
+                presetVoices={combinedPresetVoices}
+                customVoices={combinedCustomVoices}
+                onDeleteCustomVoice={handleDeleteVoice}
+            />
+
             {/* Clone Modal */}
-            {
-                showCloneModal && (
-                    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
-                        <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-2xl">
-                            <h3 className="text-xl font-bold text-gray-800 mb-4">🎙️ Clone Giọng Mới</h3>
-                            <div className="mb-4 p-3 bg-blue-50 text-blue-800 text-sm rounded-lg border border-blue-200">
-                                <p>💡 <b>Mẹo:</b> Nên dùng file <b>.WAV</b> (mono, 22050Hz) để có chất lượng tốt nhất.</p>
-                                <p className="mt-1">Giọng sẽ được lưu trong hệ thống <b>30 ngày</b>.</p>
-                            </div>
-                            <p className="text-sm text-gray-500 mb-4">Upload file âm thanh (WAV/MP3) giọng mẫu của bạn (~10s).</p>
+            {showCloneModal && (
+                <div className="fixed inset-0 z-[101] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-2xl">
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">🎙️ Clone Giọng Mới</h3>
+                        <div className="mb-4 p-3 bg-blue-50 text-blue-800 text-sm rounded-lg border border-blue-200">
+                            <p>💡 <b>Mẹo:</b> Nên dùng file <b>.WAV</b> (mono, 22050Hz) để có chất lượng tốt nhất.</p>
+                            <p className="mt-1">Giọng sẽ được lưu trong hệ thống <b>30 ngày</b>.</p>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-4">Upload file âm thanh (WAV/MP3) giọng mẫu của bạn (~10s).</p>
 
-                            <input
-                                className="w-full border-2 border-gray-200 rounded-lg p-3 mb-4 focus:border-red-400 outline-none"
-                                placeholder="Tên giọng (VD: Giọng Anh Tùng)"
-                                value={cloneName}
-                                onChange={e => setCloneName(e.target.value)}
-                            />
-
-                            <input
-                                type="file"
-                                accept=".wav,.mp3"
-                                onChange={e => e.target.files && setCloneFile(e.target.files[0])}
-                                className="mb-4 text-sm text-gray-600 w-full"
-                            />
-
-                            {cloneFile && (
-                                <p className="text-sm text-green-600 mb-4">✓ {cloneFile.name}</p>
-                            )}
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowCloneModal(false)}
-                                    className="flex-1 py-3 border-2 border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleCloneVoice}
-                                    disabled={isUploading || !cloneFile || !cloneName}
-                                    className="flex-1 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 disabled:bg-gray-300"
-                                >
-                                    {isUploading ? 'Đang upload...' : 'Clone Giọng'}
-                                </button>
-                            </div>
+                        <input className="w-full border-2 border-gray-200 rounded-lg p-3 mb-4 focus:border-red-400 outline-none" placeholder="Tên giọng (VD: Giọng Anh Tùng)" value={cloneName} onChange={e => setCloneName(e.target.value)} />
+                        <input type="file" accept=".wav,.mp3" onChange={e => e.target.files && setCloneFile(e.target.files[0])} className="mb-4 text-sm text-gray-600 w-full" />
+                        {cloneFile && (
+                            <p className="text-sm text-green-600 mb-4">✓ {cloneFile.name}</p>
+                        )}
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowCloneModal(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Hủy</button>
+                            <button onClick={handleCloneVoice} disabled={isUploading || !cloneFile || !cloneName} className="flex-1 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 disabled:bg-gray-300">{isUploading ? 'Đang upload...' : 'Clone Giọng'}</button>
                         </div>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     );
 };
 

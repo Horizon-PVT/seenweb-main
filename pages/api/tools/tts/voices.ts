@@ -33,12 +33,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             type: 'preset'
         }));
 
-        // 2. Fetch User's Custom Voices from DB
+        // 2. Fetch available voices from TTS server to validate
+        let serverVoices: string[] = [];
+        try {
+            const serverRes = await fetch(`${TTS_SERVER_URL}/voices`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (serverRes.ok) {
+                const data = await serverRes.json();
+                serverVoices = data.voices || [];
+                // Also get custom voices from voices directory if server provides them
+                if (data.custom_voices) {
+                    serverVoices = [...serverVoices, ...data.custom_voices];
+                }
+            }
+        } catch (e) {
+            console.log('[Voices API] Could not reach TTS server, using DB voices');
+        }
+
+        // 3. Fetch User's Custom Voices from DB
         let customVoices: any[] = [];
         const session = await getServerSession(req, res, authOptions);
 
         if (session?.user?.email) {
-            // Find user first to get ID
             const user = await prisma.user.findUnique({
                 where: { email: session.user.email },
                 select: { id: true }
@@ -54,12 +71,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     id: v.voiceId,
                     name: v.name,
                     type: 'custom',
-                    expiresAt: v.expiresAt
+                    // Mark if voice is available on server (for UI to show warning)
+                    available: serverVoices.length === 0 || serverVoices.includes(v.voiceId)
                 }));
             }
         }
 
-        // 3. Merge
+        // 4. Merge
         const allVoices = [...customVoices, ...hardcodedVoices];
 
         res.status(200).json({
@@ -73,3 +91,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(500).json({ error: 'Failed to fetch voices' });
     }
 }
+

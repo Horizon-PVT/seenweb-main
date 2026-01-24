@@ -4,6 +4,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import FormDataNode from 'form-data';
+import axios from 'axios';
 
 export const config = {
     api: {
@@ -64,20 +66,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Read file content
         const fileContent = fs.readFileSync(uploadedFile.filepath, 'utf-8');
         const ext = path.extname(uploadedFile.originalFilename || '').toLowerCase();
+        const originalFilename = uploadedFile.originalFilename || '';
 
-        // Parse based on file type
+        // Check if this is an SRT file (by extension or content)
+        const isSrtFile = ext === '.srt' ||
+            /^\d+\s*\r?\n\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}/m.test(fileContent);
+
+        // Check if Vietnamese voice (use Edge TTS API - no timing support)
+        const isVN = voice.startsWith('vi-VN');
+
+        // For SRT files with non-Vietnamese voice, use the special /generate-srt endpoint
+        // This preserves timing information!
+        if (isSrtFile && !isVN) {
+            console.log('[SRT Handler] Using /generate-srt endpoint for timing-synced audio');
+
+            // Use Node.js form-data with axios for proper multipart upload
+            // Read file as Buffer instead of stream for more reliable upload
+            const fileBuffer = fs.readFileSync(uploadedFile.filepath);
+            const formData = new FormDataNode();
+            formData.append('srt_file', fileBuffer, {
+                filename: originalFilename || 'subtitle.srt',
+                contentType: 'text/plain'
+            });
+            formData.append('voice', customVoiceId || voice);
+            if (customVoiceId) {
+                formData.append('custom_voice_id', customVoiceId);
+            }
+
+            // Cleanup temp file before request (we already have the buffer)
+            fs.unlinkSync(uploadedFile.filepath);
+
+            try {
+                console.log(`[SRT Handler] Sending to: ${TTS_SERVER_URL}/generate-srt`);
+                const response = await axios.post(`${TTS_SERVER_URL}/generate-srt`, formData, {
+                    headers: {
+                        ...formData.getHeaders(),
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    responseType: 'arraybuffer',
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity,
+                    timeout: 300000 // 5 minutes timeout
+                });
+
+                console.log(`[SRT Handler] Received ${response.data.length} bytes`);
+                res.setHeader('Content-Type', 'audio/wav');
+                res.setHeader('Content-Disposition', `attachment; filename="srt_synced_${Date.now()}.wav"`);
+                res.send(Buffer.from(response.data));
+                return;
+            } catch (axiosError: any) {
+                const errorMsg = axiosError.response?.data
+                    ? Buffer.from(axiosError.response.data).toString('utf-8')
+                    : axiosError.message;
+                console.error('[SRT Handler] Error:', errorMsg);
+                throw new Error(`SRT generation failed: ${errorMsg}`);
+            }
+        }
+
+        // For non-SRT files or Vietnamese voice, extract text content
         let textContent: string;
-        if (ext === '.srt') {
+        if (isSrtFile) {
             textContent = parseSrtToText(fileContent);
         } else if (ext === '.txt') {
-            // Check if TXT file actually contains SRT content
-            if (/^\d+\s*\r?\n\d{2}:\d{2}:\d{2}[,\.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,\.]\d{3}/m.test(fileContent)) {
-                console.log('[File Parser] Detect SRT content in .txt file');
-                textContent = parseSrtToText(fileContent);
-            } else {
-                textContent = fileContent;
-            }
+            textContent = fileContent;
         } else {
+            fs.unlinkSync(uploadedFile.filepath);
             return res.status(400).json({ error: 'Chỉ hỗ trợ file .txt và .srt. Vui lòng Save As .txt nếu dùng Word.' });
         }
 
@@ -88,11 +141,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ error: 'File is empty or could not be parsed' });
         }
 
-        // Check if Vietnamese voice (use Edge TTS API)
-        const isVN = voice.startsWith('vi-VN');
-
         if (isVN) {
-            // Use Edge TTS for Vietnamese
+            // Use Edge TTS for Vietnamese (no timing support available)
             const edgeRes = await fetch(`http://127.0.0.1:3000/api/tools/tts/edge`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -109,7 +159,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.setHeader('Content-Disposition', `attachment; filename="audio_${Date.now()}.mp3"`);
             res.send(Buffer.from(audioBuffer));
         } else {
-            // Use Pocket TTS (Railway server)
+            // Use Pocket TTS for regular text
             const formData = new FormData();
             formData.append('text', textContent);
             formData.append('voice', customVoiceId || voice);
