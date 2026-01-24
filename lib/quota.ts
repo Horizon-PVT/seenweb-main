@@ -46,15 +46,21 @@ export async function checkUserQuota(userId: string): Promise<void> {
         return;
     }
 
-    // 2. Check Roles (Infinite usage for VIP/ADMIN/etc)
-    if (['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(user.role)) {
+    // 2. Check Roles (Infinite usage ONLY for VIP/ADMIN)
+    // ✅ FIX: CREATIVE và SUPER có quota giới hạn, chỉ VIP/ADMIN không giới hạn
+    if (['VIP', 'ADMIN'].includes(user.role)) {
         return;
     }
 
-    // 3. Check Quota (for FREE)
+    // 3. Check Quota (for FREE, CREATIVE, SUPER)
     // Ensure we use the freshly reset 0 if isNewDay was true (handled by return above)
     if (user.dailyUsage >= user.maxDailyUsage) {
-        throw new Error('Bạn đã hết lượt sử dụng miễn phí hôm nay (3/3 lượt). Hãy nâng cấp gói để dùng không giới hạn!');
+        const roleMessages: Record<string, string> = {
+            FREE: 'Bạn đã hết lượt sử dụng miễn phí hôm nay (3/3 lượt). Nâng cấp lên Starter để có 30 lượt/ngày!',
+            CREATIVE: 'Bạn đã hết lượt sử dụng Starter hôm nay (30/30 lượt). Nâng cấp lên Pro để có 100 lượt/ngày!',
+            SUPER: 'Bạn đã hết lượt sử dụng Pro hôm nay (100/100 lượt). Nâng cấp lên VIP để dùng không giới hạn!',
+        };
+        throw new Error(roleMessages[user.role] || 'Bạn đã hết lượt sử dụng hôm nay. Vui lòng nâng cấp!');
     }
 }
 

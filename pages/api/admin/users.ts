@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { MAX_DAILY_USAGE, Role } from '@/lib/roles';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Check admin auth
@@ -59,13 +60,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(400).json({ error: 'Email đã tồn tại' });
             }
 
+            // ✅ FIX: Sử dụng MAX_DAILY_USAGE thay vì hardcode
+            const maxUsage = MAX_DAILY_USAGE[role as Role] || 3;
+
             const user = await prisma.user.create({
                 data: {
                     email,
                     name: name || email.split('@')[0],
                     role,
                     dailyUsage: 0,
-                    maxDailyUsage: role === 'FREE' ? 3 : 9999
+                    maxDailyUsage: maxUsage
                 }
             });
 

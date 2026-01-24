@@ -9,11 +9,20 @@ export const ROLES = {
 export type Role = keyof typeof ROLES;
 
 export const USAGE_LIMITS: Record<Role, number> = {
+  FREE: 3,           // 3 lượt/ngày
+  CREATIVE: 30,      // Starter: 30 lượt/ngày
+  SUPER: 100,        // Pro: 100 lượt/ngày
+  VIP: 9999,         // VIP: Không giới hạn
+  ADMIN: 9999,       // Admin: Không giới hạn
+};
+
+// maxDailyUsage to store in database when user upgrades
+export const MAX_DAILY_USAGE: Record<Role, number> = {
   FREE: 3,
-  CREATIVE: Infinity,
-  SUPER: Infinity,
-  VIP: Infinity,
-  ADMIN: Infinity, // Admin unlimited
+  CREATIVE: 30,
+  SUPER: 100,
+  VIP: 9999,
+  ADMIN: 9999,
 };
 
 export const TOOLS = [

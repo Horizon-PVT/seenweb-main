@@ -1,6 +1,7 @@
 // pages/api/admin/activate.ts (Bản FULL Đã Sửa Lỗi P2025 và ReferenceError)
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
+import { MAX_DAILY_USAGE } from '@/lib/roles';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -45,7 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // 3. Cấp quyền cho User (Sử dụng UPSERT để TẠO NẾU CHƯA CÓ, CẬP NHẬT NẾU CÓ)
         // Đây là cách giải quyết lỗi P2025: Record to update not found
-        const maxUsage = 9999; // Giá trị max usage cho gói trả phí
+        // ✅ FIX: Lấy maxUsage theo role từ MAX_DAILY_USAGE thay vì hardcode 9999
+        const userRole = payment.role as keyof typeof MAX_DAILY_USAGE;
+        const maxUsage = MAX_DAILY_USAGE[userRole] || 9999;
 
         // Calculate dubbing credits based on role/plan
         // STARTER (CREATIVE) = 10, PRO (SUPER) = 30, VIP = 100
@@ -59,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             update: {
                 role: payment.role, // Cập nhật role
                 membershipExpiry: newExpiryDate, // Cập nhật hạn dùng
-                maxDailyUsage: maxUsage, // Cập nhật giới hạn dùng
+                maxDailyUsage: maxUsage, // Cập nhật giới hạn dùng theo role
                 dubbingCredits: { increment: dubbingCreditsToAdd } // Add dubbing credits
             },
             create: {
