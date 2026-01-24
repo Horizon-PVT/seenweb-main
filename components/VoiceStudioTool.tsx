@@ -27,6 +27,48 @@ const VoiceStudioTool = () => {
     const [clonedVoices, setClonedVoices] = useState<{ id: string, name: string }[]>([]); // Temp in-memory
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const srtInputRef = useRef<HTMLInputElement>(null);
+    const [srtFile, setSrtFile] = useState<File | null>(null);
+    const [generatingSrt, setGeneratingSrt] = useState(false);
+
+    // Handle SRT file generation
+    const handleSRTGenerate = async () => {
+        if (!srtFile) return alert('Vui lòng chọn file SRT!');
+
+        setGeneratingSrt(true);
+        setAudioUrl(null);
+
+        try {
+            const formData = new FormData();
+            formData.append('srtFile', srtFile);
+
+            const isCustom = selectedVoice.startsWith('custom_');
+            if (isCustom) {
+                formData.append('voice', 'custom');
+                formData.append('customVoiceId', selectedVoice);
+            } else {
+                formData.append('voice', selectedVoice);
+            }
+
+            const res = await fetch('/api/tools/tts/generate-srt', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to generate from SRT');
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            setAudioUrl(url);
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setGeneratingSrt(false);
+        }
+    };
 
     // Fetch voices
     useEffect(() => {
@@ -142,8 +184,8 @@ const VoiceStudioTool = () => {
                     <button
                         onClick={() => setActiveTab('tts')}
                         className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${activeTab === 'tts'
-                                ? 'bg-white text-indigo-600 shadow-sm'
-                                : 'text-white hover:bg-white/10'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-white hover:bg-white/10'
                             }`}
                     >
                         Text to Speech
@@ -151,8 +193,8 @@ const VoiceStudioTool = () => {
                     <button
                         onClick={() => setActiveTab('clone')}
                         className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${activeTab === 'clone'
-                                ? 'bg-white text-indigo-600 shadow-sm'
-                                : 'text-white hover:bg-white/10'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-white hover:bg-white/10'
                             }`}
                     >
                         Voice Cloning <span className="ml-1 text-[10px] bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full">PRO</span>
@@ -181,8 +223,8 @@ const VoiceStudioTool = () => {
                                             key={voice.id}
                                             onClick={() => setSelectedVoice(voice.id)}
                                             className={`p-3 rounded-xl border text-left transition-all ${selectedVoice === voice.id
-                                                    ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
-                                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
+                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <div className="font-semibold text-gray-900">{voice.name}</div>
@@ -202,8 +244,8 @@ const VoiceStudioTool = () => {
                                             key={voice.id}
                                             onClick={() => setSelectedVoice(voice.id)}
                                             className={`p-3 rounded-xl border text-left transition-all ${selectedVoice === voice.id
-                                                    ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
-                                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
+                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <div className="font-semibold text-indigo-700 flex items-center gap-2">
@@ -234,13 +276,47 @@ const VoiceStudioTool = () => {
                                 </div>
                             </div>
 
+                            {/* SRT Upload Section */}
+                            <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-700">📄 Upload File SRT</p>
+                                        <p className="text-xs text-gray-500 mt-1">Đọc phụ đề thành audio</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="file"
+                                            ref={srtInputRef}
+                                            accept=".srt"
+                                            className="hidden"
+                                            onChange={(e) => setSrtFile(e.target.files?.[0] || null)}
+                                        />
+                                        <button
+                                            onClick={() => srtInputRef.current?.click()}
+                                            className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                                        >
+                                            {srtFile ? srtFile.name : 'Chọn file .srt'}
+                                        </button>
+                                        {srtFile && (
+                                            <button
+                                                onClick={handleSRTGenerate}
+                                                disabled={generatingSrt}
+                                                className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300"
+                                            >
+                                                {generatingSrt ? 'Đang xử lý...' : '▶ Đọc SRT'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Generate Button */}
                             <button
                                 onClick={handleGenerate}
                                 disabled={generating || !text}
                                 className={`w-full py-3 rounded-xl font-semibold text-white shadow-lg transition-all transform hover:-translate-y-0.5 ${generating || !text
-                                        ? 'bg-gray-300 cursor-not-allowed shadow-none'
-                                        : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:shadow-indigo-500/30'
+                                    ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                                    : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:shadow-indigo-500/30'
                                     }`}
                             >
                                 {generating ? (
@@ -308,8 +384,8 @@ const VoiceStudioTool = () => {
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
                                     className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${cloneFile
-                                            ? 'border-indigo-500 bg-indigo-50'
-                                            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                        ? 'border-indigo-500 bg-indigo-50'
+                                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                                         }`}
                                 >
                                     <input
@@ -346,8 +422,8 @@ const VoiceStudioTool = () => {
                                 onClick={handleClone}
                                 disabled={cloning || !cloneFile || !cloneName}
                                 className={`w-full py-3 rounded-xl font-semibold text-white shadow-lg transition-all transform hover:-translate-y-0.5 ${cloning || !cloneFile || !cloneName
-                                        ? 'bg-gray-300 cursor-not-allowed shadow-none'
-                                        : 'bg-gradient-to-r from-pink-600 to-rose-600 hover:shadow-pink-500/30'
+                                    ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                                    : 'bg-gradient-to-r from-pink-600 to-rose-600 hover:shadow-pink-500/30'
                                     }`}
                             >
                                 {cloning ? 'Đang phân tích giọng...' : '🚀 Bắt đầu Clone Giọng'}

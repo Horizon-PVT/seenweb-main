@@ -136,6 +136,7 @@ async function callEdgeTts(text: string, voice: string, speed: number = 1.0): Pr
 }
 
 // FPT TTS - get MP3, convert to PCM
+// FPT TTS - get MP3, convert to PCM
 async function callFptTts(text: string, voice: string, speed: number = 1.0): Promise<Buffer> {
   const tempMp3Path = path.join(os.tmpdir(), `fpt_tts_${Date.now()}.mp3`);
 
@@ -145,6 +146,37 @@ async function callFptTts(text: string, voice: string, speed: number = 1.0): Pro
     return pcmBuffer;
   } finally {
     try { fs.unlinkSync(tempMp3Path); } catch { }
+  }
+}
+
+// Local VietTTS - get WAV (16kHz), convert to PCM (24kHz)
+async function callLocalVietTts(text: string, speed: number = 1.0): Promise<Buffer> {
+  const tempWavPath = path.join(os.tmpdir(), `local_viettts_${Date.now()}.wav`);
+
+  try {
+    // Call Python Server
+    const response = await fetch('http://127.0.0.1:8000/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Local TTS Server Error: ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    fs.writeFileSync(tempWavPath, Buffer.from(arrayBuffer));
+
+    // Convert/Resample to PCM 24kHz using existing helper
+    const pcmBuffer = await convertToPcm(tempWavPath);
+    return pcmBuffer;
+
+  } catch (error: any) {
+    console.error('Local VietTTS Error:', error.message);
+    throw error;
+  } finally {
+    try { fs.unlinkSync(tempWavPath); } catch { }
   }
 }
 
@@ -248,6 +280,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             // Silently fallback to Edge TTS - use English voice for international
             return await callEdgeTts(text, 'en-US-AriaNeural', speed);
           }
+        } else if (voiceProvider === 'local-viettts') {
+          return await callLocalVietTts(text, speed);
         } else if (voiceProvider === 'vietnamese' || voiceProvider === 'edge' || voiceProvider === 'fpt') {
           const isFptVoice = fptVoiceIds.includes(selectedVoiceApiName);
           const edgeVoice = isFptVoice

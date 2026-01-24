@@ -26,6 +26,7 @@ import VoiceStudioTool from "./VoiceStudioTool";
 import VeocityTool from "./VeocityTool";
 import VirtualMCTool from "./VirtualMCTool";
 import UpgradeGate from "./UpgradeGate";
+
 import FutureEyeTool from "./tools/FutureEye/FutureEyeTool";
 
 import { useSession } from "next-auth/react";
@@ -128,6 +129,21 @@ const toolsHot: Tool[] = [
     isExclusive: true,
     thumbColor: "from-yellow-400 to-orange-400",
     imageSrc: "/images/tool-niche-miner.jpg",
+  },
+  {
+    id: "x-hot-news",
+    name: "X-Trend Hunter Pro",
+    shortDescription: "Săn trend X & Tạo video viral tự động.",
+    longDescription: "Công cụ Admin chuyên dụng: Quét hot trend từ X (Twitter), phân tích cơ hội viral và tự động viết kịch bản video đa ngôn ngữ (EN/JP/KR/ES).",
+    seoKeywords: ["X Trend", "Viral Script", "News Hunter"],
+    features: ["Scan X API", "Auto Script", "Multi-lang"],
+    icon: BinocularsIcon,
+    component: null as any,
+    isHot: true,
+    isExclusive: true,
+    isPro: true,
+    thumbColor: "from-blue-600 to-cyan-500",
+    imageSrc: "/images/tool-velocity.jpg", // Temporary reuse
   },
 ];
 
@@ -276,21 +292,6 @@ const toolsDeveloper: Tool[] = [
     isPro: true,
     thumbColor: "from-purple-600 to-pink-600",
     imageSrc: "/images/tool-future-eye.jpg",
-  },
-  {
-    id: "x-hot-news",
-    name: "X-Trend Hunter Pro",
-    shortDescription: "Săn trend X & Tạo video viral tự động.",
-    longDescription: "Công cụ Admin chuyên dụng: Quét hot trend từ X (Twitter), phân tích cơ hội viral và tự động viết kịch bản video đa ngôn ngữ (EN/JP/KR/ES).",
-    seoKeywords: ["X Trend", "Viral Script", "News Hunter"],
-    features: ["Scan X API", "Auto Script", "Multi-lang"],
-    icon: BinocularsIcon,
-    component: null as any,
-    isHot: true,
-    isExclusive: true,
-    isPro: true,
-    thumbColor: "from-blue-600 to-cyan-500",
-    imageSrc: "/images/tool-velocity.jpg", // Temporary reuse
   },
 ];
 
