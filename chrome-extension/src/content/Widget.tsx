@@ -474,7 +474,7 @@ const Widget = () => {
                     </div>
                     <div className="flex flex-col">
                         <span className={`text-xl font-black ${darkMode ? 'text-white' : 'text-slate-800'} tracking-tight leading-none`}>SEENYT<span className="text-red-600">.net</span></span>
-                        <span className="text-[9px] text-red-500 font-bold uppercase tracking-widest">VidIQ Killer 🔥</span>
+                        <span className="text-[9px] text-red-500 font-bold uppercase tracking-widest">YT SEO & AI GROWTH 🔥</span>
                     </div>
                 </div>
 

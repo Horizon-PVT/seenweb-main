@@ -4,6 +4,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
     plugins: [react()],
+    publicDir: false, // Prevent duplicating public folder content here
     build: {
         outDir: 'dist/assets',
         emptyOutDir: false,
