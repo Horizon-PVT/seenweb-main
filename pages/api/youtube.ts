@@ -105,23 +105,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const ch = chRes.data.items?.[0];
       if (!ch) return res.status(404).json({ error: 'Kênh không tồn tại' });
 
-      prompt = `Phân tích đối thủ YouTube cực sâu và thực chiến. Kênh: "${ch.snippet?.title}" (${ch.statistics?.subscriberCount} subs).
-Trả về đúng JSON sau, không thêm bất kỳ chữ nào:
+      // Fetch recent videos to give AI real context
+      const videoRes = await youtube.search.list({
+        part: ['snippet', 'id'],
+        channelId: channelId,
+        order: 'date', // Get recent videos
+        maxResults: 10,
+        type: ['video']
+      });
 
+      const recentVideos = videoRes.data.items?.map(v => ({
+        title: v.snippet?.title,
+        description: v.snippet?.description,
+        publishedAt: v.snippet?.publishedAt,
+        videoId: v.id?.videoId
+      })) || [];
+
+      // Get video statistics (views) for these videos to find high performers
+      let videoStats: any[] = [];
+      if (recentVideos.length > 0) {
+        const videoIds = recentVideos.map(v => v.videoId).filter(Boolean) as string[];
+        const statsRes = await youtube.videos.list({
+          part: ['statistics'],
+          id: videoIds
+        });
+        videoStats = statsRes.data.items || [];
+      }
+
+      // Combine video data
+      const videosForPrompt = recentVideos.map(v => {
+        const stat = videoStats.find(s => s.id === v.videoId);
+        return {
+          title: v.title,
+          views: stat?.statistics?.viewCount || '0',
+          published: v.publishedAt
+        };
+      });
+
+      prompt = `Phân tích chiến lược kênh YouTube này dựa trên dữ liệu thực tế.
+      
+THÔNG TIN KÊNH:
+- Tên: "${ch.snippet?.title}"
+- Subs: ${ch.statistics?.subscriberCount}
+- View tổng: ${ch.statistics?.viewCount}
+- Video tổng: ${ch.statistics?.videoCount}
+- Mô tả: "${ch.snippet?.description?.substring(0, 500)}..."
+
+10 VIDEO GẦN NHẤT:
+${JSON.stringify(videosForPrompt, null, 2)}
+
+NHIỆM VỤ: Đóng vai chuyên gia YouTube Strategy (như VidIQ/TubeBuddy), hãy phân tích điểm yếu, điểm mạnh và cơ hội tấn công kênh này.
+Trả về JSON (không markdown):
 {
   "competitorProfile": {"name": "${ch.snippet?.title}", "subscribers": "${ch.statistics?.subscriberCount}"},
-  "strategicWeaknesses": ["string"],
-  "successSignals": ["string"],
-  "contentStructure": {"mainKeywords": ["kw1","kw2"], "seoEvaluation": "string"},
-  "untappedNiches": ["ngách 1"],
-  "titleAnalysis": "string",
-  "descriptionAnalysis": "string",
-  "tagsHashtags": ["tag1"],
-  "thumbnailAnalysis": "string",
-  "contentStrategy": "string",
-  "counterAttackPlan": "string dài chi tiết",
-  "audienceGapAnalysis": ["gap 1"],
-  "videoPersonaScore": {"tone": "hài hước", "emotion": "gây tò mò"}
+  "strategicWeaknesses": ["Phân tích từ view/title video thật..."],
+  "successSignals": ["Các yếu tố làm nên video nhiều view nhất..."],
+  "contentStructure": {"mainKeywords": ["từ video thật"], "seoEvaluation": "Đánh giá title/thumb thật"},
+  "untappedNiches": ["Ngách người xem quan tâm nhưng kênh chưa làm"],
+  "titleAnalysis": "Phong cách đặt tít hiện tại (Clickbait? SEO?)",
+  "descriptionAnalysis": "Cách viết mô tả",
+  "tagsHashtags": ["tag tiềm năng"],
+  "thumbnailAnalysis": "Dự đoán phong cách thumb qua title",
+  "contentStrategy": "Chiến lược upload/nội dung",
+  "counterAttackPlan": "Kế hoạch 5 bước để vượt mặt kênh này",
+  "audienceGapAnalysis": ["Điều khán giả comment/tìm kiếm mà kênh bỏ qua"],
+  "videoPersonaScore": {"tone": "Nghiêm túc/Hài hước?", "emotion": "Tò mò/Sợ hãi/Vui vẻ?"}
 }`;
     }
 

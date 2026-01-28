@@ -242,16 +242,16 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
     return (
         <div className="fixed inset-0 z-50 bg-white text-gray-900 font-sans flex flex-col">
-            {/* Header - Red gradient */}
-            <div className="h-16 bg-gradient-to-r from-red-600 to-red-500 flex items-center justify-between px-6 shadow-lg">
+            {/* Header - Purple/Rose gradient */}
+            <div className="h-16 bg-gradient-to-r from-indigo-900 via-purple-900 to-rose-900 flex items-center justify-between px-6 shadow-lg">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onBack}
-                        className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition flex items-center justify-center text-white font-bold"
+                        className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white font-bold backdrop-blur-sm"
                     >
                         ←
                     </button>
-                    <h1 className="text-xl font-bold text-white">🎙️ AUDIO STUDIO</h1>
+                    <h1 className="text-xl font-bold text-white tracking-wide">🎙️ AUDIO CREATOR STUDIO</h1>
                 </div>
 
                 {/* Tabs */}
@@ -259,8 +259,8 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     <button
                         onClick={() => setActiveTab('text')}
                         className={`px-6 py-2 rounded-md text-sm font-bold transition ${activeTab === 'text'
-                            ? 'bg-white text-red-600 shadow'
-                            : 'text-white hover:bg-white/10'
+                            ? 'bg-white text-purple-700 shadow-lg'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white'
                             }`}
                     >
                         📝 Văn Bản
@@ -268,8 +268,8 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     <button
                         onClick={() => setActiveTab('file')}
                         className={`px-6 py-2 rounded-md text-sm font-bold transition ${activeTab === 'file'
-                            ? 'bg-white text-red-600 shadow'
-                            : 'text-white hover:bg-white/10'
+                            ? 'bg-white text-purple-700 shadow-lg'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white'
                             }`}
                     >
                         📄 Upload File
@@ -283,19 +283,19 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
             <div className="flex-1 flex overflow-hidden">
 
                 {/* LEFT COLUMN - Instructions */}
-                <div className="w-64 bg-gray-50 border-r border-gray-200 p-6 overflow-y-auto">
-                    <h3 className="text-lg font-bold text-red-600 mb-4">📖 Hướng Dẫn</h3>
+                <div className="w-64 bg-slate-50 border-r border-gray-200 p-6 overflow-y-auto">
+                    <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-rose-600 mb-4">📖 Hướng Dẫn</h3>
                     <div className="space-y-4 text-sm text-gray-600">
-                        <div className="p-3 bg-white rounded-lg border border-gray-200">
-                            <span className="font-bold text-red-500">Bước 1:</span>
+                        <div className="p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
+                            <span className="font-bold text-purple-600">Bước 1:</span>
                             <p>{activeTab === 'text' ? 'Nhập nội dung' : 'Upload file'}</p>
                         </div>
-                        <div className="p-3 bg-white rounded-lg border border-gray-200">
-                            <span className="font-bold text-red-500">Bước 2:</span>
+                        <div className="p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
+                            <span className="font-bold text-purple-600">Bước 2:</span>
                             <p>Chọn giọng đọc (Bấm nút bên phải)</p>
                         </div>
-                        <div className="p-3 bg-white rounded-lg border border-gray-200">
-                            <span className="font-bold text-red-500">Bước 3:</span>
+                        <div className="p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
+                            <span className="font-bold text-purple-600">Bước 3:</span>
                             <p>Nhấn "Tạo Audio"</p>
                         </div>
                     </div>
@@ -313,7 +313,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                     className="hidden"
                                     onChange={handleImportText}
                                 />
-                                <button onClick={() => importInputRef.current?.click()} className="text-sm flex items-center gap-1 text-red-600 hover:bg-red-50 px-3 py-1 rounded-lg transition">
+                                <button onClick={() => importInputRef.current?.click()} className="text-sm flex items-center gap-1 text-purple-600 hover:bg-purple-50 px-3 py-1 rounded-lg transition font-medium">
                                     📥 Import file (.txt)
                                 </button>
                             </div>
@@ -321,11 +321,11 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                 value={scriptText}
                                 onChange={(e) => setScriptText(e.target.value)}
                                 placeholder="Nhập văn bản cần chuyển thành giọng nói..."
-                                className="flex-1 bg-white border-2 border-gray-200 rounded-xl p-6 resize-none outline-none focus:border-red-400 transition text-gray-800 text-lg"
+                                className="flex-1 bg-white border-2 border-gray-200 rounded-xl p-6 resize-none outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-50 transition text-gray-800 text-lg shadow-inner"
                             />
                             <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
                                 <span>{scriptText.length} ký tự</span>
-                                {dialogueMode && <span className="text-red-500">Chế độ hội thoại đang bật</span>}
+                                {dialogueMode && <span className="text-purple-600 font-bold">● Chế độ hội thoại đang bật</span>}
                             </div>
                         </>
                     ) : (
@@ -365,7 +365,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                         disabled={isLoading || (activeTab === 'text' ? !scriptText : !srtFile)}
                         className={`mt-6 w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg transition transform hover:-translate-y-0.5 ${isLoading || (activeTab === 'text' ? !scriptText : !srtFile)
                             ? 'bg-gray-300 cursor-not-allowed shadow-none'
-                            : 'bg-gradient-to-r from-red-500 to-red-600 hover:shadow-red-500/30'
+                            : 'bg-gradient-to-r from-purple-600 to-rose-600 hover:shadow-purple-500/40 hover:scale-[1.01]'
                             }`}
                     >
                         {isLoading ? (
@@ -399,7 +399,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             </div>
                             <button
                                 onClick={() => setDialogueMode(!dialogueMode)}
-                                className={`w-14 h-7 rounded-full transition ${dialogueMode ? 'bg-red-500' : 'bg-gray-300'}`}
+                                className={`w-14 h-7 rounded-full transition ${dialogueMode ? 'bg-gradient-to-r from-purple-500 to-rose-500' : 'bg-gray-300'}`}
                             >
                                 <div className={`w-5 h-5 bg-white rounded-full shadow transition transform ${dialogueMode ? 'translate-x-8' : 'translate-x-1'}`} />
                             </button>
@@ -408,24 +408,24 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                     {/* Voice Selection Trigger */}
                     <div className="mb-6">
-                        <label className="block text-sm font-bold text-red-600 mb-2">🎙️ Giọng đọc {dialogueMode && '[A]'}</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">🎙️ Giọng đọc {dialogueMode && '[A]'}</label>
                         <button
                             onClick={() => { setGalleryTarget('voice1'); setShowVoiceGallery(true); }}
-                            className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-red-400 bg-white flex justify-between items-center transition"
+                            className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-purple-400 bg-white flex justify-between items-center transition group"
                         >
-                            <span className="font-medium text-gray-800 truncate">{getVoiceName(voice1)}</span>
+                            <span className="font-medium text-gray-800 truncate group-hover:text-purple-700 transition">{getVoiceName(voice1)}</span>
                             <span className="text-gray-400">▼</span>
                         </button>
                     </div>
 
                     {dialogueMode && (
                         <div className="mb-6">
-                            <label className="block text-sm font-bold text-red-600 mb-2">🎙️ Giọng đọc [B]</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">🎙️ Giọng đọc [B]</label>
                             <button
                                 onClick={() => { setGalleryTarget('voice2'); setShowVoiceGallery(true); }}
-                                className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-red-400 bg-white flex justify-between items-center transition"
+                                className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-purple-400 bg-white flex justify-between items-center transition group"
                             >
-                                <span className="font-medium text-gray-800 truncate">{getVoiceName(voice2)}</span>
+                                <span className="font-medium text-gray-800 truncate group-hover:text-purple-700 transition">{getVoiceName(voice2)}</span>
                                 <span className="text-gray-400">▼</span>
                             </button>
                         </div>
@@ -433,7 +433,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                     <button
                         onClick={() => setShowCloneModal(true)}
-                        className="mt-2 w-full py-2 border-2 border-dashed border-red-300 text-red-500 rounded-lg hover:bg-red-50 transition text-sm font-medium"
+                        className="mt-2 w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition text-sm font-medium"
                     >
                         + Clone Giọng Mới
                     </button>
@@ -442,7 +442,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     <div className="mb-6">
                         <div className="flex justify-between mb-2">
                             <label className="text-sm font-bold text-gray-700">⚡ Tốc độ</label>
-                            <span className="text-sm text-red-500 font-bold">{speed.toFixed(2)}x</span>
+                            <span className="text-sm text-purple-600 font-bold">{speed.toFixed(2)}x</span>
                         </div>
                         <input
                             type="range"
@@ -451,20 +451,20 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             step="0.1"
                             value={speed}
                             onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                            className="w-full accent-red-500"
+                            className="w-full accent-purple-600"
                         />
                     </div>
 
                     {/* Result */}
                     <div className="mt-auto pt-6 border-t border-gray-200">
-                        <h4 className="text-sm font-bold text-red-600 mb-3">🎵 KẾT QUẢ</h4>
+                        <h4 className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-rose-600 mb-3">🎵 KẾT QUẢ</h4>
                         {audioUrl ? (
-                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <div className="bg-gray-50 p-4 rounded-xl border border-purple-100 shadow-sm">
                                 <audio controls src={audioUrl} className="w-full mb-3" autoPlay />
                                 <a
                                     href={audioUrl}
                                     download={`audio_${Date.now()}.wav`}
-                                    className="block w-full text-center py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition"
+                                    className="block w-full text-center py-3 bg-gradient-to-r from-purple-600 to-rose-600 text-white rounded-lg font-bold hover:shadow-lg transition"
                                 >
                                     ⬇️ Tải Xuống
                                 </a>

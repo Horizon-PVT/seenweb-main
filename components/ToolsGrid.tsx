@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from 'next-i18next';
 import {
@@ -31,6 +31,11 @@ import FutureEyeTool from "./tools/FutureEye/FutureEyeTool";
 
 import { useSession } from "next-auth/react";
 import { canAccessTool, type Role } from "@/lib/roles";
+
+// NEW UI COMPONENTS
+import AnimatedBackground from "./ui/AnimatedBackground";
+import NeonHeader from "./ui/NeonHeader";
+import GlassCard from "./ui/GlassCard";
 
 export interface Tool {
   id: string;
@@ -296,114 +301,6 @@ const toolsDeveloper: Tool[] = [
 ];
 
 /* =========================
-   COMPACT CARD
-   ========================= */
-
-const CapCutCard: React.FC<{
-  tool: Tool;
-  isLocked: boolean;
-  onOpen: () => void;
-  index: number;
-  showExclusiveBadge?: boolean;
-  t: any;
-}> = ({ tool, isLocked, onOpen, index, showExclusiveBadge = false, t }) => {
-  const Icon = tool.icon;
-  const [isHovered, setIsHovered] = useState(false);
-
-  // Get translated tool name/description using tool ID as key
-  const toolName = t(`tools.${tool.id}.name`, tool.name);
-  const toolShortDesc = t(`tools.${tool.id}.short`, tool.shortDescription);
-  const toolLongDesc = t(`tools.${tool.id}.long`, tool.longDescription);
-
-  const handleClick = () => {
-    if (tool.isComingSoon) return; // Prevent click
-    onOpen();
-  };
-
-  return (
-    <div
-      onClick={handleClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`group relative flex flex-col bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-white/10 ring-1 ring-black/5 select-none ${tool.isComingSoon ? 'opacity-80 grayscale pointer-events-none' : ''}`}
-      style={{ animationDelay: `${index * 50}ms` }}
-    >
-      {/* 1. THUMBNAIL AREA - COMPACT */}
-      <div className={`relative w-full h-20 bg-gradient-to-r ${tool.thumbColor || 'from-gray-300 to-gray-400'} flex items-center justify-center overflow-hidden`}>
-
-        {/* IMAGE / VIDEO */}
-        {tool.imageSrc ? (
-          <img
-            src={tool.imageSrc}
-            alt={toolName}
-            className="absolute inset-0 w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
-          />
-        ) : tool.videoSrc ? (
-          <video
-            src={tool.videoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <>
-            <div className="absolute inset-0 bg-white/10 opacity-20" />
-            <div className="transition-all duration-300 transform group-hover:scale-110">
-              <Icon className="w-8 h-8 text-white drop-shadow-md" />
-            </div>
-          </>
-        )}
-
-        {/* Lock Overlay */}
-        {isLocked && !tool.isComingSoon && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-30 backdrop-blur-[1px]">
-            <svg className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-9v2H6V8a6 6 0 1112 0zm-2 0V8a4 4 0 10-8 0v2h8z" /></svg>
-          </div>
-        )}
-
-        {/* COMING SOON OVERLAY */}
-        {tool.isComingSoon && (
-          <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40 backdrop-blur-sm">
-            <span className="text-yellow-400 text-xs font-black uppercase tracking-wider border border-yellow-400/50 px-2 py-1 rounded bg-black/50">
-              Development
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* 2. TEXT & BADGES AREA - COMPACT */}
-      <div className="p-2 flex flex-col flex-grow bg-white relative">
-
-        {/* BADGES */}
-        <div className="flex flex-wrap gap-0.5 mb-1">
-          {tool.isComingSoon ? (
-            <span className="text-[9px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">🛠️ DEV MODE</span>
-          ) : (
-            <>
-              {tool.isHot && <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">🔥 {t('badges.hot', 'HOT')}</span>}
-              {tool.isExclusive && <span className="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">💎 {t('badges.exclusive', 'EXCLUSIVE')}</span>}
-              {tool.isNew && <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">🚀 {t('badges.new', 'NEW')}</span>}
-              {tool.isNewbie && !tool.isHot && <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">🌱 {t('badges.for_beginners', 'FOR BEGINNERS')}</span>}
-            </>
-          )}
-        </div>
-
-        {/* TOOL NAME */}
-        <h3 className={`text-sm font-extrabold transition-colors truncate w-full mb-0.5 ${tool.isComingSoon ? 'text-gray-400' : 'text-gray-800 group-hover:text-blue-600'}`}>
-          {toolName}
-        </h3>
-
-        <p className="text-[11px] text-gray-500 line-clamp-1 leading-snug">
-          {toolShortDesc}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-/* =========================
    SECTION
    ========================= */
 type SectionVariant = 'default' | 'gold' | 'fire' | 'blue' | 'green';
@@ -418,46 +315,40 @@ const ToolSection: React.FC<{
   t: any;
 }> = ({ title, tools, userRole, onOpen, isExclusiveSection = false, variant = 'default', t }) => {
 
-  const getThemeClass = () => {
+  const getThemeColor = () => {
     switch (variant) {
-      case 'gold': return 'border-amber-500/30 bg-amber-900/10';
-      case 'fire': return 'border-red-500/30 bg-red-900/10';
-      case 'blue': return 'border-blue-500/30 bg-blue-900/10';
-      case 'green': return 'border-green-500/30 bg-green-900/10';
-      default: return 'border-transparent';
+      case 'gold': return '#fbbf24';
+      case 'fire': return '#ef4444';
+      case 'blue': return '#3b82f6';
+      case 'green': return '#10b981';
+      default: return '#fff';
     }
   };
 
-  const getTitleColor = () => {
-    switch (variant) {
-      case 'gold': return 'text-amber-400';
-      case 'fire': return 'text-red-400';
-      case 'blue': return 'text-blue-400';
-      case 'green': return 'text-emerald-400';
-      default: return 'text-[#F3EFE0]';
-    }
-  };
+  const themeColor = getThemeColor();
 
   return (
-    <div className={`mb-10 px-4 py-6 rounded-2xl border ${getThemeClass()} animate-fade-in-up transition-all duration-300 hover:bg-opacity-20`}>
-      <div className="flex items-center gap-2 mb-6">
-        <div className={`w-1.5 h-6 rounded-full shadow-sm ${variant === 'gold' ? 'bg-amber-400' :
-          variant === 'fire' ? 'bg-red-500' :
-            variant === 'blue' ? 'bg-blue-500' :
-              variant === 'green' ? 'bg-emerald-500' : 'bg-[#F3EFE0]'
-          }`}></div>
-        <h3 className={`text-xl font-bold uppercase tracking-wide ${getTitleColor()}`}>
+    <div className="mb-16 relative">
+      {/* Decorative Line */}
+      <div className="absolute left-0 top-3 bottom-3 w-px bg-gradient-to-b from-transparent via-gray-700 to-transparent opacity-30"></div>
+
+      <div className="flex items-end gap-4 mb-8 pl-6 relative">
+        <div className="absolute left-[3px] top-1 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor, boxShadow: `0 0 10px ${themeColor}` }}></div>
+
+        <h3 className="text-2xl font-black uppercase tracking-widest text-white/90" style={{ textShadow: '0 0 20px rgba(0,0,0,0.5)' }}>
           {title}
         </h3>
+
         {isExclusiveSection && (
-          <span className="ml-2 px-2 py-0.5 text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full uppercase tracking-wide shadow-lg animate-pulse">
-            ⭐ {t('badges.exclusive', 'EXCLUSIVE')}
+          <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-[10px] font-bold text-black shadow-lg">
+            PREMIUM ACCESS
           </span>
         )}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 pl-4">
         {tools.map((tool, i) => (
-          <CapCutCard
+          <GlassCard
             key={tool.id}
             index={i}
             tool={tool}
@@ -496,34 +387,30 @@ const ToolsGrid: React.FC = () => {
       return;
     }
 
-    // Special handling for Thầy YouTube - navigate to dedicated page
-    if (tool.id === 'thay-youtube') {
-      router.push('/tools/thay-youtube');
-      return;
-    }
+    // Special Router Logic
+    const routes: Record<string, string> = {
+      'rival-scanner': '/tools/rival-scanner',
+      'hidden-channel-finder': '/tools/hidden-channel-finder',
+      'scriptwriter': '/tools/scriptwriter',
+      'narrative-studio': '/tools/narrative-studio',
+      'script-refiner': '/tools/script-refiner',
+      'velocity': '/tools/veocity',
+      'seo': '/tools/seo-tool',
+      'micro-niche-miner': '/tools/micro-niche-miner',
+      'thay-youtube': '/tools/thay-youtube',
+      'niche-engine': '/studio/niche-engine',
+      'future-eye': '/tools/future-eye',
+      'x-hot-news': '/tools/x-trend-hunter'
+    };
 
-    // Special handling for Niche Engine
-    if (tool.id === 'niche-engine') {
-      router.push('/studio/niche-engine');
-      return;
-    }
-
-    // Special handling for Future Eye
-    if (tool.id === 'future-eye') {
-      router.push('/tools/future-eye');
-      return;
-    }
-
-    // Special handling for X Trend Hunter
-    if (tool.id === 'x-hot-news') {
-      router.push('/tools/x-trend-hunter');
+    if (routes[tool.id]) {
+      router.push(routes[tool.id]);
       return;
     }
 
     router.push({ pathname: router.pathname, query: { ...router.query, tool: tool.id } }, undefined, { shallow: true });
   };
 
-  // Helper to get tools based on filter
   const allTools = [...toolsVeryHot, ...toolsHot, ...toolsContent, ...toolsResearch, ...(userRole === 'ADMIN' ? toolsDeveloper : [])];
 
   const getFilteredTools = () => {
@@ -539,66 +426,60 @@ const ToolsGrid: React.FC = () => {
   };
 
   const navItems = [
-    { id: 'all', label: t('nav.all', 'Tất cả'), icon: null },
-    { id: 'newbie', label: t('nav.newbie', 'Dành cho người mới'), icon: '🌱' },
-    { id: 'hot', label: t('nav.hot', 'Đang thịnh hành'), icon: '🔥' },
-    { id: 'content', label: t('nav.content', 'Sáng tạo nội dung'), icon: '📝' },
-    { id: 'research', label: t('nav.research', 'Nghiên cứu thị trường'), icon: '📊' },
-    { id: 'very_hot', label: '🏆 ' + t('nav.learning', 'GÓC HỌC WIN!'), icon: null },
-    ...(userRole === 'ADMIN' ? [{ id: 'developer', label: '🔧 ' + t('nav.developer', 'Nhà Phát Triển'), icon: null }] : []),
+    { id: 'all', label: t('nav.all', 'All Modules'), icon: null },
+    { id: 'newbie', label: t('nav.newbie', 'Beginners'), icon: '🌱' },
+    { id: 'hot', label: t('nav.hot', 'Trending'), icon: '🔥' },
+    { id: 'content', label: t('nav.content', 'Creation'), icon: '📝' },
+    { id: 'research', label: t('nav.research', 'Intelligence'), icon: '📊' },
+    { id: 'very_hot', label: '🏆 ' + t('nav.learning', 'Academy'), icon: null },
+    ...(userRole === 'ADMIN' ? [{ id: 'developer', label: '🔧 ' + t('nav.developer', 'Dev Ops'), icon: null }] : []),
   ];
 
   return (
-    <section className="min-h-screen bg-[#1F291D] pt-8 pb-24 font-sans">
-      <div className="w-full max-w-[1920px] mx-auto px-4 md:px-8 lg:px-12">
+    <section className="min-h-screen relative pt-8 pb-24 font-sans overflow-hidden">
 
-        {/* HEADER */}
-        <div className="mb-8 px-2 text-center md:text-left">
-          <h2 className="text-3xl md:text-5xl font-black text-[#F3EFE0] mb-3 tracking-tight font-serif">
-            SeenYT <span className="font-light italic text-[#CDAD5A]">Studio</span>
-          </h2>
-          <p className="text-[#F3EFE0]/70 text-sm md:text-base max-w-2xl font-light">
-            {t('studio.subtitle', 'Khơi nguồn sáng tạo với bộ công cụ AI tối thượng. Thiết kế tinh tế, hiệu năng vượt trội.')}
-          </p>
+      {/* 1. ANIMATED BACKGROUND */}
+      <AnimatedBackground />
+
+      <div className="relative w-full max-w-[1920px] mx-auto px-4 md:px-8 lg:px-12 z-10">
+
+        {/* 2. NEON HEADER */}
+        <NeonHeader />
+
+        {/* 3. GLASS NAVIGATION */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-16">
+          <div className="p-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex flex-wrap justify-center">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as TabType)}
+                  className={`
+                      relative px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 uppercase tracking-wider
+                      ${isActive
+                      ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]'
+                      : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {item.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {/* CAPCUT STYLE NAVIGATION */}
-        <div className="flex flex-wrap items-center gap-4 mb-10 border-b border-[#F3EFE0]/10 pb-1 px-2">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            const isNewbie = item.id === 'newbie';
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id as TabType)}
-                className={`
-                            relative px-3 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-2
-                            ${isActive ? 'text-[#F3EFE0]' : 'text-[#F3EFE0]/60 hover:text-[#F3EFE0]/90'}
-                            ${isNewbie ? 'bg-[#F3EFE0]/10 rounded-t-lg px-4' : ''}
-                        `}
-              >
-                {item.icon && <span>{item.icon}</span>}
-                {item.label}
-
-                {/* Active Indicator Underline */}
-                {isActive && (
-                  <div className="absolute bottom-[-5px] left-0 w-full h-0.5 bg-[#CDAD5A] shadow-[0_0_10px_#CDAD5A]" />
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* CONTENT AREA */}
-        <div className="min-h-[500px]">
+        {/* 4. CONTENT GRID */}
+        <div className="min-h-[500px] animate-fade-in-up">
           {activeTab === 'all' ? (
             <>
-              <ToolSection title={'🏆 ' + t('sections.learning', 'Góc Học Win!')} tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="gold" t={t} />
-              <ToolSection title={'🔥 ' + t('sections.trending', 'Đang Thịnh Hành')} tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" t={t} />
-              <ToolSection title={'📝 ' + t('sections.content_creation', 'Sáng Tạo Nội Dung')} tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" t={t} />
-              <ToolSection title={'📊 ' + t('sections.research', 'Nghiên Cứu Thị Trường')} tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" t={t} />
+              <ToolSection title={'🏆 ' + t('sections.learning', 'ACADEMY & ROADMAP')} tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="gold" t={t} />
+              <ToolSection title={'🔥 ' + t('sections.trending', 'TRENDING MODULES')} tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" t={t} />
+              <ToolSection title={'📝 ' + t('sections.content_creation', 'CREATIVE SUITE')} tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" t={t} />
+              <ToolSection title={'📊 ' + t('sections.research', 'MARKET INTELLIGENCE')} tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" t={t} />
               {userRole === 'ADMIN' && (
-                <ToolSection title={'🔧 ' + t('sections.developer', 'Nhà Phát Triển')} tools={toolsDeveloper} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="default" t={t} />
+                <ToolSection title={'🔧 ' + t('sections.developer', 'DEV CONSOLE')} tools={toolsDeveloper} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="default" t={t} />
               )}
             </>
           ) : (
@@ -614,8 +495,8 @@ const ToolsGrid: React.FC = () => {
           )}
         </div>
 
-        <div className="mt-20 text-center border-t border-[#F3EFE0]/10 pt-8">
-          <p className="text-[#F3EFE0]/40 text-xs">SeenYT Platform © 2026</p>
+        <div className="mt-20 text-center border-t border-white/5 pt-8">
+          <p className="text-gray-600 text-[10px] font-mono tracking-widest">SeenYT Platform © 2026. All Systems Operational.</p>
         </div>
 
       </div>

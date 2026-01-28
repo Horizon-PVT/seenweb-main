@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+
 export default function VirtualMCTool() {
     const { data: session } = useSession();
     const router = useRouter();
@@ -19,6 +21,20 @@ export default function VirtualMCTool() {
     const [status, setStatus] = useState<string>(''); // starting, processing, succeeded, failed
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
+    // Audio visualization mock state
+    const [audioVisLevel, setAudioVisLevel] = useState(0);
+
+    useEffect(() => {
+        if (loading) {
+            const interval = setInterval(() => {
+                setAudioVisLevel(Math.random() * 100);
+            }, 100);
+            return () => clearInterval(interval);
+        } else {
+            setAudioVisLevel(0);
+        }
+    }, [loading]);
+
     const fileToDataUri = (file: File) => new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (event) => resolve(event.target?.result as string);
@@ -32,15 +48,15 @@ export default function VirtualMCTool() {
         }
 
         setLoading(true);
-        setStatus("đang tải file lên...");
+        setStatus("INITIALIZING...");
         setVideoUrl(null);
 
         try {
-            // 1. Convert files to Base64/DataURI (Replicate accepts this directly for small files)
+            // 1. Convert files to Base64/DataURI
             const imageData = await fileToDataUri(imageFile);
             const audioData = await fileToDataUri(audioFile);
 
-            setStatus("đang gửi yêu cầu...");
+            setStatus("UPLOADING ASSETS...");
 
             // 2. Call API Create
             const res = await fetch('/api/virtual-mc', {
@@ -52,14 +68,13 @@ export default function VirtualMCTool() {
                 })
             });
 
-            // Track Tool Start
-            // We can fire and forget
+            // Analytics
             fetch('/api/analytics/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: 'tool_start',
-                    anonId: document.cookie.split('; ').find(row => row.startsWith('seen_anon_id='))?.split('=')[1], // Simple parse or just let backend handle if authenticated
+                    anonId: document.cookie.split('; ').find(row => row.startsWith('seen_anon_id='))?.split('=')[1],
                     properties: { tool: 'VirtualMC' }
                 })
             }).catch(() => { });
@@ -68,7 +83,7 @@ export default function VirtualMCTool() {
             if (!res.ok) throw new Error(data.error || "Lỗi khởi tạo");
 
             const predictionId = data.id;
-            setStatus("đang xử lý AI...");
+            setStatus("AI SYNTHESIZING...");
 
             // 3. Poll for status
             const interval = setInterval(async () => {
@@ -79,18 +94,17 @@ export default function VirtualMCTool() {
                     clearInterval(interval);
                     setVideoUrl(checkData.output);
                     setLoading(false);
-                    setStatus("hoàn tất");
+                    setStatus("COMPLETE");
                 } else if (checkData.status === "failed" || checkData.status === "canceled") {
                     clearInterval(interval);
                     setLoading(false);
                     const errorMsg = checkData.error || (checkData.logs ? "Lỗi từ Replicate: " + checkData.logs.slice(-200) : "Không xác định");
-                    setStatus(`Thất bại: ${checkData.status}`);
+                    setStatus(`FAILED: ${checkData.status}`);
                     alert(`Tạo video thất bại! ${errorMsg}`);
-                    console.error("Full Logs:", checkData.logs);
                 } else {
-                    setStatus(`đang xử lý... (${checkData.status})`);
+                    setStatus(`PROCESSING (${checkData.status})...`);
                 }
-            }, 3000); // Check every 3s
+            }, 3000);
 
         } catch (error: any) {
             console.error(error);
@@ -100,139 +114,281 @@ export default function VirtualMCTool() {
     };
 
     return (
-        <div className="relative bg-black/40 backdrop-blur-md border border-[#008080]/30 rounded-lg p-6 max-w-4xl mx-auto shadow-2xl">
-            <h2 className="text-2xl font-bold text-[#CDAD5A] font-playfair mb-6 text-center tracking-widest uppercase border-b border-[#008080]/30 pb-4">
-                {isEN ? 'AI Virtual Idol' : 'Siêu Tiên Nữ - Virtual Idol'}
-            </h2>
+        <div className="relative w-full text-cyan-50 font-sans selection:bg-pink-500 selection:text-white">
+            {/* Cyberpunk Background Grid */}
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-20"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)',
+                    backgroundSize: '40px 40px',
+                    maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)'
+                }}>
+            </div>
+
+            {/* Header */}
+            <div className="relative z-10 text-center mb-8 pt-4">
+                <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-pink-500 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                    VIRTUAL IDOL <span className="text-2xl not-italic ml-2 border border-pink-500 text-pink-500 px-2 py-0.5 rounded text-base align-middle">PRO</span>
+                </h1>
+                <p className="text-cyan-300/60 text-xs tracking-[0.3em] mt-2 uppercase">Neural Rendering Engine v3.0 // Online</p>
+            </div>
 
             {/* PRO LOCK OVERLAY */}
             {!isPro && (
-                <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex flex-col items-center justify-center rounded-lg p-6 text-center">
-                    <div className="bg-black/80 border border-[#CDAD5A] p-8 rounded-2xl shadow-[0_0_50px_rgba(205,173,90,0.4)] max-w-md">
-                        <div className="text-6xl mb-4">💎</div>
-                        <h3 className="text-2xl font-black text-white mb-2 uppercase">Tính năng PRO</h3>
-                        <p className="text-gray-400 mb-6">
-                            Công nghệ tạo Idol AI sống động chỉ dành riêng cho thành viên gói
-                            <span className="text-[#CDAD5A] font-bold"> SUPER (PRO)</span>.
+                <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/80 flex flex-col items-center justify-center rounded-xl overflow-hidden">
+                    <div className="relative p-10 max-w-lg text-center border border-pink-500/30 bg-black/90 rounded-2xl shadow-[0_0_100px_rgba(236,72,153,0.2)]">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent"></div>
+                        <div className="text-7xl mb-6 animate-bounce">💎</div>
+                        <h3 className="text-3xl font-black text-white mb-2 uppercase italic">ACCESS DENIED</h3>
+                        <p className="text-gray-400 mb-8">
+                            Tính năng tạo Idol AI cao cấp chỉ dành cho thành viên
+                            <span className="text-pink-500 font-bold glow-pink"> SUPER (PRO)</span>.
                         </p>
-                        <Link href="/pricing" className="block w-full bg-gradient-to-r from-[#CDAD5A] to-yellow-600 text-black font-black text-lg py-4 rounded-xl hover:scale-105 transition-transform">
-                            🚀 NÂNG CẤP NGAY
+                        <Link href="/pricing" className="group relative inline-flex justify-center items-center px-8 py-4 font-bold text-white transition-all duration-200 bg-pink-600 font-lg rounded-lg hover:bg-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:-translate-y-1">
+                            <span className="mr-2">🚀</span> NÂNG CẤP NGAY
+                            <div className="absolute inset-0 rounded-lg ring-2 ring-white/20 group-hover:ring-white/50 animate-pulse"></div>
                         </Link>
-                        <p className="text-xs text-gray-500 mt-4">
-                            Mở khóa không giới hạn Virtual MC + Tất cả tools khác.
-                        </p>
                     </div>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* LEFT: INPUTS */}
-                <div className="space-y-6">
-                    {/* Image Upload */}
-                    <div className="group relative">
-                        <label className="block text-[#008080] font-bold text-xs uppercase mb-2">{isEN ? '1. Idol Portrait (Static Image)' : '1. Chân dung Idol (Ảnh tĩnh)'}</label>
-                        <div className="border-2 border-dashed border-gray-600 rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer hover:border-[#CDAD5A] transition-all bg-black/20 overflow-hidden relative">
-                            {imagePreview ? (
-                                <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
-                            ) : (
-                                <div className="text-center text-gray-500">
-                                    <span className="text-4xl block mb-2">👤</span>
-                                    <span className="text-xs">{isEN ? 'Click to select image' : 'Bấm để chọn ảnh'}</span>
+            {/* MAIN LAYOUT */}
+            <div className={`relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto p-4 ${!isPro ? 'blur-sm grayscale opacity-30 pointer-events-none' : ''}`}>
+
+                {/* DOCTOR / INPUT PANEL */}
+                <div className="lg:col-span-4 space-y-4">
+
+                    {/* 1. VISUAL INPUT */}
+                    <div className="bg-[#0a0a0f] border border-cyan-900/50 rounded-xl p-1 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-2 z-20">
+                            <div className="w-2 h-2 bg-cyan-500 rounded-full animate-ping"></div>
+                        </div>
+
+                        <div className="bg-gradient-to-b from-cyan-950/20 to-black p-5 rounded-lg relative">
+                            <h3 className="text-cyan-400 font-bold text-xs tracking-widest uppercase mb-4 flex items-center gap-2">
+                                <span className="w-1 h-3 bg-cyan-500 block"></span>
+                                01. Visual Source
+                            </h3>
+
+                            <div className="relative group/upload">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        if (e.target.files?.[0]) {
+                                            setImageFile(e.target.files[0]);
+                                            setImagePreview(URL.createObjectURL(e.target.files[0]));
+                                        }
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30"
+                                />
+
+                                <div className={`border-2 border-dashed ${imagePreview ? 'border-cyan-500/50' : 'border-gray-700'} rounded-lg h-64 flex flex-col items-center justify-center transition-all group-hover/upload:border-cyan-400 group-hover/upload:bg-cyan-950/20 relative overflow-hidden`}>
+
+                                    {imagePreview ? (
+                                        <>
+                                            <img src={imagePreview} className="w-full h-full object-cover opacity-80" />
+                                            {/* Scanning Effect */}
+                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent h-4 w-full animate-scan pointer-events-none"></div>
+                                            <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur px-2 py-1 text-[10px] text-cyan-300 border border-cyan-800 rounded">
+                                                FACE DETECTED
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center p-4">
+                                            <div className="w-16 h-16 border border-cyan-500/30 rounded-full flex items-center justify-center mx-auto mb-3 group-hover/upload:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all">
+                                                <span className="text-2xl opacity-70">👤</span>
+                                            </div>
+                                            <p className="text-cyan-100 text-sm font-bold">UPLOAD PORTRAIT</p>
+                                            <p className="text-cyan-500/50 text-xs mt-1">JPG, PNG (Close-up)</p>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                            <input
-                                type="file"
-                                accept="image/*"
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                onChange={(e) => {
-                                    if (e.target.files?.[0]) {
-                                        setImageFile(e.target.files[0]);
-                                        setImagePreview(URL.createObjectURL(e.target.files[0]));
-                                    }
-                                }}
-                            />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Audio Upload */}
-                    <div>
-                        <label className="block text-[#008080] font-bold text-xs uppercase mb-2">{isEN ? '2. Voice (Audio File/TTS)' : '2. Giọng nói (File âm thanh/TTS)'}</label>
-                        <input
-                            type="file"
-                            accept="audio/*"
-                            onChange={(e) => e.target.files?.[0] && setAudioFile(e.target.files[0])}
-                            className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#003333] file:text-[#CDAD5A] hover:file:bg-[#004d4d]"
-                        />
-                        <p className="text-[10px] text-gray-500 mt-1 italic">{isEN ? '* Tip: Use "Text to Speech" tool to create high-quality audio first.' : '* Mẹo: Dùng tab "Chuyển văn bản thành giọng nói của SeenYt" để tạo file âm thanh tốt, chuẩn nhất trước,sau đó hãy đưa file âm thanh đó vào .'}</p>
-                    </div>
+                    {/* 2. AUDIO INPUT */}
+                    <div className="bg-[#0a0a0f] border border-pink-900/50 rounded-xl p-1 relative overflow-hidden">
+                        <div className="bg-gradient-to-b from-pink-950/20 to-black p-5 rounded-lg">
+                            <h3 className="text-pink-400 font-bold text-xs tracking-widest uppercase mb-4 flex items-center gap-2">
+                                <span className="w-1 h-3 bg-pink-500 block"></span>
+                                02. Audio Stream
+                            </h3>
 
-                    {/* TIPS BANNER */}
-                    <div className="bg-[#CDAD5A]/10 border border-[#CDAD5A]/30 p-4 rounded-lg flex gap-3 shadow-lg animate-pulse-slow">
-                        <div className="text-2xl">💡</div>
-                        <div>
-                            <h3 className="text-[#CDAD5A] font-bold text-xs uppercase tracking-wide mb-1">{isEN ? 'OPTIMIZATION TIPS' : 'MẸO TỐI ƯU KẾT QUẢ'}</h3>
-                            <ul className="text-[10px] text-gray-300 space-y-1 list-disc list-inside">
-                                <li><strong>{isEN ? 'Image:' : 'Ảnh:'}</strong> {isEN ? 'Use close-up portrait, 16:9 or square. Avoid full body.' : 'Nên dùng ảnh chân dung cận mặt (Close-up), tỉ lệ 16:9 hoặc vuông. Hạn chế ảnh toàn thân.'}</li>
-                                <li><strong>{isEN ? 'Audio:' : 'Âm thanh:'}</strong> {isEN ? 'Best under 1-2 minutes for fast processing.' : 'Tốt nhất dưới 1-2 phút để xử lý nhanh (tránh lỗi timeout).'}</li>
-                                <li><strong>{isEN ? 'Head Motion:' : 'Head Motion:'}</strong> {isEN ? 'AI will animate head movement automatically.' : 'AI sẽ tự động cử động đầu cho tự nhiên hơn (không chỉ nhép môi).'}</li>
-                            </ul>
+                            <div className="relative group/audio">
+                                <input
+                                    type="file"
+                                    accept="audio/*"
+                                    onChange={(e) => e.target.files?.[0] && setAudioFile(e.target.files[0])}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30"
+                                />
+
+                                <div className={`border border-gray-800 bg-gray-900/50 rounded-lg p-4 flex items-center gap-4 transition-all hover:border-pink-500/50 hover:bg-pink-950/10`}>
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${audioFile ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/50' : 'bg-gray-800 text-gray-500'}`}>
+                                        🎵
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        {audioFile ? (
+                                            <div>
+                                                <p className="text-white text-sm font-bold truncate">{audioFile.name}</p>
+                                                <p className="text-pink-400 text-xs">Ready for synthesis</p>
+                                                {/* Fake waveform */}
+                                                <div className="flex gap-0.5 mt-2 h-3 items-end opacity-70">
+                                                    {[...Array(15)].map((_, i) => (
+                                                        <div key={i} className="w-1 bg-pink-500" style={{ height: `${20 + Math.random() * 80}%` }}></div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <p className="text-gray-300 text-sm font-bold">Select Audio Source</p>
+                                                <p className="text-gray-500 text-xs">MP3, WAV (Max 2min)</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p className="text-[10px] text-gray-500 mt-3 text-right">
+                                * Tip: Use <Link href="/?tool=text-to-speech" className="text-cyan-400 hover:underline">AI Voice Studio</Link> for best results.
+                            </p>
                         </div>
                     </div>
 
+                    {/* ACTION BUTTON */}
                     <button
                         onClick={handleGenerate}
                         disabled={loading || !imageFile || !audioFile}
-                        className="w-full bg-gradient-to-r from-[#008080] to-[#005555] text-white font-bold py-4 rounded-sm shadow-[0_0_15px_rgba(0,128,128,0.5)] hover:shadow-[0_0_25px_rgba(205,173,90,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`
+                            w-full py-5 rounded-xl font-black text-lg tracking-widest uppercase transition-all relative overflow-hidden group
+                            ${loading || !imageFile || !audioFile
+                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
+                                : 'bg-transparent text-white border border-cyan-500 hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] hover:border-pink-500'
+                            }
+                        `}
                     >
-                        {loading ? `🔮 ${status.toUpperCase()}` : "⚡ TẠO VIDEO IDOL NGAY"}
+                        {/* Background Gradient Animation */}
+                        <div className={`absolute inset-0 bg-gradient-to-r from-cyan-600 via-pink-600 to-cyan-600 opacity-20 group-hover:opacity-40 transition-opacity ${loading ? 'animate-shimmer' : ''}`} style={{ backgroundSize: '200% 100%' }}></div>
+
+                        <span className="relative z-10 flex items-center justify-center gap-3">
+                            {loading ? (
+                                <>
+                                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                    {status}
+                                </>
+                            ) : (
+                                <>
+                                    ⚡ INITIATE SYNC
+                                </>
+                            )}
+                        </span>
                     </button>
+
                 </div>
 
-                {/* RIGHT: OUTPUT */}
-                <div className="flex flex-col items-center justify-center border border-gray-800 rounded-lg bg-black/50 min-h-[400px] relative p-4">
-                    {videoUrl ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
-                            <video
-                                key={videoUrl}
-                                src={videoUrl}
-                                controls
-                                autoPlay
-                                loop
-                                playsInline
-                                className="w-full h-auto rounded-lg shadow-2xl border border-[#CDAD5A]/30"
-                                style={{ minHeight: '300px' }}
-                            />
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        const response = await fetch(videoUrl);
-                                        const blob = await response.blob();
-                                        const url = window.URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.style.display = 'none';
-                                        a.href = url;
-                                        a.download = `idol-video-${Date.now()}.mp4`;
-                                        document.body.appendChild(a);
-                                        a.click();
-                                        window.URL.revokeObjectURL(url);
-                                    } catch (err) {
-                                        console.error("Download failed:", err);
-                                        window.open(videoUrl, '_blank');
-                                    }
-                                }}
-                                className="block w-full text-center mt-4 bg-[#CDAD5A] text-black py-2 rounded font-bold hover:bg-[#d9b964] transition-colors text-xs uppercase"
-                            >
-                                ⬇️ TẢI VIDEO VỀ MÁY
-                            </button>
+                {/* STAGE / OUTPUT PANEL */}
+                <div className="lg:col-span-8 bg-black rounded-2xl border border-gray-800 relative overflow-hidden flex flex-col min-h-[500px] shadow-2xl">
+
+                    {/* Top Bar Decoration */}
+                    <div className="h-1 bg-gradient-to-r from-cyan-500 via-pink-500 to-cyan-500 w-full shrink-0"></div>
+                    <div className="bg-[#050505] border-b border-gray-800 p-3 flex justify-between items-center shrink-0">
+                        <div className="flex gap-2">
+                            <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                            <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                            <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
                         </div>
-                    ) : (
-                        <div className="text-gray-600 text-center animate-pulse">
-                            <div className="text-6xl mb-4">🎬</div>
-                            <p className="text-sm font-mono">KẾT QUẢ SẼ HIỆN Ở ĐÂY</p>
+                        <div className="uppercase text-[10px] font-mono text-gray-500 tracking-[0.2em] flex items-center gap-2">
+                            <span>LIVE FEED</span>
+                            <div className={`w-2 h-2 rounded-full ${videoUrl ? 'bg-red-500 animate-pulse' : 'bg-gray-700'}`}></div>
+                        </div>
+                    </div>
+
+                    {/* Stage Area */}
+                    <div className="flex-1 relative flex items-center justify-center bg-[url('/images/grid-bg.png')] bg-cover bg-center">
+
+                        {/* Empty State */}
+                        {!videoUrl && !loading && (
+                            <div className="text-center opacity-40">
+                                <div className="text-8xl mb-4 grayscale mix-blend-screen opacity-50">🎥</div>
+                                <h2 className="text-2xl font-black text-white tracking-widest uppercase">IDOL STAGE OFFLINE</h2>
+                                <p className="text-sm font-mono text-cyan-500 mt-2">WAITING FOR INPUT STREAM...</p>
+                            </div>
+                        )}
+
+                        {/* Loading State */}
+                        {loading && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm z-20">
+                                <div className="w-24 h-24 border-t-4 border-l-4 border-cyan-500 rounded-full animate-spin mb-8 shadow-[0_0_30px_rgba(6,182,212,0.4)]"></div>
+                                <div className="font-mono text-cyan-400 text-xl tracking-widest animate-pulse">{status}</div>
+                                {/* Tech decor */}
+                                <div className="mt-8 flex gap-1 items-end h-8">
+                                    {[...Array(5)].map((_, i) => (
+                                        <div key={i} className="w-2 bg-pink-500 animate-pulse" style={{ height: `${audioVisLevel}%`, animationDelay: `${i * 0.1}s` }}></div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Video Result */}
+                        {videoUrl && (
+                            <div className="relative w-full h-full flex flex-col">
+                                <video
+                                    src={videoUrl}
+                                    controls
+                                    autoPlay
+                                    loop
+                                    className="w-full h-full object-contain max-h-[600px] z-10 shadow-2xl"
+                                />
+                                {/* Overlay Effect */}
+                                <div className="absolute inset-0 pointer-events-none z-20 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]"></div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Bottom Controls */}
+                    {videoUrl && (
+                        <div className="bg-[#0a0a0f] border-t border-gray-800 p-4 flex justify-between items-center shrink-0">
+                            <div className="text-xs text-gray-500 font-mono">
+                                SESSION ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}
+                            </div>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => window.open(videoUrl, '_blank')}
+                                    className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition uppercase tracking-wider"
+                                >
+                                    Open New Tab
+                                </button>
+                                <a
+                                    href={videoUrl}
+                                    download={`idol_render_${Date.now()}.mp4`}
+                                    className="px-6 py-2 bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold rounded uppercase tracking-wider shadow-[0_0_20px_rgba(236,72,153,0.4)] transition-all flex items-center gap-2"
+                                >
+                                    <span>⬇</span> Download Render
+                                </a>
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Global Styles for Animations */}
+            <style jsx global>{`
+                @keyframes scan {
+                    0% { top: 0%; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { top: 100%; opacity: 0; }
+                }
+                .animate-scan {
+                    animation: scan 2s linear infinite;
+                }
+                .glow-pink {
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.7);
+                }
+            `}</style>
         </div>
     );
 }
+
+// Add Tailwind Animation config in tailwind.config.js if not present,
+// using inline style for now to ensure it works immediately.

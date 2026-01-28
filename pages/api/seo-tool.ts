@@ -152,55 +152,58 @@ ${topVideos}
   // === VIP PRO PROMPT ===
   const prompt = `Bạn là "SeenYT Alpha" - Chiến lược gia YouTube hàng đầu thế giới (Top 1% Global).
 
-**TARGET LANGUAGE**: ${outputLanguage} (Must output in this language).
+**TARGET LANGUAGE FOR OUTPUT**: "${outputLanguage}" (MUST RESPECT THIS).
 
-**INPUT**:
+**INPUT CONTEXT**:
 - Idea/Script: "${coreIdea}"
 ${marketContext}
 
-**MANDATORY RULE**:
-1. **ALL OUTPUT DATA MUST BE IN ${outputLanguage}**.
-2. If Target Language is English, write Titles, Description, Analysis in English.
-3. Ignore the language of this prompt (Vietnamese), follow **TARGET LANGUAGE**.
+**CRITICAL INSTRUCTION**:
+All analysis, titles, descriptions, and text output MUST be in **${outputLanguage}**.
+- If Target Language is "English", all output (except thumbnail prompt) must be in standard US English.
+- If Target Language is "Japanese", output in Japanese (Natural & Native).
+- If Target Language is "Vietnamese", output in Vietnamese.
 
-**QUY TRÌNH TƯ DUY (Chain of Thought)**:
-1. **Phân tích Hook (30s đầu)**: Ý tưởng này có đủ giữ chân người xem không? Cần thêm cú sốc thị giác (Visual Interrupt) nào?
-2. **Ma trận cảm xúc**: Video này đánh vào tử huyệt nào? (Sợ mất mát, Tò mò, Tham vọng...).
-3. **Tìm khoảng trống (Spy Gap)**: Đám đông đang làm gì chán ngắt? Ta làm gì để khác biệt?
+**MANDATORY RULE**:
+1. Ignore the language of the input script if it differs from Target Language. ALWAYS translate/adapt your thinking to **${outputLanguage}**.
+2. **thumbnail.prompt** is the ONLY field that must ALWAYS be in **English**.
+
+**QUY TRÌNH TƯ DUY (Chain of Thought - Apply in ${outputLanguage})**:
+1. **Hook Analysis**: Is this 30s strong enough? Visual Interrupt?
+2. **Emotional Matrix**: What triggers curiosity/fear/greed?
+3. **Spy Gap**: What are competitors missing?
 
 **YÊU CẦU OUTPUT (JSON)**:
 
-A. **STRATEGY** (Phần não bộ):
-- hook.score: Chấm 0-100 độ cuốn hút.
-- hook.visualInterrupt: Gợi ý 1 hành động/hình ảnh gây sốc ở giây thứ 5.
-- emotional.mainTrigger: Tên tử huyệt cảm xúc.
-- spyGap.competitorMiss: Đối thủ thường làm sai/thiếu gì?
-- spyGap.ourAngle: Góc tiếp cận "Blue Ocean" của chúng ta.
+A. **STRATEGY**:
+- hook.analysis: Explain in ${outputLanguage}.
+- emotional.mainTrigger: Name the emotion in ${outputLanguage}.
+- emotional.explanation: Explain in ${outputLanguage}.
+- spyGap: Analyze in ${outputLanguage}.
 
-B. **CONTENT** (Phần thực thi 2026):
-1. **titles**: 3 tiêu đề "Clickbait Ethical" (đạt CTR cao nhưng không lừa đảo). Score 0-100.
+B. **CONTENT**:
+1. **titles**: 3 viral titles in **${outputLanguage}**.
 2. **description**:
-   - MÔ TẢ PHẢI CÓ CẤU TRÚC SAU (Bắt buộc dùng Icon):
-     📌 **Vấn đề**: [Nỗi đau/Hook]
-     💡 **Giải pháp**: [Nội dung chính]
-     📞 **Kết nối**: [Link]
-   - Hashtags: 3 cái, để ở cuối cùng.
-   - **LƯU Ý VỀ ĐỊNH DẠNG MÔ TẢ**:
-     - Bắt buộc dùng 2 lần xuống dòng (Enter) giữa các mục để tách đoạn rõ ràng.
-     - **ĐỘ DÀI**: Phần "Giải pháp/Nội dung chính" phải viết SÂU, chi tiết (tối thiểu 4-5 dòng), không viết hời hợt. Phân tích kỹ tâm lý.
-
-3. **tags**: 15 tag chất lượng nhất (Niche drops). Relevance 0-100.
-4. **thumbnails**:
-   - Tạo 3 Concept khác nhau (Ví dụ: Biểu cảm sốc, So sánh, Bí ẩn).
-   - Concept: Mô tả chi tiết.
-   - Text: Tối đa 4 từ, gây tò mò.
-   - **prompt**: Viết Prompt chi tiết cho Midjourney (Tiếng Anh 100%). Bao gồm: Subject, Lighting, Camera Angle, Style (Photorealistic/3D/Illustration), Aspect Ratio --ar 16:9.
-
-**QUY TẮC NGÔN NGỮ (Language Rule)**:
-- **DETECT** ngôn ngữ của Input.
-- **OUTPUT** toàn bộ nội dung (Strategy, Titles, Description, Tags, Thumbnail Concepts) bằng **CHÍNH NGÔN NGỮ ĐÓ**.
-- Ví dụ: Input Tiếng Anh -> Output Tiếng Anh. Input Tiếng Việt -> Output Tiếng Việt.
-- Ngoại lệ duy nhất: 'thumbnail.prompt' luôn luôn là Tiếng Anh.`;
+   - **MUST USE THIS EXACT STRUCTURE WITH ICONS**:
+     📌 **Problem**: [Hook/Pain Point] (in ${outputLanguage})
+     (Double Line Break)
+     💡 **Solution**: [Main Content/Value] (in ${outputLanguage}) - Write 3-4 deep sentences.
+     (Double Line Break)
+     📞 **Connect**: [Call to Action] (in ${outputLanguage})
+   - **FORMATTING**: Use double line breaks (\\n\\n) between sections for clear separation.
+   - Hashtags: 3 relevant tags at the very end.
+3. **tags**: 15 high-volume tags in **${outputLanguage}**.
+4. **thumbnails** (MUST GENERATE EXACTLY 3 CONCEPTS in an Array):
+   - **DESIGN PRINCIPLES (Apply these strictly)**:
+     1. **Stop the Scroll**: High contrast, shocking or curiosity-inducing visual.
+     2. **One-idea rule**: Focus on ONE main element/message. No clutter.
+     3. **Mobile Optimization**: Big faces (emotional), huge text (easy to read on phone).
+   
+   - **OUTPUT FORMAT (For each of the 3 concepts)**:
+     - concept: Explain the visual idea in **${outputLanguage}**.
+     - text: Short text overlay (Max 4 words, BIG font implied) in **${outputLanguage}**.
+     - colorPalette: High contrast colors (e.g., "Yellow on Black") in **${outputLanguage}**.
+     - **prompt**: Detailed Midjourney Prompt in **ENGLISH** (Focus on: Close-up shot, 8k resolution, hyper-realistic, dramatic lighting).`;
 
   const ai = new GoogleGenAI({ apiKey });
   try {

@@ -20,10 +20,13 @@ import {
     TrendingUp,
     Hash,
     Copy,
-    Check
+    Check,
+    Activity,
+    Server,
+    Wifi
 } from 'lucide-react';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10; // Denser list
 
 export default function XHotNewsFetcherPro() {
     const { data: session, status } = useSession();
@@ -32,7 +35,7 @@ export default function XHotNewsFetcherPro() {
     // State
     const [loading, setLoading] = useState(false);
     const [genLoading, setGenLoading] = useState(false);
-    const [statusMsg, setStatusMsg] = useState('System Ready. Standby for scan...');
+    const [statusMsg, setStatusMsg] = useState('SYSTEM STANDBY');
     const [errorDetail, setErrorDetail] = useState('');
 
     const [trends, setTrends] = useState<any[]>([]);
@@ -46,6 +49,14 @@ export default function XHotNewsFetcherPro() {
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [selectedAngle, setSelectedAngle] = useState<'explain' | 'celeb' | 'tools' | 'expose' | 'future'>('explain');
+
+    // Mock System Stats
+    const [ping, setPing] = useState(24);
+    useEffect(() => {
+        const interval = setInterval(() => setPing(Math.floor(Math.random() * 20) + 15), 2000);
+        return () => clearInterval(interval);
+    }, []);
+
 
     // Auth check
     useEffect(() => {
@@ -70,7 +81,7 @@ export default function XHotNewsFetcherPro() {
 
     const handleScan = async () => {
         setLoading(true);
-        setStatusMsg('Initializing connection to X-Node (RapidAPI)...');
+        setStatusMsg('CONNECTING TO X-NODE...');
         setErrorDetail('');
         setTrends([]);
         setSelectedCategory('All');
@@ -83,13 +94,13 @@ export default function XHotNewsFetcherPro() {
 
             if (!res.ok) throw new Error(data.error || 'Failed to fetch trends');
 
-            setStatusMsg('Analyzing trend data & classifying topics...');
+            setStatusMsg('ANALYZING VECTORS...');
             setTrends(data.trends || []);
             setRegionName(data.region || 'Unknown');
-            setStatusMsg(`Successfully engaged. Found ${data.trends?.length || 0} active vectors in ${data.region}.`);
+            setStatusMsg(`SCAN COMPLETE. ${data.trends?.length || 0} TARGETS IDENTIFIED.`);
 
         } catch (e: any) {
-            setStatusMsg('Connection Failed');
+            setStatusMsg('CONNECTION FAILED');
             setErrorDetail(e.message);
         }
         setLoading(false);
@@ -99,7 +110,7 @@ export default function XHotNewsFetcherPro() {
         if (!selectedTrend) return;
         setGenLoading(true);
         setErrorDetail('');
-        setStatusMsg(`Deploying AI Agent (Gemini 2.5 Flash) for [${type.toUpperCase()}] generation...`);
+        setStatusMsg(`DEPLOYING AGENT >> ${type.toUpperCase()} GEN...`);
 
         try {
             const res = await fetch('/api/admin/tools/generate', {
@@ -119,10 +130,10 @@ export default function XHotNewsFetcherPro() {
 
             if (data.scripts) {
                 setScripts(prev => [...data.scripts, ...prev]);
-                setStatusMsg('Script payload received and decoded successfully.');
+                setStatusMsg('PAYLOAD RECEIVED.');
             }
         } catch (e: any) {
-            setStatusMsg('AI Protocol Error');
+            setStatusMsg('PROTOCOL ERROR');
             setErrorDetail(e.message);
         }
         setGenLoading(false);
@@ -134,99 +145,85 @@ export default function XHotNewsFetcherPro() {
         setTimeout(() => setCopiedIndex(null), 2000);
     };
 
-    if (status === 'loading') return <div className="min-h-screen bg-[#050510] flex items-center justify-center text-cyan-500 font-mono tracking-widest">SYSTEM INITIALIZING...</div>;
+    if (status === 'loading') return <div className="min-h-screen bg-[#000] flex items-center justify-center text-cyan-500 font-mono tracking-widest text-xs">INITIALIZING SYSTEM...</div>;
     if ((session?.user as any)?.role !== 'ADMIN') return null;
 
     return (
         <>
             <Head>
-                <title>X-Hunter Pro | SeenYT Console</title>
+                <title>X-Hunter Terminal | SeenYT</title>
             </Head>
 
-            <div className="h-screen bg-[#050510] text-gray-200 font-sans flex flex-col overflow-hidden selection:bg-cyan-500/30">
+            <div className="h-screen bg-black text-gray-300 font-mono flex flex-col overflow-hidden selection:bg-cyan-900 selection:text-cyan-100">
 
-                {/* 1. TOP BAR */}
-                <header className="px-6 py-0 border-b border-white/5 bg-[#0a0a16]/50 backdrop-blur-md z-50 h-[60px] flex-shrink-0 flex justify-between items-center">
+                {/* 0. CRT EFFECT OVERLAY */}
+                <div className="pointer-events-none fixed inset-0 z-[100] opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>
+
+                {/* 1. TOP STATUS BAR (Bloomberg Style) */}
+                <header className="px-6 py-3 border-b border-gray-800 bg-[#050505] z-50 flex-shrink-0 flex justify-between items-center text-xs tracking-wider uppercase">
                     <div className="flex items-center gap-6">
-                        <Link href="/?tool=developer" className="text-gray-500 hover:text-cyan-400 transition-colors text-sm font-mono tracking-tighter">
-                            {"< BACK_TO_BASE"}
+                        <Link href="/?tool=developer" className="text-gray-500 hover:text-cyan-500 transition-colors flex items-center gap-2 font-bold">
+                            <ChevronLeft size={14} /> BASE
                         </Link>
-                        <div className="h-8 w-px bg-white/10"></div>
-                        <h1 className="font-black text-xl text-white flex items-center gap-2 tracking-wide uppercase">
-                            <Globe size={20} className="text-cyan-500 animate-pulse-slow" />
-                            <span className="bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">X-Hunter</span>
-                            <span className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-mono">{regionName.toUpperCase()}</span>
-                        </h1>
+                        <div className="flex items-center gap-2 text-cyan-500 font-bold text-sm">
+                            <Globe size={16} className="animate-pulse" />
+                            X-TREND INTELLIGENCE
+                        </div>
+                        <div className="h-4 w-px bg-gray-800"></div>
+                        <div className="text-gray-500 font-bold">
+                            REGION: <span className="text-white">{regionName}</span>
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        {/* Region Selector */}
-                        <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
-                            <button
-                                onClick={() => setRegionId('23424977')}
-                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${regionId === '23424977' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-500 hover:text-gray-300'}`}
-                            >
-                                🇺🇸 USA
-                            </button>
-                            <button
-                                onClick={() => setRegionId('1')}
-                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${regionId === '1' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-500 hover:text-gray-300'}`}
-                            >
-                                🌍 GLOBAL
-                            </button>
+                    <div className="flex items-center gap-6 font-bold">
+                        <div className="flex gap-4 text-gray-600">
+                            <span className="flex items-center gap-2"><Wifi size={14} /> PING: {ping}ms</span>
+                            <span className="flex items-center gap-2"><Server size={14} /> CONNECTED</span>
+                            <span className="flex items-center gap-2"><Activity size={14} /> {loading ? 'BUSY' : 'IDLE'}</span>
                         </div>
 
-                        {/* Language Selector */}
-                        <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
-                            {['EN', 'JP', 'KR', 'ES', 'CN', 'VN'].map(lang => (
-                                <button
-                                    key={lang}
-                                    onClick={() => setTargetLang(lang)}
-                                    className={`w-8 h-7 flex items-center justify-center rounded-md text-[10px] font-bold transition-all ${targetLang === lang
-                                        ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
-                                        : 'text-gray-600 hover:text-gray-300'
-                                        }`}
-                                >
-                                    {lang}
-                                </button>
-                            ))}
+                        {/* Status Light */}
+                        <div className="flex items-center gap-2">
+                            <div className={`w-2.5 h-2.5 rounded-full ${loading || genLoading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+                            <span className={loading || genLoading ? 'text-yellow-500' : 'text-green-500'}>{statusMsg}</span>
                         </div>
                     </div>
                 </header>
 
                 {/* 2. MAIN GRID LAYOUT */}
-                <div className="flex-1 grid grid-cols-12 gap-0 overflow-hidden">
+                <div className="flex-1 grid grid-cols-12 gap-0 overflow-hidden divide-x divide-gray-800">
 
-                    {/* COL 1: DATA FEED (Left) */}
-                    <div className="col-span-3 border-r border-white/5 bg-[#0a0a16] flex flex-col relative group">
-
-                        {/* Control Bar */}
-                        <div className="p-4 border-b border-white/5 bg-black/20">
+                    {/* COL 1: DATA FEED (Left) - Denser, High Contrast */}
+                    <div className="col-span-3 bg-[#020202] flex flex-col relative">
+                        <div className="p-3 border-b border-gray-800 flex gap-2">
                             <button
                                 onClick={handleScan}
                                 disabled={loading}
-                                className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden group/btn ${loading
-                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                                    : 'bg-white text-black hover:bg-cyan-400 hover:scale-[1.01]'
-                                    }`}
+                                className={`flex-1 py-2 text-xs font-bold border border-cyan-900/50 text-cyan-500 hover:bg-cyan-900/20 hover:text-cyan-300 transition-colors uppercase ${loading ? 'opacity-50 cursor-wait' : ''}`}
                             >
-                                {loading && <Repeat className="animate-spin" size={16} />}
-                                {!loading && <Zap className="text-black group-hover/btn:fill-black" size={16} />}
-                                <span className="tracking-wider">{loading ? 'SCANNING...' : 'SCAN NETWORK'}</span>
+                                {loading ? 'SCANNING...' : '[ SCAN_NETWORK ]'}
                             </button>
+                            <div className="flex bg-gray-900 border border-gray-800">
+                                {['EN', 'JP', 'VN'].map(lang => (
+                                    <button
+                                        key={lang}
+                                        onClick={() => setTargetLang(lang)}
+                                        className={`px-3 py-1 text-xs font-bold ${targetLang === lang ? 'bg-cyan-900 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                                    >
+                                        {lang}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
-                        {/* Category Filter */}
+                        {/* Category Ticker */}
                         {trends.length > 0 && (
-                            <div className="px-4 py-3 overflow-x-auto whitespace-nowrap scrollbar-hide border-b border-white/5 flex gap-2">
+                            <div className="px-3 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide border-b border-gray-800 bg-gray-900/30 flex gap-2">
                                 {uniqueCategories.map(cat => (
                                     <button
                                         key={cat}
                                         onClick={() => { setSelectedCategory(cat); setCurrentPage(1); }}
-                                        className={`text-[10px] px-3 py-1.5 rounded-full border transition-all font-medium ${selectedCategory === cat
-                                            ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50'
-                                            : 'bg-white/5 text-gray-400 border-white/5 hover:border-white/20'
-                                            }`}
+                                        className={`text-xs px-3 py-1 border ${selectedCategory === cat ? 'border-cyan-700 text-cyan-400 bg-cyan-900/10' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
                                     >
                                         {cat}
                                     </button>
@@ -234,12 +231,11 @@ export default function XHotNewsFetcherPro() {
                             </div>
                         )}
 
-                        {/* List Area */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                        {/* Dense List */}
+                        <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-800 hover:scrollbar-thumb-gray-600">
                             {trends.length === 0 && !loading && (
-                                <div className="h-40 flex flex-col items-center justify-center text-gray-700 text-xs border border-dashed border-white/10 rounded-xl m-4">
-                                    <Globe size={24} className="mb-2 opacity-20" />
-                                    <span>Signal Lost. Initiate Scan.</span>
+                                <div className="p-8 text-center text-gray-700 text-xs">
+                                    NO SIGNAL
                                 </div>
                             )}
 
@@ -247,234 +243,183 @@ export default function XHotNewsFetcherPro() {
                                 <div
                                     key={i}
                                     onClick={() => setSelectedTrend(trend)}
-                                    className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative ${selectedTrend?.name === trend.name
-                                        ? 'bg-cyan-900/10 border-cyan-500/50 shadow-[0_0_15px_-3px_rgba(6,182,212,0.2)]'
-                                        : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10'
-                                        }`}
+                                    className={`px-4 py-3 border-b border-gray-800 cursor-pointer group hover:bg-white/5 transition-colors ${selectedTrend?.name === trend.name ? 'bg-cyan-900/20 border-l-4 border-l-cyan-500' : 'border-l-4 border-l-transparent'}`}
                                 >
-                                    <div className="flex justify-between items-start">
-                                        <h4 className={`font-bold text-sm line-clamp-1 ${selectedTrend?.name === trend.name ? 'text-cyan-300' : 'text-gray-300'}`}>
+                                    <div className="flex justify-between items-start mb-1">
+                                        <h4 className={`text-sm font-bold line-clamp-1 ${selectedTrend?.name === trend.name ? 'text-cyan-400' : 'text-gray-300'}`}>
                                             {trend.name}
                                         </h4>
-                                        <span className={`text-[10px] font-mono px-1.5 rounded ${i < 3 ? 'bg-red-500/20 text-red-400' : 'text-gray-600'}`}>
-                                            #{((currentPage - 1) * ITEMS_PER_PAGE) + i + 1}
+                                        <span className={`text-xs font-mono opacity-50`}>
+                                            {(i + 1 + (currentPage - 1) * ITEMS_PER_PAGE).toString().padStart(2, '0')}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-end mt-3">
-                                        <div className="flex flex-col gap-1">
-                                            {trend.tweet_volume && (
-                                                <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                                                    <TrendingUp size={10} className="text-green-500" />
-                                                    {(trend.tweet_volume / 1000).toFixed(1)}k
-                                                </span>
-                                            )}
-                                            {trend.category && (
-                                                <span className="text-[9px] text-gray-500 hidden group-hover:block transition-all animate-fade-in">
-                                                    {trend.category}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <a
-                                            href={trend.url}
-                                            target="_blank"
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="p-1.5 rounded-md hover:bg-white/10 text-gray-500 hover:text-cyan-400 transition-colors"
-                                        >
-                                            <ExternalLink size={12} />
-                                        </a>
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-xs text-gray-500 font-mono flex items-center gap-1">
+                                            {trend.tweet_volume ? `${(trend.tweet_volume / 1000).toFixed(1)}K VOL` : 'N/A VOL'}
+                                        </span>
+                                        {selectedTrend?.name === trend.name && <span className="text-[10px] text-cyan-500 animate-pulse font-bold">ACTIVE</span>}
                                     </div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Pagination */}
-                        {trends.length > 0 && (
-                            <div className="p-3 border-t border-white/5 bg-black/20 flex justify-between items-center text-[10px] font-mono text-gray-500">
-                                <button disabled={currentPage === 1} onClick={() => setCurrentPage(c => c - 1)} className="p-1 hover:text-white disabled:opacity-20"><ChevronLeft size={14} /></button>
-                                <span>PAGE {currentPage}/{totalPages}</span>
-                                <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(c => c + 1)} className="p-1 hover:text-white disabled:opacity-20"><ChevronRight size={14} /></button>
-                            </div>
-                        )}
+                        <div className="p-2 border-t border-gray-800 bg-gray-900/50 flex justify-center gap-6 text-xs text-gray-400 font-bold">
+                            <button disabled={currentPage === 1} onClick={() => setCurrentPage(c => c - 1)} className="hover:text-white disabled:opacity-30"> PREV </button>
+                            <span>{currentPage} / {totalPages}</span>
+                            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(c => c + 1)} className="hover:text-white disabled:opacity-30"> NEXT </button>
+                        </div>
                     </div>
 
                     {/* COL 2: ACTION CENTER (Middle) */}
-                    <div className="col-span-5 bg-[#050510] relative flex flex-col">
-                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
-                        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50"></div>
+                    <div className="col-span-5 bg-[#050505] relative flex flex-col">
+                        {/* Grid Background */}
+                        <div className="absolute inset-0 bg-[url('/images/grid-bg.png')] bg-repeat opacity-10 pointer-events-none"></div>
 
                         {!selectedTrend ? (
-                            <div className="flex-1 flex flex-col items-center justify-center text-gray-600 p-8 text-center z-10">
-                                <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6 animate-pulse">
-                                    <Zap size={48} className="text-gray-700" />
-                                </div>
-                                <h3 className="text-xl font-light text-gray-400 mb-2">Awaiting Target Selection</h3>
-                                <p className="text-sm font-mono text-gray-600 max-w-xs">Select a trending topic from the left frequency list to initiate the script generation node.</p>
+                            <div className="flex-1 flex flex-col items-center justify-center text-gray-800 p-8 text-center z-10">
+                                <Zap size={32} className="mb-4 opacity-20" />
+                                <h3 className="text-sm font-bold text-gray-700 tracking-widest uppercase mb-1">Waiting for Target</h3>
+                                <p className="text-xs text-gray-800 font-mono">Select data vector from feed</p>
                             </div>
                         ) : (
-                            <div className="flex-1 flex flex-col p-10 z-10 animate-fade-in-up">
-                                <div className="flex-1 flex flex-col justify-center">
-                                    <div className="mb-10 text-center">
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono mb-4">
-                                            <Hash size={12} /> TARGET ACQUIRED
-                                        </div>
-                                        <h2 className="text-5xl font-black text-white mb-4 leading-tight tracking-tight drop-shadow-xl">{selectedTrend.name}</h2>
-                                        <div className="flex items-center justify-center gap-4 text-sm text-gray-400 font-mono">
-                                            <span>{selectedTrend.category || 'Unclassified'}</span>
-                                            <span className="w-1 h-1 bg-gray-600 rounded-full"></span>
-                                            <span>{regionName}</span>
-                                        </div>
-                                    </div>
+                            <div className="flex-1 flex flex-col p-6 z-10 animate-in fade-in duration-300">
+                                <div className="border border-gray-800 bg-black p-6 mb-6 relative overflow-hidden">
+                                    {/* Decorative corners */}
+                                    <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500"></div>
+                                    <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-500"></div>
+                                    <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-500"></div>
+                                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-cyan-500"></div>
 
-                                    <div className="mb-8">
-                                        <label className="text-[10px] font-bold text-gray-500 mb-3 block text-center uppercase tracking-widest">Select Narrative Angle</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {[
-                                                { id: 'explain', label: '1. EXPLAIN', desc: 'Simple Breakdown', color: 'blue' },
-                                                { id: 'celeb', label: '2. CELEB', desc: 'Famous Figures', color: 'purple' },
-                                                { id: 'tools', label: '3. TOOLS', desc: 'AI & Promo', color: 'green' },
-                                                { id: 'expose', label: '4. EXPOSE', desc: 'Hidden Truth', color: 'red' },
-                                                { id: 'future', label: '5. FUTURE', desc: 'Prediction', color: 'yellow' },
-                                            ].map((angle) => (
-                                                <button
-                                                    key={angle.id}
-                                                    onClick={() => setSelectedAngle(angle.id as any)}
-                                                    className={`p-2 rounded-lg border text-left transition-all ${selectedAngle === angle.id
-                                                        ? `bg-${angle.color}-500/20 border-${angle.color}-500 text-${angle.color}-400 shadow-lg shadow-${angle.color}-500/10`
-                                                        : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-gray-300'
-                                                        }`}
-                                                >
-                                                    <div className="text-xs font-bold">{angle.label}</div>
-                                                    <div className="text-[9px] opacity-70">{angle.desc}</div>
-                                                </button>
-                                            ))}
-                                        </div>
+                                    <div className="text-xs text-cyan-600 mb-2 font-black tracking-widest flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-cyan-500 animate-ping rounded-full"></div>
+                                        TARGET_LOCKED
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            onClick={() => handleGenerate('shorts')}
-                                            disabled={genLoading}
-                                            className="py-4 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10 hover:border-pink-500/50 hover:bg-white/5 transition-all group relative overflow-hidden"
-                                        >
-                                            <div className="flex flex-col items-center gap-2 relative z-10">
-                                                <Video className="text-pink-500 group-hover:scale-110 transition-transform" size={24} />
-                                                <span className="font-bold text-white text-sm">SHORTS (60s)</span>
-                                            </div>
-                                        </button>
-
-                                        <button
-                                            onClick={() => handleGenerate('long')}
-                                            disabled={genLoading}
-                                            className="py-4 rounded-xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-white/10 hover:border-blue-500/50 hover:bg-white/5 transition-all group relative overflow-hidden"
-                                        >
-                                            <div className="flex flex-col items-center gap-2 relative z-10">
-                                                <FileText className="text-blue-500 group-hover:scale-110 transition-transform" size={24} />
-                                                <span className="font-bold text-white text-sm">LONG VIDEO</span>
-                                            </div>
-                                        </button>
+                                    <h2 className="text-4xl font-black text-white mb-4 uppercase tracking-wide">{selectedTrend.name}</h2>
+                                    <div className="grid grid-cols-2 gap-6 text-xs text-gray-500 font-mono border-t border-gray-900 pt-4">
+                                        <div>CATEGORY: <span className="text-gray-300 font-bold">{selectedTrend.category || 'UNKNOWN'}</span></div>
+                                        <div>VOLUME: <span className="text-gray-300 font-bold">{selectedTrend.tweet_volume || 0}</span></div>
+                                        <div>URL: <a href={selectedTrend.url} target="_blank" className="text-cyan-600 hover:underline truncate block font-bold">OPEN SOURCE ↗</a></div>
+                                        <div>REGION: <span className="text-gray-300 font-bold">{regionName}</span></div>
                                     </div>
+                                </div>
+
+                                <div className="mb-8">
+                                    <label className="text-xs font-bold text-gray-500 mb-3 block uppercase tracking-widest">NARRATIVE_ANGLE</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { id: 'explain', label: 'EXPLAINER', color: 'text-blue-400 border-blue-900' },
+                                            { id: 'celeb', label: 'CELEBRITY', color: 'text-purple-400 border-purple-900' },
+                                            { id: 'tools', label: 'TECH/AI', color: 'text-green-400 border-green-900' },
+                                            { id: 'expose', label: 'EXPOSE', color: 'text-red-400 border-red-900' },
+                                            { id: 'future', label: 'PREDICTION', color: 'text-yellow-400 border-yellow-900' },
+                                        ].map((angle) => (
+                                            <button
+                                                key={angle.id}
+                                                onClick={() => setSelectedAngle(angle.id as any)}
+                                                className={`py-3 px-2 border text-xs font-bold uppercase transition-all ${selectedAngle === angle.id
+                                                    ? `bg-gray-900 ${angle.color}`
+                                                    : 'bg-transparent border-gray-800 text-gray-600 hover:border-gray-600 hover:text-gray-400'
+                                                    }`}
+                                            >
+                                                {angle.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 mt-auto">
+                                    <button
+                                        onClick={() => handleGenerate('shorts')}
+                                        disabled={genLoading}
+                                        className="py-4 bg-cyan-900/20 border border-cyan-900/50 text-cyan-400 text-sm font-bold hover:bg-cyan-900/40 transition-all uppercase tracking-wider relative overflow-hidden group"
+                                    >
+                                        <div className="absolute inset-0 bg-cyan-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                        <span className="relative z-10 flex items-center justify-center gap-2">
+                                            <Video size={16} /> SHORTS GEN
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleGenerate('long')}
+                                        disabled={genLoading}
+                                        className="py-4 bg-blue-900/20 border border-blue-900/50 text-blue-400 text-sm font-bold hover:bg-blue-900/40 transition-all uppercase tracking-wider relative overflow-hidden group"
+                                    >
+                                        <div className="absolute inset-0 bg-blue-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                        <span className="relative z-10 flex items-center justify-center gap-2">
+                                            <FileText size={16} /> VIDEO DOC
+                                        </span>
+                                    </button>
                                 </div>
 
                                 {errorDetail && (
-                                    <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex gap-3 text-red-200 text-xs font-mono shadow-inner">
-                                        <AlertCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <strong className="block mb-1 text-red-400">EXECUTION ERROR</strong>
-                                            {errorDetail}
-                                        </div>
+                                    <div className="mt-4 text-xs font-mono text-red-500 bg-red-950/20 p-3 border border-red-900/50">
+                                        ERROR :: {errorDetail}
                                     </div>
                                 )}
                             </div>
                         )}
-
-                        {/* Status Footer */}
-                        <div className="p-3 border-t border-white/5 bg-[#0a0a16] text-[10px] font-mono text-gray-500 flex justify-between items-center z-10">
-                            <span className="flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${loading || genLoading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></span>
-                                {statusMsg}
-                            </span>
-                            <span>GEMINI 2.5 FLASH [CONNECTED]</span>
-                        </div>
                     </div>
 
                     {/* COL 3: TERMINAL OUTPUT (Right) */}
-                    <div className="col-span-4 bg-[#0a0a10] border-l border-white/5 flex flex-col">
-                        <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#0d0d15]">
-                            <h3 className="font-mono font-bold text-gray-400 text-xs flex items-center gap-2">
-                                <Terminal size={12} className="text-cyan-500" />
-                                SCRIPT_CONSOLE
+                    <div className="col-span-4 bg-[#0a0a0f] flex flex-col border-l border-gray-800">
+                        <div className="p-3 border-b border-gray-800 flex justify-between items-center bg-[#0d0d0d]">
+                            <h3 className="font-mono font-bold text-gray-500 text-xs flex items-center gap-2 uppercase">
+                                <Terminal size={14} /> OUTPUT_LOG
                             </h3>
-                            <span className="text-[10px] text-gray-600">{scripts.length} OUTPUTS</span>
+                            <span className="text-xs text-gray-700 font-bold">{scripts.length} BLOCKS</span>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-opacity-5">
+                        <div className="flex-1 overflow-y-auto p-5 space-y-6 font-mono">
                             {scripts.length === 0 && (
-                                <div className="h-full flex flex-col items-center justify-center text-gray-700 text-xs font-mono opacity-50">
-                                    <div className="w-16 h-16 border-2 border-dashed border-gray-800 rounded-lg flex items-center justify-center mb-4">
-                                        <span className="animate-pulse">_</span>
-                                    </div>
-                                    Awaiting Data Stream...
+                                <div className="text-gray-800 text-xs text-center mt-20">
+                                    &gt; WAITING FOR INPUT STREAM...<br />
+                                    &gt; SYSTEM READY.<span className="animate-pulse">_</span>
                                 </div>
                             )}
 
                             {scripts.map((script, i) => (
-                                <div key={i} className="rounded-lg border border-white/10 bg-[#0f0f1a] overflow-hidden shadow-2xl animate-in slide-in-from-right-4 duration-500">
-
-                                    {/* Script Header */}
-                                    <div className="px-4 py-2 bg-white/5 border-b border-white/5 flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide ${script.type === 'shorts' ? 'bg-pink-500 text-black' : 'bg-blue-500 text-black'}`}>
-                                                {script.type?.toUpperCase() || 'RAW'}
-                                            </span>
-                                            <span className="text-[10px] text-gray-400 font-mono truncate max-w-[150px]">{new Date().toLocaleTimeString()}</span>
-                                        </div>
+                                <div key={i} className="mb-6 text-sm font-mono group">
+                                    <div className="text-gray-500 text-xs mb-2 flex items-center gap-2 border-b border-gray-800 pb-2 border-dashed">
+                                        <span className="text-cyan-600 font-bold">[{script.type?.toUpperCase()}]</span>
+                                        <span>{new Date().toLocaleTimeString()}</span>
                                         <button
                                             onClick={() => copyToClipboard(script.content ? `${script.title}\n\n${script.content}` : JSON.stringify(script, null, 2), i)}
-                                            className={`p-1.5 rounded hover:bg-white/10 transition-all ${copiedIndex === i ? 'text-green-400' : 'text-gray-400 hover:text-white'}`}
-                                            title="Copy to Clipboard"
+                                            className={`ml-auto hover:text-cyan-400 ${copiedIndex === i ? 'text-green-500' : ''}`}
                                         >
-                                            {copiedIndex === i ? <Check size={14} /> : <Copy size={14} />}
+                                            {copiedIndex === i ? 'COPIED' : 'CPY'}
                                         </button>
                                     </div>
-
-                                    {/* Script Content */}
-                                    <div className="p-4">
-                                        <h4 className="font-bold text-white text-sm mb-3 loading-relaxed">{script.title}</h4>
-                                        <div className="bg-[#050510] p-3 rounded border border-white/5 text-xs font-mono text-gray-400 whitespace-pre-wrap leading-relaxed max-h-[400px] overflow-y-auto custom-scrollbar">
-                                            {script.content || JSON.stringify(script, null, 2)}
-                                        </div>
+                                    <div className="text-gray-300 whitespace-pre-wrap leading-relaxed opacity-90">
+                                        <span className="text-yellow-500 font-bold block mb-1 text-base">{script.title}</span>
+                                        {script.content}
                                     </div>
-
-                                    <div className="h-1 w-full bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+                                    <div className="text-gray-800 text-[10px] mt-2 text-right group-hover:text-cyan-900 transition-colors">
+                                        END_OF_BLOCK
+                                    </div>
                                 </div>
                             ))}
+                            {/* Typing cursor at the end if generating */}
+                            {genLoading && <div className="text-cyan-500 text-sm animate-pulse">_</div>}
                         </div>
                     </div>
 
                 </div>
             </div>
 
-            {/* Global Styles for this Page */}
             <style jsx global>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
+                /* Optional: Custom scrollbar for webkit */
+                ::-webkit-scrollbar {
+                    width: 6px;
                 }
-                .scrollbar-hide {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
+                ::-webkit-scrollbar-track {
+                    background: #000;
                 }
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
+                ::-webkit-scrollbar-thumb {
+                    background: #222;
                 }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #050510; 
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #333; 
-                    border-radius: 2px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #555; 
+                ::-webkit-scrollbar-thumb:hover {
+                    background: #444;
                 }
             `}</style>
         </>

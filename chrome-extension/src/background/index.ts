@@ -1,7 +1,9 @@
 // Background Service Worker
+// @ts-nocheck
 console.log('[SeenYT] Background script loaded.');
 
 // Listen for installation
+declare var chrome: any;
 chrome.runtime.onInstalled.addListener(() => {
     console.log('[SeenYT] Extension installed successfully!');
 });

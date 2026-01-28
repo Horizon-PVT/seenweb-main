@@ -73,13 +73,13 @@ const VoiceGalleryModal: React.FC<VoiceGalleryModalProps> = ({
                     <div className="flex gap-4 mb-4">
                         <button
                             onClick={() => setActiveTab('preset')}
-                            className={`px-4 py-2 rounded-lg font-bold text-sm transition ${activeTab === 'preset' ? 'bg-[#ff4e4e] text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                            className={`px-4 py-2 rounded-lg font-bold text-sm transition ${activeTab === 'preset' ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600 text-white/70'}`}
                         >
                             Thư viện chung ({presetVoices.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('custom')}
-                            className={`px-4 py-2 rounded-lg font-bold text-sm transition ${activeTab === 'custom' ? 'bg-[#ff4e4e] text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                            className={`px-4 py-2 rounded-lg font-bold text-sm transition ${activeTab === 'custom' ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600 text-white/70'}`}
                         >
                             Voice của tôi ({customVoices.length})
                         </button>
@@ -89,7 +89,7 @@ const VoiceGalleryModal: React.FC<VoiceGalleryModalProps> = ({
                         <div className="relative flex-1 max-w-md">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
                             <input
-                                className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg py-2 pl-10 pr-4 text-sm focus:border-[#ff4e4e] outline-none text-white placeholder-gray-500"
+                                className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg py-2 pl-10 pr-4 text-sm focus:border-purple-500 outline-none text-white placeholder-gray-500 transition focus:ring-1 focus:ring-purple-500"
                                 placeholder="Tìm theo tên Voice..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -111,7 +111,7 @@ const VoiceGalleryModal: React.FC<VoiceGalleryModalProps> = ({
                 <div className="flex-1 overflow-y-auto p-4 bg-[#18181d]">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {filteredVoices.map(voice => (
-                            <div key={voice.id} className={`bg-[#25252b] rounded-xl p-4 border transition hover:border-[#ff4e4e] ${currentVoiceId === voice.id ? 'border-[#ff4e4e] ring-1 ring-[#ff4e4e]' : 'border-gray-700'}`}>
+                            <div key={voice.id} className={`bg-[#25252b] rounded-xl p-4 border transition hover:border-purple-500 hover:shadow-purple-500/20 ${currentVoiceId === voice.id ? 'border-purple-500 ring-1 ring-purple-500 shadow-purple-500/30' : 'border-gray-700'}`}>
                                 <div className="flex items-start gap-3 mb-3">
                                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${voice.gender === 'Male' ? 'bg-blue-900/50 text-blue-400' : 'bg-pink-900/50 text-pink-400'}`}>
                                         {voice.gender === 'Male' ? '👨' : '👩'}
@@ -142,7 +142,7 @@ const VoiceGalleryModal: React.FC<VoiceGalleryModalProps> = ({
                                     </button>
                                     <button
                                         onClick={() => { onSelect(voice.id); onClose(); }}
-                                        className={`py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1 ${currentVoiceId === voice.id ? 'bg-green-600 text-white' : 'bg-[#ff4e4e] hover:bg-[#ff3333] text-white'}`}
+                                        className={`py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1 ${currentVoiceId === voice.id ? 'bg-green-600 text-white' : 'bg-gradient-to-r from-purple-600 to-rose-600 hover:shadow-lg hover:scale-105 text-white transition'}`}
                                     >
                                         {currentVoiceId === voice.id ? '✓ Đang chọn' : '✔ Chọn'}
                                     </button>
