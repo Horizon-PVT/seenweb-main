@@ -19,7 +19,9 @@ import {
     Minimize2,
     MessageSquare,
     CheckCircle,
-    Lock
+    Lock,
+    FilePlus, // New Icon
+    Trash2 // New Icon
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown'; // Optional, but let's stick to raw or simple formatting to match original
 
@@ -45,20 +47,121 @@ export default function ScriptwriterPage() {
     const userRole = (session?.user as any)?.role || 'FREE';
 
     // --- STATE (Strictly Replicated) ---
+    // --- Auto-Save Hook Logic (Hydration Safe) ---
+    const useAutoSave = <T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
+        const [value, setValue] = useState<T>(initialValue);
+        const [isLoaded, setIsLoaded] = useState(false);
+
+        // Load from storage AFTER mount
+        useEffect(() => {
+            const saved = localStorage.getItem(key);
+            if (saved !== null) {
+                if (typeof initialValue === 'number') setValue(Number(saved) as T);
+                else setValue(saved as T);
+            }
+            setIsLoaded(true);
+        }, [key]); // Run once on mount
+
+        // Save to storage on change
+        useEffect(() => {
+            if (isLoaded) {
+                localStorage.setItem(key, String(value));
+            }
+        }, [key, value, isLoaded]);
+
+        return [value, setValue];
+    };
+
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("INITIALIZING...");
-    const [outputScript, setOutputScript] = useState('');
+
+    // Auto-Save Props
+    const [outputScript, setOutputScript] = useAutoSave('sw_page_outputScript', '');
+    const [idea, setIdea] = useAutoSave('sw_page_idea', '');
+    const [goal, setGoal] = useAutoSave('sw_page_goal', 'Tăng View');
+    const [level, setLevel] = useAutoSave('sw_page_level', 'Nâng Cao');
+    const [tone, setTone] = useAutoSave('sw_page_tone', 'Hùng hồn');
+    const [style, setStyle] = useAutoSave('sw_page_style', 'Vlog');
+    const [format, setFormat] = useAutoSave('sw_page_format', 'visual');
+    const [length, setLength] = useAutoSave('sw_page_length', 10);
+
     const [error, setError] = useState('');
-    const [idea, setIdea] = useState('');
-    const [goal, setGoal] = useState('Tăng View');
-    const [level, setLevel] = useState('Nâng Cao');
-    const [tone, setTone] = useState('Hùng hồn');
-    const [style, setStyle] = useState('Vlog');
-    const [format, setFormat] = useState('visual');
-    const [length, setLength] = useState(10);
     const [chatRequest, setChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
+
+    // --- PROJECT HISTORY LOGIC ---
+    const [showHistory, setShowHistory] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch('/api/projects?toolId=scriptwriter');
+            const data = await res.json();
+            if (data.projects) setProjects(data.projects);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleSaveProject = async () => {
+        if (!session) {
+            alert("Vui lòng đăng nhập để lưu dự án!");
+            return;
+        }
+        if (!outputScript) return;
+
+        const name = prompt("Đặt tên dự án:", idea.substring(0, 30) + "...") || `Script ${new Date().toLocaleString()}`;
+
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    toolId: 'scriptwriter',
+                    name,
+                    id: currentProjectId, // Update if exists
+                    data: { idea, goal, level, tone, style, format, length, outputScript }
+                })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Lỗi không xác định");
+            }
+
+            if (data.project) {
+                setCurrentProjectId(data.project.id);
+                alert("✅ Đã lưu dự án thành công!");
+                fetchProjects(); // Refresh list
+            }
+        } catch (e: any) {
+            alert(`❌ Lưu thất bại: ${e.message}`);
+            console.error(e);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleLoadProject = (p: any) => {
+        if (!p.data) return;
+        setIdea(p.data.idea || '');
+        setGoal(p.data.goal || 'Tăng View');
+        setLevel(p.data.level || 'Nâng Cao');
+        setTone(p.data.tone || 'Hùng hồn');
+        setStyle(p.data.style || 'Vlog');
+        setFormat(p.data.format || 'visual');
+        setLength(p.data.length || 10);
+        setOutputScript(p.data.outputScript || '');
+        setCurrentProjectId(p.id);
+        setShowHistory(false);
+    };
+
+    useEffect(() => {
+        if (showHistory) fetchProjects();
+    }, [showHistory]);
 
     // --- LOGIC: WRITE ---
     const handleSubmit = async (e: React.FormEvent) => {
@@ -205,6 +308,33 @@ export default function ScriptwriterPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            if (confirm("TẠO MỚI? Dữ liệu chưa lưu (Save) sẽ bị mất.")) {
+                                setIdea('');
+                                setOutputScript('');
+                                setCurrentProjectId(null);
+                                setChatRequest('');
+                                // Reset defaults
+                                setGoal('Tăng View');
+                                setLevel('Nâng Cao');
+                                setTone('Hùng hồn');
+                                setStyle('Vlog');
+                                setFormat('visual');
+                                setLength(10);
+                            }
+                        }}
+                        className="flex items-center gap-1 text-[#a1a1aa] hover:text-white transition-colors text-xs font-bold uppercase tracking-wider mr-2"
+                        title="Tạo Mới (Xóa Form)"
+                    >
+                        <FilePlus size={16} /> NEW
+                    </button>
+                    <button
+                        onClick={() => setShowHistory(true)}
+                        className="flex items-center gap-2 px-3 py-1 rounded border border-[#fbbf24]/30 text-[#fbbf24] text-xs font-bold hover:bg-[#fbbf24]/10 transition-colors"
+                    >
+                        <span className="text-lg">📂</span> MY PROJECTS
+                    </button>
                     <button onClick={() => setIsFullScreen(!isFullScreen)} className="text-[#a1a1aa] hover:text-white transition-colors">
                         {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                     </button>
@@ -212,6 +342,49 @@ export default function ScriptwriterPage() {
                     <div className="bg-[#fbbf24] text-black text-xs font-bold px-3 py-1 rounded">PRO STUDIO</div>
                 </div>
             </header>
+
+            {/* PROJECTS DRAWER */}
+            {showHistory && (
+                <div className="absolute inset-0 z-[60] bg-black/90 backdrop-blur flex justify-end animate-in fade-in duration-200">
+                    <div className="w-96 bg-[#111] border-l border-[#fbbf24]/30 h-full p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-[#fbbf24] font-bold text-xl uppercase tracking-wider">My Projects</h3>
+                            <button onClick={() => setShowHistory(false)} className="text-gray-500 hover:text-white">&times;</button>
+                        </div>
+                        <div className="flex-grow overflow-y-auto space-y-3 custom-scrollbar">
+                            {projects.length === 0 ? (
+                                <div className="text-center py-10 opacity-50">
+                                    <p className="text-4xl mb-2">📭</p>
+                                    <p>Chưa có dự án nào.</p>
+                                    <p className="text-[10px] mt-2 text-gray-400">Hãy bấm "SAVE PROJECT" để lưu.</p>
+                                </div>
+                            ) : (
+                                projects.map(p => (
+                                    <div key={p.id} className="group relative p-4 bg-white/5 border border-white/10 rounded hover:border-[#fbbf24] hover:bg-white/10 transition-all">
+                                        <div onClick={() => handleLoadProject(p)} className="cursor-pointer">
+                                            <div className="text-[#fbbf24] font-bold text-sm mb-1 group-hover:text-white truncate pr-6">{p.name}</div>
+                                            <div className="text-[10px] text-gray-500 font-mono">{new Date(p.updatedAt).toLocaleString()}</div>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm('Xóa dự án này?')) {
+                                                    // Delete logic
+                                                    fetch(`/api/projects?id=${p.id}`, { method: 'DELETE' }).then(() => fetchProjects());
+                                                }
+                                            }}
+                                            className="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex-grow" onClick={() => setShowHistory(false)}></div>
+                </div>
+            )}
 
             {/* MAIN CONTENT GRID */}
             <div className="flex-grow flex flex-col md:flex-row h-[calc(100vh-64px)] overflow-hidden">
@@ -326,7 +499,13 @@ export default function ScriptwriterPage() {
                     {outputScript && (
                         <div className="h-12 border-b border-[#3f3f46]/40 flex items-center justify-between px-6 bg-[#09090b]/50 backdrop-blur z-10">
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-green-500 flex items-center gap-1 font-mono"><CheckCircle size={12} /> SAVED</span>
+                                <span className="text-xs text-green-500 flex items-center gap-1 font-mono"><CheckCircle size={12} /> SAVED LOCALLY</span>
+                                <button
+                                    onClick={handleSaveProject}
+                                    className="flex items-center gap-2 px-3 py-1 rounded bg-[#fbbf24]/20 border border-[#fbbf24]/50 text-[#fbbf24] text-xs font-bold hover:bg-[#fbbf24] hover:text-black transition-colors"
+                                >
+                                    <span>💾</span> SAVE PROJECT
+                                </button>
                                 {copySuccess && <span className="text-xs text-[#fbbf24] animate-fade-in">{copySuccess}</span>}
                             </div>
                             <div className="flex items-center gap-2">

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
+import { useSession } from "next-auth/react"; // ADDED
+import { Save, Folder, PlusSquare, Trash2 } from "lucide-react"; // ADDED ICONS
 type Aspect = "16:9" | "1:1" | "9:16";
 
 type RefUpload = {
@@ -14,6 +16,15 @@ const ARCHIVE_KEY = "seen_img_cache_v2";
 function uid() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
+
+// Persist 'projects' type
+type UserProject = {
+  id: string;
+  name: string;
+  toolId: string;
+  data: any;
+  updatedAt: string;
+};
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -40,6 +51,14 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState<Aspect>("16:9");
   const [numImages, setNumImages] = useState<number>(2);
+
+  // PROJECT HISTORY STATE
+  const [projects, setProjects] = useState<UserProject[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+  // SESSION
+  const { data: session } = useSession();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isMagic, setIsMagic] = useState(false);
@@ -69,6 +88,96 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       }
     } catch { }
   }, []);
+
+
+
+  /* --- HISTORY / PROJECTS API --- */
+  const fetchProjects = async () => {
+    if (!session) return;
+    try {
+      const res = await fetch('/api/projects?toolId=image-forge');
+      const data = await res.json();
+      if (data.projects) setProjects(data.projects);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (showHistory && session) fetchProjects();
+  }, [showHistory, session]);
+
+  const handleSaveProject = async () => {
+    if (!session) {
+      alert("Vui lòng đăng nhập để lưu dự án!");
+      return;
+    }
+    if (!prompt && images.length === 0) return;
+
+    const defaultName = prompt.substring(0, 20) || `Image ${new Date().toLocaleTimeString()}`;
+    const name = window.prompt("Tên dự án:", defaultName) || defaultName;
+
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'image-forge',
+          name,
+          id: currentProjectId,
+          data: {
+            prompt,
+            aspectRatio,
+            numImages,
+            images, // Saving Generated Images (URLs/Base64) - Warning: Heavy if Base64
+            archive, // Saving the local archive state too if desired? Maybe just images.
+            faceLock,
+            // references logic is tricky with File objects. We skip them or need to upload them.
+            // For now we SKIP saving File objects (refs) to avoid massive payloads/complexity.
+          }
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Save failed");
+
+      if (data.project) {
+        setCurrentProjectId(data.project.id);
+        alert("✅ Đã lưu dự án!");
+        fetchProjects();
+      }
+    } catch (e: any) {
+      alert(`❌ Lưu thất bại: ${e.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoadProject = (p: UserProject) => {
+    if (!p.data) return;
+    const d = p.data;
+    if (d.prompt) setPrompt(d.prompt);
+    if (d.aspectRatio) setAspectRatio(d.aspectRatio);
+    if (d.numImages) setNumImages(d.numImages);
+    if (d.images) setImages(d.images);
+    // Note: We cannot restore File objects for Refs easily without uploading them first.
+    // We will just load text/settings/outputs.
+    setFaceLock(!!d.faceLock);
+
+    setCurrentProjectId(p.id);
+    setShowHistory(false);
+    // Toast/Alert?
+  };
+
+  const handleNewProject = () => {
+    if (confirm("Tạo dự án mới? Các thay đổi chưa lưu sẽ mất.")) {
+      setPrompt("");
+      setImages([]);
+      setArchive([]); // Optional: clear local cache too? Maybe not.
+      setCurrentProjectId(null);
+      clearRefs();
+    }
+  };
 
   const persistArchive = (next: string[]) => {
     const trimmed = next.slice(0, 12);
@@ -250,7 +359,78 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         >
           {isEN ? 'Clear Refs' : 'Clear Refs'}
         </button>
+
+        {/* NEW HEADER BUTTONS */}
+        <div className="flex items-center gap-2 ml-4">
+          <button
+            onClick={handleNewProject}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-[10px] uppercase border border-white/10 bg-white/5 hover:bg-white/10 font-bold text-white/80 hover:text-white transition-colors"
+            title="New Project"
+          >
+            <PlusSquare size={14} /> <span className="hidden sm:inline">NEW</span>
+          </button>
+
+          <button
+            onClick={handleSaveProject}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-[10px] uppercase border border-[#F5C542]/30 text-[#F5C542] hover:bg-[#F5C542]/10 font-bold transition-colors"
+            title="Save Project"
+          >
+            <Save size={14} /> <span className="hidden sm:inline">SAVE</span>
+          </button>
+
+          <button
+            onClick={() => setShowHistory(true)}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl text-[10px] uppercase border border-white/10 bg-white/5 hover:bg-white/10 font-bold text-white hover:text-[#F5C542] transition-colors"
+          >
+            <Folder size={14} /> <span className="hidden sm:inline">PROJECTS</span>
+          </button>
+        </div>
       </header>
+
+      {/* DRAWER: MY PROJECTS */}
+      {
+        showHistory && (
+          <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex justify-end animate-in fade-in">
+            <div className="w-80 h-full bg-[#111] border-l border-white/10 p-6 flex flex-col shadow-2xl animate-in slide-in-from-right">
+              <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <h3 className="text-[#F5C542] font-bold text-lg uppercase tracking-wider flex items-center gap-2">
+                  <Folder size={18} /> My Projects
+                </h3>
+                <button onClick={() => setShowHistory(false)} className="text-white/50 hover:text-white text-2xl leading-none">&times;</button>
+              </div>
+
+              <div className="flex-grow overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                {projects.length === 0 ? (
+                  <div className="text-center py-10 opacity-40">
+                    <p className="text-3xl mb-2">📭</p>
+                    <p className="text-xs">Chưa có dự án nào.</p>
+                  </div>
+                ) : (
+                  projects.map(p => (
+                    <div key={p.id} className="group relative p-3 bg-white/5 border border-white/10 rounded-xl hover:border-[#F5C542]/50 hover:bg-white/10 transition-all cursor-pointer">
+                      <div onClick={() => handleLoadProject(p)}>
+                        <div className="text-[#F5C542] font-bold text-xs truncate pr-6 mb-1">{p.name}</div>
+                        <div className="text-[9px] text-white/40 font-mono">{new Date(p.updatedAt).toLocaleString()}</div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("Xóa dự án này?")) {
+                            fetch(`/api/projects?id=${p.id}`, { method: 'DELETE' }).then(() => fetchProjects());
+                          }
+                        }}
+                        className="absolute top-3 right-3 text-white/20 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       <div className="flex-grow flex overflow-hidden">
         {/* LEFT: History */}
@@ -505,30 +685,32 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       </div>
 
       {/* Modal preview */}
-      {selected && (
-        <div
-          className="fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
-          onClick={() => setSelected(null)}
-        >
+      {
+        selected && (
           <div
-            className="max-w-[1100px] w-full rounded-3xl overflow-hidden border border-white/10 bg-black/40"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[10000] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+            onClick={() => setSelected(null)}
           >
-            <div className="p-4 flex items-center justify-between border-b border-white/10">
-              <div className={`text-sm font-bold ${gold}`}>Preview</div>
-              <button
-                onClick={() => setSelected(null)}
-                className="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-white/80 text-xs border border-white/10"
-              >
-                Close
-              </button>
+            <div
+              className="max-w-[1100px] w-full rounded-3xl overflow-hidden border border-white/10 bg-black/40"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-4 flex items-center justify-between border-b border-white/10">
+                <div className={`text-sm font-bold ${gold}`}>Preview</div>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-white/80 text-xs border border-white/10"
+                >
+                  Close
+                </button>
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={selected} alt="selected" className="w-full h-auto bg-black" />
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={selected} alt="selected" className="w-full h-auto bg-black" />
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

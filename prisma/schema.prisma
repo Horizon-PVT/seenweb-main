@@ -69,6 +69,9 @@ model User {
 
   // AI Voice Studio
   voices              UserVoice[]
+  
+  // Projects History
+  projects            UserProject[]
 
   @@map("users")
 }
@@ -396,3 +399,20 @@ model SystemSetting {
 
   @@map("system_settings")
 }
+model UserProject {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId    String   // e.g., 'scriptwriter', 'veocity'
+  name      String   // Project Name (e.g., Idea or Timestamp)
+  data      Json     // The stored state (inputs, output)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, toolId])
+  @@map("user_projects")
+}
+
+// Add relation to User model
+// In User model:
+// projects UserProject[]

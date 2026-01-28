@@ -32,17 +32,43 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
     const [gateFeatureName, setGateFeatureName] = useState<string>(isEN ? 'This feature' : 'Tính năng này');
 
     // --- Các state giữ nguyên ---
+    // --- Auto-Save Hook Logic ---
+    const useAutoSave = <T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
+        const [value, setValue] = useState<T>(() => {
+            if (typeof window !== 'undefined') {
+                const saved = localStorage.getItem(key);
+                // Handle different types
+                if (saved !== null) {
+                    if (typeof initialValue === 'number') return Number(saved) as T;
+                    return saved as T;
+                }
+            }
+            return initialValue;
+        });
+
+        useEffect(() => {
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(key, String(value));
+            }
+        }, [key, value]);
+
+        return [value, setValue];
+    };
+
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("ĐANG KIẾN TẠO...");
-    const [outputScript, setOutputScript] = useState('');
+
+    // Using Auto-save for critical fields
+    const [outputScript, setOutputScript] = useAutoSave('sw_outputScript', '');
+    const [idea, setIdea] = useAutoSave('sw_idea', '');
+    const [goal, setGoal] = useAutoSave('sw_goal', 'Tăng View');
+    const [level, setLevel] = useAutoSave('sw_level', 'Nâng Cao');
+    const [tone, setTone] = useAutoSave('sw_tone', 'Hùng hồn');
+    const [style, setStyle] = useAutoSave('sw_style', 'Vlog');
+    const [format, setFormat] = useAutoSave('sw_format', 'visual');
+    const [length, setLength] = useAutoSave('sw_length', 10);
+
     const [error, setError] = useState('');
-    const [idea, setIdea] = useState('');
-    const [goal, setGoal] = useState('Tăng View');
-    const [level, setLevel] = useState('Nâng Cao');
-    const [tone, setTone] = useState('Hùng hồn');
-    const [style, setStyle] = useState('Vlog');
-    const [format, setFormat] = useState('visual'); // visual | story
-    const [length, setLength] = useState(10);
     const [chatRequest, setChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -251,20 +277,100 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
     }
 
     // --- Main JSX ---
+    // --- PROJECT HISTORY LOGIC ---
+    const [showHistory, setShowHistory] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch('/api/projects?toolId=scriptwriter');
+            const data = await res.json();
+            if (data.projects) setProjects(data.projects);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleSaveProject = async () => {
+        if (!outputScript) return;
+        const name = prompt("Enter project name:", idea.substring(0, 30) + "...") || `Script ${new Date().toLocaleTimeString()}`;
+
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    toolId: 'scriptwriter',
+                    name,
+                    id: currentProjectId, // Update if exists
+                    data: { idea, goal, level, tone, style, format, length, outputScript }
+                })
+            });
+            const data = await res.json();
+            if (data.project) {
+                setCurrentProjectId(data.project.id);
+                alert("Project Saved!");
+                fetchProjects(); // Refresh list
+            }
+        } catch (e) {
+            alert("Save failed");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleLoadProject = (p: any) => {
+        if (!p.data) return;
+        setIdea(p.data.idea || '');
+        setGoal(p.data.goal || 'Tăng View');
+        setLevel(p.data.level || 'Nâng Cao');
+        setTone(p.data.tone || 'Hùng hồn');
+        setStyle(p.data.style || 'Vlog');
+        setFormat(p.data.format || 'visual');
+        setLength(p.data.length || 10);
+        setOutputScript(p.data.outputScript || '');
+        setCurrentProjectId(p.id);
+        setShowHistory(false);
+    };
+
+    useEffect(() => {
+        if (showHistory) fetchProjects();
+    }, [showHistory]);
+
     return (
-        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4">
+        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 relative">
             <div className="flex justify-between items-center">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#CDAD5A] tracking-wider">
-                    {isEN ? 'GALAXY BUILDER: SCRIPT CORE' : 'KIẾN TẠO THIÊN HÀ: LÕI KỊCH BẢN'}
-                </h2>
+                <div className="flex items-center gap-4">
+                    <h2 className="text-xl md:text-2xl text-center font-playfair text-[#CDAD5A] tracking-wider">
+                        {isEN ? 'GALAXY BUILDER: SCRIPT CORE' : 'KIẾN TẠO THIÊN HÀ: LÕI KỊCH BẢN'}
+                    </h2>
+                    <button
+                        onClick={() => setShowHistory(true)}
+                        className="flex items-center gap-2 px-3 py-1 rounded border border-[#CDAD5A]/30 text-[#CDAD5A] text-xs font-bold hover:bg-[#CDAD5A]/10 transition-colors"
+                    >
+                        <span className="text-lg">📂</span> {isEN ? 'MY PROJECTS' : 'DỰ ÁN CỦA TÔI'}
+                    </button>
+                    {outputScript && (
+                        <button
+                            onClick={handleSaveProject}
+                            className="flex items-center gap-2 px-3 py-1 rounded bg-[#CDAD5A]/20 border border-[#CDAD5A]/50 text-[#CDAD5A] text-xs font-bold hover:bg-[#CDAD5A] hover:text-black transition-colors"
+                        >
+                            <span>💾</span> {isEN ? 'SAVE' : 'LƯU'}
+                        </button>
+                    )}
+                </div>
                 <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2">
                     &times; {isEN ? 'Back' : 'Trở Về'}
                 </button>
             </div>
 
+            {/* ... Rest of the UI grid ... */}
             <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4 flex-grow min-h-0">
                 {/* Form - Compact Left Panel */}
                 <form onSubmit={handleSubmit} className="flex flex-col space-y-2 pr-2 overflow-y-auto text-xs">
+                    {/* ... Form inputs ... */}
                     <div>
                         <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'RAW DATA INPUT' : 'TẠO DỮ LIỆU GỐC'}</label>
                         <textarea value={idea} onChange={e => setIdea(e.target.value)} placeholder={isEN ? 'Enter your idea, topic...' : 'Nhập ý tưởng sơ bộ, chủ đề...'} className="w-full h-24 obsidian-textarea"></textarea>
@@ -319,10 +425,13 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                     {error && <p className="text-red-500 text-center text-xs">{error}</p>}
                 </form>
 
-                {/* Output section - Larger Right Panel */}
+                {/* Output section - Larger Right Panel - UNCHANGED PART 2 */}
                 <div className="flex flex-col space-y-2 min-h-0">
                     <div className="flex justify-between items-center flex-wrap gap-2">
-                        <label className="text-xs font-bold text-[#008080]">{isEN ? 'SCRIPT FRAME' : 'KHUNG KỊCH BẢN PHÂN LOẠI'}</label>
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs font-bold text-[#008080]">{isEN ? 'SCRIPT FRAME' : 'KHUNG KỊCH BẢN PHÂN LOẠI'}</label>
+                            {currentProjectId && <span className="text-[10px] text-gray-500 bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Project ID: {currentProjectId.substring(0, 6)}...</span>}
+                        </div>
                         <div className="flex items-center space-x-2">
                             <button onClick={handleCopy} title={isEN ? 'Copy' : 'Sao chép'} className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>{isEN ? 'COPY' : 'SAO CHÉP'}</button>
                             <button onClick={handleExportTxt} title={isEN ? 'Export to .txt' : 'Xuất file .txt'} className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>{isEN ? 'EXPORT (TXT)' : 'XUẤT (TXT)'}</button>
@@ -342,60 +451,33 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                         )}
                         {outputScript && (
                             <>
-                                {/* Custom Markdown Table Renderer */}
+                                {/* Custom Markdown Table Renderer - Same as before */}
                                 {(() => {
-                                    // Check if script has a markdown table structure
                                     const hasTable = outputScript.includes('|') && outputScript.includes('---');
-
                                     if (hasTable && (userRole !== 'FREE' && userRole !== 'USER')) {
-                                        // Simple Parser for specific Visual/Audio table
                                         const lines = outputScript.split('\n').filter(line => line.trim() !== '');
                                         const tableRows = lines.filter(line => line.trim().startsWith('|'));
-                                        const textBefore = lines.filter(line => !line.trim().startsWith('|') && !line.startsWith('---')).join('\n'); // Intro text
-
-                                        // Process headers and body
+                                        const textBefore = lines.filter(line => !line.trim().startsWith('|') && !line.startsWith('---')).join('\n');
                                         const headerRow = tableRows[0];
-                                        const bodyRows = tableRows.slice(2); // Skip header and separator |---|
-
+                                        const bodyRows = tableRows.slice(2);
                                         return (
                                             <div className="space-y-4">
-                                                {/* Text Intro */}
                                                 <div className="whitespace-pre-wrap text-gray-300 font-sans">{textBefore}</div>
-
-                                                {/* Styled Grid Table - 3 Columns */}
                                                 <div className="border border-gray-700 rounded-lg overflow-hidden">
-                                                    {/* Header */}
                                                     <div className="grid grid-cols-[50%_15%_35%] bg-gray-900 border-b border-gray-700">
-                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-2 text-xs">
-                                                            <span>🎬</span> TIME + VISUAL PROMPT
-                                                        </div>
-                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-1 text-xs">
-                                                            <span>🔗</span> LINK
-                                                        </div>
-                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider flex items-center gap-2 text-xs">
-                                                            <span>🎤</span> AUDIO
-                                                        </div>
+                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-2 text-xs"><span>🎬</span> TIME + VISUAL PROMPT</div>
+                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-1 text-xs"><span>🔗</span> LINK</div>
+                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider flex items-center gap-2 text-xs"><span>🎤</span> AUDIO</div>
                                                     </div>
-                                                    {/* Body */}
                                                     <div className="divide-y divide-gray-700 bg-black/40">
                                                         {bodyRows.map((row, idx) => {
                                                             const cols = row.split('|').filter(c => c.trim() !== '').map(c => c.trim());
                                                             if (cols.length < 2) return null;
-                                                            // Handle 3 or 4 columns from AI output
-                                                            const visualCol = cols[0] + (cols[1] ? ' - ' + cols[1] : ''); // Combine TIME + VISUAL
-                                                            const continuityCol = cols.length >= 4 ? cols[3] : (cols.length >= 3 ? cols[2] : '-');
-                                                            const audioCol = cols.length >= 4 ? cols[2] : (cols.length >= 3 ? cols[1] : cols[1] || '-');
                                                             return (
                                                                 <div key={idx} className="grid grid-cols-[50%_15%_35%] hover:bg-gray-800/30 transition-colors">
-                                                                    <div className="p-2 border-r border-gray-700 text-gray-300 whitespace-pre-wrap text-xs">
-                                                                        {visualCol}
-                                                                    </div>
-                                                                    <div className="p-2 border-r border-gray-700 text-gray-400 whitespace-pre-wrap text-xs italic">
-                                                                        {continuityCol}
-                                                                    </div>
-                                                                    <div className="p-2 text-gray-200 whitespace-pre-wrap font-sans text-xs">
-                                                                        {audioCol}
-                                                                    </div>
+                                                                    <div className="p-2 border-r border-gray-700 text-gray-300 whitespace-pre-wrap text-xs">{cols[0] + (cols[1] ? ' - ' + cols[1] : '')}</div>
+                                                                    <div className="p-2 border-r border-gray-700 text-gray-400 whitespace-pre-wrap text-xs italic">{cols.length >= 4 ? cols[3] : (cols.length >= 3 ? cols[2] : '-')}</div>
+                                                                    <div className="p-2 text-gray-200 whitespace-pre-wrap font-sans text-xs">{cols.length >= 4 ? cols[2] : (cols.length >= 3 ? cols[1] : cols[1] || '-')}</div>
                                                                 </div>
                                                             );
                                                         })}
@@ -404,40 +486,21 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                                             </div>
                                         );
                                     } else {
-                                        // Fallback for Free users (Blurred) or non-table output
                                         return (
                                             <div className="whitespace-pre-wrap">
                                                 {(userRole === 'FREE' || userRole === 'USER') ? (
                                                     <>
-                                                        <div className="text-gray-300">
-                                                            {outputScript.substring(0, 400)}...
-                                                        </div>
+                                                        <div className="text-gray-300">{outputScript.substring(0, 400)}...</div>
                                                         <div className="relative mt-4">
-                                                            <div className="blur-sm select-none pointer-events-none text-gray-500">
-                                                                {outputScript.substring(400, 800)}
-                                                            </div>
-                                                            <div
-                                                                className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black flex flex-col items-center justify-center cursor-pointer rounded-lg"
-                                                                onClick={() => {
-                                                                    setGateRequiredTier('CREATIVE');
-                                                                    setGateFeatureName('Xem toàn bộ kịch bản');
-                                                                    setShowUpgradeGate(true);
-                                                                }}
-                                                            >
+                                                            <div className="blur-sm select-none pointer-events-none text-gray-500">{outputScript.substring(400, 800)}</div>
+                                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black flex flex-col items-center justify-center cursor-pointer rounded-lg" onClick={() => { setGateRequiredTier('CREATIVE'); setGateFeatureName('Xem toàn bộ kịch bản'); setShowUpgradeGate(true); }}>
                                                                 <div className="text-4xl mb-3">🔒</div>
-                                                                <p className="text-white font-bold text-center px-4">
-                                                                    Kịch bản VIP Pro đã sẵn sàng!
-                                                                    <br /><span className="text-xs font-normal text-[#CDAD5A]">Format: Visual Storyboard 2 Cột</span>
-                                                                </p>
-                                                                <button className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">
-                                                                    Mở khóa ngay →
-                                                                </button>
+                                                                <p className="text-white font-bold text-center px-4">Kịch bản VIP Pro đã sẵn sàng!<br /><span className="text-xs font-normal text-[#CDAD5A]">Format: Visual Storyboard 2 Cột</span></p>
+                                                                <button className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">Mở khóa ngay →</button>
                                                             </div>
                                                         </div>
                                                     </>
-                                                ) : (
-                                                    outputScript
-                                                )}
+                                                ) : outputScript}
                                             </div>
                                         );
                                     }
@@ -445,19 +508,10 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                             </>
                         )}
                     </div>
-
-                    {/* Phase 3: Live Comparison for FREE users */}
+                    {/* Phase 3: Live Comparison & Action Panel */}
                     {outputScript && (userRole === 'FREE' || userRole === 'USER') && (
-                        <PremiumComparison
-                            toolType="script"
-                            onUpgrade={() => {
-                                setGateRequiredTier('SUPER');
-                                setGateFeatureName('Trải nghiệm Premium');
-                                setShowUpgradeGate(true);
-                            }}
-                        />
+                        <PremiumComparison toolType="script" onUpgrade={() => { setGateRequiredTier('SUPER'); setGateFeatureName('Trải nghiệm Premium'); setShowUpgradeGate(true); }} />
                     )}
-
                     <div className="border-t border-gray-600/50 pt-2 flex flex-col space-y-2">
                         <form onSubmit={handleChatSubmit} className="flex items-center gap-2">
                             <input type="text" value={chatRequest} onChange={e => setChatRequest(e.target.value)} placeholder="Yêu cầu chỉnh sửa nhanh..." className="w-full obsidian-input !py-1 text-xs" disabled={!outputScript || isLoading} />
@@ -471,6 +525,32 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                     </div>
                 </div>
             </div>
+
+            {/* PROJECTS DRAWER */}
+            {showHistory && (
+                <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur flex justify-end animate-in fade-in duration-200">
+                    <div className="w-96 bg-[#111] border-l border-[#CDAD5A]/30 h-full p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-[#CDAD5A] font-playfair font-bold text-xl uppercase tracking-wider">My Projects</h3>
+                            <button onClick={() => setShowHistory(false)} className="text-gray-500 hover:text-white">&times;</button>
+                        </div>
+                        <div className="flex-grow overflow-y-auto space-y-3">
+                            {projects.length === 0 ? (
+                                <p className="text-gray-500 text-center italic">No saved projects yet.</p>
+                            ) : (
+                                projects.map(p => (
+                                    <div key={p.id} onClick={() => handleLoadProject(p)} className="p-3 bg-white/5 border border-white/10 rounded cursor-pointer hover:border-[#CDAD5A] hover:bg-white/10 transition-all group">
+                                        <div className="text-[#CDAD5A] font-bold text-sm mb-1 group-hover:text-white">{p.name}</div>
+                                        <div className="text-[10px] text-gray-500">{new Date(p.updatedAt).toLocaleString()}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex-grow" onClick={() => setShowHistory(false)}></div>
+                </div>
+            )}
+
             {/* Upgrade Gate Modal */}
             <UpgradeGate
                 isOpen={showUpgradeGate}
@@ -482,5 +562,6 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
         </div>
     );
 };
+
 
 export default ScriptwriterTool;
