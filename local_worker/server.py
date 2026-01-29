@@ -1,8 +1,9 @@
 """
-Pocket TTS Server for SeenYT
-FastAPI server providing TTS and Voice Clone APIs
+Pocket TTS Server for SeenYT (Async Job Queue Version)
+FastAPI server providing TTS and Voice Clone APIs with Asynchronous Background Processing
 - Supports long text via chunking
 - Supports SRT file generation
+- Async Job Queue for Timeout Free generation
 """
 
 import os
@@ -10,21 +11,25 @@ import io
 import re
 import uuid
 import tempfile
+import time
+import threading
+import shutil
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+from datetime import datetime, timedelta
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 import scipy.io.wavfile
 import numpy as np
 import uvicorn
 
 # Initialize FastAPI
 app = FastAPI(
-    title="SeenYT TTS Server",
-    description="Text-to-Speech and Voice Clone API powered by Pocket TTS",
-    version="2.0.0"
+    title="SeenYT TTS Server (Async)",
+    description="Text-to-Speech API with Async Job Queue",
+    version="2.1.0"
 )
 
 # CORS settings
@@ -36,16 +41,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global model instance
+# --- GLOBAL STATE ---
 tts_model = None
 voice_states = {}
-
-# Available preset voices
 PRESET_VOICES = ["alba", "marius", "javert", "jean", "fantine", "cosette", "eponine", "azelma"]
-
-# Max characters per chunk (safe limit for Pocket TTS)
 MAX_CHUNK_CHARS = 250
 
+# Job Storage
+# job_id -> { "status": "pending"|"processing"|"completed"|"failed", "progress": 0, "message": "...", "result_file": "path", "created_at": time }
+JOBS: Dict[str, Dict[str, Any]] = {}
+OUTPUT_DIR = "output_files"
+
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
+
+# --- MODEL LOADING ---
 def get_model():
     """Lazy load the TTS model"""
     global tts_model
@@ -83,28 +93,22 @@ def get_voice_state(voice: str):
         voice_states[voice] = model.get_state_for_audio_prompt(voice)
     return voice_states[voice]
 
+# --- UTILS ---
 def split_text_into_chunks(text: str, max_chars: int = MAX_CHUNK_CHARS) -> List[str]:
     """Split long text into smaller chunks by sentences"""
-    # Split by sentence delimiters
     sentences = re.split(r'(?<=[.!?。])\s*', text)
-    
     chunks = []
     current_chunk = ""
-    
     for sentence in sentences:
         sentence = sentence.strip()
-        if not sentence:
-            continue
-            
+        if not sentence: continue
         if len(sentence) > max_chars:
-            # Split by commas for long sentences
             parts = re.split(r'(?<=[,;:])\s*', sentence)
             for part in parts:
                 if len(current_chunk) + len(part) + 1 <= max_chars:
                     current_chunk = (current_chunk + " " + part).strip()
                 else:
-                    if current_chunk:
-                        chunks.append(current_chunk)
+                    if current_chunk: chunks.append(current_chunk)
                     while len(part) > max_chars:
                         chunks.append(part[:max_chars])
                         part = part[max_chars:]
@@ -112,13 +116,9 @@ def split_text_into_chunks(text: str, max_chars: int = MAX_CHUNK_CHARS) -> List[
         elif len(current_chunk) + len(sentence) + 1 <= max_chars:
             current_chunk = (current_chunk + " " + sentence).strip()
         else:
-            if current_chunk:
-                chunks.append(current_chunk)
+            if current_chunk: chunks.append(current_chunk)
             current_chunk = sentence
-    
-    if current_chunk:
-        chunks.append(current_chunk)
-    
+    if current_chunk: chunks.append(current_chunk)
     return chunks if chunks else [text]
 
 def parse_srt(srt_content: str) -> List[dict]:
@@ -136,77 +136,156 @@ def parse_srt(srt_content: str) -> List[dict]:
     entries = []
     for match in pattern.finditer(srt_content):
         text = match.group(4).replace('\n', ' ').strip()
-        # Skip empty text entries
         if not text:
             continue
         entries.append({
             "index": int(match.group(1)),
-            "start": match.group(2).replace('.', ','),  # Normalize timestamp separator
+            "start": match.group(2).replace('.', ','),
             "end": match.group(3).replace('.', ','),
             "text": text
         })
     
     return entries
 
+def timestamp_to_seconds(ts):
+    h, m, s_ms = ts.split(':')
+    s, ms = s_ms.split(',')
+    return int(h) * 3600 + int(m) * 60 + int(s) + int(ms) / 1000.0
 
-@app.get("/")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "ok", "service": "SeenYT TTS Server", "version": "2.0.0"}
-
-
-
-# Startup event to load voices
-@app.on_event("startup")
-async def startup_event():
-    get_model()
-    load_saved_voices()
-
-@app.get("/voices")
-async def list_voices():
-    """List available preset and custom voices"""
-    # Get list of custom voice IDs that are currently loaded
-    custom_voice_ids = [vid for vid in voice_states.keys() if vid.startswith("custom_")]
-    
-    return {
-        "voices": PRESET_VOICES,
-        "custom_voices": custom_voice_ids,
-        "description": "Use these voice names in the 'voice' parameter"
-    }
-
-
-@app.post("/generate")
-async def generate_audio(
-    text: str = Form(..., description="Text to convert to speech"),
-    voice: str = Form("alba", description="Voice name (preset) or 'custom' if using custom voice"),
-    custom_voice_id: Optional[str] = Form(None, description="Custom voice ID from /clone endpoint")
-):
-    """Generate audio from text using TTS - supports long text via chunking"""
+def process_srt_job(job_id: str, srt_content: str, voice: str, custom_voice_id: str):
     try:
+        JOBS[job_id]["status"] = "processing"
+        JOBS[job_id]["progress"] = 5
+        JOBS[job_id]["message"] = "Parsing SRT..."
+        
+        entries = parse_srt(srt_content)
+        if not entries:
+            raise Exception("No valid SRT entries found")
+            
         model = get_model()
         
-        # Determine which voice to use
+        # Determine voice
         if custom_voice_id and custom_voice_id in voice_states:
             voice_state = voice_states[custom_voice_id]
         elif voice in PRESET_VOICES:
             voice_state = get_voice_state(voice)
         else:
-            raise HTTPException(status_code=400, detail=f"Invalid voice: {voice}. Available: {PRESET_VOICES}")
+            raise Exception(f"Invalid voice: {voice}")
+
+        audio_segments = []
+        current_time_sec = 0.0
+        sample_rate = model.sample_rate
+        last_end_sec = 0.0
         
-        # Split text into chunks for long texts
+        total_entries = len(entries)
+        
+        for i, entry in enumerate(entries):
+            start_sec = timestamp_to_seconds(entry["start"])
+            end_sec = timestamp_to_seconds(entry["end"])
+            text = entry["text"]
+            last_end_sec = max(last_end_sec, end_sec)
+            
+            # Progress Update
+            progress = 5 + int((i + 1) / total_entries * 85)
+            JOBS[job_id]["progress"] = progress
+            JOBS[job_id]["message"] = f"Processing line {i+1}/{total_entries}..."
+
+            # 1. Add leading silence
+            gap_to_start = start_sec - current_time_sec
+            if gap_to_start > 0.01:
+                silence_samples = int(gap_to_start * sample_rate)
+                audio_segments.append(np.zeros(silence_samples, dtype=np.float32))
+                current_time_sec = start_sec
+            
+            # 2. Generate Audio
+            chunk_audio = model.generate_audio(voice_state, text)
+            chunk_numpy = chunk_audio.numpy()
+            audio_segments.append(chunk_numpy)
+            
+            audio_duration = len(chunk_numpy) / sample_rate
+            current_time_sec += audio_duration
+            
+            # 3. Add padding if TTS finished before END time
+            if current_time_sec < end_sec:
+                padding = end_sec - current_time_sec
+                if padding > 0.01:
+                    padding_samples = int(padding * sample_rate)
+                    audio_segments.append(np.zeros(padding_samples, dtype=np.float32))
+                    current_time_sec = end_sec
+        
+        # 4. Trailing silence
+        if current_time_sec < last_end_sec:
+            trailing = last_end_sec - current_time_sec
+            if trailing > 0.01:
+                audio_segments.append(np.zeros(int(trailing * sample_rate), dtype=np.float32))
+
+        # Save
+        JOBS[job_id]["message"] = "Saving file..."
+        if audio_segments:
+            final_audio = np.concatenate(audio_segments)
+            filename = f"srt_{job_id}.wav"
+            filepath = os.path.join(OUTPUT_DIR, filename)
+            scipy.io.wavfile.write(filepath, model.sample_rate, final_audio)
+            
+            JOBS[job_id]["status"] = "completed"
+            JOBS[job_id]["progress"] = 100
+            JOBS[job_id]["message"] = "Done!"
+            JOBS[job_id]["result_file"] = filepath
+        else:
+            raise Exception("No audio generated")
+            
+    except Exception as e:
+        print(f"[Job {job_id}] SRT Failed: {e}")
+        JOBS[job_id]["status"] = "failed"
+        JOBS[job_id]["error"] = str(e)
+    current_time = time.time()
+    for job_id, job in list(JOBS.items()):
+        if current_time - job["created_at"] > 3600: # 1 hour
+            if "result_file" in job and job["result_file"] and os.path.exists(job["result_file"]):
+                try:
+                    os.remove(job["result_file"])
+                    print(f"Cleaned up {job['result_file']}")
+                except:
+                    pass
+            del JOBS[job_id]
+
+# --- BACKGROUND TASKS ---
+
+def process_tts_job(job_id: str, text: str, voice: str, custom_voice_id: str):
+    try:
+        JOBS[job_id]["status"] = "processing"
+        JOBS[job_id]["progress"] = 5
+        JOBS[job_id]["message"] = "Starting TTS..."
+        
+        model = get_model()
+        
+        # Determine voice
+        if custom_voice_id and custom_voice_id in voice_states:
+            voice_state = voice_states[custom_voice_id]
+        elif voice in PRESET_VOICES:
+            voice_state = get_voice_state(voice)
+        else:
+            raise Exception(f"Invalid voice: {voice}")
+
+        # Split chunks
         chunks = split_text_into_chunks(text)
-        print(f"Generating audio: {len(chunks)} chunks from {len(text)} chars")
-        
-        # Generate audio for each chunk
+        total_chunks = len(chunks)
+        JOBS[job_id]["message"] = f"Generating {total_chunks} chunks..."
+        print(f"[Job {job_id}] generating {total_chunks} chunks")
+
         audio_segments = []
         for i, chunk in enumerate(chunks):
-            print(f"  [{i+1}/{len(chunks)}] {chunk[:50]}...")
             chunk_audio = model.generate_audio(voice_state, chunk)
             audio_segments.append(chunk_audio.numpy())
-        
-        # Concatenate all audio segments
+            
+            # Update progress (5% to 90%)
+            progress = 5 + int((i + 1) / total_chunks * 85)
+            JOBS[job_id]["progress"] = progress
+            JOBS[job_id]["message"] = f"Chunk {i+1}/{total_chunks}..."
+
+        # Concatenate
+        JOBS[job_id]["message"] = "Finalizing audio..."
         if len(audio_segments) > 1:
-            # Add small silence between chunks (0.2 seconds)
             silence = np.zeros(int(model.sample_rate * 0.2), dtype=audio_segments[0].dtype)
             combined = []
             for i, seg in enumerate(audio_segments):
@@ -217,248 +296,198 @@ async def generate_audio(
         else:
             final_audio = audio_segments[0]
         
-        # Convert to WAV bytes
-        audio_bytes = io.BytesIO()
-        scipy.io.wavfile.write(audio_bytes, model.sample_rate, final_audio)
-        audio_bytes.seek(0)
+        # Save to file
+        filename = f"{job_id}.wav"
+        filepath = os.path.join(OUTPUT_DIR, filename)
+        scipy.io.wavfile.write(filepath, model.sample_rate, final_audio)
         
-        return StreamingResponse(
-            audio_bytes,
-            media_type="audio/wav",
-            headers={"Content-Disposition": f"attachment; filename=tts_output_{uuid.uuid4().hex[:8]}.wav"}
-        )
+        JOBS[job_id]["status"] = "completed"
+        JOBS[job_id]["progress"] = 100
+        JOBS[job_id]["message"] = "Done!"
+        JOBS[job_id]["result_file"] = filepath
+        print(f"[Job {job_id}] Completed successfully")
         
     except Exception as e:
-        print(f"Generate error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"[Job {job_id}] Failed: {e}")
+        JOBS[job_id]["status"] = "failed"
+        JOBS[job_id]["error"] = str(e)
 
 
-@app.post("/generate-srt")
-async def generate_from_srt(
-    srt_file: UploadFile = File(..., description="SRT subtitle file"),
-    voice: str = Form("alba", description="Voice name"),
-    custom_voice_id: Optional[str] = Form(None, description="Custom voice ID")
-):
-    """Generate audio from SRT file - respects timing by inserting silence"""
+def process_dialogue_job(job_id: str, text: str, voice1: str, voice2: str):
     try:
-        # Helper to convert timestamp to seconds
-        def timestamp_to_seconds(ts):
-            h, m, s_ms = ts.split(':')
-            s, ms = s_ms.split(',')
-            return int(h) * 3600 + int(m) * 60 + int(s) + int(ms) / 1000.0
-
-        # Read and parse SRT file
-        content = await srt_file.read()
-        srt_text = content.decode('utf-8')
-        entries = parse_srt(srt_text)
-        
-        if not entries:
-            raise HTTPException(status_code=400, detail="No valid SRT entries found")
-        
-        print(f"SRT Processing: {len(entries)} entries")
+        JOBS[job_id]["status"] = "processing"
+        JOBS[job_id]["progress"] = 5
+        JOBS[job_id]["message"] = "Parsing dialogue..."
         
         model = get_model()
-        if custom_voice_id and custom_voice_id in voice_states:
-            voice_state = voice_states[custom_voice_id]
-        elif voice in PRESET_VOICES:
-            voice_state = get_voice_state(voice)
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid voice: {voice}")
-            
-        audio_segments = []
-        current_time_sec = 0.0
-        sample_rate = model.sample_rate
-        last_end_sec = 0.0  # Track the final end time
         
-        for i, entry in enumerate(entries):
-            start_sec = timestamp_to_seconds(entry["start"])
-            end_sec = timestamp_to_seconds(entry["end"])
-            text = entry["text"]
-            last_end_sec = max(last_end_sec, end_sec)  # Track overall end
-            
-            # 1. Add leading silence to reach START time
-            gap_to_start = start_sec - current_time_sec
-            if gap_to_start > 0.01:  # >10ms
-                silence_samples = int(gap_to_start * sample_rate)
-                audio_segments.append(np.zeros(silence_samples, dtype=np.float32))
-                current_time_sec = start_sec  # Jump to start time
-            
-            print(f"  SRT [{i+1}/{len(entries)}] t={start_sec:.2f}s-{end_sec:.2f}s: '{text[:25]}...'")
-            
-            # 2. Generate audio for this segment
-            chunk_audio = model.generate_audio(voice_state, text)
-            chunk_numpy = chunk_audio.numpy()
-            audio_segments.append(chunk_numpy)
-            
-            audio_duration = len(chunk_numpy) / sample_rate
-            current_time_sec += audio_duration
-            
-            # 3. If TTS finished BEFORE the END time, add padding silence
-            # This ensures the next segment starts at the correct time
-            if current_time_sec < end_sec:
-                padding = end_sec - current_time_sec
-                if padding > 0.01:  # >10ms
-                    padding_samples = int(padding * sample_rate)
-                    audio_segments.append(np.zeros(padding_samples, dtype=np.float32))
-                    current_time_sec = end_sec  # Jump to end time
-        
-        # 4. After all entries, add trailing silence to match SRT total duration
-        if current_time_sec < last_end_sec:
-            trailing = last_end_sec - current_time_sec
-            if trailing > 0.01:
-                audio_segments.append(np.zeros(int(trailing * sample_rate), dtype=np.float32))
-                print(f"  Added {trailing:.2f}s trailing silence to match SRT duration")
-        
-        # Concatenate all
-        if audio_segments:
-            final_audio = np.concatenate(audio_segments)
-        else:
-            final_audio = np.zeros(int(sample_rate), dtype=np.float32)
-        
-        total_duration = len(final_audio) / sample_rate
-        print(f"SRT Output: {total_duration:.2f}s (Target: {last_end_sec:.2f}s)")
-        
-        audio_bytes = io.BytesIO()
-        scipy.io.wavfile.write(audio_bytes, sample_rate, final_audio)
-        audio_bytes.seek(0)
-        
-        return StreamingResponse(
-            audio_bytes,
-            media_type="audio/wav",
-            headers={"Content-Disposition": f"attachment; filename=srt_synced_{uuid.uuid4().hex[:8]}.wav"}
-        )
-        
-    except Exception as e:
-        print(f"SRT generate error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/clone")
-async def clone_voice(
-    audio_file: UploadFile = File(..., description="WAV file with voice sample (5-10 seconds recommended)"),
-    name: Optional[str] = Form(None, description="Optional name for this voice")
-):
-    """Clone a voice from an audio file"""
-    try:
-        if not audio_file.filename.lower().endswith(('.wav', '.mp3', '.m4a', '.ogg')):
-            raise HTTPException(status_code=400, detail="Please upload a WAV, MP3, M4A, or OGG file")
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-            content = await audio_file.read()
-            tmp.write(content)
-            tmp_path = tmp.name
-        
-        # Sanitize audio file (ensure valid WAV and dimensions)
-        try:
-            rate, data = scipy.io.wavfile.read(tmp_path)
-            # Ensure proper shape/type if needed, or just re-save to normalize headers
-            # Converting to mono if stereo might be needed, but let's just re-save for now
-            scipy.io.wavfile.write(tmp_path, rate, data)
-        except Exception as e:
-            # If scipy fails to read, it might be MP3 or invalid. 
-            # We continue hoping get_state_for_audio_prompt handles it, or fail there.
-            print(f"Sanitization warning: {e}")
-
-        try:
-            model = get_model()
-            voice_id = f"custom_{uuid.uuid4().hex[:12]}"
-            
-            # Save permanently to voices directory
-            save_path = f"voices/{voice_id}.wav"
-            if not os.path.exists("voices"):
-                os.makedirs("voices")
-                
-            # Move sanitised tmp file to save_path
-            import shutil
-            shutil.move(tmp_path, save_path)
-            
-            # Load state from permanent file
-            voice_states[voice_id] = model.get_state_for_audio_prompt(save_path)
-            
-            return {
-                "voice_id": voice_id,
-                "name": name or f"Custom Voice {voice_id[-6:]}",
-                "status": "success",
-                "message": "Voice cloned successfully! Saved permanently."
-            }
-        except Exception as e:
-            # If fail, cleanup tmp
-            if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
-            raise e
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/generate-dialogue")
-async def generate_dialogue(
-    text: str = Form(..., description="Text with [A] and [B] markers"),
-    voice1: str = Form("alba", description="Voice for [A] segments"),
-    voice2: str = Form("jean", description="Voice for [B] segments"),
-    speed: float = Form(1.0, description="Speed multiplier")
-):
-    """Generate dialogue audio from text with [A]/[B] markers"""
-    try:
-        import re
-        
-        # Parse [A] and [B] markers
+        # Parse dialogue
         pattern = r'\[(A|B)\]\s*([\s\S]*?)(?=\[[AB]\]|$)'
         matches = re.findall(pattern, text)
-        
         if not matches:
-            raise HTTPException(status_code=400, detail="No [A] or [B] markers found")
-        
-        model = get_model()
-        audio_segments = []
-        
+            raise Exception("No [A] or [B] markers found")
+
         # Get voice states
-        voice1_state = get_voice_state(voice1) if voice1 in PRESET_VOICES or voice1 in voice_states else get_voice_state("alba")
-        voice2_state = get_voice_state(voice2) if voice2 in PRESET_VOICES or voice2 in voice_states else get_voice_state("jean")
+        v1_state = get_voice_state(voice1) if voice1 in PRESET_VOICES or voice1 in voice_states else get_voice_state("alba")
+        v2_state = get_voice_state(voice2) if voice2 in PRESET_VOICES or voice2 in voice_states else get_voice_state("jean")
         
-        for speaker, content in matches:
+        audio_segments = []
+        total_segments = len(matches)
+        
+        for i, (speaker, content) in enumerate(matches):
             content = content.strip()
-            if not content:
-                continue
+            if not content: continue
             
-            # Choose voice based on speaker
-            voice_state = voice1_state if speaker == 'A' else voice2_state
+            # Update progress
+            progress = 5 + int((i + 1) / total_segments * 85)
+            JOBS[job_id]["progress"] = progress
+            JOBS[job_id]["message"] = f"Generating line {i+1} ({speaker})..."
             
-            # Split into chunks if needed
+            voice_state = v1_state if speaker == 'A' else v2_state
+            
             chunks = split_text_into_chunks(content)
-            
             for chunk in chunks:
-                print(f"  [{speaker}] {chunk[:40]}...")
                 audio = model.generate_audio(voice_state, chunk)
                 audio_segments.append(audio.numpy())
             
-            # Add pause between speakers (0.3 seconds)
-            silence = np.zeros(int(model.sample_rate * 0.3), dtype=audio_segments[0].dtype if audio_segments else np.float32)
+            # Pause between speakers
+            silence = np.zeros(int(model.sample_rate * 0.3), dtype=np.float32)
             audio_segments.append(silence)
-        
-        if not audio_segments:
-            raise HTTPException(status_code=400, detail="No valid text segments found")
-        
-        # Concatenate all segments
-        final_audio = np.concatenate(audio_segments)
-        
-        # Convert to WAV bytes
-        audio_bytes = io.BytesIO()
-        scipy.io.wavfile.write(audio_bytes, model.sample_rate, final_audio)
-        audio_bytes.seek(0)
-        
-        return StreamingResponse(
-            audio_bytes,
-            media_type="audio/wav",
-            headers={"Content-Disposition": f"attachment; filename=dialogue_{uuid.uuid4().hex[:8]}.wav"}
-        )
-        
+            
+        # Cat and Save
+        JOBS[job_id]["message"] = "Saving file..."
+        if audio_segments:
+            final_audio = np.concatenate(audio_segments)
+            filename = f"dialogue_{job_id}.wav"
+            filepath = os.path.join(OUTPUT_DIR, filename)
+            scipy.io.wavfile.write(filepath, model.sample_rate, final_audio)
+            
+            JOBS[job_id]["status"] = "completed"
+            JOBS[job_id]["progress"] = 100
+            JOBS[job_id]["message"] = "Done!"
+            JOBS[job_id]["result_file"] = filepath
+        else:
+            raise Exception("No audio generated")
+            
     except Exception as e:
-        print(f"Dialogue generate error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"[Job {job_id}] Failed: {e}")
+        JOBS[job_id]["status"] = "failed"
+        JOBS[job_id]["error"] = str(e)
 
+
+# --- ENDPOINTS ---
+
+@app.on_event("startup")
+async def startup_event():
+    get_model()
+    load_saved_voices()
+    # Start cleanup background task if needed, or just run on request
+
+@app.get("/")
+async def health_check():
+    return {"status": "ok", "mode": "async_job_queue", "gpu": True}
+
+@app.get("/voices")
+async def list_voices():
+    # Helper to clean up cache on list request
+    cleanup_old_files()
+    custom_voice_ids = [vid for vid in voice_states.keys() if vid.startswith("custom_")]
+    return {
+        "voices": PRESET_VOICES,
+        "custom_voices": custom_voice_ids
+    }
+
+# NEW: Job Submission endpoint
+@app.post("/job/submit")
+async def submit_job(
+    background_tasks: BackgroundTasks,
+    type: str = Form(..., description="tts or dialogue"),
+    text: str = Form(...),
+    voice: Optional[str] = Form("alba"),
+    custom_voice_id: Optional[str] = Form(None),
+    voice2: Optional[str] = Form(None), # For dialogue
+):
+    job_id = str(uuid.uuid4())
+    JOBS[job_id] = {
+        "job_id": job_id,
+        "status": "pending",
+        "progress": 0,
+        "message": "Queued...",
+        "created_at": time.time()
+    }
+    
+    if type == "tts":
+        background_tasks.add_task(process_tts_job, job_id, text, voice, custom_voice_id)
+    elif type == "dialogue":
+        background_tasks.add_task(process_dialogue_job, job_id, text, voice, voice2) # voice=v1, voice2=v2
+    elif type == "srt":
+        background_tasks.add_task(process_srt_job, job_id, text, voice, custom_voice_id) # text here is srt content
+    else:
+        raise HTTPException(status_code=400, detail="Invalid job type")
+        
+    return {"job_id": job_id, "status": "queued"}
+
+# NEW: Job Status endpoint
+@app.get("/job/{job_id}")
+async def get_job_status(job_id: str):
+    if job_id not in JOBS:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    job = JOBS[job_id]
+    return {
+        "job_id": job_id,
+        "status": job["status"],
+        "progress": job.get("progress", 0),
+        "message": job.get("message", ""),
+        "error": job.get("error", None)
+    }
+
+# NEW: Job Download endpoint
+@app.get("/job/{job_id}/download")
+async def download_job_result(job_id: str):
+    if job_id not in JOBS:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    job = JOBS[job_id]
+    if job["status"] != "completed" or "result_file" not in job:
+        raise HTTPException(status_code=400, detail="Job not ready or failed")
+        
+    return FileResponse(
+        job["result_file"],
+        media_type="audio/wav",
+        filename=os.path.basename(job["result_file"])
+    )
+
+@app.post("/clone")
+async def clone_voice(
+    audio_file: UploadFile = File(...),
+    name: Optional[str] = Form(None)
+):
+    # Keep synchronous for now as it's usually short (or make async if needed)
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            tmp.write(await audio_file.read())
+            tmp_path = tmp.name
+        
+        # Simple sanitize
+        try:
+            rate, data = scipy.io.wavfile.read(tmp_path)
+            scipy.io.wavfile.write(tmp_path, rate, data)
+        except: pass
+
+        model = get_model()
+        voice_id = f"custom_{uuid.uuid4().hex[:12]}"
+        save_path = f"voices/{voice_id}.wav"
+        if not os.path.exists("voices"): os.makedirs("voices")
+        shutil.move(tmp_path, save_path)
+        
+        voice_states[voice_id] = model.get_state_for_audio_prompt(save_path)
+        return {"voice_id": voice_id, "name": name, "status": "success"}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
+    print(f"Starting Async TTS Server on port {port}...")
     uvicorn.run(app, host="0.0.0.0", port=port)
 

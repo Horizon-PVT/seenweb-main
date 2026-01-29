@@ -134,16 +134,56 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
         }
     };
 
+    // State for Progress Polling
+    const [progress, setProgress] = useState(0);
+    const [statusMessage, setStatusMessage] = useState('');
+
+    // Poll for Job Status
+    const pollJobStatus = async (jobId: string): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/tools/tts/check-status?jobId=${jobId}`);
+                    if (!res.ok) {
+                        clearInterval(interval);
+                        reject(new Error("Failed to check status"));
+                        return;
+                    }
+                    const data = await res.json();
+
+                    if (data.status === 'processing') {
+                        setProgress(data.progress || 0);
+                        setStatusMessage(data.message || 'Processing...');
+                    } else if (data.status === 'completed') {
+                        clearInterval(interval);
+                        setProgress(100);
+                        setStatusMessage('Completed!');
+                        resolve(data.job_id);
+                    } else if (data.status === 'failed') {
+                        clearInterval(interval);
+                        reject(new Error(data.error || 'Job failed'));
+                    }
+                } catch (e) {
+                    console.error("Polling error", e);
+                    // Don't reject immediately on network glitch, just retry
+                }
+            }, 2000); // Check every 2 seconds
+        });
+    };
+
     // Handle Generate (normal or dialogue)
     const handleGenerate = async () => {
         if (!scriptText.trim()) return setError("Vui lòng nhập nội dung!");
         setIsLoading(true);
         setError('');
         setAudioUrl(null);
+        setProgress(0);
+        setStatusMessage('Starting...');
 
         try {
             if (dialogueMode) {
-                // Parse [A] and [B] markers
+                // Submit Dialogue Job
+                setStatusMessage('Submitting dialogue job...');
                 const res = await fetch('/api/tools/tts/generate-dialogue', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -158,34 +198,106 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     const errData = await res.json().catch(() => ({}));
                     throw new Error(errData.error || 'Lỗi tạo hội thoại');
                 }
-                const blob = await res.blob();
+                const data = await res.json();
+
+                // Poll Status
+                const finishedJobId = await pollJobStatus(data.jobId);
+
+                // Download Result
+                const dlRes = await fetch(`/api/tools/tts/check-status?jobId=${finishedJobId}`); // Get correct download link logic or just use download endpoint
+                // Actually the plan says: GET /job/{job_id}/download proxied via check-status? Or separate?
+                // Plan: "Create check-status.ts - Proxy download when status is completed" -> Wait, check-status returns JSON.
+                // We need a download link.
+                // Let's call the Python download endpoint via a proxy? 
+                // Currently `check-status.ts` only returns JSON.
+                // Let's make a direct link to the Python server via local-worker proxy if possible? 
+                // Or better: Use the same `check-status` API to get the download link?
+                // Actually, let's keep it simple: server.py has /job/{id}/download.
+                // WE need to access it. Since it's behind ngrok/cloudflare, the frontend cannot reach it directly easily if CORS/Auth issues.
+                // But we are on localhost for now or cloudflare.
+                // BETTER: Modify `check-status.ts` to handle download OR create `download-job.ts`. 
+                // For now, let's fetch the blob via a new API call?
+                // Actually, let's just use the `check-status` API to return the file if we add a query param `download=true`.
+                // OR simpler: just fetch from python in `handleGenerate` after polling.
+
+                // Fetch the file content via Next.js Proxy (we can reuse generate endpoint logic or make a new one).
+                // Let's hack it: Server.py has /job/{id}/download.
+                // We can't hit 127.0.0.1:8000 from browser if using Cloudflare.
+                // We must proxy through Next.js.
+                // Let's assume we create a temp `/api/tools/tts/download-job?id=...` that proxies.
+                // I forgot to create that in the plan.
+                // I can implement it right here inside `handleGenerate` by fetching through a proxy.
+                // Wait, `check-status.ts` is just a proxy right? 
+                // Let's re-read `check-status.ts` ... it calls `res.json(data)`.
+
+                // I will add a quick `download-job` API or just fetch it here using a clever use of `generate`? No.
+                // I'll create `pages/api/tools/tts/download.ts` quickly next step.
+                // For now, let's assume it exists: `/api/tools/tts/download?jobId=${finishedJobId}`
+
+                setStatusMessage('Downloading file...');
+                const downloadRes = await fetch(`/api/tools/tts/download-result?jobId=${finishedJobId}`);
+                if (!downloadRes.ok) throw new Error('Download failed');
+                const blob = await downloadRes.blob();
                 setAudioUrl(URL.createObjectURL(blob));
+
             } else {
                 // Normal single voice
                 const isVN = voice1.startsWith('vi-VN');
-                const endpoint = isVN ? '/api/tools/tts/edge' : '/api/tools/tts/generate';
 
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text: scriptText,
-                        voice: voice1,
-                        customVoiceId: voice1.startsWith('custom_') ? voice1 : undefined,
-                        rate: Math.round((speed - 1) * 100) // Convert to percentage
-                    })
-                });
-                if (!res.ok) {
-                    const errData = await res.json().catch(() => ({}));
-                    throw new Error(errData.error || 'Lỗi tạo audio');
+                if (isVN) {
+                    // Keep synchronous for VN (Edge TTS)
+                    setStatusMessage('Generating Vietnamese...');
+                    const res = await fetch('/api/tools/tts/edge', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: scriptText,
+                            voice: voice1,
+                            rate: Math.round((speed - 1) * 100)
+                        })
+                    });
+                    if (!res.ok) throw new Error('Edge TTS Failed');
+                    const blob = await res.blob();
+                    setAudioUrl(URL.createObjectURL(blob));
+                    setProgress(100);
+                } else {
+                    // Pocket TTS - Async Job
+                    setStatusMessage('Submitting TTS job...');
+                    const res = await fetch('/api/tools/tts/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: scriptText,
+                            voice: voice1,
+                            customVoiceId: voice1.startsWith('custom_') ? voice1 : undefined,
+                            rate: Math.round((speed - 1) * 100)
+                        })
+                    });
+
+                    if (!res.ok) {
+                        const errData = await res.json().catch(() => ({}));
+                        throw new Error(errData.error || 'Lỗi tạo audio');
+                    }
+
+                    const data = await res.json();
+
+                    // Poll
+                    const finishedJobId = await pollJobStatus(data.jobId);
+
+                    // Download
+                    setStatusMessage('Downloading file...');
+                    const downloadRes = await fetch(`/api/tools/tts/download-result?jobId=${finishedJobId}`);
+                    if (!downloadRes.ok) throw new Error('Download failed');
+                    const blob = await downloadRes.blob();
+                    setAudioUrl(URL.createObjectURL(blob));
                 }
-                const blob = await res.blob();
-                setAudioUrl(URL.createObjectURL(blob));
             }
         } catch (err: any) {
             setError(err.message);
+            setStatusMessage('Failed');
         } finally {
             setIsLoading(false);
+            if (!error) setStatusMessage('Done');
         }
     };
 
@@ -195,6 +307,8 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
         setIsLoading(true);
         setError('');
         setAudioUrl(null);
+        setProgress(0);
+        setStatusMessage('Uploading & Processing...');
 
         try {
             const formData = new FormData();
@@ -211,14 +325,35 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.error || 'Lỗi xử lý SRT');
+                throw new Error(errData.error || 'Lỗi xử lý file');
             }
-            const blob = await res.blob();
-            setAudioUrl(URL.createObjectURL(blob));
+
+            // Check content type to see if it returned direct audio (VN) or JSON (Async Job)
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                // Async Job
+                const data = await res.json();
+                const finishedJobId = await pollJobStatus(data.jobId);
+
+                setStatusMessage('Downloading file...');
+                const downloadRes = await fetch(`/api/tools/tts/download-result?jobId=${finishedJobId}`);
+                if (!downloadRes.ok) throw new Error('Download failed');
+                const blob = await downloadRes.blob();
+                setAudioUrl(URL.createObjectURL(blob));
+
+            } else {
+                // Direct Audio (VN)
+                const blob = await res.blob();
+                setAudioUrl(URL.createObjectURL(blob));
+                setProgress(100);
+            }
+
         } catch (err: any) {
             setError(err.message);
+            setStatusMessage('Failed');
         } finally {
             setIsLoading(false);
+            if (!error) setStatusMessage('Done');
         }
     };
 
@@ -369,13 +504,23 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             }`}
                     >
                         {isLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                </svg>
-                                Đang xử lý...
-                            </span>
+                            <div className="flex flex-col items-center justify-center gap-2">
+                                <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    {statusMessage || 'Đang xử lý...'}
+                                </span>
+                                {progress > 0 && (
+                                    <div className="w-full max-w-[200px] bg-white/30 rounded-full h-1.5 mt-1">
+                                        <div
+                                            className="bg-white h-1.5 rounded-full transition-all duration-300"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         ) : '⚡ TẠO AUDIO'}
                     </button>
 

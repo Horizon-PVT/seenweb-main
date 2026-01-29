@@ -155,7 +155,9 @@ async function callLocalVietTts(text: string, speed: number = 1.0): Promise<Buff
 
   try {
     // Call Python Server
-    const response = await fetch('http://127.0.0.1:8000/generate', {
+
+    const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'http://127.0.0.1:8000';
+    const response = await fetch(`${TTS_SERVER_URL}/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })

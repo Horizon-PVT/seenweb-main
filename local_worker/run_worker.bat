@@ -10,4 +10,4 @@ echo Bat dau Server tai http://localhost:8000
 echo (Giu cua so nay luon mo khi muon tao giong)
 echo.
 
-python run_with_ngrok.py
+python run_with_cloudflare.py

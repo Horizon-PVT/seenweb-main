@@ -35,84 +35,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
         }
 
-        // Check if voices are Vietnamese Edge TTS
-        const isVoice1VN = voice1?.startsWith('vi-VN');
-        const isVoice2VN = voice2?.startsWith('vi-VN');
+        // Submit to Async Job Queue
+        const formData = new FormData();
+        formData.append('type', 'dialogue');
+        formData.append('text', text);
+        formData.append('voice', voice1);
+        formData.append('voice2', voice2);
+        // if (speed) formData.append('speed', speed.toString()); // Backend currently ignores speed for dialogue, but can add later
 
-        // Generate audio for each segment
-        const audioBuffers: ArrayBuffer[] = [];
-
-        for (const segment of segments) {
-            const voice = segment.speaker === 'A' ? voice1 : voice2;
-            const isVN = segment.speaker === 'A' ? isVoice1VN : isVoice2VN;
-
-            let response;
-            if (isVN) {
-                // Use Edge TTS for Vietnamese
-                response = await fetch(`${TTS_SERVER_URL.replace('seenweb-main-production.up.railway.app', '127.0.0.1:3000')}/api/tools/tts/edge`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text: segment.text,
-                        voice: voice,
-                        rate: speed ? Math.round((speed - 1) * 100) : 0
-                    })
-                });
-            } else {
-                // Use Pocket TTS
-                const formData = new FormData();
-                formData.append('text', segment.text);
-                formData.append('voice', voice || 'alba');
-
-                response = await fetch(`${TTS_SERVER_URL}/generate`, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true'
-                    }
-                });
+        const response = await fetch(`${TTS_SERVER_URL}/job/submit`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
             }
+        });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`Failed to generate segment: ${errText}`);
-            }
-
-            const buffer = await response.arrayBuffer();
-            audioBuffers.push(buffer);
+        if (!response.ok) {
+            throw new Error('Server dialogue submission failed');
         }
 
-        // For now, return just the first segment (TODO: implement audio concatenation)
-        // In production, we'd use ffmpeg or similar to concatenate
-        if (audioBuffers.length === 1) {
-            res.setHeader('Content-Type', 'audio/wav');
-            res.setHeader('Content-Disposition', `attachment; filename="dialogue_${Date.now()}.wav"`);
-            res.send(Buffer.from(audioBuffers[0]));
-        } else {
-            // Simple approach: send to server for concatenation
-            const formData = new FormData();
-            formData.append('text', text);
-            formData.append('voice1', voice1);
-            formData.append('voice2', voice2);
-            if (speed) formData.append('speed', speed.toString());
+        const data = await response.json();
 
-            const response = await fetch(`${TTS_SERVER_URL}/generate-dialogue`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'ngrok-skip-browser-warning': 'true'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Server dialogue generation failed');
-            }
-
-            const audioBuffer = await response.arrayBuffer();
-            res.setHeader('Content-Type', 'audio/wav');
-            res.setHeader('Content-Disposition', `attachment; filename="dialogue_${Date.now()}.wav"`);
-            res.send(Buffer.from(audioBuffer));
-        }
+        res.status(200).json({
+            success: true,
+            jobId: data.job_id,
+            status: 'queued'
+        });
 
     } catch (error: any) {
         console.error('Dialogue Generate Error:', error);

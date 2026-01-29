@@ -63,124 +63,79 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ error: 'File required' });
         }
 
-        // Read file content
+        // Read file content and cleanup immediately
         const fileContent = fs.readFileSync(uploadedFile.filepath, 'utf-8');
         const ext = path.extname(uploadedFile.originalFilename || '').toLowerCase();
-        const originalFilename = uploadedFile.originalFilename || '';
+        fs.unlinkSync(uploadedFile.filepath);
 
-        // Check if this is an SRT file (by extension or content)
+        // Check if Vietnamese voice - Use Edge TTS (Sync)
+        const isVN = voice.startsWith('vi-VN');
+
+        // Check if SRT
         const isSrtFile = ext === '.srt' ||
             /^\d+\s*\r?\n\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}/m.test(fileContent);
 
-        // Check if Vietnamese voice (use Edge TTS API - no timing support)
-        const isVN = voice.startsWith('vi-VN');
-
-        // For SRT files with non-Vietnamese voice, use the special /generate-srt endpoint
-        // This preserves timing information!
-        if (isSrtFile && !isVN) {
-            console.log('[SRT Handler] Using /generate-srt endpoint for timing-synced audio');
-
-            // Use Node.js form-data with axios for proper multipart upload
-            // Read file as Buffer instead of stream for more reliable upload
-            const fileBuffer = fs.readFileSync(uploadedFile.filepath);
-            const formData = new FormDataNode();
-            formData.append('srt_file', fileBuffer, {
-                filename: originalFilename || 'subtitle.srt',
-                contentType: 'text/plain'
-            });
-            formData.append('voice', customVoiceId || voice);
-            if (customVoiceId) {
-                formData.append('custom_voice_id', customVoiceId);
-            }
-
-            // Cleanup temp file before request (we already have the buffer)
-            fs.unlinkSync(uploadedFile.filepath);
-
-            try {
-                console.log(`[SRT Handler] Sending to: ${TTS_SERVER_URL}/generate-srt`);
-                const response = await axios.post(`${TTS_SERVER_URL}/generate-srt`, formData, {
-                    headers: {
-                        ...formData.getHeaders(),
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    responseType: 'arraybuffer',
-                    maxContentLength: Infinity,
-                    maxBodyLength: Infinity,
-                    timeout: 300000 // 5 minutes timeout
-                });
-
-                console.log(`[SRT Handler] Received ${response.data.length} bytes`);
-                res.setHeader('Content-Type', 'audio/wav');
-                res.setHeader('Content-Disposition', `attachment; filename="srt_synced_${Date.now()}.wav"`);
-                res.send(Buffer.from(response.data));
-                return;
-            } catch (axiosError: any) {
-                const errorMsg = axiosError.response?.data
-                    ? Buffer.from(axiosError.response.data).toString('utf-8')
-                    : axiosError.message;
-                console.error('[SRT Handler] Error:', errorMsg);
-                throw new Error(`SRT generation failed: ${errorMsg}`);
-            }
-        }
-
-        // For non-SRT files or Vietnamese voice, extract text content
-        let textContent: string;
-        if (isSrtFile) {
-            textContent = parseSrtToText(fileContent);
-        } else if (ext === '.txt') {
-            textContent = fileContent;
-        } else {
-            fs.unlinkSync(uploadedFile.filepath);
-            return res.status(400).json({ error: 'Chỉ hỗ trợ file .txt và .srt. Vui lòng Save As .txt nếu dùng Word.' });
-        }
-
-        // Cleanup temp file
-        fs.unlinkSync(uploadedFile.filepath);
-
-        if (!textContent.trim()) {
-            return res.status(400).json({ error: 'File is empty or could not be parsed' });
-        }
-
         if (isVN) {
-            // Use Edge TTS for Vietnamese (no timing support available)
+            // VN Voice: Use Edge TTS (Sync)
+            // Note: Edge TTS doesn't support SRT timing technically, but let's just strip text for now or simple parse?
+            // Existing logic: parseSrtToText -> then Edge TTS
+            let textToRead = fileContent;
+            if (isSrtFile) {
+                textToRead = parseSrtToText(fileContent);
+            }
+            if (!textToRead.trim()) return res.status(400).json({ error: 'Empty content' });
+
             const edgeRes = await fetch(`http://127.0.0.1:3000/api/tools/tts/edge`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: textContent, voice })
+                body: JSON.stringify({ text: textToRead, voice })
             });
 
             if (!edgeRes.ok) {
-                const errData = await edgeRes.json().catch(() => ({}));
-                throw new Error(errData.error || 'Edge TTS failed');
+                const err = await edgeRes.json().catch(() => ({}));
+                throw new Error(err.error || 'Edge TTS failed');
             }
-
-            const audioBuffer = await edgeRes.arrayBuffer();
+            const blob = await edgeRes.arrayBuffer();
             res.setHeader('Content-Type', 'audio/mp3');
-            res.setHeader('Content-Disposition', `attachment; filename="audio_${Date.now()}.mp3"`);
-            res.send(Buffer.from(audioBuffer));
+            res.send(Buffer.from(blob));
+
         } else {
-            // Use Pocket TTS for regular text
+            // Pocket TTS: Submit Async Job
             const formData = new FormData();
-            formData.append('text', textContent);
-            formData.append('voice', customVoiceId || voice);
-            if (customVoiceId) {
-                formData.append('custom_voice_id', customVoiceId);
+            formData.append('voice', voice);
+            if (customVoiceId) formData.append('custom_voice_id', customVoiceId);
+
+            if (isSrtFile) {
+                // Submit SRT Job (preserves timing)
+                formData.append('type', 'srt');
+                formData.append('text', fileContent); // Send raw SRT content
+            } else {
+                // Submit Text Job
+                formData.append('type', 'tts');
+                formData.append('text', fileContent);
             }
 
-            const response = await fetch(`${TTS_SERVER_URL}/generate`, {
+            const response = await fetch(`${TTS_SERVER_URL}/job/submit`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'
+                }
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || 'Server error');
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.detail || 'Failed to submit file job');
             }
 
-            const audioBuffer = await response.arrayBuffer();
-            res.setHeader('Content-Type', 'audio/wav');
-            res.setHeader('Content-Disposition', `attachment; filename="audio_${Date.now()}.wav"`);
-            res.send(Buffer.from(audioBuffer));
+            const data = await response.json();
+
+            // Return Job ID
+            res.status(200).json({
+                success: true,
+                jobId: data.job_id,
+                status: 'queued'
+            });
         }
 
     } catch (error: any) {
