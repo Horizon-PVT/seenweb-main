@@ -145,7 +145,27 @@ const ControlTab = ({ mode, setMode, queue, setQueue, isProcessing, setIsProcess
     };
 
     const handleStart = async () => {
-        if (queue.length === 0) return alert('Hàng chờ trống!');
+        // AUTO-ADD: If queue is empty but user has text in input, add it automatically
+        let currentQueue = [...queue];
+        if (currentQueue.length === 0) {
+            const promptList = prompts.split(/---|(?:\r?\n){2,}/).map(p => p.trim()).filter(p => p.length > 0);
+            if (promptList.length > 0) {
+                const newItems: QueueItem[] = promptList.map((prompt, i) => ({
+                    id: `${Date.now()}-${i}`,
+                    prompt: prompt.trim(),
+                    status: 'pending',
+                    images: mode !== 'text-to-video' ? [...images] : undefined,
+                    referenceImages: mode === 'components' ? [...referenceImages] : undefined
+                }));
+                currentQueue = newItems;
+                setQueue(newItems); // Sync state
+                setPrompts(''); // Clear input
+                // Allow a small delay for state update if needed, but we use local variable 'currentQueue'
+            } else {
+                return alert('Vui lòng nhập prompt hoặc thêm vào hàng chờ!');
+            }
+        }
+
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         const activeTab = tabs[0];
         if (!activeTab?.id) return alert('Không tìm thấy tab đang mở!');
@@ -171,7 +191,7 @@ const ControlTab = ({ mode, setMode, queue, setQueue, isProcessing, setIsProcess
                 await chrome.tabs.sendMessage(activeTab.id!, {
                     type: 'START_AUTOMATION',
                     mode: mode,
-                    queue: queue,
+                    queue: currentQueue, // Use local variable
                     config: { minDelay: 30000, maxDelay: 60000, autoDownload: false }
                 });
             };

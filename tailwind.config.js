@@ -6,6 +6,11 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Montserrat', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
+        bangers: ['Bangers', 'cursive'],
+      },
       colors: {
         // Brand tokens (gold / red / white)
         brand: {

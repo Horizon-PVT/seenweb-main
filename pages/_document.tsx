@@ -11,7 +11,8 @@ export default function Document() {
         <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Playfair+Display:wght@700;900&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
 
         {/* 2. CUSTOM STYLES HOÀN CHỈNH (KHẮC PHỤC HIỆU ỨNG THIẾU) */}
-        <style dangerouslySetInnerHTML={{__html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           html {
             scroll-behavior: smooth;
           }
@@ -19,6 +20,7 @@ export default function Document() {
             background-color: #000000;
             color: #E0E0E0;
             overflow-x: hidden;
+            font-family: 'Montserrat', sans-serif;
           }
           .font-playfair {
             font-family: 'Playfair Display', serif;
