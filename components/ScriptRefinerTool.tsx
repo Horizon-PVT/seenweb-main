@@ -304,7 +304,7 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
                             </div>
 
                             {/* Script/Diff Display */}
-                            <div ref={outputRef} className={`holographic-output flex-grow p-3 text-sm overflow-y-auto whitespace-pre-wrap font-mono ${diffView ? 'diff-view' : ''}`}>
+                            <div ref={outputRef} className={`holographic-output flex-grow p-3 text-sm overflow-y-auto whitespace-pre-wrap ${diffView ? 'diff-view' : ''}`}>
                                 {isLoading && <Loader /> /* Hiển thị loader nhỏ khi đang chat */}
                                 {!isLoading && (diffView
                                     ? <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(output.diffScript) }} />

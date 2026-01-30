@@ -295,7 +295,7 @@ export default function ScriptwriterPage() {
             {/* HEADER */}
             <header className="h-16 border-b border-[#3f3f46]/40 flex items-center justify-between px-6 bg-[#09090b]/90 backdrop-blur z-50">
                 <div className="flex items-center gap-4">
-                    <Link href="/?tool=tools_content" className="text-[#a1a1aa] hover:text-white transition-colors flex items-center gap-2">
+                    <Link href="/#bang-cong-cu-seenyt" className="text-[#a1a1aa] hover:text-white transition-colors flex items-center gap-2">
                         <ArrowLeft size={18} /> <span className="text-xs font-bold tracking-widest uppercase">BACK TO STUDIO</span>
                     </Link>
                     <div className="h-5 w-px bg-[#3f3f46]"></div>

@@ -442,7 +442,7 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                             <span className="text-xs text-[#CDAD5A] w-20 text-right">{copySuccess}</span>
                         </div>
                     </div>
-                    <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto font-mono relative">
+                    <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto relative">
                         {(isLoading && !outputScript) && (
                             <div className="flex flex-col items-center justify-center h-full text-center">
                                 <div className="w-20 h-20 text-[#008080]"><PyramidIcon /></div>

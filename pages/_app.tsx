@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import "@/styles/custom-styles.css"; // Import styles tùy chỉnh toàn cục
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";

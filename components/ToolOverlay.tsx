@@ -174,18 +174,19 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
                 ) : (
                   <div className="min-h-[calc(100vh-56px)] flex items-center justify-center px-6">
                     <div className="max-w-xl w-full bg-black/40 border border-[#CDAD5A]/30 rounded-2xl p-6 text-center">
-                      <div className="text-[#CDAD5A] font-black text-xl">
-                        {isEN ? 'Tool Not Found' : 'Tool không tồn tại'}
+                      <div className="text-[#CDAD5A] font-black text-xl animate-pulse">
+                        {isEN ? 'Redirecting to Studio...' : 'Đang quay về Studio...'}
                       </div>
-                      <div className="text-gray-300 mt-2">
-                        {isEN ? 'Cannot find toolId:' : 'Không tìm thấy toolId:'} <span className="font-mono">{toolId}</span>
+                      <div className="text-gray-500 mt-2 text-xs">
+                        {isEN ? 'Syncing workspace...' : 'Đang đồng bộ dữ liệu...'}
                       </div>
-                      <button
-                        onClick={onBack}
-                        className="mt-5 px-4 py-2 rounded-lg bg-[#CDAD5A] text-black font-bold hover:opacity-90 transition"
-                      >
-                        {isEN ? 'Back to Tools' : 'Quay về bảng công cụ'}
-                      </button>
+                      {/* Auto redirect effect */}
+                      {React.useEffect(() => {
+                        const timer = setTimeout(() => {
+                          onBack();
+                        }, 800);
+                        return () => clearTimeout(timer);
+                      }, [])}
                     </div>
                   </div>
                 )}

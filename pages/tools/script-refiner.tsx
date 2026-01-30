@@ -176,7 +176,7 @@ export default function ScriptRefinerPage() {
             {/* HEADER */}
             <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-20">
                 <div className="flex items-center gap-4">
-                    <Link href="/?tool=tools_content" className="text-gray-500 hover:text-black transition-colors">
+                    <Link href="/#bang-cong-cu-seenyt" className="text-gray-500 hover:text-black transition-colors">
                         <ArrowLeft size={20} />
                     </Link>
                     <div className="h-6 w-px bg-gray-200"></div>

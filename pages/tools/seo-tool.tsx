@@ -173,7 +173,7 @@ export default function SeoToolPage() {
             {/* HEADER */}
             <header className="fixed top-0 left-0 right-0 h-16 bg-[#050b14]/80 backdrop-blur-md border-b border-[#00f3ff]/30 flex items-center justify-between px-6 z-50 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
                 <div className="flex items-center gap-4">
-                    <Link href="/?tool=tools_content" className="flex items-center gap-2 text-[#00f3ff]/70 hover:text-[#00f3ff] transition-colors">
+                    <Link href="/#bang-cong-cu-seenyt" className="flex items-center gap-2 text-[#00f3ff]/70 hover:text-[#00f3ff] transition-colors">
                         <ChevronLeft size={18} /> <span className="text-xs font-bold tracking-widest">EXIT_MODULE</span>
                     </Link>
                     <div className="h-8 w-px bg-[#00f3ff]/20"></div>
