@@ -126,6 +126,15 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
 
   const entry = registry[toolId];
 
+  React.useEffect(() => {
+    if (!entry) {
+      const timer = setTimeout(() => {
+        onBack();
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [entry, onBack]);
+
   return (
     <div className="fixed inset-0 z-[9999]">
       {/* Backdrop */}
@@ -180,13 +189,7 @@ const ToolOverlay: React.FC<Props> = ({ toolId, onBack }) => {
                       <div className="text-gray-500 mt-2 text-xs">
                         {isEN ? 'Syncing workspace...' : 'Đang đồng bộ dữ liệu...'}
                       </div>
-                      {/* Auto redirect effect */}
-                      {React.useEffect(() => {
-                        const timer = setTimeout(() => {
-                          onBack();
-                        }, 800);
-                        return () => clearTimeout(timer);
-                      }, [])}
+                      {/* Auto redirect effect moved to component body */}
                     </div>
                   </div>
                 )}
