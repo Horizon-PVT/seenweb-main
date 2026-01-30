@@ -94,7 +94,7 @@ const HeroSection: React.FC = () => {
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-playfair font-black text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] mb-6">
           {t('hero.title', 'Giúp bạn tìm đúng ngách và')} <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">
-            {t('hero.title_highlight', 'làm video có khả năng lên view')}
+            {t('hero.title_highlight', 'làm video lên top view')}
           </span>
         </h1>
 

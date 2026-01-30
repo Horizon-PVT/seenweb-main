@@ -55,7 +55,7 @@ export default function WorkflowSection() {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-black text-white mb-4 uppercase tracking-tight">
-                        {t('workflow.title', 'Quy Trình')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">{t('workflow.title_highlight', '3 Bước Để Làm Video Có Cơ Hội Lên View')}</span>
+                        {t('workflow.title', 'Quy Trình')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">{t('workflow.title_highlight', '3 Bước Để Làm Video Lên Top View')}</span>
                     </h2>
                     <p className="text-gray-400 text-lg max-w-2xl mx-auto">
                         {t('workflow.subtitle', 'Hệ thống dẫn bạn đi từ "chưa biết làm gì" → "có video sẵn để đăng".')}

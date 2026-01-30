@@ -7,10 +7,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Montserrat', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
-        playfair: ['Playfair Display', 'serif'],
-        bangers: ['Bangers', 'cursive'],
+        sans: ['var(--font-montserrat)', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'serif'],
+        playfair: ['var(--font-playfair)', 'serif'],
+        bangers: ['var(--font-bangers)', 'cursive'],
       },
       colors: {
         // Brand tokens (gold / red / white)

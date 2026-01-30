@@ -7,6 +7,30 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import AttributionTracker from "@/components/AttributionTracker";
 import WelcomePopupManager from "@/components/WelcomePopupManager";
 
+// Fonts setup using next/font
+import { Montserrat, Playfair_Display, Bangers } from 'next/font/google';
+
+const montserrat = Montserrat({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const bangers = Bangers({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-bangers',
+  display: 'swap',
+});
+
 // THÊM DÒNG NÀY ĐỂ DÙNG GTM CHÍNH THỨC
 import { GoogleTagManager } from '@next/third-parties/google';
 
@@ -83,7 +107,9 @@ function App({
       </Head>
 
       <ErrorBoundary>
-        <Component {...pageProps} />
+        <main className={`${montserrat.variable} ${playfair.variable} ${bangers.variable} font-sans`}>
+          <Component {...pageProps} />
+        </main>
         <AttributionTracker />
         <WelcomePopupManager />
       </ErrorBoundary>

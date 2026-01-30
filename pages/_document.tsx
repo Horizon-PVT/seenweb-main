@@ -5,17 +5,12 @@ export default function Document() {
   return (
     <Html lang="vi">
       <Head>
-        {/* 1. Tải Google Fonts - Full Weights */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
-
-        {/* 2. CUSTOM STYLES HOÀN CHỈNH (Đã import trong _app.tsx) */}
+        {/* 1. Fonts đã được load qua next/font trong _app.tsx để tối ưu hiệu suất và tránh lỗi cache */}
       </Head>
       <body>
         <Main />
         <NextScript />
       </body>
-    </Html>
+    </Html >
   );
 }
