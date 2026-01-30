@@ -244,7 +244,7 @@ export default function ScriptRefinerPage() {
                             value={originalScript}
                             onChange={e => setOriginalScript(e.target.value)}
                             placeholder="Paste your rough script, transcript, or import a text file..."
-                            className="flex-grow w-full resize-none outline-none text-base leading-relaxed text-gray-700 placeholder-gray-300 font-mono"
+                            className="flex-grow w-full resize-none outline-none text-base leading-relaxed text-gray-700 placeholder-gray-300"
                         />
                     </div>
 

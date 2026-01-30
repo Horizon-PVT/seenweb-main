@@ -9,6 +9,7 @@ module.exports = {
       fontFamily: {
         sans: ['Montserrat', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
+        playfair: ['Playfair Display', 'serif'],
         bangers: ['Bangers', 'cursive'],
       },
       colors: {

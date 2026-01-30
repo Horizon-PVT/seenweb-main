@@ -35,7 +35,7 @@ const languages: Record<string, string> = { "English": "en", "Spanish": "es", "F
 const TypewriterText: React.FC<{ text: string }> = ({ text }) => {
     // Simple rendering for now to avoid complexity, but styled to look like a script
     return (
-        <div className="whitespace-pre-wrap font-mono text-gray-300 leading-relaxed text-lg">
+        <div className="whitespace-pre-wrap text-gray-300 leading-relaxed text-lg">
             {text}
         </div>
     );
