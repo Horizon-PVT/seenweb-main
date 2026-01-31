@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 };
 
                 // B. Fetch Recent Videos (from Uploads Playlist - Costs 1 unit vs 100 for Search)
-                let recentVideos = [];
+                let recentVideos: any[] = [];
                 if (uploadsPlaylistId) {
                     const videoRes = await youtube.playlistItems.list({
                         part: ['snippet', 'contentDetails'],
