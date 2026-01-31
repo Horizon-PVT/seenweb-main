@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const messages = await prisma.chatMessage.findMany({
                 where: { channelId: String(channelId) },
                 include: {
-                    user: { select: { id: true, name: true, image: true, role: true, youtubeSubCount: true } }
+                    user: { select: { id: true, name: true, image: true, role: true } }
                 },
                 orderBy: { createdAt: 'desc' },
                 take: 50,
@@ -127,7 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     userId: user.id
                 },
                 include: {
-                    user: { select: { id: true, name: true, image: true, role: true, youtubeSubCount: true } }
+                    user: { select: { id: true, name: true, image: true, role: true } }
                 }
             });
 
