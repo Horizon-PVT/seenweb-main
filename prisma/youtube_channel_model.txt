@@ -1,0 +1,24 @@
+
+// YOUTUBE INTEGRATION (MULTI-CHANNEL SUPPORT)
+model YouTubeChannel {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  channelId       String   @unique
+  title           String?
+  thumbnail       String?
+  subCount        Int      @default(0)
+  viewCount       String?
+  videoCount      Int      @default(0)
+  
+  accessToken     String?  @db.Text
+  refreshToken    String?  @db.Text
+  tokenExpiry     DateTime?
+  lastSync        DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("youtube_channels")
+}

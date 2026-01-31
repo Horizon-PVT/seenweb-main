@@ -100,26 +100,69 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         else if (paymentRequest.role === 'SUPER') dubbingCreditsToAdd = 30;
         else if (paymentRequest.role === 'VIP') dubbingCreditsToAdd = 100;
 
+        // ... (User find/create logic above)
+
+        // LOGIC TO DETERMINE UPGRADE TYPE
+        // 1. Check if it's a SLOT UPGRADE
+        const description = (paymentInfo.plan || '').toString().toLowerCase(); // e.g., "nang cap them 1 slot"
+        const note = (paymentInfo.note || '').toString().toLowerCase();
+
+        let extraSlotsToAdd = 0;
+        let isSlotUpgrade = false;
+
+        if (description.includes('slot') || note.includes('slot')) {
+            isSlotUpgrade = true;
+            // Parse number of slots if possible, default to 1
+            // Use Regex to find number before "slot" or "channel"?
+            // Simplest: Check amount / 139000? Or assume 1 for now based on button logic.
+            // But user might buy multiple. Let's rely on amount if description is vague.
+            // For now, let's assume safely 1 slot if it's a slot upgrade packet from the modal.
+            // Better: Parse "them X slot" from description.
+            const match = description.match(/them (\d+) slot/);
+            if (match && match[1]) {
+                extraSlotsToAdd = parseInt(match[1]);
+            } else {
+                extraSlotsToAdd = 1; // Default fallback
+            }
+        }
+
+        // 2. Logic to update User
         if (!user) {
+            // New User Creation (Unlikely for slot upgrade but safe to have)
             user = await prisma.user.create({
                 data: {
                     email: paymentRequest.email,
-                    role: paymentRequest.role,
+                    role: isSlotUpgrade ? 'SUPER' : paymentRequest.role, // If slot upgrade, ensure at least SUPER/PRO? Or keep current?
+                    // Safe default: If buying slots, they are likely already PRO/SUPER.
+                    extraChannelSlots: isSlotUpgrade ? extraSlotsToAdd : 0,
                     membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                    dubbingCredits: dubbingCreditsToAdd,
+                    dubbingCredits: 10, // Default starter
                 }
             });
         } else {
             const currentExpiry = user.membershipExpiry || new Date();
             const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
 
+            // Prepare update data
+            const updateData: any = {
+                membershipExpiry: new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000), // Extend 30 days
+            };
+
+            // If it's a Slot Upgrade, increment slots, DO NOT change role
+            if (isSlotUpgrade) {
+                updateData.extraChannelSlots = { increment: extraSlotsToAdd };
+                // Ensure they are at least PRO/SUPER if they buy slots?
+                // Logic: If they are BASIC, buying slots might be weird but allowed.
+                // Let's keep role as is.
+            } else {
+                // Normal Plan Upgrade
+                updateData.role = paymentRequest.role;
+                updateData.dubbingCredits = { increment: dubbingCreditsToAdd };
+            }
+
             user = await prisma.user.update({
                 where: { id: user.id },
-                data: {
-                    role: paymentRequest.role,
-                    membershipExpiry: new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000),
-                    dubbingCredits: { increment: dubbingCreditsToAdd },
-                }
+                data: updateData
             });
         }
 

@@ -63,7 +63,7 @@ model User {
   
   // V2: Creator Hub Gamification
   badges              UserBadge[]
-  youtubeSubCount     Int             @default(0)
+
   streakDays          Int             @default(0)
   lastActiveAt        DateTime?
 
@@ -72,6 +72,10 @@ model User {
   
   // Projects History
   projects            UserProject[]
+
+  // YOUTUBE INTEGRATION (MULTI-CHANNEL SUPPORT)
+  youtubeChannels     YouTubeChannel[]
+  extraChannelSlots   Int             @default(0) // Extra slots purchased on top of plan limit
 
   @@map("users")
 }
@@ -416,3 +420,31 @@ model UserProject {
 // Add relation to User model
 // In User model:
 // projects UserProject[]
+
+// YOUTUBE INTEGRATION (MULTI-CHANNEL SUPPORT)
+model YouTubeChannel {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  channelId       String   @unique
+  title           String?
+  thumbnail       String?
+  subCount        Int      @default(0)
+  viewCount       String?
+  videoCount      Int      @default(0)
+  
+  accessToken     String?  @db.Text
+  refreshToken    String?  @db.Text
+  tokenExpiry     DateTime?
+  lastSync        DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // CACHED DATA FOR DASHBOARD
+  recentVideos    Json?    // Stores array of { id, title, thumbnail, views, publishedAt }
+  channelHealth   Json?    // Stores health check summary { score, engagementRate, issues: [] }
+  
+  @@map("youtube_channels")
+}

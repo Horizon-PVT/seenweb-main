@@ -1,9 +1,19 @@
-// components/HiddenChannelFinderTool.tsx
-// BẢN FULL HOÀN CHỈNH 100% – ĐÃ FIX LỖI SYNTAX, CHẠY NGON NGAY
 
-import React, { useState, useRef } from 'react';
-import { useTranslation } from 'next-i18next';
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  ArrowLeft,
+  Anchor,
+  Map,
+  Radar,
+  TrendingUp,
+  PlayCircle,
+  Users,
+  Activity,
+  Globe
+} from 'lucide-react';
 
+// --- TYPES (Strictly Preserved from Original) ---
 interface RisingChannel {
   name: string;
   url: string;
@@ -27,35 +37,38 @@ interface OutputData {
   upcomingTrends: string[];
 }
 
-const Loader: React.FC = () => (
-  <div className="flex flex-col items-center justify-center h-full text-center">
-    <div className="w-32 h-32 animate-pulse text-[#008080]">
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="none" opacity="0.3" />
-        <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset="100">
-          <animate attributeName="strokeDashoffset" from="251" to="0" dur="4s" repeatCount="indefinite" />
-        </circle>
-      </svg>
+const SonarLoader: React.FC = () => (
+  <div className="flex flex-col items-center justify-center py-20">
+    <div className="relative w-32 h-32 flex items-center justify-center mb-8">
+      <div className="absolute w-full h-full bg-cyan-500/20 rounded-full animate-ping"></div>
+      <div className="absolute w-2/3 h-2/3 bg-cyan-500/30 rounded-full animate-ping delay-150"></div>
+      <div className="absolute w-1/3 h-1/3 bg-cyan-500/50 rounded-full animate-ping delay-300"></div>
+      <Radar size={48} className="text-cyan-400 relative z-10 animate-spin-slow" />
     </div>
-    <p className="mt-6 text-lg font-bold text-[#CDAD5A] tracking-widest animate-pulse">
-      ĐANG TÌM KIẾM KÊNH ẨN & XU HƯỚNG BÙNG NỔ...
+    <h3 className="text-cyan-400 font-bold text-xl tracking-[0.2em] animate-pulse">
+      SONAR SCANNING...
+    </h3>
+    <p className="text-cyan-600 text-sm mt-2 font-mono">
+      Detecting hidden signals in the deep ocean
     </p>
   </div>
 );
 
-const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-  const { t } = useTranslation('common');
+interface HiddenChannelFinderToolProps {
+  onBack?: () => void;
+}
+
+export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderToolProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [output, setOutput] = useState<OutputData | null>(null);
   const [seedQuery, setSeedQuery] = useState('');
   const [outputLanguage, setOutputLanguage] = useState('Tiếng Việt');
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!seedQuery.trim()) {
-      setError(t('toolUI.enterKeyword', 'Vui lòng nhập từ khóa để tìm kiếm.'));
+      setError('Please enter a keyword to start scanning.');
       return;
     }
 
@@ -68,24 +81,24 @@ const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) =
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tool: 'hidden',
+          tool: 'hidden', // STRICTLY KEEPING ORIGINAL LOGIC
           macroNiche: seedQuery,
           outputLanguage,
         }),
       });
 
-      if (!res.ok) throw new Error('Lỗi server, vui lòng thử lại.');
+      if (!res.ok) throw new Error('Server connection lost. Please retry.');
 
       const data = await res.json();
 
-      // Bảo vệ dữ liệu
+      // Data Safety Check
       data.risingChannels = Array.isArray(data.risingChannels) ? data.risingChannels : [];
       data.trendingVideos = Array.isArray(data.trendingVideos) ? data.trendingVideos : [];
       data.upcomingTrends = Array.isArray(data.upcomingTrends) ? data.upcomingTrends : [];
 
       setOutput(data);
     } catch (err: any) {
-      setError(err.message || 'Có lỗi xảy ra khi tìm kiếm.');
+      setError(err.message || 'Sonar malfunction. Scan failed.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -93,142 +106,208 @@ const HiddenChannelFinderTool: React.FC<{ onBack: () => void }> = ({ onBack }) =
   };
 
   return (
-    <div className="flex flex-col h-full text-sm p-4 md:p-6 space-y-6 bg-gradient-to-br from-[#0f0f0f] to-[#1a1a08]">
-      {/* Header */}
-      <div className="flex justify-between items-center border-b border-[#CDAD5A]/20 pb-4">
-        <h2 className="text-2xl font-bold text-[#CDAD5A] font-playfair tracking-wider">
-          {t('toolUI.hiddenChannel.title', 'TÌM KÊNH ẨN & XU HƯỚNG BÙNG NỔ')}
-        </h2>
-        <button onClick={onBack} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+    <div className="h-full bg-[#020617] text-cyan-50 font-sans selection:bg-cyan-500 selection:text-black overflow-y-auto overflow-x-hidden">
+      {/* Deep Sea Background Effects */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#020617_100%)]"></div>
+        <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 flex-grow min-h-0">
-        {/* Form bên trái */}
-        <form onSubmit={handleSubmit} className="lg:col-span-3 flex flex-col space-y-5">
-          <div>
-            <label className="block text-[#CDAD5A] font-bold mb-2">{t('toolUI.seedKeyword', 'TỪ KHÓA KHỞI ĐẦU')}</label>
-            <textarea
-              value={seedQuery}
-              onChange={(e) => setSeedQuery(e.target.value)}
-              placeholder="VD: du lịch bụi, sống tối giản, nấu ăn nhanh, kiếm tiền online..."
-              className="w-full h-32 px-4 py-3 bg-black/50 border border-[#CDAD5A]/30 rounded focus:border-[#008080] outline-none text-white placeholder-gray-500 resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[#CDAD5A] font-bold mb-2">{t('toolUI.outputLanguage', 'NGÔN NGỮ ĐẦU RA')}</label>
-            <select
-              value={outputLanguage}
-              onChange={(e) => setOutputLanguage(e.target.value)}
-              className="w-full px-4 py-3 bg-black/50 border border-[#CDAD5A]/30 rounded text-white"
-            >
-              <option>Tiếng Việt</option>
-              <option>English</option>
-            </select>
-          </div>
-
-          <button
-            ref={buttonRef}
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-4 bg-[#008080] hover:bg-transparent border-2 border-[#008080] text-white font-bold text-lg rounded transition-all duration-300 disabled:opacity-50"
-          >
-            {isLoading ? t('toolUI.searching', 'ĐANG TÌM KIẾM...') : t('toolUI.activateSearch', 'KÍCH HOẠT TÌM KIẾM')}
-          </button>
-
-          {error && <p className="text-red-400 text-center font-medium">{error}</p>}
-        </form>
-
-        {/* Kết quả bên phải */}
-        <div className="lg:col-span-7 overflow-y-auto space-y-8 pr-2">
-          {isLoading && <Loader />}
-
-          {!isLoading && !output && (
-            <div className="h-full flex items-center justify-center text-gray-600">
-              <p className="text-center text-lg">Nhập từ khóa và nhấn tìm kiếm để khám phá kênh ẩn & xu hướng mới!</p>
-            </div>
+      {/* HEADER */}
+      <header className="sticky top-0 left-0 right-0 h-16 bg-[#020617]/80 backdrop-blur border-b border-cyan-900/30 flex items-center justify-between px-6 z-50">
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button onClick={onBack} className="flex items-center gap-2 text-cyan-600 hover:text-cyan-400 transition-colors">
+              <ArrowLeft size={18} /> <span className="text-xs font-bold tracking-widest uppercase">HQ_RETURN</span>
+            </button>
           )}
+          <div className="h-6 w-px bg-cyan-900/50"></div>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-cyan-950 rounded-full border border-cyan-800">
+              <Anchor size={14} className="text-cyan-400" />
+            </div>
+            <h1 className="text-sm font-black tracking-[0.2em] text-white">BLUE OCEAN FINDER</h1>
+          </div>
+        </div>
+      </header>
 
-          {output && !isLoading && (
-            <>
-              {/* KÊNH ĐANG BÙNG NỔ */}
-              <div>
-                <h3 className="text-xl font-bold text-emerald-400 mb-4">
-                  KÊNH ẨN ĐANG BÙNG NỔ ({output.risingChannels.length})
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {output.risingChannels.map((ch, i) => (
-                    <div key={i} className="bg-black/40 border border-[#CDAD5A]/30 rounded p-4 hover:border-[#008080] transition-all">
-                      <div className="flex gap-4">
+      {/* MAIN CONTENT */}
+      <main className="pt-8 px-6 pb-20 max-w-7xl mx-auto relative z-10">
+
+        {/* HERO SEARCH */}
+        <div className="max-w-4xl mx-auto mb-16 text-center">
+          <h2 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-100 to-cyan-800 mb-6 uppercase tracking-tighter drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+            Deep Sea Exploration
+          </h2>
+          <p className="text-cyan-600/60 text-lg mb-8 max-w-2xl mx-auto">
+            Quét sóng sonar để tìm kiếm các kênh đang lên (Underdog) và các xu hướng ẩn chưa ai khai phá.
+          </p>
+
+          <form onSubmit={handleSubmit} className="relative z-20 bg-[#0f172a]/80 border border-cyan-900 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-grow">
+                <label className="block text-left text-xs font-bold text-cyan-600 mb-2 ml-1 uppercase tracking-wider">
+                  TARGET SUBJECT (Từ khóa)
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-700" size={20} />
+                  <input
+                    type="text"
+                    value={seedQuery}
+                    onChange={(e) => setSeedQuery(e.target.value)}
+                    placeholder="e.g. Solo Camping, AI Coding, Street Food..."
+                    className="w-full bg-[#020617] border border-cyan-900/50 rounded-xl py-4 pl-12 pr-4 text-cyan-50 placeholder-cyan-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all font-medium text-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="md:w-48">
+                <label className="block text-left text-xs font-bold text-cyan-600 mb-2 ml-1 uppercase tracking-wider">
+                  LANGUAGE
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-700" size={20} />
+                  <select
+                    value={outputLanguage}
+                    onChange={(e) => setOutputLanguage(e.target.value)}
+                    className="w-full bg-[#020617] border border-cyan-900/50 rounded-xl py-4 pl-12 pr-4 text-cyan-50 focus:border-cyan-500 outline-none appearance-none cursor-pointer font-medium text-lg"
+                  >
+                    <option value="Tiếng Việt">Vietnam</option>
+                    <option value="English">Global (EN)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all disabled:opacity-50 disabled:grayscale tracking-widest flex items-center justify-center gap-2"
+            >
+              {isLoading ? 'SCANNING OCEAN...' : 'ACTIVATE SONAR'} <Radar size={20} />
+            </button>
+
+            {error && (
+              <div className="mt-4 p-3 bg-red-950/30 border border-red-900/50 rounded text-red-400 text-sm font-medium">
+                ⚠️ {error}
+              </div>
+            )}
+          </form>
+        </div>
+
+        {/* RESULTS */}
+        {isLoading && <SonarLoader />}
+
+        {!isLoading && output && (
+          <div className="animate-in fade-in slide-in-from-bottom-10 duration-700 space-y-16">
+
+            {/* SECTION 1: RISING TREASURES */}
+            <div>
+              <h3 className="flex items-center gap-3 text-2xl font-black text-cyan-400 mb-8 uppercase tracking-widest border-b border-cyan-900/50 pb-4">
+                <Map size={24} /> Hidden Gems Found ({output.risingChannels.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {output.risingChannels.map((channel, i) => (
+                  <div key={i} className="group relative bg-[#0f172a]/50 border border-cyan-800/30 rounded-xl overflow-hidden hover:border-cyan-400/50 transition-all hover:shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+                    <div className="p-6">
+                      <div className="flex items-center gap-4 mb-4">
                         <img
-                          src={ch.thumbnail || 'https://via.placeholder.com/64'}
-                          alt={ch.name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-[#CDAD5A]/50"
-                          onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/64')}
+                          src={channel.thumbnail || "https://via.placeholder.com/64"}
+                          className="w-14 h-14 rounded-full border-2 border-cyan-500/50 shadow-lg object-cover"
                         />
-                        <div className="flex-1">
-                          <a href={ch.url} target="_blank" rel="noopener noreferrer" className="font-bold text-[#CDAD5A] hover:underline block">
-                            {ch.name}
+                        <div>
+                          <a href={channel.url} target="_blank" className="font-bold text-lg text-white group-hover:text-cyan-400 transition-colors line-clamp-1">
+                            {channel.name}
                           </a>
-                          <p className="text-xs text-gray-400">{ch.subscribers} subscribers</p>
-                          <p className="text-emerald-400 font-bold mt-1">{ch.growthMetric}</p>
+                          <div className="flex items-center gap-2 text-xs text-cyan-600">
+                            <Users size={12} /> {channel.subscribers} Subs
+                          </div>
                         </div>
                       </div>
-                      <div className="mt-3 text-xs text-gray-300">
-                        <strong>Điểm mạnh:</strong> {ch.coreStrengths.join(' · ')}
+
+                      <div className="mb-4">
+                        <div className="text-[10px] font-bold text-cyan-700 uppercase mb-1">GROWTH METRIC</div>
+                        <div className="text-emerald-400 font-bold font-mono text-sm bg-emerald-950/20 py-1 px-2 rounded inline-block border border-emerald-900/30">
+                          {channel.growthMetric}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-[10px] font-bold text-cyan-700 uppercase">CORE STRENGTHS</div>
+                        <div className="flex flex-wrap gap-2">
+                          {channel.coreStrengths.map((s, idx) => (
+                            <span key={idx} className="bg-cyan-950 text-cyan-300 text-xs px-2 py-1 rounded border border-cyan-900/50">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-cyan-900/10 to-transparent pointer-events-none"></div>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              {/* VIDEO ĐANG VIRAL */}
-              <div>
-                <h3 className="text-xl font-bold text-red-400 mb-4">
-                  VIDEO ĐANG VIRAL ({output.trendingVideos.length})
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {output.trendingVideos.map((v, i) => (
-                    <div key={i} className="bg-black/40 border border-red-900/50 rounded overflow-hidden hover:border-red-500 transition-all">
-                      <a href={v.url} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={v.thumbnail}
-                          alt={v.title}
-                          className="w-full h-40 object-cover"
-                          onError={(e) => (e.currentTarget.src = 'https://i.ytimg.com/vi/invalid/hqdefault.jpg')}
-                        />
-                      </a>
-                      <div className="p-3">
-                        <a href={v.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-white hover:text-red-400 line-clamp-2 block">
-                          {v.title}
-                        </a>
-                        <p className="text-xs text-red-300 mt-1">{v.viralRatio}</p>
+            {/* SECTION 2: VIRAL SIGNALS */}
+            <div>
+              <h3 className="flex items-center gap-3 text-2xl font-black text-rose-400 mb-8 uppercase tracking-widest border-b border-rose-900/50 pb-4">
+                <Activity size={24} /> Viral Signals Detected ({output.trendingVideos.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {output.trendingVideos.map((video, i) => (
+                  <a key={i} href={video.url} target="_blank" className="group block relative bg-[#0f172a]/50 border border-rose-900/30 rounded-xl overflow-hidden hover:border-rose-500/50 transition-all hover:shadow-[0_0_30px_rgba(244,63,94,0.1)] flex md:h-48">
+                    <div className="w-1/3 md:w-48 relative h-full">
+                      <img src={video.thumbnail} className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle size={32} className="text-white drop-shadow-lg" />
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex-1 p-5 flex flex-col justify-between">
+                      <div>
+                        <h4 className="font-bold text-white group-hover:text-rose-400 transition-colors line-clamp-2 leading-tight mb-2">
+                          {video.title}
+                        </h4>
+                        <div className="text-xs text-rose-300 bg-rose-950/30 px-2 py-1 rounded inline-block border border-rose-900/30 font-medium">
+                          {video.viralRatio}
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">VIRAL FACTOR</div>
+                        <div className="flex flex-wrap gap-1">
+                          {video.viralStructure.slice(0, 3).map((v, idx) => (
+                            <span key={idx} className="text-[10px] text-gray-400 border border-gray-800 px-1.5 py-0.5 rounded">
+                              {v}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                ))}
               </div>
+            </div>
 
-              {/* DỰ ĐOÁN XU HƯỚNG */}
-              <div className="bg-emerald-900/20 border-2 border-emerald-700/50 rounded p-5">
-                <h3 className="text-xl font-bold text-emerald-400 mb-4">
-                  DỰ ĐOÁN XU HƯỚNG SẮP TỚI
-                </h3>
-                <ol className="space-y-3 text-gray-300">
-                  {output.upcomingTrends.map((trend, i) => (
-                    <li key={i} className="flex gap-3">
-                      <span className="font-bold text-[#CDAD5A]">{i + 1}.</span>
-                      <span>{trend}</span>
-                    </li>
-                  ))}
-                </ol>
+            {/* SECTION 3: TREND FORECAST */}
+            <div className="bg-gradient-to-r from-emerald-950/30 to-cyan-950/30 border border-emerald-900/30 rounded-2xl p-8 relative overflow-hidden">
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+              <h3 className="flex items-center gap-3 text-2xl font-black text-emerald-400 mb-6 uppercase tracking-widest relative z-10">
+                <TrendingUp size={24} /> Detected Upcoming Trends
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                {output.upcomingTrends.map((trend, i) => (
+                  <div key={i} className="bg-[#020617]/60 p-4 rounded-lg border border-emerald-900/50 flex items-center gap-4">
+                    <div className="text-4xl font-black text-emerald-800/50">0{i + 1}</div>
+                    <div className="font-bold text-emerald-100">{trend}</div>
+                  </div>
+                ))}
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
-};
-
-export default HiddenChannelFinderTool;
+}

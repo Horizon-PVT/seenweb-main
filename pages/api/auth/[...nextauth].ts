@@ -16,6 +16,14 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "openid email profile",
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -61,7 +69,7 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider !== "google") return false;
+      if (account?.provider !== "google") return true; // Allow credentials login
       if (!user?.email) return false;
 
       try {
@@ -69,6 +77,10 @@ export const authOptions: NextAuthOptions = {
           where: { email: user.email },
           select: { id: true },
         });
+
+        // Calculate token expiry (approx 1 hour)
+        const tokenExpiry = new Date();
+        tokenExpiry.setSeconds(tokenExpiry.getSeconds() + (account.expires_at || 3599));
 
         if (!existingUser) {
           const newUser = await prisma.user.create({
@@ -78,7 +90,7 @@ export const authOptions: NextAuthOptions = {
               image: user.image || null,
               role: "FREE",
               dailyUsage: 0,
-              maxDailyUsage: 3, // Updated default to 3
+              maxDailyUsage: 3,
               membershipExpiry: null,
 
               referrerId: null,
@@ -88,14 +100,12 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
-          // Track Signup
-          // Try to get anon_id from cookies if possible, but NextAuth signIn callback doesn't expose req easily here directly depending on version.
-          // We rely on userId linkage.
           await trackEvent('auth_signup_success', newUser.id);
         } else {
-          // Track Login
+          // Existing user login
           await trackEvent('auth_login_success', existingUser.id);
         }
+
 
         return true;
       } catch (e: any) {

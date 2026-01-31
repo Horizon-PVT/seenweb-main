@@ -14,20 +14,28 @@ import Tab2Optimize from "@/components/dashboard/Tab2Optimize";
 import Tab3Automation from "@/components/dashboard/Tab3Automation";
 import Tab4Learning from "@/components/dashboard/Tab4Learning";
 import LockedFeatureModal from "@/components/dashboard/LockedFeatureModal";
+import YouTubeStatsCard from "@/components/dashboard/YouTubeStatsCard";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { type TabId, getTabLockMessage } from "@/lib/tab-access";
 
-// Tool components (existing)
-import { MicroNicheMinerTool } from "@/components/MicroNicheMinerTool";
-import ScriptwriterTool from "@/components/ScriptwriterTool";
-import SeoTool from "@/components/SeoTool";
-import { RivalScannerTool } from "@/components/RivalScannerTool";
-import HiddenChannelFinderTool from "@/components/HiddenChannelFinderTool";
-import ScriptRefinerTool from "@/components/ScriptRefinerTool";
+// --- SYNCHRONIZED TOOL COMPONENTS ---
+import ThayYoutubeTool from "@/components/ThayYoutubeTool";
+import NicheEngineTool from "@/components/NicheEngineTool";
 import ImageForgeTool from "@/components/ImageForgeTool";
-import TextToSpeechTool from "@/components/TextToSpeechTool";
-import DubbingTool from "@/components/DubbingTool";
+import TextToSpeechTool from "@/components/TextToSpeechTool"; // Correct component for AI Voice Studio
+import SeoTool from "@/components/SeoTool";
+import MicroNicheMinerTool from "@/components/MicroNicheMinerTool";
 import VeocityTool from "@/components/VeocityTool";
-import VirtualMCTool from "@/components/VirtualMCTool";
+import ScriptwriterTool from "@/components/ScriptwriterTool";
+import StoryStudioTool from "@/components/StoryStudioTool";
+import ScriptRefinerTool from "@/components/ScriptRefinerTool";
+import RivalScannerTool from "@/components/RivalScannerTool";
+import HiddenChannelFinderTool from "@/components/HiddenChannelFinderTool";
+
+// Development / Placeholders
+import DubbingTool from "@/components/DubbingTool"; // For AI Voice Dubbing
+import VirtualMCTool from "@/components/VirtualMCTool"; // For Virtual MC
+import UnderConstructionTool from "@/components/UnderConstructionTool";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -52,21 +60,13 @@ export default function Dashboard() {
   useEffect(() => {
     if (!loading && router.query.tool) {
       const toolId = router.query.tool as string;
-      // Valid tool IDs from toolMap
-      const validTools = [
-        'micro-niche-miner', 'scriptwriter', 'seo', 'rival-scanner',
-        'hidden-channel-finder', 'script-refiner', 'image-forge',
-        'text-to-speech', 'ai-dubbing-studio', 'velocity', 'virtual-mc'
-      ];
-      if (validTools.includes(toolId)) {
-        setActiveTool(toolId);
-      }
+      setActiveTool(toolId);
     }
   }, [loading, router.query.tool]);
 
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
-    setActiveTool(null); // Close any open tool when switching tabs
+    setActiveTool(null);
   };
 
   const handleLockedTabClick = (tabId: TabId) => {
@@ -93,59 +93,38 @@ export default function Dashboard() {
     );
   }
 
-  // Render active tool if selected
+  // Render Tool INSIDE Layout
   if (activeTool) {
     return (
-      <div className="min-h-screen bg-black">
+      <DashboardLayout userRole={userRole} activeTool={activeTool} onToolSelect={handleOpenTool}>
         <Head>
-          <title>Dashboard - SeenYT</title>
+          <title>Tool - SeenYT</title>
           <meta name="robots" content="noindex" />
         </Head>
         {renderTool(activeTool, handleCloseTool)}
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <>
-      <Head>
-        <title>Dashboard - SeenYT</title>
-        <meta name="robots" content="noindex" />
-      </Head>
+    <DashboardLayout userRole={userRole} activeTool={activeTool} onToolSelect={handleOpenTool}>
+      <div className="space-y-8">
 
-      <div className="min-h-screen bg-black text-white">
-        {/* Header user info */}
-        <div className="border-b border-gray-800 p-6">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-center md:text-left">
-              <p className="text-gray-400 text-sm">Chào mừng trở lại,</p>
-              <p className="text-xl font-bold text-[#CDAD5A]">
-                {session?.user?.name || session?.user?.email}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-full">
-                {userRole}
-              </span>
-              <button
-                onClick={() => router.push("/")}
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-              >
-                🏠 Trang chủ
-              </button>
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Đăng xuất
-              </button>
-            </div>
+        {/* Welcome Section */}
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-3xl font-black text-white">
+              Chào mừng, <span className="text-[#CDAD5A]">{session?.user?.name || "Creator"}</span>
+            </h1>
+            <p className="text-gray-400 mt-1">Hôm nay hãy cùng làm bùng nổ kênh của bạn nhé!</p>
           </div>
         </div>
 
-        {/* Main content with tabs */}
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Tab Navigation */}
+        {/* YouTube Stats Card */}
+        <YouTubeStatsCard userRole={userRole} userEmail={session?.user?.email || ''} />
+
+        {/* Main Tab System */}
+        <div className="bg-[#1a1a20]/30 rounded-3xl p-6 border border-gray-800/50">
           <TabNavigation
             activeTab={activeTab}
             onTabChange={handleTabChange}
@@ -153,8 +132,7 @@ export default function Dashboard() {
             onLockedTabClick={handleLockedTabClick}
           />
 
-          {/* Tab Content */}
-          <div className="mt-6">
+          <div className="mt-8">
             {activeTab === 'start-youtube' && (
               <Tab1StartYouTube onOpenTool={handleOpenTool} />
             )}
@@ -177,36 +155,89 @@ export default function Dashboard() {
           message={lockedMessage}
         />
       </div>
-    </>
+    </DashboardLayout>
   );
 }
 
 // Tool renderer
 function renderTool(toolId: string, onBack: () => void) {
-  // Placeholder for tools and onToolSelect (not used in standalone mode)
-  const dummyTools: any[] = [];
+  // Normalize toolId if needed
+  const id = toolId.toLowerCase();
+
+  // Helper OnToolSelect for tools that need it (legacy interface)
   const dummyOnToolSelect = () => { };
+  const dummyTools: any[] = [];
 
-  const toolMap: Record<string, React.ReactNode> = {
-    'micro-niche-miner': <MicroNicheMinerTool onBack={onBack} tools={dummyTools} onToolSelect={dummyOnToolSelect} />,
-    'scriptwriter': <ScriptwriterTool onBack={onBack} tools={dummyTools} onToolSelect={dummyOnToolSelect} />,
-    'seo': <SeoTool onBack={onBack} />,
-    'rival-scanner': <RivalScannerTool onBack={onBack} tools={dummyTools} onToolSelect={dummyOnToolSelect} />,
-    'hidden-channel-finder': <HiddenChannelFinderTool onBack={onBack} />,
-    'script-refiner': <ScriptRefinerTool onBack={onBack} />,
-    'image-forge': <ImageForgeTool onBack={onBack} />,
-    'text-to-speech': <TextToSpeechTool onBack={onBack} />,
-    'ai-dubbing-studio': <DubbingTool onBack={onBack} />,
-    'velocity': <VeocityTool onBack={onBack} />,
-    'virtual-mc': <VirtualMCTool />,
-  };
+  switch (id) {
+    // 1. thay-youtube
+    case 'thay-youtube':
+      return <ThayYoutubeTool onBack={onBack} />;
 
-  return toolMap[toolId] || (
-    <div className="p-8 text-center text-white">
-      <p>Tool không tìm thấy</p>
-      <button onClick={onBack} className="mt-4 px-4 py-2 bg-purple-600 rounded-lg">
-        Quay lại
-      </button>
-    </div>
-  );
+    // 2. niche-engine
+    case 'niche-engine':
+      return <NicheEngineTool onBack={onBack} />;
+
+    // 3. image-forge
+    case 'image-forge':
+      return <ImageForgeTool onBack={onBack} />;
+
+    // 4. text-to-speech
+    case 'text-to-speech':
+      return <TextToSpeechTool onBack={onBack} />;
+
+    // 5. seo-tool
+    case 'seo-tool':
+      return <SeoTool onBack={onBack} />;
+
+    // 6. micro-niche-miner
+    case 'micro-niche-miner':
+      return <MicroNicheMinerTool onBack={onBack} tools={dummyTools} onToolSelect={dummyOnToolSelect} />;
+
+    // 7. veocity
+    case 'veocity':
+      return <VeocityTool onBack={onBack} />;
+
+    // 8. scriptwriter
+    case 'scriptwriter':
+      return <ScriptwriterTool onBack={onBack} tools={dummyTools} onToolSelect={dummyOnToolSelect} />;
+
+    // 9. narrative-studio
+    case 'narrative-studio':
+      return <StoryStudioTool onBack={onBack} />;
+
+    // 10. script-refiner
+    case 'script-refiner':
+      return <ScriptRefinerTool onBack={onBack} />;
+
+    // 11. rival-scanner
+    case 'rival-scanner':
+      return <RivalScannerTool onBack={onBack} tools={dummyTools} onToolSelect={dummyOnToolSelect} />;
+
+    // 12. hidden-channel-finder
+    case 'hidden-channel-finder':
+      return <HiddenChannelFinderTool onBack={onBack} />;
+
+    // 13. ai-dubbing (Dev)
+    case 'ai-dubbing':
+    case 'ai-dubbing-studio':
+      // Check if wrapped logic is needed. DubbingTool usually is page-level.
+      // It might crash if it expects router query params or specific context.
+      // But it's marked as construction, so maybe safe? 
+      // User asked to mark it as dev.
+      return <UnderConstructionTool title="AI Voice Dubbing" onBack={onBack} />;
+
+    // 14. virtual-mc (Dev)
+    case 'virtual-mc':
+      return <UnderConstructionTool title="Virtual MC Creator" onBack={onBack} />;
+
+    default:
+      return (
+        <div className="p-8 text-center text-white h-full flex flex-col items-center justify-center">
+          <p className="text-xl font-bold mb-4">Tool "{toolId}" not found</p>
+          <button onClick={onBack} className="px-6 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition">
+            Quay lại
+          </button>
+        </div>
+      );
+  }
 }

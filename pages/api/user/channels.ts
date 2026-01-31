@@ -1,0 +1,100 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]";
+import { prisma } from "@/lib/prisma";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const session = await getServerSession(req, res, authOptions);
+
+    if (!session || !session.user?.email) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (req.method === 'DELETE') {
+        const { id } = req.body;
+
+        console.log('[API] DELETE Request:', { id, user: (session.user as any).id });
+
+        if (!id) return res.status(400).json({ error: "Missing channel ID" });
+
+        try {
+            // Ensure the channel belongs to the authenticated user
+            const result = await prisma.youTubeChannel.deleteMany({
+                where: {
+                    id: id,
+                    userId: (session.user as any).id
+                }
+            });
+
+            console.log('[API] Delete Result:', result);
+
+            if (result.count === 0) {
+                // Determine if it was ID mismatch or User mismatch
+                return res.status(404).json({ error: "Channel not found or unauthorized" });
+            }
+
+            return res.status(200).json({ success: true });
+        } catch (error) {
+            console.error('[API] Delete Failed:', error);
+            return res.status(500).json({ error: "Failed to delete channel" });
+        }
+    }
+
+    if (req.method === 'GET') {
+        try {
+            const channels = await prisma.youTubeChannel.findMany({
+                where: { userId: (session.user as any).id },
+                select: {
+                    id: true,
+                    channelId: true,
+                    title: true,
+                    thumbnail: true,
+                    subCount: true,
+                    viewCount: true,
+                    videoCount: true,
+                    recentVideos: true,
+                    channelHealth: true
+                }
+            });
+
+            // PARSE JSON FIELDS (legacy storage might be string)
+            const parsedChannels = channels.map(channel => ({
+                ...channel,
+                recentVideos: typeof channel.recentVideos === 'string' ? JSON.parse(channel.recentVideos || '[]') : channel.recentVideos,
+                channelHealth: typeof channel.channelHealth === 'string' ? JSON.parse(channel.channelHealth || '{}') : channel.channelHealth
+            }));
+
+            // FETCH USER LIMITS
+            const user = await prisma.user.findUnique({
+                where: { id: (session.user as any).id },
+                select: { role: true, extraChannelSlots: true }
+            });
+
+            const userRole = user?.role || 'FREE';
+            const extraSlots = user?.extraChannelSlots || 0;
+
+            const MAX_CHANNELS: Record<string, number> = {
+                'FREE': 0,
+                'USER': 0,
+                'CREATIVE': 1,
+                'PRO': 2,
+                'SUPER': 2,
+                'VIP': 2,
+                'ADMIN': 999
+            };
+
+            const baseLimit = MAX_CHANNELS[userRole] || 0;
+            const totalLimit = (userRole === 'ADMIN') ? 999 : (baseLimit + extraSlots);
+
+            return res.status(200).json({
+                success: true,
+                data: parsedChannels,
+                limit: totalLimit
+            });
+        } catch (error) {
+            return res.status(500).json({ error: "Failed to fetch channels" });
+        }
+    }
+
+    return res.status(405).json({ error: "Method not allowed" });
+}

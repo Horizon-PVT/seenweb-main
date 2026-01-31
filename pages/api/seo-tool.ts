@@ -45,6 +45,15 @@ const seoSchema = {
         }
       }
     },
+    // A2. VIDEO AUDIT (New - for existing video analysis)
+    audit: {
+      type: Type.OBJECT,
+      properties: {
+        titleScore: { type: Type.NUMBER }, // 0-100
+        titleCritique: { type: Type.STRING }, // What's wrong with current title
+        thumbnailCritique: { type: Type.STRING } // Advice for thumbnail
+      }
+    },
     // B. CONTENT EXECUTION (Standard SEO)
     content: {
       type: Type.OBJECT,
@@ -99,6 +108,11 @@ interface StrategyOutput {
     hook: { score: number; analysis: string; visualInterrupt: string };
     emotional: { mainTrigger: string; triggerScore: number; explanation: string };
     spyGap: { marketStatus: string; competitorMiss: string; ourAngle: string };
+  };
+  audit: {
+    titleScore: number;
+    titleCritique: string;
+    thumbnailCritique: string;
   };
   content: {
     titles: { text: string; viralScore: number }[];
@@ -180,6 +194,9 @@ A. **STRATEGY**:
 - emotional.mainTrigger: Name the emotion in ${outputLanguage}.
 - emotional.explanation: Explain in ${outputLanguage}.
 - spyGap: Analyze in ${outputLanguage}.
+- audit.titleScore: Rate input title 0-100.
+- audit.titleCritique: Critique input title in ${outputLanguage} (too long? boring? keyword missing?).
+- audit.thumbnailCritique: What kind of thumbnail usually works for this topic? (in ${outputLanguage}).
 
 B. **CONTENT**:
 1. **titles**: 3 viral titles in **${outputLanguage}**.

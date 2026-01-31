@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
     Cpu,
@@ -78,10 +77,11 @@ const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
     );
 };
 
-export default function SeoToolPage() {
-    const router = useRouter();
-    const isEN = router.locale === 'en';
+interface IdeaProcessorToolProps {
+    onBack?: () => void;
+}
 
+export default function IdeaProcessorTool({ onBack }: IdeaProcessorToolProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [output, setOutput] = useState<OutputData | null>(null);
@@ -110,9 +110,14 @@ export default function SeoToolPage() {
         }
     };
 
-    // LOGIC: Submit Handler (Preserved)
-    // Extract scan logic
-    const performAnalysis = async (inputIdea: string) => {
+    // LOGIC: Submit Handler
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!coreIdea) {
+            setError("MISSING DATA INPUT");
+            return;
+        }
+
         setIsLoading(true);
         setError('');
         setOutput(null);
@@ -120,16 +125,13 @@ export default function SeoToolPage() {
         try {
             // Auto detect language logic
             let language = 'English';
-            if (/[àáâãäåæçèéêëìíîïđñòóôõöøùúûüýþÿ]/.test(inputIdea)) language = 'Tiếng Việt';
-            else if (/[ぁ-ゟァ-ヿ]/.test(inputIdea)) language = 'Japanese';
-            else if (/[가-힣]/.test(inputIdea)) language = 'Korean';
-            else if (/[\u4e00-\u9fff]/.test(inputIdea)) language = 'Chinese';
+            if (/[àáâãäåæçèéêëìíîïđñòóôõöøùúûüýþÿ]/.test(coreIdea)) language = 'Tiếng Việt';
 
             const response = await fetch('/api/seo-tool', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    coreIdea: inputIdea,
+                    coreIdea,
                     outputLanguage: language
                 }),
             });
@@ -148,32 +150,8 @@ export default function SeoToolPage() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!coreIdea) {
-            setError("MISSING DATA INPUT");
-            return;
-        }
-        performAnalysis(coreIdea);
-    };
-
-    // Auto-scan from URL
-    useEffect(() => {
-        if (router.isReady && router.query.idea) {
-            const idea = router.query.idea as string;
-            setCoreIdea(idea);
-            if (router.query.autoStart === 'true') {
-                performAnalysis(idea);
-            }
-        }
-    }, [router.isReady, router.query]);
-
     return (
-        <div className="min-h-screen bg-[#050b14] text-[#00f3ff] font-mono overflow-x-hidden selection:bg-[#00f3ff] selection:text-black">
-            <Head>
-                <title>HOLO_STRATEGY | ALPHA INTELLIGENCE</title>
-            </Head>
-
+        <div className="h-full bg-[#050b14] text-[#00f3ff] font-mono overflow-x-hidden selection:bg-[#00f3ff] selection:text-black flex flex-col relative overflow-y-auto">
             {/* BACKGROUND EFFECTS */}
             <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#003c42] via-[#050b14] to-[#000000]"></div>
             <div
@@ -186,11 +164,13 @@ export default function SeoToolPage() {
             ></div>
 
             {/* HEADER */}
-            <header className="fixed top-0 left-0 right-0 h-16 bg-[#050b14]/80 backdrop-blur-md border-b border-[#00f3ff]/30 flex items-center justify-between px-6 z-50 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
+            <header className="sticky top-0 left-0 right-0 h-16 bg-[#050b14]/80 backdrop-blur-md border-b border-[#00f3ff]/30 flex items-center justify-between px-6 z-50 shadow-[0_0_20px_rgba(0,243,255,0.2)] shrink-0">
                 <div className="flex items-center gap-4">
-                    <Link href="/#bang-cong-cu-seenyt" className="flex items-center gap-2 text-[#00f3ff]/70 hover:text-[#00f3ff] transition-colors">
-                        <ChevronLeft size={18} /> <span className="text-xs font-bold tracking-widest">EXIT_MODULE</span>
-                    </Link>
+                    {onBack && (
+                        <button onClick={onBack} className="flex items-center gap-2 text-[#00f3ff]/70 hover:text-[#00f3ff] transition-colors">
+                            <ChevronLeft size={18} /> <span className="text-xs font-bold tracking-widest">EXIT_MODULE</span>
+                        </button>
+                    )}
                     <div className="h-8 w-px bg-[#00f3ff]/20"></div>
                     <div className="flex items-center gap-2">
                         <Brain className="text-[#00f3ff] animate-pulse" size={24} />
@@ -207,7 +187,7 @@ export default function SeoToolPage() {
             </header>
 
             {/* MAIN CONTENT */}
-            <main className="pt-24 px-4 pb-12 max-w-7xl mx-auto min-h-screen relative z-10 flex flex-col lg:flex-row gap-8">
+            <main className="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full relative z-10 flex flex-col lg:flex-row gap-8">
 
                 {/* LEFT: INPUT CONSOLE */}
                 <div className="w-full lg:w-1/3 flex flex-col gap-4">
@@ -257,7 +237,7 @@ export default function SeoToolPage() {
 
                     {/* LOADING STATE */}
                     {isLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#050b14]/80 backdrop-blur z-20">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#050b14]/80 backdrop-blur z-20 rounded-lg">
                             <div className="relative w-32 h-32">
                                 <div className="absolute inset-0 border-4 border-[#00f3ff]/30 rounded-full animate-ping"></div>
                                 <div className="absolute inset-2 border-4 border-t-[#00f3ff] border-r-transparent border-b-[#00f3ff] border-l-transparent rounded-full animate-spin"></div>

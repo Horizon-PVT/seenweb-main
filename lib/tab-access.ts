@@ -12,7 +12,7 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
     CREATIVE: 1, // STARTER
     SUPER: 2,    // PRO
     VIP: 3,
-    ADMIN: 4,
+    ADMIN: 99,
 };
 
 // Tab metadata

@@ -74,10 +74,8 @@ export default function RivalScannerPage() {
         }
     }, [isLoading]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input) return;
-
+    // Extract scan logic
+    const performScan = async (targetInput: string) => {
         setIsLoading(true);
         setOutput(null);
 
@@ -85,7 +83,7 @@ export default function RivalScannerPage() {
             const response = await fetch('/api/youtube', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tool: 'rival', input }),
+                body: JSON.stringify({ tool: 'rival', input: targetInput }),
             });
 
             const data = await response.json();
@@ -110,6 +108,23 @@ export default function RivalScannerPage() {
             setIsLoading(false);
         }
     };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!input) return;
+        performScan(input);
+    };
+
+    // Auto-scan from URL
+    useEffect(() => {
+        if (router.isReady && router.query.target) {
+            const target = router.query.target as string;
+            setInput(target);
+            if (router.query.autoStart === 'true') {
+                performScan(target);
+            }
+        }
+    }, [router.isReady, router.query]);
 
     return (
         <div className="min-h-screen bg-[#050a05] text-[#00ff41] font-mono overflow-x-hidden selection:bg-[#003b00] selection:text-[#00ff41]">

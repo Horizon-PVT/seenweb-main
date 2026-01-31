@@ -66,15 +66,7 @@ export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-                    Quy trình 3 bước để làm video có cơ hội lên view
-                </h2>
-                <p className="text-gray-400 max-w-2xl mx-auto">
-                    Không cần kinh nghiệm – hệ thống chỉ bạn nên làm video gì và chuẩn bị sẵn để đăng.
-                </p>
-            </div>
+
 
             {/* Steps */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -1,282 +1,98 @@
-// File: components/ScriptwriterTool.tsx (Hoàn Chỉnh - Gọi Backend cho cả 3 chức năng)
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import Head from 'next/head'; // Kept but can be removed if strictly component
 import { useRouter } from 'next/router';
-import { useTranslation } from 'next-i18next';
-import UpgradeGate from './UpgradeGate';
-import PremiumComparison from './PremiumComparison';
-import { PyramidIcon } from './AnimatedIcons';
-import type { Tool } from './ToolsGrid';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import {
+    ArrowLeft,
+    PenTool,
+    Type,
+    Mic,
+    Film,
+    Send,
+    Download,
+    Copy,
+    Languages,
+    Sparkles,
+    Maximize2,
+    Minimize2,
+    MessageSquare,
+    CheckCircle,
+    Lock,
+    FilePlus,
+    Trash2
+} from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
-// Giữ nguyên các hằng số
+// --- CONSTANTS ---
 const tones = ["Hùng hồn", "Châm biếm", "Chuyên gia", "Thân thiện", "Kể chuyện", "Bí ẩn", "Hài hước", "Trang trọng", "Cổ vũ", "Nhẹ nhàng", "Kịch tính", "Giáo dục", "Tin tức", "Phỏng vấn", "Triết lý", "Hoài niệm", "Tò mò", "Cảm hứng", "Thách thức", "Giản dị"];
 const styles = ["Vlog", "Hồi hộp", "Dạng tin tức", "Phim tài liệu", "Đánh giá sản phẩm", "Hướng dẫn", "Phản ứng", "Thử thách", "Phim ngắn", "Hoạt hình giải thích", "Danh sách top", "ASMR", "Livestream", "Podcast", "Kịch nói", "Lịch sử", "Khoa học viễn tưởng", "Hài kịch", "Chính kịch", "Phiêu lưu"];
-const languages = { "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Chinese (Simplified)": "zh-CN", "Japanese": "ja", "Korean": "ko", "Russian": "ru", "Arabic": "ar", "Portuguese": "pt" };
+const languages: Record<string, string> = { "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Chinese (Simplified)": "zh-CN", "Japanese": "ja", "Korean": "ko", "Russian": "ru", "Arabic": "ar", "Portuguese": "pt" };
 
+// --- HELPER COMPONENTS ---
+const TypewriterText: React.FC<{ text: string }> = ({ text }) => {
+    return (
+        <div className="whitespace-pre-wrap text-gray-300 leading-relaxed text-lg">
+            {text}
+        </div>
+    );
+};
+
+// Types for Component Props
 interface ScriptwriterToolProps {
-    tools: Tool[];
-    onToolSelect: (tool: Tool) => void;
-    onBack: () => void;
+    onBack?: () => void;
+    // Keep dummy props for compatibility with dashboard call if needed, or remove them from dashboard call later.
+    tools?: any;
+    onToolSelect?: any;
 }
 
-const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect, onBack }) => {
+export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
     const { data: session } = useSession();
-    const { t } = useTranslation('common');
-    const router = useRouter();
-    const isEN = router.locale === 'en';
-
+    // const router = useRouter(); // Might cause issues in dashboard if not wrapped, but usually fine.
     const userRole = (session?.user as any)?.role || 'FREE';
-    const [showUpgradeGate, setShowUpgradeGate] = useState(false);
-    const [gateRequiredTier, setGateRequiredTier] = useState<string>('CREATIVE');
-    const [gateFeatureName, setGateFeatureName] = useState<string>(isEN ? 'This feature' : 'Tính năng này');
 
-    // --- Các state giữ nguyên ---
+    // --- STATE ---
     // --- Auto-Save Hook Logic ---
     const useAutoSave = <T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
-        const [value, setValue] = useState<T>(() => {
-            if (typeof window !== 'undefined') {
-                const saved = localStorage.getItem(key);
-                // Handle different types
-                if (saved !== null) {
-                    if (typeof initialValue === 'number') return Number(saved) as T;
-                    return saved as T;
-                }
-            }
-            return initialValue;
-        });
+        const [value, setValue] = useState<T>(initialValue);
+        const [isLoaded, setIsLoaded] = useState(false);
 
         useEffect(() => {
-            if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(key);
+            if (saved !== null) {
+                if (typeof initialValue === 'number') setValue(Number(saved) as T);
+                else setValue(saved as T);
+            }
+            setIsLoaded(true);
+        }, [key]);
+
+        useEffect(() => {
+            if (isLoaded) {
                 localStorage.setItem(key, String(value));
             }
-        }, [key, value]);
+        }, [key, value, isLoaded]);
 
         return [value, setValue];
     };
 
     const [isLoading, setIsLoading] = useState(false);
-    const [loadingMessage, setLoadingMessage] = useState("ĐANG KIẾN TẠO...");
+    const [loadingMessage, setLoadingMessage] = useState("INITIALIZING...");
 
-    // Using Auto-save for critical fields
-    const [outputScript, setOutputScript] = useAutoSave('sw_outputScript', '');
-    const [idea, setIdea] = useAutoSave('sw_idea', '');
-    const [goal, setGoal] = useAutoSave('sw_goal', 'Tăng View');
-    const [level, setLevel] = useAutoSave('sw_level', 'Nâng Cao');
-    const [tone, setTone] = useAutoSave('sw_tone', 'Hùng hồn');
-    const [style, setStyle] = useAutoSave('sw_style', 'Vlog');
-    const [format, setFormat] = useAutoSave('sw_format', 'visual');
-    const [length, setLength] = useAutoSave('sw_length', 10);
+    const [outputScript, setOutputScript] = useAutoSave('sw_page_outputScript', '');
+    const [idea, setIdea] = useAutoSave('sw_page_idea', '');
+    const [goal, setGoal] = useAutoSave('sw_page_goal', 'Tăng View');
+    const [level, setLevel] = useAutoSave('sw_page_level', 'Nâng Cao');
+    const [tone, setTone] = useAutoSave('sw_page_tone', 'Hùng hồn');
+    const [style, setStyle] = useAutoSave('sw_page_style', 'Vlog');
+    const [format, setFormat] = useAutoSave('sw_page_format', 'visual');
+    const [length, setLength] = useAutoSave('sw_page_length', 10);
 
     const [error, setError] = useState('');
     const [chatRequest, setChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
-    const buttonRef = useRef<HTMLButtonElement>(null);
-    const outputRef = useRef<HTMLDivElement>(null);
+    const [isFullScreen, setIsFullScreen] = useState(false);
 
-    // --- Các hàm helper giữ nguyên ---
-    const handleCopy = () => {
-        if (userRole === 'FREE' || userRole === 'USER') {
-            setGateRequiredTier('CREATIVE');
-            setGateFeatureName('Sao chép kịch bản');
-            setShowUpgradeGate(true);
-            return;
-        }
-
-        if (outputScript) {
-            navigator.clipboard.writeText(outputScript).then(() => {
-                setCopySuccess('Đã sao chép!');
-                setTimeout(() => setCopySuccess(''), 2000);
-            });
-        }
-    };
-
-    const handleExportTxt = () => {
-        if (userRole === 'FREE' || userRole === 'USER') {
-            setGateRequiredTier('CREATIVE');
-            setGateFeatureName('Xuất file TXT');
-            setShowUpgradeGate(true);
-            return;
-        }
-
-        if (outputScript) {
-            const blob = new Blob([outputScript], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'kich-ban-seenvt.txt';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-
-    // --- Các useEffect giữ nguyên ---
-    useEffect(() => {
-        const rivalIdea = localStorage.getItem('scriptIdeaFromRival');
-        if (rivalIdea) {
-            setIdea(rivalIdea);
-            localStorage.removeItem('scriptIdeaFromRival');
-        }
-    }, []);
-
-    useEffect(() => {
-        if (outputRef.current) {
-            outputRef.current.scrollTop = outputRef.current.scrollHeight;
-        }
-    }, [outputScript]);
-
-
-    // --- HÀM handleSubmit (Gọi Backend /api/script-writer) ---
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!idea) {
-            setError("Vui lòng nhập Dữ Liệu Gốc.");
-            return;
-        }
-
-        buttonRef.current?.classList.add('animate-emerald-pulse-strong');
-        setTimeout(() => buttonRef.current?.classList.remove('animate-emerald-pulse-strong'), 1000);
-
-        setIsLoading(true);
-        setLoadingMessage(format === 'visual' ? "ĐANG DÀN CẢNH..." : "ĐANG VIẾT CÂU CHUYỆN...");
-        setOutputScript('');
-        setError('');
-
-        try {
-            const response = await fetch('/api/script-writer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idea, goal, level, tone, style, length: Number(length), format }),
-            });
-
-            const scriptText = await response.text();
-
-            if (!response.ok) {
-                let errorMessage = `Lỗi ${response.status}: ${scriptText}`;
-                try { errorMessage = JSON.parse(scriptText).error || errorMessage; } catch (e) { /* Ignore */ }
-                throw new Error(errorMessage);
-            }
-            setOutputScript(scriptText);
-        } catch (err: any) {
-            setError(`Lỗi: ${err.message || "Không thể tạo kịch bản."}`);
-            console.error("Lỗi gọi API /api/script-writer:", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // --- HÀM handleRefine (Gọi Backend /api/script-refine) ---
-    const handleRefine = async (type: 'refine' | 'consistency' | 'translate', lang: string = 'en') => {
-        // Feature gating for Refine (SUPER)
-        if (['FREE', 'CREATIVE', 'USER'].includes(userRole)) {
-            setGateRequiredTier('SUPER'); // PRO tier
-            setGateFeatureName('Tinh chỉnh nâng cao & Dịch thuật');
-            setShowUpgradeGate(true);
-            return;
-        }
-
-        if (!outputScript) return;
-
-        setIsLoading(true);
-        if (type === 'refine') setLoadingMessage("ĐANG TINH CHỈNH...");
-        else if (type === 'consistency') setLoadingMessage("ĐANG ĐỒNG NHẤT...");
-        else if (type === 'translate') {
-            const langName = Object.keys(languages).find(key => languages[key as keyof typeof languages] === lang) || lang;
-            setLoadingMessage(`ĐANG DỊCH SANG ${langName}...`);
-        }
-        const currentScriptForRequest = outputScript; // Giữ lại script hiện tại
-        setOutputScript(''); // Xóa hiển thị tạm thời
-        setError('');
-
-        try {
-            const response = await fetch('/api/script-refine', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    currentScript: currentScriptForRequest,
-                    type: type,
-                    tone: type === 'refine' || type === 'translate' ? tone : undefined,
-                    length: type === 'refine' ? Number(length) : undefined,
-                    style: type === 'translate' ? style : undefined,
-                    lang: type === 'translate' ? lang : undefined,
-                }),
-            });
-
-            const refinedScriptText = await response.text();
-
-            if (!response.ok) {
-                let errorMessage = `Lỗi ${response.status}: ${refinedScriptText}`;
-                try { errorMessage = JSON.parse(refinedScriptText).error || errorMessage; } catch (e) { /* Ignore */ }
-                throw new Error(errorMessage);
-            }
-            setOutputScript(refinedScriptText);
-        } catch (err: any) {
-            setError(`Lỗi: ${err.message || "Không thể thực hiện."}`);
-            console.error("Lỗi gọi API /api/script-refine:", err);
-            setOutputScript(currentScriptForRequest); // Khôi phục script cũ nếu lỗi
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // --- HÀM handleChatSubmit (Gọi Backend /api/script-chat) ---
-    const handleChatSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!chatRequest || !outputScript) return;
-
-        setIsLoading(true);
-        setLoadingMessage("ĐANG CHỈNH SỬA...");
-        const currentScriptForRequest = outputScript;
-        setOutputScript('');
-        setError('');
-        const requestText = chatRequest;
-        setChatRequest('');
-
-        try {
-            const response = await fetch('/api/script-chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    currentScript: currentScriptForRequest,
-                    chatRequest: requestText,
-                }),
-            });
-
-            const editedScriptText = await response.text();
-
-            if (!response.ok) {
-                let errorMessage = `Lỗi ${response.status}: ${editedScriptText}`;
-                try { errorMessage = JSON.parse(editedScriptText).error || errorMessage; } catch (e) { /* Ignore */ }
-                throw new Error(errorMessage);
-            }
-            setOutputScript(editedScriptText);
-        } catch (err: any) {
-            setError(`Lỗi: ${err.message || "Không thể chỉnh sửa."}`);
-            console.error("Lỗi gọi API /api/script-chat:", err);
-            setOutputScript(currentScriptForRequest); // Khôi phục nếu lỗi
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // --- Hàm handleConnect giữ nguyên ---
-    const handleConnect = () => {
-        // Feature gating for Video (VIP)
-        if (userRole !== 'VIP' && userRole !== 'ADMIN') {
-            setGateRequiredTier('VIP');
-            setGateFeatureName('Kết nối tạo Video AI');
-            setShowUpgradeGate(true);
-            return;
-        }
-
-        const videoTool = tools.find(t => t.name.includes("TẠO VIDEO"));
-        if (videoTool) {
-            alert(`Đang kết nối với công cụ TẠO VIDEO...\n(Kịch bản của bạn đã được lưu tạm và sẵn sàng để sử dụng)`);
-            onToolSelect(videoTool);
-        }
-    }
-
-    // --- Main JSX ---
     // --- PROJECT HISTORY LOGIC ---
     const [showHistory, setShowHistory] = useState(false);
     const [projects, setProjects] = useState<any[]>([]);
@@ -293,8 +109,13 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
     };
 
     const handleSaveProject = async () => {
+        if (!session) {
+            alert("Vui lòng đăng nhập để lưu dự án!");
+            return;
+        }
         if (!outputScript) return;
-        const name = prompt("Enter project name:", idea.substring(0, 30) + "...") || `Script ${new Date().toLocaleTimeString()}`;
+
+        const name = prompt("Đặt tên dự án:", idea.substring(0, 30) + "...") || `Script ${new Date().toLocaleString()}`;
 
         setIsLoading(true);
         try {
@@ -309,13 +130,19 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                 })
             });
             const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Lỗi không xác định");
+            }
+
             if (data.project) {
                 setCurrentProjectId(data.project.id);
-                alert("Project Saved!");
+                alert("✅ Đã lưu dự án thành công!");
                 fetchProjects(); // Refresh list
             }
-        } catch (e) {
-            alert("Save failed");
+        } catch (e: any) {
+            alert(`❌ Lưu thất bại: ${e.message}`);
+            console.error(e);
         } finally {
             setIsLoading(false);
         }
@@ -339,209 +166,219 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
         if (showHistory) fetchProjects();
     }, [showHistory]);
 
+    // --- LOGIC: WRITE ---
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!idea) {
+            setError("Vui lòng nhập ý tưởng.");
+            return;
+        }
+
+        setIsLoading(true);
+        setLoadingMessage(format === 'visual' ? "SCENE BUILDING..." : "STORY WEAVING...");
+        setOutputScript('');
+        setError('');
+
+        try {
+            const response = await fetch('/api/script-writer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idea, goal, level, tone, style, length: Number(length), format }),
+            });
+
+            const scriptText = await response.text();
+
+            if (!response.ok) {
+                let errorMessage = `Error ${response.status}: ${scriptText}`;
+                try { errorMessage = JSON.parse(scriptText).error || errorMessage; } catch (e) { /* Ignore */ }
+                throw new Error(errorMessage);
+            }
+            setOutputScript(scriptText);
+        } catch (err: any) {
+            setError(err.message || "Failed to generate script.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // --- LOGIC: REFINE / TRANSLATE ---
+    const handleRefine = async (type: 'refine' | 'consistency' | 'translate', lang: string = 'en') => {
+        if (!outputScript) return;
+
+        if (['FREE', 'CREATIVE', 'USER'].includes(userRole) && type !== 'translate') {
+            alert("Tính năng dành riêng cho gói PRO/VIP.");
+            return;
+        }
+
+        setIsLoading(true);
+        setLoadingMessage(type === 'translate' ? "TRANSLATING..." : "REFINING...");
+        const currentScriptForRequest = outputScript;
+
+        try {
+            const response = await fetch('/api/script-refine', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    currentScript: currentScriptForRequest,
+                    type: type,
+                    tone: type === 'refine' || type === 'translate' ? tone : undefined,
+                    length: type === 'refine' ? Number(length) : undefined,
+                    style: type === 'translate' ? style : undefined,
+                    lang: type === 'translate' ? lang : undefined,
+                }),
+            });
+
+            const refinedScriptText = await response.text();
+
+            if (!response.ok) {
+                throw new Error("Refinement failed.");
+            }
+            setOutputScript(refinedScriptText);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // --- LOGIC: CHAT ---
+    const handleChatSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!chatRequest || !outputScript) return;
+
+        setIsLoading(true);
+        const currentScriptForRequest = outputScript;
+        const requestText = chatRequest;
+        setChatRequest('');
+
+        try {
+            const response = await fetch('/api/script-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    currentScript: currentScriptForRequest,
+                    chatRequest: requestText,
+                }),
+            });
+
+            const editedScriptText = await response.text();
+            if (!response.ok) throw new Error("Edit failed.");
+            setOutputScript(editedScriptText);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(outputScript);
+        setCopySuccess('Copied!');
+        setTimeout(() => setCopySuccess(''), 2000);
+    };
+
+    const handleExportTxt = () => {
+        const blob = new Blob([outputScript], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'screenplay.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
-        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 relative">
-            <div className="flex justify-between items-center">
+        // Changed min-h-screen to h-full for dashboard embedding
+        <div className={`h-full bg-[#09090b] text-[#e4e4e7] font-sans selection:bg-[#fbbf24] selection:text-black flex flex-col ${isFullScreen ? 'fixed inset-0 z-50 overflow-hidden h-screen' : ''}`}>
+            {/* <Head> <title>CINEMATIC WRITER | SCRIPT STUDIO</title> </Head> */}
+
+            {/* HEADER */}
+            <header className="h-16 border-b border-[#3f3f46]/40 flex items-center justify-between px-6 bg-[#09090b]/90 backdrop-blur z-50">
                 <div className="flex items-center gap-4">
-                    <h2 className="text-xl md:text-2xl text-center font-playfair text-[#CDAD5A] tracking-wider">
-                        {isEN ? 'GALAXY BUILDER: SCRIPT CORE' : 'KIẾN TẠO THIÊN HÀ: LÕI KỊCH BẢN'}
-                    </h2>
-                    <button
-                        onClick={() => setShowHistory(true)}
-                        className="flex items-center gap-2 px-3 py-1 rounded border border-[#CDAD5A]/30 text-[#CDAD5A] text-xs font-bold hover:bg-[#CDAD5A]/10 transition-colors"
-                    >
-                        <span className="text-lg">📂</span> {isEN ? 'MY PROJECTS' : 'DỰ ÁN CỦA TÔI'}
-                    </button>
-                    {outputScript && (
-                        <button
-                            onClick={handleSaveProject}
-                            className="flex items-center gap-2 px-3 py-1 rounded bg-[#CDAD5A]/20 border border-[#CDAD5A]/50 text-[#CDAD5A] text-xs font-bold hover:bg-[#CDAD5A] hover:text-black transition-colors"
-                        >
-                            <span>💾</span> {isEN ? 'SAVE' : 'LƯU'}
+                    {onBack && (
+                        <button onClick={onBack} className="text-[#a1a1aa] hover:text-white transition-colors flex items-center gap-2">
+                            <ArrowLeft size={18} /> <span className="text-xs font-bold tracking-widest uppercase">BACK TO STUDIO</span>
                         </button>
                     )}
+                    <div className="h-5 w-px bg-[#3f3f46]"></div>
+                    <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-[#fbbf24]/10 rounded border border-[#fbbf24]/20">
+                            <Film size={16} className="text-[#fbbf24]" />
+                        </div>
+                        <h1 className="text-sm font-black tracking-[0.2em] text-white">CINEMATIC WRITER</h1>
+                    </div>
                 </div>
-                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2">
-                    &times; {isEN ? 'Back' : 'Trở Về'}
-                </button>
-            </div>
 
-            {/* ... Rest of the UI grid ... */}
-            <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4 flex-grow min-h-0">
-                {/* Form - Compact Left Panel */}
-                <form onSubmit={handleSubmit} className="flex flex-col space-y-2 pr-2 overflow-y-auto text-xs">
-                    {/* ... Form inputs ... */}
-                    <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'RAW DATA INPUT' : 'TẠO DỮ LIỆU GỐC'}</label>
-                        <textarea value={idea} onChange={e => setIdea(e.target.value)} placeholder={isEN ? 'Enter your idea, topic...' : 'Nhập ý tưởng sơ bộ, chủ đề...'} className="w-full h-24 obsidian-textarea"></textarea>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'GOAL' : 'MỤC TIÊU'}</label>
-                            <select value={goal} onChange={e => setGoal(e.target.value)} className="w-full obsidian-select">
-                                <option value="Tăng View">{isEN ? 'Increase Views' : 'Tăng View'}</option>
-                                <option value="Tăng Chuyển Đổi">{isEN ? 'Increase Conversion' : 'Tăng Chuyển Đổi'}</option>
-                                <option value="Xây dựng Thương Hiệu">{isEN ? 'Build Brand' : 'Xây dựng Thương Hiệu'}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'LEVEL' : 'CẤP ĐỘ'}</label>
-                            <select value={level} onChange={e => setLevel(e.target.value)} className="w-full obsidian-select">
-                                <option value="Cơ Bản">{isEN ? 'Basic' : 'Cơ Bản'}</option>
-                                <option value="Nâng Cao">{isEN ? 'Advanced' : 'Nâng Cao'}</option>
-                                <option value="Tinh Hoa">{isEN ? 'Expert' : 'Tinh Hoa'}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'TONE' : 'TÔNG GIỌNG'}</label>
-                        <select value={tone} onChange={e => setTone(e.target.value)} className="w-full obsidian-select">
-                            {tones.map(t => <option key={t}>{t}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'FORMAT' : 'ĐỊNH DẠNG'}</label>
-                        <select value={format} onChange={e => setFormat(e.target.value)} className="w-full obsidian-select">
-                            <option value="visual">{isEN ? 'Visual Script (Scene-by-scene)' : 'Kịch bản Phân cảnh (Visual)'}</option>
-                            <option value="story">{isEN ? 'Storytelling (Story/Podcast)' : 'Kể chuyện (Story/Podcast)'}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'STYLE' : 'PHONG CÁCH'}</label>
-                        <select value={style} onChange={e => setStyle(e.target.value)} className="w-full obsidian-select">
-                            {styles.map(s => <option key={s}>{s}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'LENGTH' : 'ĐỘ DÀI'}</label>
-                        <div className="flex items-center gap-2">
-                            <input type="range" min="1" max="30" value={length} onChange={e => setLength(parseInt(e.target.value))} className="w-full obsidian-slider" />
-                            <span className="font-mono text-lg text-[#008080] w-16 text-center">{length} {isEN ? 'min' : 'phút'}</span>
-                        </div>
-                    </div>
-                    <button ref={buttonRef} type="submit" disabled={isLoading} className="w-full bg-[#CDAD5A] text-black font-bold py-3 px-5 border-2 border-[#CDAD5A] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#CDAD5A] active:scale-95 bronze-glow disabled:bg-gray-600 disabled:cursor-not-allowed">
-                        {isLoading ? (isEN ? 'GENERATING...' : loadingMessage) : (isEN ? 'INITIALIZE STRUCTURE' : 'KHỞI TẠO CẤU TRÚC')}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            if (confirm("TẠO MỚI? Dữ liệu chưa lưu (Save) sẽ bị mất.")) {
+                                setIdea('');
+                                setOutputScript('');
+                                setCurrentProjectId(null);
+                                setChatRequest('');
+                                // Reset defaults
+                                setGoal('Tăng View');
+                                setLevel('Nâng Cao');
+                                setTone('Hùng hồn');
+                                setStyle('Vlog');
+                                setFormat('visual');
+                                setLength(10);
+                            }
+                        }}
+                        className="flex items-center gap-1 text-[#a1a1aa] hover:text-white transition-colors text-xs font-bold uppercase tracking-wider mr-2"
+                        title="Tạo Mới (Xóa Form)"
+                    >
+                        <FilePlus size={16} /> NEW
                     </button>
-                    {error && <p className="text-red-500 text-center text-xs">{error}</p>}
-                </form>
-
-                {/* Output section - Larger Right Panel - UNCHANGED PART 2 */}
-                <div className="flex flex-col space-y-2 min-h-0">
-                    <div className="flex justify-between items-center flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
-                            <label className="text-xs font-bold text-[#008080]">{isEN ? 'SCRIPT FRAME' : 'KHUNG KỊCH BẢN PHÂN LOẠI'}</label>
-                            {currentProjectId && <span className="text-[10px] text-gray-500 bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Project ID: {currentProjectId.substring(0, 6)}...</span>}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <button onClick={handleCopy} title={isEN ? 'Copy' : 'Sao chép'} className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>{isEN ? 'COPY' : 'SAO CHÉP'}</button>
-                            <button onClick={handleExportTxt} title={isEN ? 'Export to .txt' : 'Xuất file .txt'} className="text-xs px-2 py-1 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>{isEN ? 'EXPORT (TXT)' : 'XUẤT (TXT)'}</button>
-                            <select onChange={e => handleRefine('translate', e.target.value)} disabled={!outputScript || isLoading} className="text-xs obsidian-select !p-1 disabled:opacity-50">
-                                <option>{isEN ? 'TRANSLATE...' : 'DỊCH...'}</option>
-                                {Object.entries(languages).map(([name, code]) => <option key={code} value={code}>{name}</option>)}
-                            </select>
-                            <span className="text-xs text-[#CDAD5A] w-20 text-right">{copySuccess}</span>
-                        </div>
-                    </div>
-                    <div ref={outputRef} className="holographic-output flex-grow p-3 text-sm overflow-y-auto relative">
-                        {(isLoading && !outputScript) && (
-                            <div className="flex flex-col items-center justify-center h-full text-center">
-                                <div className="w-20 h-20 text-[#008080]"><PyramidIcon /></div>
-                                <p className="mt-4 text-sm font-semibold text-[#008080] tracking-widest animate-pulse">{loadingMessage}</p>
-                            </div>
-                        )}
-                        {outputScript && (
-                            <>
-                                {/* Custom Markdown Table Renderer - Same as before */}
-                                {(() => {
-                                    const hasTable = outputScript.includes('|') && outputScript.includes('---');
-                                    if (hasTable && (userRole !== 'FREE' && userRole !== 'USER')) {
-                                        const lines = outputScript.split('\n').filter(line => line.trim() !== '');
-                                        const tableRows = lines.filter(line => line.trim().startsWith('|'));
-                                        const textBefore = lines.filter(line => !line.trim().startsWith('|') && !line.startsWith('---')).join('\n');
-                                        const headerRow = tableRows[0];
-                                        const bodyRows = tableRows.slice(2);
-                                        return (
-                                            <div className="space-y-4">
-                                                <div className="whitespace-pre-wrap text-gray-300 font-sans">{textBefore}</div>
-                                                <div className="border border-gray-700 rounded-lg overflow-hidden">
-                                                    <div className="grid grid-cols-[50%_15%_35%] bg-gray-900 border-b border-gray-700">
-                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-2 text-xs"><span>🎬</span> TIME + VISUAL PROMPT</div>
-                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider border-r border-gray-700 flex items-center gap-1 text-xs"><span>🔗</span> LINK</div>
-                                                        <div className="p-2 font-bold text-[#CDAD5A] uppercase tracking-wider flex items-center gap-2 text-xs"><span>🎤</span> AUDIO</div>
-                                                    </div>
-                                                    <div className="divide-y divide-gray-700 bg-black/40">
-                                                        {bodyRows.map((row, idx) => {
-                                                            const cols = row.split('|').filter(c => c.trim() !== '').map(c => c.trim());
-                                                            if (cols.length < 2) return null;
-                                                            return (
-                                                                <div key={idx} className="grid grid-cols-[50%_15%_35%] hover:bg-gray-800/30 transition-colors">
-                                                                    <div className="p-2 border-r border-gray-700 text-gray-300 whitespace-pre-wrap text-xs">{cols[0] + (cols[1] ? ' - ' + cols[1] : '')}</div>
-                                                                    <div className="p-2 border-r border-gray-700 text-gray-400 whitespace-pre-wrap text-xs italic">{cols.length >= 4 ? cols[3] : (cols.length >= 3 ? cols[2] : '-')}</div>
-                                                                    <div className="p-2 text-gray-200 whitespace-pre-wrap font-sans text-xs">{cols.length >= 4 ? cols[2] : (cols.length >= 3 ? cols[1] : cols[1] || '-')}</div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    } else {
-                                        return (
-                                            <div className="whitespace-pre-wrap">
-                                                {(userRole === 'FREE' || userRole === 'USER') ? (
-                                                    <>
-                                                        <div className="text-gray-300">{outputScript.substring(0, 400)}...</div>
-                                                        <div className="relative mt-4">
-                                                            <div className="blur-sm select-none pointer-events-none text-gray-500">{outputScript.substring(400, 800)}</div>
-                                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black flex flex-col items-center justify-center cursor-pointer rounded-lg" onClick={() => { setGateRequiredTier('CREATIVE'); setGateFeatureName('Xem toàn bộ kịch bản'); setShowUpgradeGate(true); }}>
-                                                                <div className="text-4xl mb-3">🔒</div>
-                                                                <p className="text-white font-bold text-center px-4">Kịch bản VIP Pro đã sẵn sàng!<br /><span className="text-xs font-normal text-[#CDAD5A]">Format: Visual Storyboard 2 Cột</span></p>
-                                                                <button className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all">Mở khóa ngay →</button>
-                                                            </div>
-                                                        </div>
-                                                    </>
-                                                ) : outputScript}
-                                            </div>
-                                        );
-                                    }
-                                })()}
-                            </>
-                        )}
-                    </div>
-                    {/* Phase 3: Live Comparison & Action Panel */}
-                    {outputScript && (userRole === 'FREE' || userRole === 'USER') && (
-                        <PremiumComparison toolType="script" onUpgrade={() => { setGateRequiredTier('SUPER'); setGateFeatureName('Trải nghiệm Premium'); setShowUpgradeGate(true); }} />
-                    )}
-                    <div className="border-t border-gray-600/50 pt-2 flex flex-col space-y-2">
-                        <form onSubmit={handleChatSubmit} className="flex items-center gap-2">
-                            <input type="text" value={chatRequest} onChange={e => setChatRequest(e.target.value)} placeholder="Yêu cầu chỉnh sửa nhanh..." className="w-full obsidian-input !py-1 text-xs" disabled={!outputScript || isLoading} />
-                            <button type="submit" className="text-xs p-1 px-3 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm disabled:opacity-50" disabled={!chatRequest || isLoading}>Gửi</button>
-                        </form>
-                        <div className="grid grid-cols-3 gap-2">
-                            <button onClick={() => handleRefine('refine')} className="text-xs p-2 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>TINH CHỈNH VĨ MÔ</button>
-                            <button onClick={() => handleRefine('consistency')} className="text-xs p-2 bg-black/50 border border-gray-700 hover:border-[#CDAD5A] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>ĐỒNG NHẤT NHÂN VẬT</button>
-                            <button onClick={handleConnect} className="text-xs p-2 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm disabled:opacity-50" disabled={!outputScript || isLoading}>KẾT NỐI HỢP THÀNH</button>
-                        </div>
-                    </div>
+                    <button
+                        onClick={() => setShowHistory(true)}
+                        className="flex items-center gap-2 px-3 py-1 rounded border border-[#fbbf24]/30 text-[#fbbf24] text-xs font-bold hover:bg-[#fbbf24]/10 transition-colors"
+                    >
+                        <span className="text-lg">📂</span> MY PROJECTS
+                    </button>
+                    <button onClick={() => setIsFullScreen(!isFullScreen)} className="text-[#a1a1aa] hover:text-white transition-colors">
+                        {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                    </button>
+                    <div className="h-5 w-px bg-[#3f3f46]"></div>
+                    <div className="bg-[#fbbf24] text-black text-xs font-bold px-3 py-1 rounded">PRO STUDIO</div>
                 </div>
-            </div>
+            </header>
 
             {/* PROJECTS DRAWER */}
             {showHistory && (
-                <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur flex justify-end animate-in fade-in duration-200">
-                    <div className="w-96 bg-[#111] border-l border-[#CDAD5A]/30 h-full p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+                <div className="absolute inset-0 z-[60] bg-black/90 backdrop-blur flex justify-end animate-in fade-in duration-200">
+                    <div className="w-96 bg-[#111] border-l border-[#fbbf24]/30 h-full p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-[#CDAD5A] font-playfair font-bold text-xl uppercase tracking-wider">My Projects</h3>
+                            <h3 className="text-[#fbbf24] font-bold text-xl uppercase tracking-wider">My Projects</h3>
                             <button onClick={() => setShowHistory(false)} className="text-gray-500 hover:text-white">&times;</button>
                         </div>
-                        <div className="flex-grow overflow-y-auto space-y-3">
+                        <div className="flex-grow overflow-y-auto space-y-3 custom-scrollbar">
                             {projects.length === 0 ? (
-                                <p className="text-gray-500 text-center italic">No saved projects yet.</p>
+                                <div className="text-center py-10 opacity-50">
+                                    <p className="text-4xl mb-2">📭</p>
+                                    <p>Chưa có dự án nào.</p>
+                                    <p className="text-[10px] mt-2 text-gray-400">Hãy bấm "SAVE PROJECT" để lưu.</p>
+                                </div>
                             ) : (
                                 projects.map(p => (
-                                    <div key={p.id} onClick={() => handleLoadProject(p)} className="p-3 bg-white/5 border border-white/10 rounded cursor-pointer hover:border-[#CDAD5A] hover:bg-white/10 transition-all group">
-                                        <div className="text-[#CDAD5A] font-bold text-sm mb-1 group-hover:text-white">{p.name}</div>
-                                        <div className="text-[10px] text-gray-500">{new Date(p.updatedAt).toLocaleString()}</div>
+                                    <div key={p.id} className="group relative p-4 bg-white/5 border border-white/10 rounded hover:border-[#fbbf24] hover:bg-white/10 transition-all">
+                                        <div onClick={() => handleLoadProject(p)} className="cursor-pointer">
+                                            <div className="text-[#fbbf24] font-bold text-sm mb-1 group-hover:text-white truncate pr-6">{p.name}</div>
+                                            <div className="text-[10px] text-gray-500 font-mono">{new Date(p.updatedAt).toLocaleString()}</div>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm('Xóa dự án này?')) {
+                                                    // Delete logic
+                                                    fetch(`/api/projects?id=${p.id}`, { method: 'DELETE' }).then(() => fetchProjects());
+                                                }
+                                            }}
+                                            className="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
                                     </div>
                                 ))
                             )}
@@ -551,17 +388,229 @@ const ScriptwriterTool: React.FC<ScriptwriterToolProps> = ({ tools, onToolSelect
                 </div>
             )}
 
-            {/* Upgrade Gate Modal */}
-            <UpgradeGate
-                isOpen={showUpgradeGate}
-                onClose={() => setShowUpgradeGate(false)}
-                userTier={userRole}
-                requiredTier={gateRequiredTier}
-                featureName={gateFeatureName}
-            />
+            {/* MAIN CONTENT GRID */}
+            <div className="flex-grow flex flex-col md:flex-row overflow-hidden relative" style={{ height: 'calc(100% - 64px)' }}>
+
+                {/* LEFT: TOOLS PANEL */}
+                <div className="w-full md:w-80 bg-[#18181b] border-r border-[#3f3f46]/40 flex flex-col h-full z-20 shadow-2xl">
+                    <div className="p-6 flex-grow overflow-y-auto custom-scrollbar">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* IDEA INPUT */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-[#fbbf24] uppercase tracking-widest flex items-center gap-2">
+                                    <Sparkles size={12} /> Core Concept
+                                </label>
+                                <textarea
+                                    value={idea}
+                                    onChange={e => setIdea(e.target.value)}
+                                    placeholder="Describe your video idea, plot, or topic..."
+                                    className="w-full h-32 bg-[#27272a] border border-[#3f3f46] rounded-lg p-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-[#fbbf24] focus:ring-1 focus:ring-[#fbbf24]/50 transition-all resize-none"
+                                />
+                            </div>
+
+                            {/* SELECTORS */}
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase">Goal</label>
+                                        <select value={goal} onChange={e => setGoal(e.target.value)} className="w-full bg-[#27272a] border border-[#3f3f46] rounded p-2 text-xs text-white outline-none">
+                                            <option value="Tăng View">Views</option>
+                                            <option value="Tăng Chuyển Đổi">Conversion</option>
+                                            <option value="Xây dựng Thương Hiệu">Branding</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase">Level</label>
+                                        <select value={level} onChange={e => setLevel(e.target.value)} className="w-full bg-[#27272a] border border-[#3f3f46] rounded p-2 text-xs text-white outline-none">
+                                            <option value="Cơ Bản">Basic</option>
+                                            <option value="Nâng Cao">Advanced</option>
+                                            <option value="Tinh Hoa">Master</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Tone</label>
+                                    <select value={tone} onChange={e => setTone(e.target.value)} className="w-full bg-[#27272a] border border-[#3f3f46] rounded p-2 text-xs text-white outline-none">
+                                        {tones.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Style</label>
+                                    <select value={style} onChange={e => setStyle(e.target.value)} className="w-full bg-[#27272a] border border-[#3f3f46] rounded p-2 text-xs text-white outline-none">
+                                        {styles.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Format</label>
+                                    <div className="flex gap-2 bg-[#27272a] p-1 rounded border border-[#3f3f46]">
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormat('visual')}
+                                            className={`flex-1 py-1.5 text-xs font-bold rounded flex items-center justify-center gap-1 transition-all ${format === 'visual' ? 'bg-[#3f3f46] text-[#fbbf24]' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            <Film size={12} /> Visual
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormat('story')}
+                                            className={`flex-1 py-1.5 text-xs font-bold rounded flex items-center justify-center gap-1 transition-all ${format === 'story' ? 'bg-[#3f3f46] text-[#fbbf24]' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            <Mic size={12} /> Story
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase flex justify-between">
+                                        <span>Length</span>
+                                        <span className="text-[#fbbf24]">{length} min</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="30"
+                                        value={length}
+                                        onChange={e => setLength(parseInt(e.target.value))}
+                                        className="w-full h-1 bg-[#3f3f46] rounded-lg appearance-none cursor-pointer accent-[#fbbf24]"
+                                    />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div className="p-4 border-t border-[#3f3f46] bg-[#09090b]">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="w-full bg-[#fbbf24] hover:bg-[#d97706] text-black font-black uppercase text-sm py-4 rounded transition-all shadow-lg hover:shadow-[#fbbf24]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div> : <PenTool size={16} />}
+                            {isLoading ? 'WRITING...' : 'GENERATE SCRIPT'}
+                        </button>
+                        {error && <p className="text-red-500 text-xs mt-2 text-center">{error}</p>}
+                    </div>
+                </div>
+
+                {/* RIGHT: EDITOR AREA */}
+                <div className="flex-grow flex flex-col bg-[#09090b] relative h-full">
+
+                    {/* Tool Bar Top */}
+                    {outputScript && (
+                        <div className="h-12 border-b border-[#3f3f46]/40 flex items-center justify-between px-6 bg-[#09090b]/50 backdrop-blur z-10 shrink-0">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-green-500 flex items-center gap-1 font-mono"><CheckCircle size={12} /> SAVED LOCALLY</span>
+                                <button
+                                    onClick={handleSaveProject}
+                                    className="flex items-center gap-2 px-3 py-1 rounded bg-[#fbbf24]/20 border border-[#fbbf24]/50 text-[#fbbf24] text-xs font-bold hover:bg-[#fbbf24] hover:text-black transition-colors"
+                                >
+                                    <span>💾</span> SAVE PROJECT
+                                </button>
+                                {copySuccess && <span className="text-xs text-[#fbbf24] animate-fade-in">{copySuccess}</span>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={handleCopy} className="p-2 text-gray-400 hover:text-white transition-colors" title="Copy"><Copy size={16} /></button>
+                                <button onClick={handleExportTxt} className="p-2 text-gray-400 hover:text-white transition-colors" title="Export"><Download size={16} /></button>
+                                <div className="h-4 w-px bg-[#3f3f46]"></div>
+                                <select
+                                    onChange={(e) => handleRefine('translate', e.target.value)}
+                                    className="bg-transparent text-xs text-gray-400 hover:text-white outline-none cursor-pointer"
+                                >
+                                    <option value="">Translate...</option>
+                                    {Object.entries(languages).map(([name, code]) => (
+                                        <option key={code} value={code}>{name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Editor Canvas */}
+                    <div className="flex-grow overflow-auto p-8 md:p-12 text-lg md:text-xl font-mono relative">
+                        {!outputScript && !isLoading && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-[#3f3f46] pointer-events-none">
+                                <Type size={64} className="mb-4 opacity-50" />
+                                <h2 className="text-2xl font-black uppercase tracking-widest opacity-50">NO SCRIPT LOADED</h2>
+                                <p className="text-sm font-mono mt-2 opacity-40">Ready to write your masterpiece</p>
+                            </div>
+                        )}
+
+                        {isLoading && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#09090b] z-20">
+                                <div className="w-16 h-1 bg-[#27272a] rounded overflow-hidden mb-4">
+                                    <div className="h-full bg-[#fbbf24] animate-progress"></div>
+                                </div>
+                                <p className="text-[#fbbf24] font-mono text-sm tracking-widest animate-pulse">{loadingMessage}</p>
+                            </div>
+                        )}
+
+                        {outputScript && (
+                            <div className="max-w-4xl mx-auto animate-in fade-in duration-700 pb-20">
+                                <TypewriterText text={outputScript} />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* AI Chat / Refine Bar */}
+                    {outputScript && (
+                        <div className="p-4 border-t border-[#3f3f46]/40 bg-[#09090b] shrink-0">
+                            <div className="max-w-4xl mx-auto flex gap-3">
+                                <div className="relative flex-grow">
+                                    <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                                    <input
+                                        type="text"
+                                        value={chatRequest}
+                                        onChange={e => setChatRequest(e.target.value)}
+                                        placeholder="Ask AI to rewrite, shorten, or change tone..."
+                                        className="w-full bg-[#27272a] border border-[#3f3f46] rounded-full py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[#fbbf24] transition-all"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleChatSubmit}
+                                    disabled={!chatRequest || isLoading}
+                                    className="bg-[#fbbf24] hover:bg-[#d97706] text-black p-2.5 rounded-full transition-colors disabled:opacity-50"
+                                >
+                                    <Send size={18} />
+                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleRefine('refine')}
+                                        className="hidden md:flex items-center gap-2 px-4 py-2 bg-[#27272a] hover:bg-[#3f3f46] text-white text-xs font-bold rounded-full transition-colors border border-[#3f3f46]"
+                                    >
+                                        <Sparkles size={14} className="text-[#fbbf24]" /> Refine
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #18181b;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #3f3f46;
+                    border-radius: 3px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #52525b;
+                }
+                @keyframes progress {
+                    0% { width: 0% }
+                    50% { width: 70% }
+                    100% { width: 95% }
+                }
+                .animate-progress {
+                    animation: progress 20s linear forwards;
+                }
+            `}</style>
         </div>
     );
-};
-
-
-export default ScriptwriterTool;
+}
