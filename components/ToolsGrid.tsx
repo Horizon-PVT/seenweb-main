@@ -16,10 +16,10 @@ import {
 
 import ScriptwriterTool from "./ScriptwriterTool";
 import SeoTool from "./SeoTool";
-import { RivalScannerTool } from "./RivalScannerTool";
+import RivalScannerTool from "./RivalScannerTool";
 import HiddenChannelFinderTool from "@/components/HiddenChannelFinderTool";
 import ScriptRefinerTool from "./ScriptRefinerTool";
-import { MicroNicheMinerTool } from "./MicroNicheMinerTool";
+import MicroNicheMinerTool from "./MicroNicheMinerTool";
 import ImageForgeTool from "./ImageForgeTool";
 import StoryStudioTool from "./StoryStudioTool";
 import VoiceStudioTool from "./VoiceStudioTool";
