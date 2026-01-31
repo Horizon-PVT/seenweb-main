@@ -46,6 +46,8 @@ interface OutputData {
 
 interface RivalScannerToolProps {
   onBack?: () => void;
+  tools?: any;
+  onToolSelect?: any;
 }
 
 export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {

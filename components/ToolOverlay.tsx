@@ -5,10 +5,10 @@ import { useTranslation } from "next-i18next";
 
 import ScriptwriterTool from "./ScriptwriterTool";
 import SeoTool from "./SeoTool";
-import { RivalScannerTool } from "./RivalScannerTool";
+import RivalScannerTool from "./RivalScannerTool";
 import HiddenChannelFinderTool from "./HiddenChannelFinderTool";
 import ScriptRefinerTool from "./ScriptRefinerTool";
-import { MicroNicheMinerTool } from "./MicroNicheMinerTool";
+import MicroNicheMinerTool from "./MicroNicheMinerTool";
 import StoryStudioTool from "./StoryStudioTool";
 import TextToSpeechTool from "./TextToSpeechTool";
 import VeocityTool from "./VeocityTool";
