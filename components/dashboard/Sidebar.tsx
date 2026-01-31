@@ -20,7 +20,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
     const handleToolClick = (tool: typeof TOOLS[0]) => {
         // Check permission
         if (!hasMinRole(userRole, tool.minRole)) {
-            setLockedMessage(`Tính năng ${tool.name} chỉ dành cho gói ${tool.minRole} trở lên. Vui lòng nâng cấp để sử dụng!`);
+            setLockedMessage(`Tính năng ${tool.label} chỉ dành cho gói ${tool.minRole} trở lên. Vui lòng nâng cấp để sử dụng!`);
             setShowLockedModal(true);
             return;
         }
