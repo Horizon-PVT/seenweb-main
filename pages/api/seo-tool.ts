@@ -54,6 +54,38 @@ const seoSchema = {
         thumbnailCritique: { type: Type.STRING } // Advice for thumbnail
       }
     },
+    // A3. SEO TECHNICAL CHECKLIST (New - VidIQ Gap)
+    checklist: {
+      type: Type.OBJECT,
+      properties: {
+        titleLength: {
+          type: Type.OBJECT,
+          properties: {
+            score: { type: Type.NUMBER },
+            status: { type: Type.STRING }, // "Good", "Warning", "Critical"
+            message: { type: Type.STRING }
+          }
+        },
+        wordCount: {
+          type: Type.OBJECT,
+          properties: {
+            score: { type: Type.NUMBER },
+            status: { type: Type.STRING },
+            message: { type: Type.STRING }
+          }
+        },
+        tagCount: {
+          type: Type.OBJECT,
+          properties: {
+            score: { type: Type.NUMBER },
+            status: { type: Type.STRING },
+            message: { type: Type.STRING }
+          }
+        },
+        hasQuestion: { type: Type.BOOLEAN },
+        hasNumber: { type: Type.BOOLEAN }
+      }
+    },
     // B. CONTENT EXECUTION (Standard SEO)
     content: {
       type: Type.OBJECT,
@@ -113,6 +145,13 @@ interface StrategyOutput {
     titleScore: number;
     titleCritique: string;
     thumbnailCritique: string;
+  };
+  checklist: {
+    titleLength: { score: number; status: string; message: string };
+    wordCount: { score: number; status: string; message: string };
+    tagCount: { score: number; status: string; message: string };
+    hasQuestion: boolean;
+    hasNumber: boolean;
   };
   content: {
     titles: { text: string; viralScore: number }[];
@@ -197,6 +236,13 @@ A. **STRATEGY**:
 - audit.titleScore: Rate input title 0-100.
 - audit.titleCritique: Critique input title in ${outputLanguage} (too long? boring? keyword missing?).
 - audit.thumbnailCritique: What kind of thumbnail usually works for this topic? (in ${outputLanguage}).
+
+**CHECKLIST (TECHNICAL AUDIT)**:
+- checklist.titleLength: Check if input title is 40-60 chars. Score 0-100. Status "Good"/"Warning".
+- checklist.wordCount: Check input script length. Ideal > 200 words.
+- checklist.tagCount: Check if 15-20 tags are provided below.
+- checklist.hasQuestion: true if input title has "?".
+- checklist.hasNumber: true if input title has digit.
 
 B. **CONTENT**:
 1. **titles**: 3 viral titles in **${outputLanguage}**.

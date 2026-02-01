@@ -8,6 +8,7 @@ import HealthCheckCard from './HealthCheckCard';
 import RecentVideosList from './RecentVideosList';
 import ChannelAuditModal from './ChannelAuditModal';
 import VideoAuditModal from './VideoAuditModal';
+import DailyIdeasCard from './DailyIdeasCard';
 
 interface YouTubeStatsCardProps {
     userRole?: string;
@@ -378,6 +379,17 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* DAILY IDEAS (NEW) */}
+                            <div className="mt-6 px-6">
+                                {selectedChannel && (
+                                    <DailyIdeasCard
+                                        role={userRole}
+                                        channelId={selectedChannel.channelId}
+                                        channelTitle={selectedChannel.title}
+                                    />
+                                )}
                             </div>
 
                             {/* BOTTOM CONTENT: Health & Videos */}

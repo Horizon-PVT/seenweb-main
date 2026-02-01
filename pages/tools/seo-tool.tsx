@@ -36,6 +36,18 @@ interface OutputData {
             ourAngle: string;
         };
     };
+    audit: {
+        titleScore: number;
+        titleCritique: string;
+        thumbnailCritique: string;
+    };
+    checklist: {
+        titleLength: { score: number; status: string; message: string };
+        wordCount: { score: number; status: string; message: string };
+        tagCount: { score: number; status: string; message: string };
+        hasQuestion: boolean;
+        hasNumber: boolean;
+    };
     content: {
         titles: {
             text: string;
@@ -86,6 +98,7 @@ export default function SeoToolPage() {
     const [error, setError] = useState('');
     const [output, setOutput] = useState<OutputData | null>(null);
     const [coreIdea, setCoreIdea] = useState('');
+    const [activeTab, setActiveTab] = useState<'strategy' | 'content' | 'checklist'>('strategy'); // New Tab State
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Holographic Grid Animation
@@ -283,138 +296,241 @@ export default function SeoToolPage() {
                     {output && !isLoading && (
                         <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
 
-                            {/* ROW 1: STRATEGIC METRICS */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* CARD 1 */}
-                                <div className="bg-[#00f3ff]/5 border border-[#00f3ff]/30 rounded p-4 relative overflow-hidden group hover:bg-[#00f3ff]/10 transition-all">
-                                    <div className="absolute top-0 right-0 p-2 text-[#00f3ff]/20 group-hover:text-[#00f3ff]/40 transition-all"><Target size={40} /></div>
-                                    <h3 className="text-[#00f3ff] text-[10px] font-bold tracking-widest uppercase mb-1">HOOK EFFICIENCY</h3>
-                                    <div className="text-4xl font-black text-white mb-2 font-numeric">{output.strategy.hook.score}%</div>
-                                    <div className="h-1 w-full bg-[#00f3ff]/20 rounded-full overflow-hidden mb-3">
-                                        <div className="h-full bg-[#00f3ff] shadow-[0_0_10px_#00f3ff]" style={{ width: `${output.strategy.hook.score}%` }}></div>
-                                    </div>
-                                    <p className="text-xs text-gray-300 leading-tight border-l-2 border-[#00f3ff] pl-2">{output.strategy.hook.analysis}</p>
-                                </div>
-
-                                {/* CARD 2 */}
-                                <div className="bg-[#ff0055]/5 border border-[#ff0055]/30 rounded p-4 relative overflow-hidden group hover:bg-[#ff0055]/10 transition-all">
-                                    <div className="absolute top-0 right-0 p-2 text-[#ff0055]/20 group-hover:text-[#ff0055]/40 transition-all"><Zap size={40} /></div>
-                                    <h3 className="text-[#ff0055] text-[10px] font-bold tracking-widest uppercase mb-1">EMOTIONAL CORE</h3>
-                                    <div className="text-2xl font-black text-white mb-1">{output.strategy.emotional.mainTrigger}</div>
-                                    <p className="text-[10px] text-[#ff0055] mb-2">INTENSITY: {output.strategy.emotional.triggerScore}/10</p>
-                                    <p className="text-xs text-gray-300 italic opacity-80">"{output.strategy.emotional.explanation}"</p>
-                                </div>
-
-                                {/* CARD 3 */}
-                                <div className="bg-[#aa00ff]/5 border border-[#aa00ff]/30 rounded p-4 relative overflow-hidden group hover:bg-[#aa00ff]/10 transition-all">
-                                    <div className="absolute top-0 right-0 p-2 text-[#aa00ff]/20 group-hover:text-[#aa00ff]/40 transition-all"><Globe size={40} /></div>
-                                    <h3 className="text-[#aa00ff] text-[10px] font-bold tracking-widest uppercase mb-1">MARKET GAP</h3>
-                                    <div className="inline-block px-2 py-0.5 bg-[#aa00ff]/20 text-[#d08bff] text-[10px] rounded mb-2 font-bold border border-[#aa00ff]/40">
-                                        {output.strategy.spyGap.marketStatus?.toUpperCase()}
-                                    </div>
-                                    <div className="text-xs text-gray-300 mb-1"><span className="text-red-400 font-bold">MISSING:</span> {output.strategy.spyGap.competitorMiss}</div>
-                                    <div className="text-xs text-gray-300"><span className="text-green-400 font-bold">OUR ANGLE:</span> {output.strategy.spyGap.ourAngle}</div>
-                                </div>
+                            {/* TABS NAVIGATION */}
+                            <div className="flex border-b border-[#00f3ff]/20">
+                                <button
+                                    onClick={() => setActiveTab('strategy')}
+                                    className={`px-6 py-3 text-xs font-bold tracking-widest transition-all ${activeTab === 'strategy' ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-b-2 border-[#00f3ff]' : 'text-gray-500 hover:text-[#00f3ff]/60'}`}
+                                >
+                                    1. STRATEGY
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('content')}
+                                    className={`px-6 py-3 text-xs font-bold tracking-widest transition-all ${activeTab === 'content' ? 'bg-[#ff0055]/10 text-[#ff0055] border-b-2 border-[#ff0055]' : 'text-gray-500 hover:text-[#ff0055]/60'}`}
+                                >
+                                    2. CONTENT & THUMBNAILS
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('checklist')}
+                                    className={`px-6 py-3 text-xs font-bold tracking-widest transition-all ${activeTab === 'checklist' ? 'bg-[#00ff88]/10 text-[#00ff88] border-b-2 border-[#00ff88]' : 'text-gray-500 hover:text-[#00ff88]/60'}`}
+                                >
+                                    3. SEO CHECKLIST (NEW)
+                                </button>
                             </div>
 
-                            {/* ROW 2: CONTENT GENERATION */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* TITLES */}
-                                <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-4">
-                                    <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
-                                        OPTIMIZED TITLES
-                                    </h3>
-                                    <div className="space-y-3">
-                                        {output.content.titles.map((t, i) => (
-                                            <div key={i} className="group relative p-3 bg-black/40 border border-[#00f3ff]/10 hover:border-[#00f3ff]/40 hover:bg-[#00f3ff]/5 rounded transition-all">
-                                                <div className="flex justify-between items-start gap-4">
-                                                    <div className="text-sm font-medium text-gray-200">{t.text}</div>
-                                                    <CopyButton textToCopy={t.text} />
-                                                </div>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <div className="h-1 w-20 bg-gray-800 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-green-500" style={{ width: `${t.viralScore}%` }}></div>
-                                                    </div>
-                                                    <span className="text-[9px] text-green-400 font-bold">V-SCORE: {t.viralScore}</span>
-                                                </div>
-                                            </div>
-                                        ))}
+                            {/* TAB 1: STRATEGY */}
+                            {activeTab === 'strategy' && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-left-4 duration-300">
+                                    {/* CARD 1 */}
+                                    <div className="bg-[#00f3ff]/5 border border-[#00f3ff]/30 rounded p-4 relative overflow-hidden group hover:bg-[#00f3ff]/10 transition-all">
+                                        <div className="absolute top-0 right-0 p-2 text-[#00f3ff]/20 group-hover:text-[#00f3ff]/40 transition-all"><Target size={40} /></div>
+                                        <h3 className="text-[#00f3ff] text-[10px] font-bold tracking-widest uppercase mb-1">HOOK EFFICIENCY</h3>
+                                        <div className="text-4xl font-black text-white mb-2 font-numeric">{output.strategy.hook.score}%</div>
+                                        <div className="h-1 w-full bg-[#00f3ff]/20 rounded-full overflow-hidden mb-3">
+                                            <div className="h-full bg-[#00f3ff] shadow-[0_0_10px_#00f3ff]" style={{ width: `${output.strategy.hook.score}%` }}></div>
+                                        </div>
+                                        <p className="text-xs text-gray-300 leading-tight border-l-2 border-[#00f3ff] pl-2">{output.strategy.hook.analysis}</p>
+                                    </div>
+
+                                    {/* CARD 2 */}
+                                    <div className="bg-[#ff0055]/5 border border-[#ff0055]/30 rounded p-4 relative overflow-hidden group hover:bg-[#ff0055]/10 transition-all">
+                                        <div className="absolute top-0 right-0 p-2 text-[#ff0055]/20 group-hover:text-[#ff0055]/40 transition-all"><Zap size={40} /></div>
+                                        <h3 className="text-[#ff0055] text-[10px] font-bold tracking-widest uppercase mb-1">EMOTIONAL CORE</h3>
+                                        <div className="text-2xl font-black text-white mb-1">{output.strategy.emotional.mainTrigger}</div>
+                                        <p className="text-[10px] text-[#ff0055] mb-2">INTENSITY: {output.strategy.emotional.triggerScore}/10</p>
+                                        <p className="text-xs text-gray-300 italic opacity-80">"{output.strategy.emotional.explanation}"</p>
+                                    </div>
+
+                                    {/* CARD 3 */}
+                                    <div className="bg-[#aa00ff]/5 border border-[#aa00ff]/30 rounded p-4 relative overflow-hidden group hover:bg-[#aa00ff]/10 transition-all">
+                                        <div className="absolute top-0 right-0 p-2 text-[#aa00ff]/20 group-hover:text-[#aa00ff]/40 transition-all"><Globe size={40} /></div>
+                                        <h3 className="text-[#aa00ff] text-[10px] font-bold tracking-widest uppercase mb-1">MARKET GAP</h3>
+                                        <div className="inline-block px-2 py-0.5 bg-[#aa00ff]/20 text-[#d08bff] text-[10px] rounded mb-2 font-bold border border-[#aa00ff]/40">
+                                            {output.strategy.spyGap.marketStatus?.toUpperCase()}
+                                        </div>
+                                        <div className="text-xs text-gray-300 mb-1"><span className="text-red-400 font-bold">MISSING:</span> {output.strategy.spyGap.competitorMiss}</div>
+                                        <div className="text-xs text-gray-300"><span className="text-green-400 font-bold">OUR ANGLE:</span> {output.strategy.spyGap.ourAngle}</div>
                                     </div>
                                 </div>
+                            )}
 
-                                {/* DESCRIPTION & TAGS */}
-                                <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-4 flex flex-col gap-4">
-                                    <div>
-                                        <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
-                                            <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
-                                            SEO DESCRIPTION
-                                        </h3>
-                                        <div className="relative group">
-                                            <div className="p-3 bg-black/40 border border-[#00f3ff]/10 rounded text-xs text-gray-300 font-sans whitespace-pre-wrap h-40 overflow-y-auto custom-scrollbar">
-                                                {output.content.description.body}
+                            {/* TAB 2: CONTENT */}
+                            {activeTab === 'content' && (
+                                <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* TITLES */}
+                                        <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-4">
+                                            <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
+                                                <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
+                                                OPTIMIZED TITLES
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {output.content.titles.map((t, i) => (
+                                                    <div key={i} className="group relative p-3 bg-black/40 border border-[#00f3ff]/10 hover:border-[#00f3ff]/40 hover:bg-[#00f3ff]/5 rounded transition-all">
+                                                        <div className="flex justify-between items-start gap-4">
+                                                            <div className="text-sm font-medium text-gray-200">{t.text}</div>
+                                                            <CopyButton textToCopy={t.text} />
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-2">
+                                                            <div className="h-1 w-20 bg-gray-800 rounded-full overflow-hidden">
+                                                                <div className="h-full bg-green-500" style={{ width: `${t.viralScore}%` }}></div>
+                                                            </div>
+                                                            <span className="text-[9px] text-green-400 font-bold">V-SCORE: {t.viralScore}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <CopyButton textToCopy={output.content.description.body} />
+                                        </div>
+
+                                        {/* DESCRIPTION & TAGS */}
+                                        <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-4 flex flex-col gap-4">
+                                            <div>
+                                                <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
+                                                    <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
+                                                    SEO DESCRIPTION
+                                                </h3>
+                                                <div className="relative group">
+                                                    <div className="p-3 bg-black/40 border border-[#00f3ff]/10 rounded text-xs text-gray-300 font-sans whitespace-pre-wrap h-40 overflow-y-auto custom-scrollbar">
+                                                        {output.content.description.body}
+                                                    </div>
+                                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <CopyButton textToCopy={output.content.description.body} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex-grow">
+                                                <h3 className="text-white text-xs font-bold uppercase mb-2 flex items-center justify-between">
+                                                    <span>TAGS CLOUD</span>
+                                                    <CopyButton textToCopy={output.content.tags.map(t => t.text).join(', ')} />
+                                                </h3>
+                                                <div className="flex flex-wrap gap-1.5 align-content-start h-full">
+                                                    {output.content.tags.map((tag, i) => (
+                                                        <span key={i} className="px-2 py-0.5 bg-[#00f3ff]/5 border border-[#00f3ff]/20 text-[#00f3ff] text-[10px] rounded hover:bg-[#00f3ff] hover:text-black transition-colors cursor-default">
+                                                            {tag.text}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex-grow">
-                                        <h3 className="text-white text-xs font-bold uppercase mb-2 flex items-center justify-between">
-                                            <span>TAGS CLOUD</span>
-                                            <CopyButton textToCopy={output.content.tags.map(t => t.text).join(', ')} />
+                                    {/* ROW 3: THUMBNAILS */}
+                                    <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-6">
+                                        <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
+                                            VISUAL CONCEPTS (A/B TESTING)
                                         </h3>
-                                        <div className="flex flex-wrap gap-1.5 align-content-start h-full">
-                                            {output.content.tags.map((tag, i) => (
-                                                <span key={i} className="px-2 py-0.5 bg-[#00f3ff]/5 border border-[#00f3ff]/20 text-[#00f3ff] text-[10px] rounded hover:bg-[#00f3ff] hover:text-black transition-colors cursor-default">
-                                                    {tag.text}
-                                                </span>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {output.content.thumbnails.map((thumb, i) => (
+                                                <div key={i} className="bg-black/40 border border-[#00f3ff]/10 rounded p-4 flex flex-col relative group hover:border-[#00f3ff]/40 transition-all">
+                                                    <div className="absolute -top-3 left-4 bg-[#050b14] px-2 text-[#00f3ff] text-[10px] font-bold border border-[#00f3ff]/30 rounded">
+                                                        CONCEPT {String.fromCharCode(65 + i)}
+                                                    </div>
+                                                    <div className="mt-2 mb-4">
+                                                        <div className="text-white font-black text-lg leading-tight uppercase mb-2 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]">
+                                                            "{thumb.text}"
+                                                        </div>
+                                                        <p className="text-xs text-gray-400 font-sans">{thumb.concept}</p>
+                                                    </div>
+                                                    <div className="mt-auto space-y-2">
+                                                        <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                                                            <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: thumb.colorPalette.split(' ')[0] }}></span>
+                                                            {thumb.colorPalette}
+                                                        </div>
+                                                        <div className="bg-[#00f3ff]/5 p-2 rounded border border-[#00f3ff]/10 text-[10px] text-[#00f3ff]/70 font-mono break-all line-clamp-2 hover:line-clamp-none transition-all cursor-help relative group/prompt">
+                                                            PROMPT: {thumb.prompt}
+                                                            <div className="absolute top-1 right-1 opacity-0 group-hover/prompt:opacity-100">
+                                                                <CopyButton textToCopy={thumb.prompt} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {/* ROW 3: THUMBNAILS */}
-                            <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-6">
-                                <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
-                                    VISUAL CONCEPTS (A/B TESTING)
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {output.content.thumbnails.map((thumb, i) => (
-                                        <div key={i} className="bg-black/40 border border-[#00f3ff]/10 rounded p-4 flex flex-col relative group hover:border-[#00f3ff]/40 transition-all">
-                                            <div className="absolute -top-3 left-4 bg-[#050b14] px-2 text-[#00f3ff] text-[10px] font-bold border border-[#00f3ff]/30 rounded">
-                                                CONCEPT {String.fromCharCode(65 + i)}
-                                            </div>
-                                            <div className="mt-2 mb-4">
-                                                <div className="text-white font-black text-lg leading-tight uppercase mb-2 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]">
-                                                    "{thumb.text}"
+                            {/* TAB 3: CHECKLIST (New) */}
+                            {activeTab === 'checklist' && output.checklist && (
+                                <div className="grid grid-cols-1 gap-6 animate-in fade-in zoom-in duration-300">
+                                    <div className="bg-[#0a1520]/80 border border-[#00ff88]/20 rounded p-6">
+                                        <h3 className="text-white text-xs font-bold uppercase mb-6 flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-[#00ff88] rounded-full shadow-[0_0_5px_#00ff88]"></span>
+                                            TECHNICAL SEO AUDIT (VIDIQ STANDARD)
+                                        </h3>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            {/* Left: Scorecard */}
+                                            <div className="space-y-6">
+                                                {/* Title Length */}
+                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded border border-gray-800">
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white mb-1">Title Length</div>
+                                                        <div className={`text-xs ${output.checklist.titleLength.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                            {output.checklist.titleLength.message}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`text-xl font-bold ${output.checklist.titleLength.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {output.checklist.titleLength.score}/100
+                                                    </div>
                                                 </div>
-                                                <p className="text-xs text-gray-400 font-sans">{thumb.concept}</p>
-                                            </div>
-                                            <div className="mt-auto space-y-2">
-                                                <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                                                    <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: thumb.colorPalette.split(' ')[0] }}></span>
-                                                    {thumb.colorPalette}
+
+                                                {/* Word Count */}
+                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded border border-gray-800">
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white mb-1">Script Depth</div>
+                                                        <div className={`text-xs ${output.checklist.wordCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                            {output.checklist.wordCount.message}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`text-xl font-bold ${output.checklist.wordCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {output.checklist.wordCount.score}/100
+                                                    </div>
                                                 </div>
-                                                <div className="bg-[#00f3ff]/5 p-2 rounded border border-[#00f3ff]/10 text-[10px] text-[#00f3ff]/70 font-mono break-all line-clamp-2 hover:line-clamp-none transition-all cursor-help relative group/prompt">
-                                                    PROMPT: {thumb.prompt}
-                                                    <div className="absolute top-1 right-1 opacity-0 group-hover/prompt:opacity-100">
-                                                        <CopyButton textToCopy={thumb.prompt} />
+
+                                                {/* Tags */}
+                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded border border-gray-800">
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white mb-1">Tag Volume</div>
+                                                        <div className={`text-xs ${output.checklist.tagCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                            {output.checklist.tagCount.message}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`text-xl font-bold ${output.checklist.tagCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {output.checklist.tagCount.score}/100
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {/* Right: Engagement Checks */}
+                                            <div className="space-y-4">
+                                                <div className={`p-4 rounded border ${output.checklist.hasQuestion ? 'bg-[#00ff88]/10 border-[#00ff88]/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        {output.checklist.hasQuestion ? <Check className="text-[#00ff88]" /> : <div className="text-red-500">✕</div>}
+                                                        <span className="font-bold text-white">Curiosity Question in Title</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-2">Titles with questions ("?") have 2x higher CTR.</p>
+                                                </div>
+
+                                                <div className={`p-4 rounded border ${output.checklist.hasNumber ? 'bg-[#00ff88]/10 border-[#00ff88]/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        {output.checklist.hasNumber ? <Check className="text-[#00ff88]" /> : <div className="text-red-500">✕</div>}
+                                                        <span className="font-bold text-white">Contains Numbers/Lists</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-2">Numbers (e.g. "Top 5") stop the scroll effectively.</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                         </div>
                     )}
                 </div>
-            </main>
+            </main >
 
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar {
@@ -434,6 +550,6 @@ export default function SeoToolPage() {
                     font-variant-numeric: tabular-nums;
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

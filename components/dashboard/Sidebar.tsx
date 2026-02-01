@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { signOut } from 'next-auth/react';
+import { Home, Globe } from 'lucide-react';
 import { TOOLS } from '@/lib/tool-config';
 import { hasMinRole } from '@/lib/tab-access';
 import LockedFeatureModal from './LockedFeatureModal';
@@ -41,9 +42,12 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
     return (
         <>
             <div className="w-64 bg-[#0D0D10] border-r border-gray-800 flex-shrink-0 flex flex-col h-screen fixed left-0 top-0 z-50">
-                {/* Logo Area */}
-                <div className="p-6 flex items-center gap-2 mb-2 cursor-pointer" onClick={handleHomeClick}>
-                    <div className="w-8 h-8 bg-gradient-to-br from-[#CDAD5A] to-[#F2E5BC] rounded-lg shadow-[0_0_15px_rgba(205,173,90,0.3)]"></div>
+                <div className="p-6 flex items-center gap-3 mb-2 cursor-pointer" onClick={handleHomeClick}>
+                    <img
+                        src="/seenyt-logo.jpg"
+                        alt="SeenYT Logo"
+                        className="w-8 h-8 rounded-lg shadow-[0_0_15px_rgba(205,173,90,0.3)] object-cover"
+                    />
                     <span className="text-xl font-bold text-white tracking-wide">SeenYT</span>
                 </div>
 
@@ -65,19 +69,33 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                 `}</style>
                 <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar pb-20">
 
-                    {/* Dashboard Home */}
-                    <div
-                        onClick={handleHomeClick}
-                        className={`
-              flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group mb-4
-              ${!activeTool && router.pathname === '/dashboard'
-                                ? 'bg-[#CDAD5A]/10 text-[#CDAD5A] font-bold border border-[#CDAD5A]/20'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                            }
-            `}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                        <span className="flex-1">Tổng quan</span>
+                    {/* Dashboard Home & External Link */}
+                    <div className="flex gap-2 px-4 mb-4">
+                        {/* Dashboard Overview */}
+                        <div
+                            onClick={handleHomeClick}
+                            className={`
+                  flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-200 cursor-pointer group
+                  ${!activeTool && router.pathname === '/dashboard'
+                                    ? 'bg-[#CDAD5A]/10 text-[#CDAD5A] font-bold border border-[#CDAD5A]/20'
+                                    : 'text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700'
+                                }
+                `}
+                        >
+                            <Home size={20} strokeWidth={1.5} />
+                            <span className="text-[10px] uppercase tracking-widest mt-1">Tổng quan</span>
+                        </div>
+
+                        {/* External Website Link */}
+                        <a
+                            href="https://www.seenyt.net/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700 transition-all duration-200 cursor-pointer group"
+                        >
+                            <Globe size={20} strokeWidth={1.5} />
+                            <span className="text-[10px] uppercase tracking-widest mt-1">Website</span>
+                        </a>
                     </div>
 
                     <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 tracking-wider">CÔNG CỤ CỦA TÔI</div>
@@ -144,10 +162,10 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                         </button>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Locked Feature Modal handled within Sidebar for access control feedback */}
-            <LockedFeatureModal
+            < LockedFeatureModal
                 isOpen={showLockedModal}
                 onClose={() => setShowLockedModal(false)}
                 title="Tính năng cao cấp"
