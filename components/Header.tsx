@@ -55,48 +55,68 @@ const Header: React.FC = () => {
         </Link>
 
         {/* NAV */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-6">
+          {/* 1. Huấn luyện */}
           <Link
             href="/coaching"
             className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
           >
-            Coaching 1-1
+            {t('menu.coaching', 'Huấn luyện')}
           </Link>
 
-          <a
-            href="#bang-cong-cu-seenyt"
-            onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
+          {/* 2. Cá nhân */}
+          <Link
+            href="/dashboard"
             className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
           >
-            {t('menu.tools', 'Bảng công cụ')}
-          </a>
-
-          <a
-            href="#pricing"
-            onClick={(e) => handleNavClick(e, "#pricing")}
-            className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm"
-          >
-            {t('menu.pricing', 'Bảng giá')}
-          </a>
-
-
-
-
-
-
-          <Link
-            href="/affiliate"
-            className="text-[#00a3a3] hover:text-[#4ddcdc] transition-colors duration-300 font-semibold text-sm uppercase"
-          >
-            {t('menu.affiliate', 'Trở thành đối tác')}
+            {t('menu.personal', 'Cá nhân')}
           </Link>
 
-          <Link
-            href="/tuyendung"
-            className="text-cyan-400 hover:text-cyan-300 transition-colors duration-300 font-bold text-sm tracking-wide bg-cyan-500/10 px-4 py-2 rounded-full border border-cyan-500/20 hover:border-cyan-500/50"
-          >
-            {t('menu.hiring', 'TUYỂN DỤNG')}
-          </Link>
+          {/* 3. Tính năng Dropdown */}
+          <div className="relative group">
+            <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm py-2">
+              {t('menu.features', 'Tính năng')}
+              <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b] border border-white/10 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
+              <a
+                href="#bang-cong-cu-seenyt"
+                onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
+                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-[#CDAD5A] transition-colors"
+              >
+                {t('menu.tools', 'Bảng công cụ')}
+              </a>
+              <a
+                href="#pricing"
+                onClick={(e) => handleNavClick(e, "#pricing")}
+                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-[#CDAD5A] transition-colors"
+              >
+                {t('menu.pricing', 'Bảng giá')}
+              </a>
+            </div>
+          </div>
+
+          {/* 4. Khám phá Dropdown */}
+          <div className="relative group">
+            <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm py-2">
+              {t('menu.explore', 'Khám phá')}
+              <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div className="absolute top-full left-0 mt-0 w-56 bg-[#18181b] border border-white/10 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
+              <Link
+                href="/affiliate"
+                className="block px-4 py-3 text-sm text-[#00a3a3] hover:bg-white/5 hover:text-[#4ddcdc] transition-colors uppercase font-semibold"
+              >
+                {t('menu.affiliate', 'Trở thành đối tác')}
+              </Link>
+              <Link
+                href="/tuyendung"
+                className="block px-4 py-3 text-sm text-cyan-400 hover:bg-white/5 hover:text-cyan-300 transition-colors font-bold tracking-wide"
+              >
+                {t('menu.hiring', 'TUYỂN DỤNG')}
+              </Link>
+            </div>
+          </div>
         </nav>
 
         {/* RIGHT SIDE */}

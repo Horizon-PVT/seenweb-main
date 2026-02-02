@@ -7,7 +7,11 @@
         "login": "Đăng nhập",
         "logout": "Đăng xuất",
         "affiliate": "Trở thành đối tác",
-        "hiring": "TUYỂN DỤNG"
+        "hiring": "TUYỂN DỤNG",
+        "coaching": "Huấn luyện",
+        "personal": "Cá nhân",
+        "features": "Tính năng",
+        "explore": "Khám phá"
     },
     "nav": {
         "all": "Tất cả",
@@ -283,7 +287,7 @@
     },
     "footer": {
         "copyright": "© 2025 SeenYT. Bảo lưu mọi quyền.",
-        "tagline": "Sang phẳng cuộc chơi YouTube bằng sức mạnh của AI tiên tiến nhất.",
+        "tagline": "Sứ mệnh của SeenYT là trao quyền cho mọi creator Việt Nam – đặc biệt là những bạn mới bắt đầu, không cần kinh nghiệm, không cần vốn lớn – có thể tạo nội dung chất lượng, tìm được ngách kiếm tiền cao, tối ưu SEO, thumbnail, kịch bản… để biến đam mê YouTube thành nguồn thu nhập thực sự và bền vững.\nChúng tôi tin rằng: Ai cũng xứng đáng có cơ hội tỏa sáng trên YouTube, không phân biệt xuất phát điểm. Và SeenYT sẽ luôn đồng hành cùng các bạn trên hành trình đó.",
         "affiliate_program": "Affiliate Program",
         "company": "Sản phẩm của Công Ty CP Dịch Vụ Quốc Tế NTC",
         "navigation": "Điều Hướng",

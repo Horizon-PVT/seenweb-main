@@ -34,6 +34,35 @@ export default function AdminBlog({ session }: Props) {
     const [statusFilter, setStatusFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+    const [uploading, setUploading] = useState(false);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+
+        try {
+            const res = await fetch('/api/admin/upload', {
+                method: 'POST',
+                body: uploadFormData,
+            });
+
+            if (!res.ok) throw new Error('Upload failed');
+
+            const data = await res.json();
+            setFormData(prev => ({ ...prev, coverImage: data.url }));
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Lỗi tải ảnh lêng');
+        } finally {
+            setUploading(false);
+            // Reset input value to allow re-selecting same file if needed
+            e.target.value = '';
+        }
+    };
 
     const [formData, setFormData] = useState({
         title: '',
@@ -239,8 +268,8 @@ export default function AdminBlog({ session }: Props) {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${post.status === 'PUBLISHED'
-                                                        ? 'bg-green-500/20 text-green-400'
-                                                        : 'bg-yellow-500/20 text-yellow-400'
+                                                    ? 'bg-green-500/20 text-green-400'
+                                                    : 'bg-yellow-500/20 text-yellow-400'
                                                     }`}>
                                                     {post.status === 'PUBLISHED' ? 'Đã xuất bản' : 'Bản nháp'}
                                                 </span>
@@ -330,24 +359,66 @@ export default function AdminBlog({ session }: Props) {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Ảnh bìa (URL)
+                                    Ảnh bìa
                                 </label>
-                                <input
-                                    type="url"
-                                    value={formData.coverImage}
-                                    onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
-                                />
-                                {formData.coverImage && (
-                                    <img
-                                        src={formData.coverImage}
-                                        alt="Preview"
-                                        className="mt-2 w-full h-48 object-cover rounded-lg"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                        }}
-                                    />
-                                )}
+
+                                {/* Image Upload UI */}
+                                <div className="space-y-4">
+                                    {formData.coverImage ? (
+                                        <div className="relative group rounded-lg overflow-hidden border border-gray-600">
+                                            <img
+                                                src={formData.coverImage}
+                                                alt="Cover Preview"
+                                                className="w-full h-64 object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                                                }}
+                                            />
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, coverImage: '' })}
+                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-[#CDAD5A] transition-colors cursor-pointer relative">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                disabled={uploading}
+                                                onChange={handleImageUpload}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                                            />
+                                            {uploading ? (
+                                                <div className="flex flex-col items-center text-[#CDAD5A]">
+                                                    <div className="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin mb-2" />
+                                                    <span>Đang tải ảnh lên...</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center text-gray-400">
+                                                    <div className="p-3 bg-gray-700 rounded-full mb-3">
+                                                        <Plus size={24} />
+                                                    </div>
+                                                    <p className="font-medium">Nhấn để tải ảnh lên</p>
+                                                    <p className="text-xs mt-1">PNG, JPG, GIF (Max 10MB)</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Fallback URL Input (Optional, kept hidden or secondary if needed, or just replaced) */}
+                                    {/* <input
+                                        type="url"
+                                        placeholder="Hoặc nhập URL ảnh..."
+                                        value={formData.coverImage}
+                                        onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
+                                    /> */}
+                                </div>
                             </div>
 
                             <div>

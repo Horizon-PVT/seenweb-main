@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
             <h4 className="text-2xl font-playfair font-bold text-[#CDAD5A] tracking-widest mb-4">
               SeenYT
             </h4>
-            <p className="text-gray-500 max-w-md">
+            <p className="text-gray-500 max-w-xl whitespace-pre-line">
               {t('footer.tagline', 'Level the YouTube playing field with the power of advanced AI.')}
             </p>
             <div className="flex flex-wrap gap-4 mt-3">

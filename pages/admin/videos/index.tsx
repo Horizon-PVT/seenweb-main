@@ -10,7 +10,7 @@ export default function AdminVideos({ session }: any) {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
-    const [formData, setFormData] = useState({ title: '', youtubeUrl: '', thumbnailUrl: '', description: '', tags: '', status: 'DRAFT', displayOrder: 0 });
+    const [formData, setFormData] = useState({ title: '', youtubeUrl: '', thumbnailUrl: '', description: '', tags: '', status: 'DRAFT', displayOrder: 0, type: 'TUTORIAL' });
 
     useEffect(() => { fetchData(); }, []);
 
@@ -27,10 +27,10 @@ export default function AdminVideos({ session }: any) {
     const handleOpenModal = (item?: any) => {
         if (item) {
             setEditingItem(item);
-            setFormData({ title: item.title, youtubeUrl: item.youtubeUrl, thumbnailUrl: item.thumbnailUrl || '', description: item.description || '', tags: item.tags || '', status: item.status, displayOrder: item.displayOrder || 0 });
+            setFormData({ title: item.title, youtubeUrl: item.youtubeUrl, thumbnailUrl: item.thumbnailUrl || '', description: item.description || '', tags: item.tags || '', status: item.status, displayOrder: item.displayOrder || 0, type: item.type || 'TUTORIAL' });
         } else {
             setEditingItem(null);
-            setFormData({ title: '', youtubeUrl: '', thumbnailUrl: '', description: '', tags: '', status: 'DRAFT', displayOrder: 0 });
+            setFormData({ title: '', youtubeUrl: '', thumbnailUrl: '', description: '', tags: '', status: 'DRAFT', displayOrder: 0, type: 'TUTORIAL' });
         }
         setShowModal(true);
     };
@@ -80,6 +80,7 @@ export default function AdminVideos({ session }: any) {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">#</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Tiêu đề</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">YouTube ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Loại</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Trạng thái</th>
                                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase">Thao tác</th>
                             </tr>
@@ -92,6 +93,11 @@ export default function AdminVideos({ session }: any) {
                                             <td className="px-6 py-4 text-sm text-gray-300">{idx + 1}</td>
                                             <td className="px-6 py-4 text-sm font-medium text-white">{item.title}</td>
                                             <td className="px-6 py-4 text-xs text-gray-400 font-mono">{item.youtubeId}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-1 text-xs font-bold rounded border ${item.type === 'STRATEGY' ? 'border-purple-500 text-purple-400' : 'border-blue-500 text-blue-400'}`}>
+                                                    {item.type === 'STRATEGY' ? 'Chiến Lược' : item.type === 'TESTIMONIAL' ? 'Feedback' : 'Hưỡng Dẫn'}
+                                                </span>
+                                            </td>
                                             <td className="px-6 py-4"><span className={`px-2 py-1 text-xs font-medium rounded-full ${item.status === 'PUBLISHED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{item.status === 'PUBLISHED' ? 'Đã xuất bản' : 'Bản nháp'}</span></td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-center space-x-2">
@@ -121,6 +127,14 @@ export default function AdminVideos({ session }: any) {
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Mô tả</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Tags (phân cách bằng dấu phẩy)</label><input type="text" value={formData.tags} onChange={(e) => setFormData({ ...formData, tags: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" placeholder="tutorial, tips, youtube" /></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Display Order</label><input type="number" value={formData.displayOrder} onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Loại Video</label>
+                                <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]">
+                                    <option value="TUTORIAL">Hướng Dẫn Tool (Series)</option>
+                                    <option value="STRATEGY">Chiến Lược (Academy)</option>
+                                    <option value="TESTIMONIAL">Feedback/Cảm nhận</option>
+                                </select>
+                            </div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Trạng thái</label><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="DRAFT">Bản nháp</option><option value="PUBLISHED">Xuất bản</option></select></div>
                             <div className="flex justify-end space-x-3 pt-4">
                                 <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">Hủy</button>

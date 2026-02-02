@@ -37,6 +37,14 @@ const BlogIndex: React.FC<{ posts: Post[] }> = ({ posts }) => {
   return (
     <section className="min-h-screen bg-[#0A1929] py-16 px-4">
       <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <Link href="/" className="inline-flex items-center text-[#CDAD5A] hover:text-[#CDAD5A]/80 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Trở về trang chủ
+          </Link>
+        </div>
         <h1 className="text-6xl font-black text-center text-[#CDAD5A] mb-12 uppercase tracking-wider">BLOG & TÀI NGUYÊN SEENYT</h1>
         {posts.length === 0 ? (
           <p className="text-center text-[#CDAD5A] text-2xl">Chưa có bài viết nào được xuất bản</p>

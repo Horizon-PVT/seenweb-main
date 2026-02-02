@@ -219,6 +219,7 @@ model VideoTip {
   thumbnailUrl String?
   description  String?  @db.Text
   tags         String?
+  type         String   @default("TUTORIAL") // TUTORIAL (Tool Guide), STRATEGY (Academy), TESTIMONIAL, BLOG
   status       String   @default("DRAFT")
   displayOrder Int      @default(0)
   createdAt    DateTime @default(now())

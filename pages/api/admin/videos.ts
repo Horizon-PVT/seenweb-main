@@ -40,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     tags: tags || null,
                     status: status || 'DRAFT',
                     displayOrder: displayOrder || 0,
+                    type: req.body.type || 'TUTORIAL',
                 },
             });
             return res.status(201).json(video);
@@ -55,6 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (tags !== undefined) updateData.tags = tags || null;
             if (status !== undefined) updateData.status = status;
             if (displayOrder !== undefined) updateData.displayOrder = displayOrder;
+            if (req.body.type !== undefined) updateData.type = req.body.type;
 
             if (youtubeUrl !== undefined) {
                 const youtubeId = extractYouTubeId(youtubeUrl);
