@@ -4,8 +4,9 @@ module.exports = {
     i18n: {
         defaultLocale: 'vi',
         locales: ['vi', 'en', 'ja', 'ko', 'th', 'id', 'es'],
-        localeDetection: false, // Turn off auto-detection to rely on button selection
+        localeDetection: false,
     },
-    localePath: path.resolve('./public/locales'),
+    // Sử dụng process.cwd() để đảm bảo Vercel tìm đúng đường dẫn root
+    localePath: path.resolve(process.cwd(), 'public/locales'),
     reloadOnPrerender: process.env.NODE_ENV === 'development',
 }

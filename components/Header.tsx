@@ -140,10 +140,9 @@ const Header: React.FC = () => {
         {/* RIGHT SIDE */}
         <div className="flex items-center space-x-4">
 
-          {/* Language Selector - Globe Icon Dropdown */}
-          <div className="relative group">
+          {/* Language Selector - TEMPORARILY HIDDEN FOR STABILITY */}
+          {/* <div className="relative group">
             <button className="flex items-center gap-2 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 p-2 rounded-md hover:bg-white/5">
-              {/* Globe Icon */}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
@@ -151,7 +150,8 @@ const Header: React.FC = () => {
               <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
               </svg>
-            </button>
+            </button> */}
+
 
             {/* Dropdown Menu */}
             <div className="absolute top-full right-0 mt-1 w-48 bg-[#18181b] border border-white/10 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right translate-y-2 group-hover:translate-y-0 overflow-hidden z-50">
@@ -225,7 +225,7 @@ const Header: React.FC = () => {
                 {router.locale === 'es' && <span className="ml-auto text-xs">✓</span>}
               </button>
             </div>
-          </div>
+          </div> */}`
 
           {isLoadingSession ? (
             <span className="text-white/60 text-sm font-semibold">
@@ -263,7 +263,7 @@ const Header: React.FC = () => {
       </div>
 
       <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-    </header>
+    </header >
   );
 };
 
