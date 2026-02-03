@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = {
     i18n: {
         defaultLocale: 'vi',
-        locales: ['vi', 'en', 'ja', 'ko', 'th', 'id', 'es'],
+        locales: ['vi'], // Force single language: Vietnamese
         localeDetection: false,
     },
     // Sử dụng process.cwd() để đảm bảo Vercel tìm đúng đường dẫn root
