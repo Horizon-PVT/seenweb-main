@@ -3,6 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
+import { USAGE_LIMITS } from '@/lib/roles';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Allow GET for PayOS verification check
@@ -137,6 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     extraChannelSlots: isSlotUpgrade ? extraSlotsToAdd : 0,
                     membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                     dubbingCredits: 10, // Default starter
+                    maxDailyUsage: USAGE_LIMITS[(isSlotUpgrade ? 'SUPER' : paymentRequest.role) as keyof typeof USAGE_LIMITS] || 3,
                 }
             });
         } else {
@@ -158,6 +160,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 // Normal Plan Upgrade
                 updateData.role = paymentRequest.role;
                 updateData.dubbingCredits = { increment: dubbingCreditsToAdd };
+                // FIX: Update quota limit based on new role
+                updateData.maxDailyUsage = USAGE_LIMITS[paymentRequest.role as keyof typeof USAGE_LIMITS];
             }
 
             user = await prisma.user.update({
