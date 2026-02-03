@@ -34,7 +34,16 @@ const Header: React.FC = () => {
   };
 
   const changeLanguage = (locale: string) => {
-    router.push({ pathname: router.pathname, query: router.query }, router.asPath, { locale });
+    // Set cookie for persistence (optional but good for production)
+    document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+
+    // Use window.location as last resort fallback if router fails, but try router first
+    router.push({ pathname: router.pathname, query: router.query }, router.asPath, { locale, scroll: false })
+      .catch((err) => {
+        // Fallback for some dynamic route edge cases
+        console.error('Language switch failed via router, trying window.location', err);
+        window.location.href = `/${locale}${router.asPath}`;
+      });
   };
 
   return (
