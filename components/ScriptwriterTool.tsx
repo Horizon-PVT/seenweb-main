@@ -4,6 +4,7 @@ import Head from 'next/head'; // Kept but can be removed if strictly component
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useTranslation } from 'next-i18next';
 import UpgradeModal from './UpgradeModal'; // ADDED
 import { AnimatePresence } from 'framer-motion'; // ADDED
 import {
@@ -51,6 +52,7 @@ interface ScriptwriterToolProps {
 
 export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
     const { data: session } = useSession();
+    const { t } = useTranslation('common');
     // const router = useRouter(); // Might cause issues in dashboard if not wrapped, but usually fine.
     const userRole = (session?.user as any)?.role || 'FREE';
 
@@ -113,12 +115,12 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
 
     const handleSaveProject = async () => {
         if (!session) {
-            alert("Vui lòng đăng nhập để lưu dự án!");
+            alert(t('scriptwriter_tool.login_to_save'));
             return;
         }
         if (!outputScript) return;
 
-        const name = prompt("Đặt tên dự án:", idea.substring(0, 30) + "...") || `Script ${new Date().toLocaleString()}`;
+        const name = prompt(t('scriptwriter_tool.project_name_prompt'), idea.substring(0, 30) + "...") || `Script ${new Date().toLocaleString()}`;
 
         setIsLoading(true);
         try {
@@ -135,16 +137,16 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.error || "Lỗi không xác định");
+                throw new Error(data.error || t('common_tool.error'));
             }
 
             if (data.project) {
                 setCurrentProjectId(data.project.id);
-                alert("✅ Đã lưu dự án thành công!");
+                alert(t('scriptwriter_tool.saved_success'));
                 fetchProjects(); // Refresh list
             }
         } catch (e: any) {
-            alert(`❌ Lưu thất bại: ${e.message}`);
+            alert(`${t('scriptwriter_tool.save_failed')} ${e.message}`);
             console.error(e);
         } finally {
             setIsLoading(false);
@@ -180,7 +182,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
             return;
         }
         if (!idea) {
-            setError("Vui lòng nhập ý tưởng.");
+            setError(t('scriptwriter_tool.enter_idea'));
             return;
         }
 
@@ -216,7 +218,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
         if (!outputScript) return;
 
         if (['FREE', 'CREATIVE', 'USER'].includes(userRole) && type !== 'translate') {
-            alert("Tính năng dành riêng cho gói PRO/VIP.");
+            alert(t('scriptwriter_tool.pro_vip_feature'));
             return;
         }
 
@@ -322,7 +324,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => {
-                            if (confirm("TẠO MỚI? Dữ liệu chưa lưu (Save) sẽ bị mất.")) {
+                            if (confirm(t('scriptwriter_tool.create_new_confirm'))) {
                                 setIdea('');
                                 setOutputScript('');
                                 setCurrentProjectId(null);
@@ -337,7 +339,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
                             }
                         }}
                         className="flex items-center gap-1 text-[#a1a1aa] hover:text-white transition-colors text-xs font-bold uppercase tracking-wider mr-2"
-                        title="Tạo Mới (Xóa Form)"
+                        title="New (Clear Form)"
                     >
                         <FilePlus size={16} /> NEW
                     </button>
@@ -367,8 +369,8 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
                             {projects.length === 0 ? (
                                 <div className="text-center py-10 opacity-50">
                                     <p className="text-4xl mb-2">📭</p>
-                                    <p>Chưa có dự án nào.</p>
-                                    <p className="text-[10px] mt-2 text-gray-400">Hãy bấm "SAVE PROJECT" để lưu.</p>
+                                    <p>{t('scriptwriter_tool.no_projects')}</p>
+                                    <p className="text-[10px] mt-2 text-gray-400">{t('scriptwriter_tool.save_hint')}</p>
                                 </div>
                             ) : (
                                 projects.map(p => (
@@ -380,7 +382,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                if (confirm('Xóa dự án này?')) {
+                                                if (confirm(t('scriptwriter_tool.delete_project_confirm'))) {
                                                     // Delete logic
                                                     fetch(`/api/projects?id=${p.id}`, { method: 'DELETE' }).then(() => fetchProjects());
                                                 }

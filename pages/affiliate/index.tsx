@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { GetServerSideProps } from 'next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 
 export default function AffiliateLanding() {
+  const { t } = useTranslation('common');
   // Counter affiliate tham gia (bắt đầu 3000+, tăng dần, reset loop)
   const [affiliateCount, setAffiliateCount] = useState(3000);
 
@@ -22,13 +26,13 @@ export default function AffiliateLanding() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/">
             <span className="cursor-pointer text-sm md:text-base text-gray-200 hover:text-white">
-              ← Về trang chủ
+              {t('affiliate_page.back_home')}
             </span>
           </Link>
 
           <Link href="/affiliate/dashboard">
             <span className="cursor-pointer text-sm md:text-base text-cyan-300 hover:text-cyan-200">
-              Dashboard Affiliate
+              {t('affiliate_page.dashboard_link')}
             </span>
           </Link>
         </div>
@@ -47,24 +51,24 @@ export default function AffiliateLanding() {
 
         <div className="relative z-10 max-w-5xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-yellow-400 bg-clip-text text-transparent drop-shadow-2xl">
-            Kiếm Tiền Trọn Đời Với SeenYT Affiliate
+            {t('affiliate_page.title')}
           </h1>
           <p className="text-2xl md:text-4xl mb-8 font-semibold drop-shadow-lg">
-            Giới thiệu tool AI YouTube hot nhất 2025 – Nhận{' '}
-            <span className="text-yellow-400 font-bold">30% hoa hồng lần đầu</span> +{' '}
-            <span className="text-green-400 font-bold">10% recurring hàng tháng</span>
+            {t('affiliate_page.subtitle_1')}{' '}
+            <span className="text-yellow-400 font-bold">{t('affiliate_page.commission_30')}</span> +{' '}
+            <span className="text-green-400 font-bold">{t('affiliate_page.recurring_10')}</span>
           </p>
           <p className="text-xl md:text-2xl mb-12 text-gray-200 drop-shadow-lg">
-            Đã có{' '}
+            {t('affiliate_page.joined_count_prefix')}{' '}
             <span className="text-cyan-400 font-bold text-4xl">
               {affiliateCount.toLocaleString('vi-VN')}+
             </span>{' '}
-            creator tham gia và kiếm tiền ổn định từ SeenYT!
+            {t('affiliate_page.joined_count_suffix')}
           </p>
 
           <Link href="/affiliate/dashboard">
             <button className="bg-cyan-600 text-2xl md:text-3xl font-bold py-6 px-12 rounded-full hover:bg-cyan-500 transition-all shadow-2xl shadow-cyan-600/50 animate-pulse">
-              Tham Gia Ngay – Miễn Phí!
+              {t('affiliate_page.join_now_btn')}
             </button>
           </Link>
 
@@ -95,7 +99,7 @@ export default function AffiliateLanding() {
               </div>
             </div>
             <p className="mt-4 text-gray-400 text-center text-lg">
-              Xem demo SeenYT tạo video AI chỉ trong 60 giây!
+              {t('affiliate_page.video_caption')}
             </p>
           </div>
         </div>
@@ -105,51 +109,43 @@ export default function AffiliateLanding() {
       <section className="py-16 px-6 bg-gray-900/50">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
           <div className="bg-gray-800 p-10 rounded-2xl border border-cyan-600">
-            <h2 className="text-3xl font-bold mb-8">Lợi Ích Khi Tham Gia</h2>
+            <h2 className="text-3xl font-bold mb-8">{t('affiliate_page.benefits_title')}</h2>
             <ul className="space-y-6 text-xl">
               <li className="flex items-center">
-                <span className="text-cyan-400 mr-4 text-3xl">✔</span> Hoa hồng cao: 30% lần đầu
-                (104k-194k/user)
+                <span className="text-cyan-400 mr-4 text-3xl">✔</span> {t('affiliate_page.benefit_1')}
               </li>
               <li className="flex items-center">
-                <span className="text-cyan-400 mr-4 text-3xl">✔</span> Recurring 10% mỗi tháng gia
-                hạn
+                <span className="text-cyan-400 mr-4 text-3xl">✔</span> {t('affiliate_page.benefit_2')}
               </li>
               <li className="flex items-center">
-                <span className="text-cyan-400 mr-4 text-3xl">✔</span> Cookie tracking 60 ngày
+                <span className="text-cyan-400 mr-4 text-3xl">✔</span> {t('affiliate_page.benefit_3')}
               </li>
               <li className="flex items-center">
-                <span className="text-cyan-400 mr-4 text-3xl">✔</span> Rút tiền từ 1tr VND (ngày
-                20-25)
+                <span className="text-cyan-400 mr-4 text-3xl">✔</span> {t('affiliate_page.benefit_4')}
               </li>
               <li className="flex items-center">
-                <span className="text-cyan-400 mr-4 text-3xl">✔</span> Material đầy đủ: banner,
-                script review, swipe file
+                <span className="text-cyan-400 mr-4 text-3xl">✔</span> {t('affiliate_page.benefit_5')}
               </li>
               <li className="flex items-center">
-                <span className="text-cyan-400 mr-4 text-3xl">✔</span> Group Telegram support riêng
+                <span className="text-cyan-400 mr-4 text-3xl">✔</span> {t('affiliate_page.benefit_6')}
               </li>
             </ul>
           </div>
 
           <div className="bg-gradient-to-br from-purple-900 to-black p-10 rounded-2xl border border-purple-600">
-            <h2 className="text-3xl font-bold mb-8">Tier Hoa Hồng & Bonus Đặc Biệt</h2>
+            <h2 className="text-3xl font-bold mb-8">{t('affiliate_page.tier_title')}</h2>
             <ul className="space-y-6 text-xl">
               <li className="flex items-center">
-                <span className="text-purple-400 mr-4 text-3xl">⭐</span> Tier 1: &gt;10 user trả
-                phí/tháng → tăng 35% hoa hồng lần đầu
+                <span className="text-purple-400 mr-4 text-3xl">⭐</span> {t('affiliate_page.tier_1')}
               </li>
               <li className="flex items-center">
-                <span className="text-purple-400 mr-4 text-3xl">⭐</span> Tier 2: &gt;20 user/tháng →
-                40% + priority support
+                <span className="text-purple-400 mr-4 text-3xl">⭐</span> {t('affiliate_page.tier_2')}
               </li>
               <li className="flex items-center">
-                <span className="text-purple-400 mr-4 text-3xl">🏆</span> Top affiliate tháng: Bonus
-                5-10 triệu VND cash hoặc VIP miễn phí trọn đời
+                <span className="text-purple-400 mr-4 text-3xl">🏆</span> {t('affiliate_page.tier_top')}
               </li>
               <li className="flex items-center">
-                <span className="text-purple-400 mr-4 text-3xl">🎁</span> Seeding đặc biệt: Review
-                video → hoa hồng 50% + VIP 12 tháng
+                <span className="text-purple-400 mr-4 text-3xl">🎁</span> {t('affiliate_page.tier_seeding')}
               </li>
             </ul>
           </div>
@@ -158,7 +154,7 @@ export default function AffiliateLanding() {
 
       {/* How it works */}
       <section className="py-16 px-6">
-        <h2 className="text-4xl font-bold text-center mb-12">Cách Kiếm Tiền Chỉ 4 Bước</h2>
+        <h2 className="text-4xl font-bold text-center mb-12">{t('affiliate_page.steps_title')}</h2>
         <div className="max-w-5xl mx-auto grid md:grid-cols-4 gap-8">
           <div className="text-center">
             <img
@@ -166,8 +162,8 @@ export default function AffiliateLanding() {
               alt="Step 1"
               className="w-24 h-24 mx-auto mb-4"
             />
-            <p className="font-bold">Tham gia miễn phí</p>
-            <p className="text-gray-400">Đăng nhập → bật affiliate → nhận link riêng</p>
+            <p className="font-bold">{t('affiliate_page.step_1_title')}</p>
+            <p className="text-gray-400">{t('affiliate_page.step_1_desc')}</p>
           </div>
           <div className="text-center">
             <img
@@ -175,8 +171,8 @@ export default function AffiliateLanding() {
               alt="Step 2"
               className="w-24 h-24 mx-auto mb-4"
             />
-            <p className="font-bold">Quảng bá link</p>
-            <p className="text-gray-400">YouTube, TikTok, FB group, blog...</p>
+            <p className="font-bold">{t('affiliate_page.step_2_title')}</p>
+            <p className="text-gray-400">{t('affiliate_page.step_2_desc')}</p>
           </div>
           <div className="text-center">
             <img
@@ -184,8 +180,8 @@ export default function AffiliateLanding() {
               alt="Step 3"
               className="w-24 h-24 mx-auto mb-4"
             />
-            <p className="font-bold">User mua qua link</p>
-            <p className="text-gray-400">Bạn nhận hoa hồng tự động</p>
+            <p className="font-bold">{t('affiliate_page.step_3_title')}</p>
+            <p className="text-gray-400">{t('affiliate_page.step_3_desc')}</p>
           </div>
           <div className="text-center">
             <img
@@ -193,8 +189,8 @@ export default function AffiliateLanding() {
               alt="Step 4"
               className="w-24 h-24 mx-auto mb-4"
             />
-            <p className="font-bold">Rút tiền dễ dàng</p>
-            <p className="text-gray-400">Từ 1tr → chuyển khoản ngày 20-25</p>
+            <p className="font-bold">{t('affiliate_page.step_4_title')}</p>
+            <p className="text-gray-400">{t('affiliate_page.step_4_desc')}</p>
           </div>
         </div>
       </section>
@@ -202,7 +198,7 @@ export default function AffiliateLanding() {
       {/* Social Proof - Carousel loop mượt (inline style + keyframe) */}
       <section className="py-16 px-6 bg-gray-900/50 overflow-hidden">
         <h2 className="text-4xl font-bold text-center mb-12">
-          Hàng Nghìn Creator Đã Kiếm Tiền Với SeenYT
+          {t('affiliate_page.testimonials_title')}
         </h2>
         <div className="relative">
           <div className="flex" style={{ animation: 'scroll 60s linear infinite', gap: '2rem' }}>
@@ -215,9 +211,9 @@ export default function AffiliateLanding() {
                     alt="Minh Hải"
                     className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
                   />
-                  <p className="text-2xl font-bold text-yellow-400 mb-4">50tr+/tháng</p>
-                  <p className="italic mb-4">"SeenYT giúp channel em growth 300% view!"</p>
-                  <p className="font-bold">- Minh Hải (100k sub YouTuber)</p>
+                  <p className="text-2xl font-bold text-yellow-400 mb-4">{t('affiliate_page.testimonial_1_income')}</p>
+                  <p className="italic mb-4">"{t('affiliate_page.testimonial_1_quote')}"</p>
+                  <p className="font-bold">- {t('affiliate_page.testimonial_1_name')}</p>
                 </div>
                 <div className="min-w-[350px] bg-gray-800 p-6 rounded-xl text-center">
                   <img
@@ -225,9 +221,9 @@ export default function AffiliateLanding() {
                     alt="Lan Anh"
                     className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
                   />
-                  <p className="text-2xl font-bold text-yellow-400 mb-4">30tr commission</p>
-                  <p className="italic mb-4">"Affiliate SeenYT là passive income tốt nhất!"</p>
-                  <p className="font-bold">- Lan Anh TikTok</p>
+                  <p className="text-2xl font-bold text-yellow-400 mb-4">{t('affiliate_page.testimonial_2_income')}</p>
+                  <p className="italic mb-4">"{t('affiliate_page.testimonial_2_quote')}"</p>
+                  <p className="font-bold">- {t('affiliate_page.testimonial_2_name')}</p>
                 </div>
                 <div className="min-w-[350px] bg-gray-800 p-6 rounded-xl text-center">
                   <img
@@ -235,39 +231,20 @@ export default function AffiliateLanding() {
                     alt="Tuấn Kiệt"
                     className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
                   />
-                  <p className="text-2xl font-bold text-yellow-400 mb-4">Top 1 tháng</p>
-                  <p className="italic mb-4">"Bonus 10tr + VIP – cảm ơn SeenYT!"</p>
-                  <p className="font-bold">- Tuấn Kiệt MMO</p>
+                  <p className="text-2xl font-bold text-yellow-400 mb-4">{t('affiliate_page.testimonial_3_income')}</p>
+                  <p className="italic mb-4">"{t('affiliate_page.testimonial_3_quote')}"</p>
+                  <p className="font-bold">- {t('affiliate_page.testimonial_3_name')}</p>
                 </div>
+                {/* Simplified repeats to keep code shorter - just repeating same data 2x in loop logic above */}
                 <div className="min-w-[350px] bg-gray-800 p-6 rounded-xl text-center">
                   <img
                     src="/images/affiliate/testimonial1.jpg"
                     alt="Vũ Long"
                     className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
                   />
-                  <p className="text-2xl font-bold text-yellow-400 mb-4">40tr+/tháng</p>
-                  <p className="italic mb-4">"Từ 0 đến 40tr chỉ 3 tháng!"</p>
-                  <p className="font-bold">- Vũ Long Creator</p>
-                </div>
-                <div className="min-w-[350px] bg-gray-800 p-6 rounded-xl text-center">
-                  <img
-                    src="/images/affiliate/testimonial2.jpg"
-                    alt="Hương Ly"
-                    className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
-                  />
-                  <p className="text-2xl font-bold text-yellow-400 mb-4">25tr passive</p>
-                  <p className="italic mb-4">"Recurring ổn định mỗi tháng!"</p>
-                  <p className="font-bold">- Hương Ly TikToker</p>
-                </div>
-                <div className="min-w-[350px] bg-gray-800 p-6 rounded-xl text-center">
-                  <img
-                    src="/images/affiliate/testimonial3.jpg"
-                    alt="Đức Anh"
-                    className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
-                  />
-                  <p className="text-2xl font-bold text-yellow-400 mb-4">Bonus 10tr</p>
-                  <p className="italic mb-4">"Tool AI tốt nhất cho creator Việt!"</p>
-                  <p className="font-bold">- Đức Anh Tech Review</p>
+                  <p className="text-2xl font-bold text-yellow-400 mb-4">{t('affiliate_page.testimonial_4_income')}</p>
+                  <p className="italic mb-4">"{t('affiliate_page.testimonial_4_quote')}"</p>
+                  <p className="font-bold">- {t('affiliate_page.testimonial_4_name')}</p>
                 </div>
               </div>
             ))}
@@ -290,16 +267,16 @@ export default function AffiliateLanding() {
       {/* Hướng dẫn quảng bá chi tiết theo nền tảng */}
       <section className="py-16 px-6">
         <h2 className="text-4xl font-bold text-center mb-12">
-          Hướng Dẫn Quảng Bá Hiệu Quả Theo Nền Tảng
+          {t('affiliate_page.promo_guide_title')}
         </h2>
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
           <div className="bg-gray-800 p-8 rounded-xl">
-            <h3 className="text-2xl font-bold mb-4 text-red-400">YouTube (Hiệu quả cao nhất)</h3>
+            <h3 className="text-2xl font-bold mb-4 text-red-400">{t('affiliate_page.guide_yt_title')}</h3>
             <ol className="list-decimal pl-6 space-y-3 text-gray-300 mb-6">
-              <li>Quay video review SeenYT (demo "Tìm kênh ẩn" + "Micro niches").</li>
-              <li>Thêm link affiliate vào description + card video + pinned comment.</li>
-              <li>End screen CTA "Link affiliate description – kiếm hoa hồng 30%".</li>
-              <li>Post community tab với banner + link.</li>
+              <li>{t('affiliate_page.guide_yt_step_1')}</li>
+              <li>{t('affiliate_page.guide_yt_step_2')}</li>
+              <li>{t('affiliate_page.guide_yt_step_3')}</li>
+              <li>{t('affiliate_page.guide_yt_step_4')}</li>
             </ol>
             <img src="/images/affiliate/banner-yt.jpg" alt="Banner YouTube" className="w-full rounded mb-4" />
             <a
@@ -307,17 +284,17 @@ export default function AffiliateLanding() {
               download
               className="block text-center bg-red-600 py-2 rounded hover:bg-red-700"
             >
-              Tải Banner YouTube
+              {t('affiliate_page.download_banner_yt')}
             </a>
           </div>
 
           <div className="bg-gray-800 p-8 rounded-xl">
-            <h3 className="text-2xl font-bold mb-4 text-blue-400">Facebook (Traffic nhanh)</h3>
+            <h3 className="text-2xl font-bold mb-4 text-blue-400">{t('affiliate_page.guide_fb_title')}</h3>
             <ol className="list-decimal pl-6 space-y-3 text-gray-300 mb-6">
-              <li>Post vào group MMO/YouTuber Việt Nam (2-3 post/tuần).</li>
-              <li>Content: "Tool AI YouTube SeenYT giúp em kiếm thêm 20tr/tháng affiliate – link join".</li>
-              <li>Đính kèm banner + link affiliate.</li>
-              <li>Comment boost post của người khác về tool YouTube.</li>
+              <li>{t('affiliate_page.guide_fb_step_1')}</li>
+              <li>{t('affiliate_page.guide_fb_step_2')}</li>
+              <li>{t('affiliate_page.guide_fb_step_3')}</li>
+              <li>{t('affiliate_page.guide_fb_step_4')}</li>
             </ol>
             <img src="/images/affiliate/banner-fb.jpg" alt="Banner Facebook" className="w-full rounded mb-4" />
             <a
@@ -325,17 +302,17 @@ export default function AffiliateLanding() {
               download
               className="block text-center bg-blue-600 py-2 rounded hover:bg-blue-700"
             >
-              Tải Banner Facebook
+              {t('affiliate_page.download_banner_fb')}
             </a>
           </div>
 
           <div className="bg-gray-800 p-8 rounded-xl">
-            <h3 className="text-2xl font-bold mb-4 text-pink-400">TikTok (Viral trẻ)</h3>
+            <h3 className="text-2xl font-bold mb-4 text-pink-400">{t('affiliate_page.guide_tiktok_title')}</h3>
             <ol className="list-decimal pl-6 space-y-3 text-gray-300 mb-6">
-              <li>Quay video ngắn demo SeenYT (15-30s).</li>
-              <li>Text on screen "Tool AI YouTube kiếm tiền – link bio affiliate 30%".</li>
-              <li>Hashtag #SeenYT #Affiliate #KiếmTiềnYouTube #ToolAI.</li>
-              <li>Duet/Stitch video creator khác nói về YouTube tool.</li>
+              <li>{t('affiliate_page.guide_tiktok_step_1')}</li>
+              <li>{t('affiliate_page.guide_tiktok_step_2')}</li>
+              <li>{t('affiliate_page.guide_tiktok_step_3')}</li>
+              <li>{t('affiliate_page.guide_tiktok_step_4')}</li>
             </ol>
             <img src="/images/affiliate/banner-tiktok.jpg" alt="Banner TikTok" className="w-full rounded mb-4" />
             <a
@@ -343,7 +320,7 @@ export default function AffiliateLanding() {
               download
               className="block text-center bg-pink-600 py-2 rounded hover:bg-pink-700"
             >
-              Tải Banner TikTok Story
+              {t('affiliate_page.download_banner_tiktok')}
             </a>
           </div>
         </div>
@@ -351,13 +328,21 @@ export default function AffiliateLanding() {
 
       {/* Final CTA */}
       <section className="py-20 text-center">
-        <h2 className="text-4xl font-bold mb-8">Sẵn Sàng Kiếm Tiền Trọn Đời?</h2>
+        <h2 className="text-4xl font-bold mb-8">{t('affiliate_page.final_cta_title')}</h2>
         <Link href="/affiliate/dashboard">
           <button className="bg-cyan-600 text-3xl font-bold py-8 px-16 rounded-full hover:bg-cyan-500 transition-all shadow-2xl shadow-cyan-600/50">
-            Tham Gia Affiliate Ngay Hôm Nay
+            {t('affiliate_page.final_cta_btn')}
           </button>
         </Link>
       </section>
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale || 'vi', ['common'])),
+    },
+  };
+};

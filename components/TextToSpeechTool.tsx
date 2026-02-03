@@ -3,6 +3,7 @@
 // Color scheme: Red + White + Black text (Phong thủy)
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useTranslation } from 'next-i18next';
 import VoiceGalleryModal from './VoiceGalleryModal';
 
 interface TextToSpeechToolProps {
@@ -23,6 +24,7 @@ const VN_VOICES = [
 ];
 
 const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
+    const { t } = useTranslation('common');
     // Tab State: 'text' or 'file'
     const [activeTab, setActiveTab] = useState<'text' | 'file'>('text');
     const [showVoiceGallery, setShowVoiceGallery] = useState(false);
@@ -90,7 +92,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
     // Handle Clone Voice
     const handleCloneVoice = async () => {
-        if (!cloneFile || !cloneName) return setError("Thiếu file hoặc tên.");
+        if (!cloneFile || !cloneName) return setError(t('tts_tool.missing_file_name'));
         setIsUploading(true);
         setError('');
         try {
@@ -115,7 +117,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     // Handle Delete Voice
     const handleDeleteVoice = async (idToDelete: string) => {
         if (!idToDelete.startsWith('custom_')) return;
-        if (!confirm("Bạn chắc chắn muốn xóa giọng này?")) return;
+        if (!confirm(t('tts_tool.delete_voice_confirm'))) return;
 
         try {
             const res = await fetch('/api/tools/tts/delete-voice', {
@@ -123,14 +125,14 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ voiceId: idToDelete })
             });
-            if (!res.ok) throw new Error("Lỗi xóa giọng");
+            if (!res.ok) throw new Error(t('tts_tool.delete_voice_error'));
 
             setClonedVoices(prev => prev.filter(v => v.id !== idToDelete));
             if (voice1 === idToDelete) setVoice1('vi-VN-HoaiMyNeural');
             if (voice2 === idToDelete) setVoice2('vi-VN-NamMinhNeural');
 
         } catch (err: any) {
-            alert("Xóa thất bại: " + err.message);
+            alert(t('tts_tool.delete_failed') + " " + err.message);
         }
     };
 
@@ -173,7 +175,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
     // Handle Generate (normal or dialogue)
     const handleGenerate = async () => {
-        if (!scriptText.trim()) return setError("Vui lòng nhập nội dung!");
+        if (!scriptText.trim()) return setError(t('tts_tool.enter_content'));
         setIsLoading(true);
         setError('');
         setAudioUrl(null);
@@ -196,7 +198,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                 });
                 if (!res.ok) {
                     const errData = await res.json().catch(() => ({}));
-                    throw new Error(errData.error || 'Lỗi tạo hội thoại');
+                    throw new Error(errData.error || t('tts_tool.error_dialogue'));
                 }
                 const data = await res.json();
 
@@ -276,7 +278,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                     if (!res.ok) {
                         const errData = await res.json().catch(() => ({}));
-                        throw new Error(errData.error || 'Lỗi tạo audio');
+                        throw new Error(errData.error || t('tts_tool.error_audio'));
                     }
 
                     const data = await res.json();
@@ -303,7 +305,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
     // Handle File Generate (TXT, SRT, DOC, DOCX)
     const handleSRTGenerate = async () => {
-        if (!srtFile) return setError('Vui lòng chọn file!');
+        if (!srtFile) return setError(t('tts_tool.select_file_error'));
         setIsLoading(true);
         setError('');
         setAudioUrl(null);
@@ -325,7 +327,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.error || 'Lỗi xử lý file');
+                throw new Error(errData.error || t('tts_tool.error_file'));
             }
 
             // Check content type to see if it returned direct audio (VN) or JSON (Async Job)
@@ -371,7 +373,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
             };
             reader.readAsText(file);
         } else {
-            setError("Chỉ hỗ trợ import file .txt (văn bản thuần)");
+            setError(t('tts_tool.only_txt'));
         }
     };
 
@@ -398,7 +400,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             : 'text-white/80 hover:bg-white/10 hover:text-white'
                             }`}
                     >
-                        📝 Văn Bản
+                        📝 {t('tts_tool.tab_text')}
                     </button>
                     <button
                         onClick={() => setActiveTab('file')}
@@ -407,7 +409,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             : 'text-white/80 hover:bg-white/10 hover:text-white'
                             }`}
                     >
-                        📄 Upload File
+                        📄 {t('tts_tool.tab_file')}
                     </button>
                 </div>
 
@@ -419,19 +421,19 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                 {/* LEFT COLUMN - Instructions */}
                 <div className="w-64 bg-slate-50 border-r border-gray-200 p-6 overflow-y-auto">
-                    <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-rose-600 mb-4">📖 Hướng Dẫn</h3>
+                    <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-rose-600 mb-4">📖 {t('tts_tool.guide_title')}</h3>
                     <div className="space-y-4 text-sm text-gray-600">
                         <div className="p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
-                            <span className="font-bold text-purple-600">Bước 1:</span>
-                            <p>{activeTab === 'text' ? 'Nhập nội dung' : 'Upload file'}</p>
+                            <span className="font-bold text-purple-600">{t('tts_tool.step1')}</span>
+                            <p>{activeTab === 'text' ? t('tts_tool.step1_text_hint') : t('tts_tool.step1_file_hint')}</p>
                         </div>
                         <div className="p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
-                            <span className="font-bold text-purple-600">Bước 2:</span>
-                            <p>Chọn giọng đọc (Bấm nút bên phải)</p>
+                            <span className="font-bold text-purple-600">{t('tts_tool.step2')}</span>
+                            <p>{t('tts_tool.step2_hint')}</p>
                         </div>
                         <div className="p-3 bg-white rounded-lg border border-purple-100 shadow-sm">
-                            <span className="font-bold text-purple-600">Bước 3:</span>
-                            <p>Nhấn "Tạo Audio"</p>
+                            <span className="font-bold text-purple-600">{t('tts_tool.step3')}</span>
+                            <p>{t('tts_tool.step3_hint')}</p>
                         </div>
                     </div>
                 </div>
@@ -449,18 +451,18 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                     onChange={handleImportText}
                                 />
                                 <button onClick={() => importInputRef.current?.click()} className="text-sm flex items-center gap-1 text-purple-600 hover:bg-purple-50 px-3 py-1 rounded-lg transition font-medium">
-                                    📥 Import file (.txt)
+                                    📥 {t('tts_tool.import_txt')}
                                 </button>
                             </div>
                             <textarea
                                 value={scriptText}
                                 onChange={(e) => setScriptText(e.target.value)}
-                                placeholder="Nhập văn bản cần chuyển thành giọng nói..."
+                                placeholder={t('tts_tool.placeholder')}
                                 className="flex-1 bg-white border-2 border-gray-200 rounded-xl p-6 resize-none outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-50 transition text-gray-800 text-lg shadow-inner"
                             />
                             <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
-                                <span>{scriptText.length} ký tự</span>
-                                {dialogueMode && <span className="text-purple-600 font-bold">● Chế độ hội thoại đang bật</span>}
+                                <span>{scriptText.length} {t('tts_tool.char_count')}</span>
+                                {dialogueMode && <span className="text-purple-600 font-bold">● {t('tts_tool.dialogue_on')}</span>}
                             </div>
                         </>
                     ) : (
@@ -475,20 +477,20 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                         onClick={() => setSrtFile(null)}
                                         className="mt-4 text-red-500 hover:text-red-700 text-sm"
                                     >
-                                        ✕ Xóa file
+                                        ✕ {t('tts_tool.remove_file')}
                                     </button>
                                 </div>
                             ) : (
                                 <div className="text-center">
                                     <div className="text-6xl mb-4 text-gray-300">📄</div>
-                                    <p className="text-gray-500 mb-4">Kéo thả file vào đây hoặc</p>
+                                    <p className="text-gray-500 mb-4">{t('tts_tool.drag_drop')}</p>
                                     <button
                                         onClick={() => srtInputRef.current?.click()}
                                         className="px-6 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition"
                                     >
-                                        Chọn File (TXT, SRT)
+                                        {t('tts_tool.select_file')}
                                     </button>
-                                    <p className="text-gray-400 text-xs mt-3">Hỗ trợ: .txt, .srt</p>
+                                    <p className="text-gray-400 text-xs mt-3">{t('tts_tool.supported')}</p>
                                 </div>
                             )}
                         </div>
@@ -510,7 +512,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
-                                    {statusMessage || 'Đang xử lý...'}
+                                    {statusMessage || t('tts_tool.processing')}
                                 </span>
                                 {progress > 0 && (
                                     <div className="w-full max-w-[200px] bg-white/30 rounded-full h-1.5 mt-1">
@@ -521,7 +523,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                     </div>
                                 )}
                             </div>
-                        ) : '⚡ TẠO AUDIO'}
+                        ) : `⚡ ${t('tts_tool.generate_btn')}`}
                     </button>
 
                     {/* Error */}
@@ -539,8 +541,8 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="font-bold text-gray-800">💬 Hội thoại 2 người</p>
-                                <p className="text-xs text-gray-500 mt-1">Dùng [A] [B] để đánh dấu</p>
+                                <p className="font-bold text-gray-800">💬 {t('tts_tool.dialogue_title')}</p>
+                                <p className="text-xs text-gray-500 mt-1">{t('tts_tool.dialogue_hint')}</p>
                             </div>
                             <button
                                 onClick={() => setDialogueMode(!dialogueMode)}
@@ -553,7 +555,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                     {/* Voice Selection Trigger */}
                     <div className="mb-6">
-                        <label className="block text-sm font-bold text-gray-700 mb-2">🎙️ Giọng đọc {dialogueMode && '[A]'}</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">🎙️ {dialogueMode ? t('tts_tool.voice_label_a') : t('tts_tool.voice_label')}</label>
                         <button
                             onClick={() => { setGalleryTarget('voice1'); setShowVoiceGallery(true); }}
                             className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-purple-400 bg-white flex justify-between items-center transition group"
@@ -565,7 +567,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                     {dialogueMode && (
                         <div className="mb-6">
-                            <label className="block text-sm font-bold text-gray-700 mb-2">🎙️ Giọng đọc [B]</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">🎙️ {t('tts_tool.voice_label_b')}</label>
                             <button
                                 onClick={() => { setGalleryTarget('voice2'); setShowVoiceGallery(true); }}
                                 className="w-full text-left p-3 border-2 border-gray-200 rounded-lg hover:border-purple-400 bg-white flex justify-between items-center transition group"
@@ -580,13 +582,13 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                         onClick={() => setShowCloneModal(true)}
                         className="mt-2 w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition text-sm font-medium"
                     >
-                        + Clone Giọng Mới
+                        {t('tts_tool.clone_new')}
                     </button>
 
                     {/* Speed Slider */}
                     <div className="mb-6">
                         <div className="flex justify-between mb-2">
-                            <label className="text-sm font-bold text-gray-700">⚡ Tốc độ</label>
+                            <label className="text-sm font-bold text-gray-700">⚡ {t('tts_tool.speed_label')}</label>
                             <span className="text-sm text-purple-600 font-bold">{speed.toFixed(2)}x</span>
                         </div>
                         <input
@@ -602,7 +604,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
 
                     {/* Result */}
                     <div className="mt-auto pt-6 border-t border-gray-200">
-                        <h4 className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-rose-600 mb-3">🎵 KẾT QUẢ</h4>
+                        <h4 className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-rose-600 mb-3">🎵 {t('tts_tool.result_title')}</h4>
                         {audioUrl ? (
                             <div className="bg-gray-50 p-4 rounded-xl border border-purple-100 shadow-sm">
                                 <audio controls src={audioUrl} className="w-full mb-3" autoPlay />
@@ -611,12 +613,12 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                                     download={`audio_${Date.now()}.wav`}
                                     className="block w-full text-center py-3 bg-gradient-to-r from-purple-600 to-rose-600 text-white rounded-lg font-bold hover:shadow-lg transition"
                                 >
-                                    ⬇️ Tải Xuống
+                                    ⬇️ {t('tts_tool.download')}
                                 </a>
                             </div>
                         ) : (
                             <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center text-gray-400">
-                                Chưa có audio
+                                {t('tts_tool.no_audio')}
                             </div>
                         )}
                     </div>
@@ -642,21 +644,21 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
             {showCloneModal && (
                 <div className="fixed inset-0 z-[101] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-2xl">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">🎙️ Clone Giọng Mới</h3>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">🎙️ {t('tts_tool.clone_title')}</h3>
                         <div className="mb-4 p-3 bg-blue-50 text-blue-800 text-sm rounded-lg border border-blue-200">
-                            <p>💡 <b>Mẹo:</b> Nên dùng file <b>.WAV</b> (mono, 22050Hz) để có chất lượng tốt nhất.</p>
-                            <p className="mt-1">Giọng sẽ được lưu trong hệ thống <b>30 ngày</b>.</p>
+                            <p>💡 <b>{t('tts_tool.clone_tip')}</b> {t('tts_tool.clone_tip_text')}</p>
+                            <p className="mt-1">{t('tts_tool.clone_expire')}</p>
                         </div>
-                        <p className="text-sm text-gray-500 mb-4">Upload file âm thanh (WAV/MP3) giọng mẫu của bạn (~10s).</p>
+                        <p className="text-sm text-gray-500 mb-4">{t('tts_tool.clone_upload_hint')}</p>
 
-                        <input className="w-full border-2 border-gray-200 rounded-lg p-3 mb-4 focus:border-red-400 outline-none" placeholder="Tên giọng (VD: Giọng Anh Tùng)" value={cloneName} onChange={e => setCloneName(e.target.value)} />
+                        <input className="w-full border-2 border-gray-200 rounded-lg p-3 mb-4 focus:border-red-400 outline-none" placeholder={t('tts_tool.clone_name_placeholder')} value={cloneName} onChange={e => setCloneName(e.target.value)} />
                         <input type="file" accept=".wav,.mp3" onChange={e => e.target.files && setCloneFile(e.target.files[0])} className="mb-4 text-sm text-gray-600 w-full" />
                         {cloneFile && (
                             <p className="text-sm text-green-600 mb-4">✓ {cloneFile.name}</p>
                         )}
                         <div className="flex gap-3">
-                            <button onClick={() => setShowCloneModal(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Hủy</button>
-                            <button onClick={handleCloneVoice} disabled={isUploading || !cloneFile || !cloneName} className="flex-1 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 disabled:bg-gray-300">{isUploading ? 'Đang upload...' : 'Clone Giọng'}</button>
+                            <button onClick={() => setShowCloneModal(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">{t('tts_tool.cancel')}</button>
+                            <button onClick={handleCloneVoice} disabled={isUploading || !cloneFile || !cloneName} className="flex-1 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 disabled:bg-gray-300">{isUploading ? t('tts_tool.uploading') : t('tts_tool.clone_btn')}</button>
                         </div>
                     </div>
                 </div>

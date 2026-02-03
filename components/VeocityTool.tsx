@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -39,7 +40,7 @@ const LoadingSignal: React.FC<{ text: string }> = ({ text }) => (
             <div className="absolute inset-2 border-4 border-red-600 rounded-full animate-spin border-t-transparent"></div>
             <Radio size={40} className="text-red-500 animate-pulse" />
         </div>
-        <h3 className="text-red-500 font-mono font-bold text-xl tracking-[0.2em] blink-cursor">ON AIR: {text}</h3>
+        <h3 className="text-red-500 font-mono font-bold text-xl tracking-[0.2em] blink-cursor">{text}</h3>
         <p className="text-gray-500 text-xs mt-2 font-mono">ESTABLISHING UPLINK TO CORE...</p>
     </div>
 );
@@ -49,6 +50,7 @@ interface VeocityToolProps {
 }
 
 export default function VeocityTool({ onBack }: VeocityToolProps) {
+    const { t } = useTranslation('common');
     const router = useRouter();
 
     // --- STATE ---
@@ -155,14 +157,14 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                         </div>
                         <div>
                             <h1 className="text-lg font-bold tracking-tighter text-white uppercase"><span className="text-red-600">VEO</span>CITY</h1>
-                            <div className="text-[10px] text-gray-500 font-mono tracking-[0.3em] uppercase leading-none">Newsroom AI Studio</div>
+                            <div className="text-[10px] text-gray-500 font-mono tracking-[0.3em] uppercase leading-none">{t('toolUI.veocity.subtitle')}</div>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <div className="hidden md:flex items-center gap-1 bg-gray-900/50 p-1 rounded border border-gray-800">
-                        {['SETUP', 'RUNDOWN', 'ON AIR'].map((step, idx) => {
+                        {[t('toolUI.veocity.setup'), t('toolUI.veocity.rundown'), t('toolUI.veocity.on_air')].map((step, idx) => {
                             const stepCodes: Phase[] = ['setup', 'timeline', 'output'];
                             const isActive = stepCodes[idx] === phase;
                             return (
@@ -174,7 +176,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                     </div>
                     <div className="h-8 w-px bg-gray-800"></div>
                     <Clock size={18} className="text-gray-600" />
-                    <span className="text-xs font-mono text-gray-400">LIVE</span>
+                    <span className="text-xs font-mono text-gray-400">{t('toolUI.veocity.live')}</span>
                 </div>
             </header>
 
@@ -191,7 +193,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                     <div className="bg-gray-900/80 backdrop-blur-md border border-gray-800 rounded-lg overflow-hidden flex flex-col h-[600px] shadow-2xl">
                                         <div className="h-10 bg-black border-b border-gray-800 flex items-center justify-between px-4">
                                             <div className="flex items-center gap-2 text-xs font-mono text-gray-400">
-                                                <Monitor size={14} /> TELEPROMPTER FEED
+                                                <Monitor size={14} /> {t('toolUI.veocity.teleprompter')}
                                             </div>
                                             <div className="flex gap-1.5">
                                                 <div className="w-2 h-2 rounded-full bg-red-500"></div>
@@ -202,7 +204,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                         <textarea
                                             value={script}
                                             onChange={e => setScript(e.target.value)}
-                                            placeholder="ENTER SCRIPT OR PASTE WIRE COPY HERE..."
+                                            placeholder={t('toolUI.veocity.script_placeholder')}
                                             className="flex-grow bg-transparent p-8 text-2xl font-serif text-white placeholder-gray-700 outline-none resize-none leading-relaxed selection:bg-white selection:text-black"
                                             autoFocus
                                         />
@@ -213,12 +215,12 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                     <div className="bg-gray-900/90 border border-gray-800 rounded-lg p-6 shadow-xl sticky top-0">
                                         <div className="flex items-center gap-2 text-red-500 mb-6 pb-2 border-b border-gray-800">
                                             <Settings size={18} />
-                                            <h3 className="font-bold tracking-widest text-sm">BROADCAST SETTINGS</h3>
+                                            <h3 className="font-bold tracking-widest text-sm">{t('toolUI.veocity.settings')}</h3>
                                         </div>
 
                                         <div className="space-y-6">
                                             <div>
-                                                <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-wider">Aspect Ratio</label>
+                                                <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-wider">{t('toolUI.veocity.aspect_ratio')}</label>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     {['16:9', '9:16'].map(ratio => (
                                                         <button
@@ -233,7 +235,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                             </div>
 
                                             <div>
-                                                <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-wider">Visual Style</label>
+                                                <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-wider">{t('toolUI.veocity.visual_style')}</label>
                                                 <select
                                                     value={style}
                                                     onChange={e => setStyle(e.target.value)}
@@ -247,12 +249,12 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                             </div>
 
                                             <div>
-                                                <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-wider">Director Notes</label>
+                                                <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-wider">{t('toolUI.veocity.director_notes')}</label>
                                                 <input
                                                     type="text"
                                                     value={extraNotes}
                                                     onChange={e => setExtraNotes(e.target.value)}
-                                                    placeholder="Ex: Dark moody lighting..."
+                                                    placeholder={t('toolUI.veocity.visual_prompt_ph')}
                                                     className="w-full bg-black border border-gray-700 text-white text-sm rounded p-3 outline-none focus:border-red-600"
                                                 />
                                             </div>
@@ -262,7 +264,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                                     onClick={handleAnalyzeScript}
                                                     className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all flex items-center justify-center gap-2 uppercase tracking-wider text-sm"
                                                 >
-                                                    <Mic2 size={18} /> INITIALIZE BREAKDOWN
+                                                    <Mic2 size={18} /> {t('toolUI.veocity.analyze_btn')}
                                                 </button>
                                             </div>
                                         </div>
@@ -278,12 +280,12 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                         <User size={24} className="text-yellow-500" />
                                     </div>
                                     <div className="flex-grow">
-                                        <label className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-1 block">Master Character Prompt (Consistency Lock)</label>
+                                        <label className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-1 block">{t('toolUI.veocity.master_prompt')}</label>
                                         <textarea
                                             value={masterCharacterPrompt}
                                             onChange={e => setMasterCharacterPrompt(e.target.value)}
                                             className="w-full bg-transparent text-sm text-gray-300 outline-none resize-none h-16 border-b border-gray-700 focus:border-yellow-500 transition-colors placeholder-gray-600"
-                                            placeholder="Define the main character visually here to keep them consistent across all scenes..."
+                                            placeholder={t('toolUI.veocity.master_prompt_ph')}
                                         />
                                     </div>
                                 </div>
@@ -291,9 +293,9 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                 <div className="flex-grow bg-black/40 border border-gray-800 rounded-lg overflow-hidden flex flex-col min-h-0">
                                     <div className="h-10 bg-gray-900 border-b border-gray-800 grid grid-cols-12 items-center px-4 gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider shrink-0">
                                         <div className="col-span-1">Seq #</div>
-                                        <div className="col-span-4">Visual Prompt (Camera/Action)</div>
-                                        <div className="col-span-2">Emotion</div>
-                                        <div className="col-span-5">Status / Notes</div>
+                                        <div className="col-span-4">{t('toolUI.veocity.visual_prompt')}</div>
+                                        <div className="col-span-2">{t('toolUI.veocity.emotion')}</div>
+                                        <div className="col-span-5">{t('toolUI.veocity.status_notes')}</div>
                                     </div>
 
                                     <div className="flex-grow overflow-y-auto p-2 space-y-2">
@@ -325,7 +327,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                                     </div>
                                                     <div className="flex justify-end mt-2">
                                                         <span className="text-[10px] font-bold bg-gray-800 text-gray-400 px-2 py-1 rounded uppercase tracking-wider group-hover:bg-red-900/30 group-hover:text-red-400 transition-colors">
-                                                            Ready to Queue
+                                                            {t('toolUI.veocity.ready_queue')}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -343,7 +345,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                         onClick={exportPromptsForFlow}
                                         className="bg-[#00ffc8] hover:bg-[#00e6b4] text-black font-bold py-3 px-8 rounded shadow-[0_0_20px_rgba(0,255,200,0.3)] transition-all flex items-center gap-2 uppercase tracking-wider text-sm"
                                     >
-                                        <Download size={18} /> Export Rundown & Activate Flow
+                                        <Download size={18} /> {t('toolUI.veocity.export_btn')}
                                     </button>
                                 </div>
                             </div>
@@ -356,7 +358,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                                         <CheckCircle2 size={40} className="text-[#00ffc8]" />
                                     </div>
 
-                                    <h2 className="text-3xl font-bold text-white mb-2 uppercase tracking-tight">Rundown Exported</h2>
+                                    <h2 className="text-3xl font-bold text-white mb-2 uppercase tracking-tight">{t('toolUI.veocity.exported')}</h2>
                                     <p className="text-gray-400 mb-8 font-mono text-sm max-w-md mx-auto">
                                         File <span className="text-[#00ffc8]">Kodaflow_Veocity_Prompts.txt</span> has been generated. Initiate automated production sequence.
                                     </p>
@@ -378,10 +380,10 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
 
                                     <div className="flex justify-center gap-4">
                                         <button onClick={() => setPhase('timeline')} className="px-6 py-2 rounded border border-gray-700 text-gray-400 hover:text-white hover:border-white transition-colors text-xs font-bold uppercase tracking-widest">
-                                            Modify Rundown
+                                            {t('toolUI.veocity.modify')}
                                         </button>
                                         <button onClick={() => setPhase('setup')} className="px-6 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors text-xs font-bold uppercase tracking-widest">
-                                            New Broadcast
+                                            {t('toolUI.veocity.new_broadcast')}
                                         </button>
                                     </div>
                                 </div>

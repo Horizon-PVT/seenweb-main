@@ -1,6 +1,7 @@
 // components/WelcomeSlotMachine.tsx - Vòng quay may mắn sau đăng ký/đăng nhập
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Gift, Sparkles, Clock, Copy, CheckCircle, Share2, Zap } from 'lucide-react';
+import { useTranslation } from 'next-i18next';
 
 interface WelcomeSlotMachineProps {
     isOpen: boolean;
@@ -35,6 +36,7 @@ const getRandomPrize = () => {
 };
 
 export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, userEmail }: WelcomeSlotMachineProps) {
+    const { t } = useTranslation('common');
     const [isSpinning, setIsSpinning] = useState(false);
     const [hasSpun, setHasSpun] = useState(false);
     const [selectedPrize, setSelectedPrize] = useState<typeof PRIZES[0] | null>(null);
@@ -120,7 +122,7 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
             setCopied(true);
             setTimeout(() => setCopied(false), 3000);
         } catch (e) {
-            alert(`Mã của bạn: ${promoCode}`);
+            alert(t('slot_machine.alert_code', { code: promoCode }));
         }
     };
 
@@ -142,10 +144,10 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                 <div className="bg-gradient-to-r from-[#CDAD5A] to-orange-600 px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
                         <Sparkles className="w-5 h-5 text-white animate-pulse" />
-                        <h3 className="text-xl font-bold text-white uppercase tracking-wider">Vòng Quay May Mắn</h3>
+                        <h3 className="text-xl font-bold text-white uppercase tracking-wider">{t('slot_machine.title')}</h3>
                         <Sparkles className="w-5 h-5 text-white animate-pulse" />
                     </div>
-                    <p className="text-white/80 text-xs mt-1">Dành riêng cho thành viên mới</p>
+                    <p className="text-white/80 text-xs mt-1">{t('slot_machine.subtitle')}</p>
                 </div>
 
                 <div className="p-6 space-y-6">
@@ -205,11 +207,11 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                                 onClick={handleSpin}
                                 disabled={isSpinning}
                                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all shadow-lg transform active:scale-95 ${isSpinning
-                                        ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-[#CDAD5A] to-orange-500 text-black hover:brightness-110 animate-pulse-slow'
+                                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-[#CDAD5A] to-orange-500 text-black hover:brightness-110 animate-pulse-slow'
                                     }`}
                             >
-                                {isSpinning ? 'Đang quay...' : 'QUAY NGAY & NHẬN QUÀ'}
+                                {isSpinning ? t('slot_machine.spinning') : t('slot_machine.spin_btn')}
                             </button>
                         </>
                     ) : (
@@ -217,8 +219,8 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                             {/* Congratulation Header */}
                             <div className="mb-6">
                                 <div className="text-5xl mb-2 animate-bounce">🎉</div>
-                                <h4 className="text-2xl font-bold text-white mb-2">Chúc mừng bạn!</h4>
-                                <div className="text-gray-300 text-sm">Bạn đã quay trúng phần thưởng:</div>
+                                <h4 className="text-2xl font-bold text-white mb-2">{t('slot_machine.congrats_title')}</h4>
+                                <div className="text-gray-300 text-sm">{t('slot_machine.congrats_desc')}</div>
                                 <div
                                     className="inline-block mt-3 px-6 py-2 rounded-full text-xl font-bold border-2 border-white/20 shadow-lg transform hover:scale-105 transition"
                                     style={{ backgroundColor: selectedPrize?.color, color: 'white' }}
@@ -231,11 +233,11 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                             {isGeneratingCode ? (
                                 <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-6 flex items-center justify-center gap-2">
                                     <div className="w-4 h-4 border-2 border-[#CDAD5A] border-t-transparent rounded-full animate-spin"></div>
-                                    <span className="text-gray-400 text-sm">Đang tạo mã độc quyền...</span>
+                                    <span className="text-gray-400 text-sm">{t('slot_machine.generating')}</span>
                                 </div>
                             ) : (
                                 <div className="bg-gray-800/80 p-4 rounded-xl border border-[#CDAD5A]/50 mb-6 relative group">
-                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Mã code của bạn (hết hạn trong 24h):</p>
+                                    <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">{t('slot_machine.code_label')}</p>
                                     <div className="flex items-center gap-2 bg-black/40 p-2 rounded-lg border border-dashed border-gray-600">
                                         <code className="flex-1 text-xl font-mono font-bold text-[#CDAD5A] tracking-widest">
                                             {promoCode}
@@ -249,7 +251,7 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                                         </button>
                                     </div>
                                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-                                        Chỉ dùng 1 lần
+                                        {t('slot_machine.one_time_use')}
                                     </div>
                                 </div>
                             )}
@@ -263,19 +265,19 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                                         className="w-full bg-gradient-to-r from-[#CDAD5A] to-orange-500 text-black font-bold py-3.5 rounded-xl hover:brightness-110 transition flex items-center justify-center gap-2"
                                     >
                                         <Zap size={20} fill="currentColor" />
-                                        SỬ DỤNG MÃ NGAY (Giảm 20%)
+                                        {t('slot_machine.use_now')}
                                     </button>
                                 ) : (
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(promoCode);
                                             window.location.href = '/claim-gift'; // Or handle claim logic directly
-                                            alert('Vui lòng gửi mã này cho Admin qua Zalo để kích hoạt ngay!');
+                                            alert(t('slot_machine.alert_admin'));
                                         }}
                                         className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3.5 rounded-xl hover:brightness-110 transition flex items-center justify-center gap-2"
                                     >
                                         <Gift size={20} />
-                                        KÍCH HOẠT +3 NGÀY NGAY
+                                        {t('slot_machine.activate_now')}
                                     </button>
                                 )}
 
@@ -286,7 +288,7 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                                             <div className="w-full border-t border-gray-700"></div>
                                         </div>
                                         <div className="relative flex justify-center">
-                                            <span className="bg-gray-900 px-3 text-xs text-gray-500">Hoặc nhận ưu đãi lớn hơn</span>
+                                            <span className="bg-gray-900 px-3 text-xs text-gray-500">{t('slot_machine.or_better_offer')}</span>
                                         </div>
                                         <button
                                             onClick={() => {
@@ -296,7 +298,7 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                                             className="w-full mt-3 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/50 text-blue-400 font-bold py-3 rounded-xl transition flex items-center justify-center gap-2"
                                         >
                                             <Share2 size={18} />
-                                            Share FB nhận tới 15 ngày FREE!
+                                            {t('slot_machine.share_fb')}
                                         </button>
                                     </div>
                                 )}
@@ -305,7 +307,7 @@ export default function WelcomeSlotMachine({ isOpen, onClose, onShowSharePopup, 
                             {/* Countdown */}
                             <div className="mt-4 flex items-center justify-center gap-2 text-gray-500 text-xs font-mono">
                                 <Clock size={12} />
-                                Ưu đãi kết thúc sau: {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+                                {t('slot_machine.countdown')} {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
                             </div>
                         </div>
                     )}

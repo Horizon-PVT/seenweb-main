@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { signOut } from 'next-auth/react';
+import { useTranslation } from 'next-i18next';
 import { Home, Globe } from 'lucide-react';
 import { TOOLS } from '@/lib/tool-config';
 import { hasMinRole } from '@/lib/tab-access';
@@ -15,13 +16,14 @@ interface SidebarProps {
 
 export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }: SidebarProps) {
     const router = useRouter();
+    const { t } = useTranslation('common');
     const [showLockedModal, setShowLockedModal] = useState(false);
     const [lockedMessage, setLockedMessage] = useState('');
 
     const handleToolClick = (tool: typeof TOOLS[0]) => {
         // Check permission
         if (!hasMinRole(userRole, tool.minRole)) {
-            setLockedMessage(`Tính năng ${tool.label} chỉ dành cho gói ${tool.minRole} trở lên. Vui lòng nâng cấp để sử dụng!`);
+            setLockedMessage(t('sidebar.locked_message', { feature: tool.label, role: tool.minRole }));
             setShowLockedModal(true);
             return;
         }
@@ -83,7 +85,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                 `}
                         >
                             <Home size={20} strokeWidth={1.5} />
-                            <span className="text-[10px] uppercase tracking-widest mt-1">Tổng quan</span>
+                            <span className="text-[10px] uppercase tracking-widest mt-1">{t('sidebar.overview')}</span>
                         </div>
 
                         {/* External Website Link */}
@@ -98,7 +100,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                         </a>
                     </div>
 
-                    <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 tracking-wider">CÔNG CỤ CỦA TÔI</div>
+                    <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 tracking-wider">{t('sidebar.my_tools')}</div>
 
                     {/* Dynamic Tools */}
                     {TOOLS.map((tool) => {
@@ -123,7 +125,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                                 <div className={`text-lg ${isActive ? 'text-white' : (tool.color || 'text-gray-400')} transition-colors`}>
                                     <Icon size={20} />
                                 </div>
-                                <span className="flex-1 text-sm">{tool.label}</span>
+                                <span className="flex-1 text-sm">{t(`tools.${tool.id}.name`, tool.label)}</span>
 
                                 {isLocked && (
                                     // Hidden lock icon as requested, but logic stays
@@ -135,14 +137,14 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
 
                     <div className="h-px bg-gray-800 my-4 mx-4"></div>
 
-                    <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 tracking-wider">TÀI KHOẢN</div>
+                    <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 tracking-wider">{t('sidebar.account')}</div>
                     <Link href="/pricing" className="flex items-center gap-3 px-4 py-3 rounded-xl text-yellow-500 hover:bg-yellow-500/10 transition-all font-bold">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        <span>Nâng cấp VIP</span>
+                        <span>{t('sidebar.upgrade_vip')}</span>
                     </Link>
                     <button onClick={() => signOut({ callbackUrl: '/' })} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-red-900/10 hover:text-red-500 transition-all text-sm font-medium">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                        <span>Đăng xuất</span>
+                        <span>{t('sidebar.logout')}</span>
                     </button>
                 </nav>
 
@@ -153,7 +155,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                             {userRole.charAt(0)}
                         </div>
                         <div className="flex-1 overflow-hidden">
-                            <div className="text-xs font-bold text-white truncate">Tài khoản của tôi</div>
+                            <div className="text-xs font-bold text-white truncate">{t('sidebar.my_account')}</div>
                             <div className="text-[10px] text-gray-500 truncate font-mono uppercase">{userRole} PLAN</div>
                         </div>
                         {/* Settings Icon */}
@@ -168,7 +170,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
             < LockedFeatureModal
                 isOpen={showLockedModal}
                 onClose={() => setShowLockedModal(false)}
-                title="Tính năng cao cấp"
+                title={t('sidebar.premium_feature')}
                 message={lockedMessage}
             />
         </>

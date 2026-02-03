@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 
 interface VideoData {
     id: string;
@@ -22,6 +23,7 @@ interface VideoTipsSectionProps {
 const ITEMS_PER_PAGE = 4;
 
 const VideoTipsSection: React.FC<VideoTipsSectionProps> = ({ title, subtitle, videos = [], tag, variant = 'default', hint }) => {
+    const { t } = useTranslation('common');
     const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
 
@@ -159,7 +161,7 @@ const VideoTipsSection: React.FC<VideoTipsSectionProps> = ({ title, subtitle, vi
 
                                                     {/* Optional Badge */}
                                                     <div className={`absolute ${isCompact ? 'top-2 right-2 px-1.5 py-0.5 text-[9px]' : 'top-3 right-3 px-2 py-0.5 text-[10px]'} bg-black/60 backdrop-blur-md rounded font-bold text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity delay-100`}>
-                                                        {isCompact ? 'WATCH' : 'WATCH NOW'}
+                                                        {isCompact ? t('video_tips.watch') : t('video_tips.watch_now')}
                                                     </div>
                                                 </div>
 
@@ -168,7 +170,7 @@ const VideoTipsSection: React.FC<VideoTipsSectionProps> = ({ title, subtitle, vi
                                                         {video.title}
                                                     </h3>
                                                     <p className={`${isCompact ? 'text-[10px]' : 'text-xs'} text-gray-500 line-clamp-2 leading-relaxed`}>
-                                                        {video.description || "Xem hướng dẫn chi tiết để nắm bắt cách sử dụng hiệu quả."}
+                                                        {video.description || t('video_tips.default_desc')}
                                                     </p>
                                                 </div>
 

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -51,6 +52,7 @@ interface RivalScannerToolProps {
 }
 
 export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -130,24 +132,24 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
         <div className="flex items-center gap-4">
           {onBack && (
             <button onClick={onBack} className="flex items-center gap-2 hover:bg-[#003b00] px-3 py-1 rounded transition-colors text-xs font-bold tracking-widest uppercase">
-              <ChevronLeft size={14} /> ABORT_MISSION
+              <ChevronLeft size={14} /> {t('toolUI.rival.abort')}
             </button>
           )}
           <div className="h-6 w-px bg-[#003b00]"></div>
           <div className="flex items-center gap-2 text-[#00ff41] animate-pulse">
             <Radar size={18} />
-            <span className="font-bold tracking-[0.2em]">RIVAL_SCANNER_V3.0</span>
+            <span className="font-bold tracking-[0.2em]">{t('toolUI.rival.title')}</span>
           </div>
         </div>
         <div className="flex items-center gap-6 text-[10px] text-[#008f11]">
           <span className="flex items-center gap-2">
-            <Wifi size={12} /> NET_STATUS: SECURE
+            <Wifi size={12} /> {t('toolUI.rival.status')}
           </span>
           <span className="flex items-center gap-2">
-            <Activity size={12} /> SYS_LOAD: {Math.floor(Math.random() * 30) + 10}%
+            <Activity size={12} /> {t('toolUI.rival.sys_load')}: {Math.floor(Math.random() * 30) + 10}%
           </span>
           <span className="text-[#00ff41] font-bold border border-[#00ff41] px-2 py-0.5 rounded">
-            CONFIDENTIAL
+            {t('toolUI.rival.confidential')}
           </span>
         </div>
       </header>
@@ -166,7 +168,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="ENTER TARGET COORDINATES (CHANNEL URL / HANDLE)..."
+              placeholder={t('toolUI.rival.placeholder')}
               className="bg-transparent border-none outline-none flex-1 p-4 text-[#00ff41] placeholder-[#003b00] font-bold tracking-widest uppercase"
               disabled={isLoading}
             />
@@ -175,7 +177,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
               disabled={isLoading}
               className="bg-[#003b00] hover:bg-[#00ff41] hover:text-black text-[#00ff41] px-8 py-3 rounded font-bold tracking-widest uppercase transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'SCANNING...' : 'INITIATE_SCAN'}
+              {isLoading ? t('toolUI.rival.scanning') : t('toolUI.rival.scan_btn')}
             </button>
           </form>
         </div>
@@ -203,7 +205,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
               <div className="absolute text-[#00ff41] font-bold text-xs tracking-widest mt-2">{Math.floor(scanProgress)}% COMPLETE</div>
             </div>
             <div className="mt-8 text-[#008f11] animate-pulse text-sm tracking-[0.3em] font-bold">
-              ACQUIRING TARGET DATA...
+              {t('toolUI.rival.acquiring')}
             </div>
           </div>
         )}
@@ -215,7 +217,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
             <div className="border border-[#00ff41] bg-[#003b00]/20 p-6 mb-8 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-2 text-[#00ff41]/50"><Target size={48} /></div>
               <h2 className="text-3xl font-black mb-2 uppercase tracking-tight text-white flex items-center gap-3">
-                <span className="text-[#00ff41] text-lg">[TARGET_ACQUIRED]</span> {output.competitorProfile.name}
+                <span className="text-[#00ff41] text-lg">[{t('toolUI.rival.target_acquired')}]</span> {output.competitorProfile.name}
               </h2>
               <div className="flex gap-8 text-sm font-bold text-[#008f11] mt-4 border-t border-[#003b00] pt-4">
                 <div className="flex flex-col">
@@ -238,7 +240,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
               <div className="space-y-6">
                 <div className="border border-[#003b00] bg-black/50 p-4">
                   <h3 className="text-[#00ff41] font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-xs border-b border-[#003b00] pb-2">
-                    <ShieldAlert size={14} /> Strategic Weaknesses
+                    <ShieldAlert size={14} /> {t('toolUI.rival.weaknesses')}
                   </h3>
                   <ul className="space-y-3">
                     {output.strategicWeaknesses.map((w, i) => (
@@ -251,7 +253,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
 
                 <div className="border border-[#003b00] bg-black/50 p-4">
                   <h3 className="text-[#00ff41] font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-xs border-b border-[#003b00] pb-2">
-                    <Scan size={14} /> Untapped Niches
+                    <Scan size={14} /> {t('toolUI.rival.untapped')}
                   </h3>
                   <ul className="space-y-3">
                     {output.untappedNiches.map((n, i) => (
@@ -271,7 +273,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div>
-                    <div className="text-[10px] text-[#008f11] uppercase mb-1">Audience Gap Analysis</div>
+                    <div className="text-[10px] text-[#008f11] uppercase mb-1">{t('toolUI.rival.audience_gap')}</div>
                     <div className="text-sm text-gray-300 leading-relaxed border-l-2 border-[#00ff41] pl-3">
                       {output.audienceGapAnalysis.map((gap, i) => (
                         <p key={i} className="mb-2 last:mb-0">{gap}</p>
@@ -279,7 +281,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#008f11] uppercase mb-1">Content Persona</div>
+                    <div className="text-[10px] text-[#008f11] uppercase mb-1">{t('toolUI.rival.persona')}</div>
                     <div className="flex gap-2 flex-wrap">
                       <div className="bg-[#003b00] px-3 py-1 rounded text-xs text-[#00ff41]">
                         TONE: {output.videoPersonaScore.tone}
@@ -293,7 +295,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
 
                 <div className="space-y-4">
                   <div className="p-4 border border-[#003b00] bg-black/30">
-                    <h4 className="text-[#00ff41] font-bold text-xs uppercase mb-2">Detailed Counter-Attack Plan</h4>
+                    <h4 className="text-[#00ff41] font-bold text-xs uppercase mb-2">{t('toolUI.rival.counter_plan')}</h4>
                     <p className="text-gray-400 text-sm whitespace-pre-wrap font-mono">
                       {output.counterAttackPlan}
                     </p>
@@ -301,11 +303,11 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 border border-[#003b00] bg-black/30">
-                      <h4 className="text-[#008f11] font-bold text-[10px] uppercase mb-1">Title Analysis</h4>
+                      <h4 className="text-[#008f11] font-bold text-[10px] uppercase mb-1">{t('toolUI.rival.title_analysis')}</h4>
                       <p className="text-gray-400 text-xs">{output.titleAnalysis}</p>
                     </div>
                     <div className="p-3 border border-[#003b00] bg-black/30">
-                      <h4 className="text-[#008f11] font-bold text-[10px] uppercase mb-1">Thumbnail Analysis</h4>
+                      <h4 className="text-[#008f11] font-bold text-[10px] uppercase mb-1">{t('toolUI.rival.thumb_analysis')}</h4>
                       <p className="text-gray-400 text-xs">{output.thumbnailAnalysis}</p>
                     </div>
                   </div>
@@ -315,7 +317,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
 
             {/* SEO KEYS */}
             <div className="mt-8 border-t border-[#003b00] pt-6">
-              <h3 className="text-[#00ff41] font-bold uppercase tracking-widest mb-4 text-xs">Decrypted Keywords & Tags</h3>
+              <h3 className="text-[#00ff41] font-bold uppercase tracking-widest mb-4 text-xs">{t('toolUI.rival.decrypted_tags')}</h3>
               <div className="flex flex-wrap gap-2">
                 {output.tagsHashtags.map((tag, i) => (
                   <span key={i} className="px-3 py-1 border border-[#003b00] hover:bg-[#00ff41] hover:text-black hover:font-bold transition-all text-xs text-[#008f11] cursor-pointer">
@@ -332,8 +334,8 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
         {!isLoading && !output && (
           <div className="flex-1 flex flex-col items-center justify-center opacity-30 pointer-events-none select-none">
             <Radio size={120} className="text-[#003b00] mb-8" />
-            <div className="text-[#003b00] font-black text-6xl tracking-[0.2em]">RADAR_IDLE</div>
-            <p className="text-[#008f11] tracking-widest mt-4">AWAITING INPUT PARAMETERS...</p>
+            <div className="text-[#003b00] font-black text-6xl tracking-[0.2em]">{t('toolUI.rival.idle')}</div>
+            <p className="text-[#008f11] tracking-widest mt-4">{t('toolUI.rival.placeholder')}</p>
           </div>
         )}
 

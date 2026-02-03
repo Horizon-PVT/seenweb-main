@@ -114,13 +114,13 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const handleSaveProject = async () => {
     if (!session) {
-      alert("Vui lòng đăng nhập để lưu dự án!");
+      alert(t('imageforge.login_to_save'));
       return;
     }
     if (!prompt && images.length === 0) return;
 
     const defaultName = prompt.substring(0, 20) || `Image ${new Date().toLocaleTimeString()}`;
-    const name = window.prompt("Tên dự án:", defaultName) || defaultName;
+    const name = window.prompt(t('imageforge.project_name'), defaultName) || defaultName;
 
     setIsLoading(true);
     try {
@@ -148,11 +148,11 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
       if (data.project) {
         setCurrentProjectId(data.project.id);
-        alert("✅ Đã lưu dự án!");
+        alert(t('imageforge.saved'));
         fetchProjects();
       }
     } catch (e: any) {
-      alert(`❌ Lưu thất bại: ${e.message}`);
+      alert(`${t('imageforge.save_failed')} ${e.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -175,7 +175,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   const handleNewProject = () => {
-    if (confirm("Tạo dự án mới? Các thay đổi chưa lưu sẽ mất.")) {
+    if (confirm(t('imageforge.create_new_confirm'))) {
       setPrompt("");
       setImages([]);
       setArchive([]); // Optional: clear local cache too? Maybe not.
@@ -193,7 +193,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   const handleClear = () => {
-    if (confirm("Xóa hết kho ảnh?")) {
+    if (confirm(t('imageforge.delete_archive_confirm'))) {
       setArchive([]);
       try {
         localStorage.removeItem(ARCHIVE_KEY);
@@ -204,7 +204,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const addCharacterRef = (file: File | null) => {
     if (!file) return;
     if (characterRefs.length >= 3) {
-      setError("Tối đa 3 ảnh nhân vật tham chiếu.");
+      setError(t('imageforge.max_3_refs'));
       return;
     }
     const previewUrl = URL.createObjectURL(file);
@@ -228,7 +228,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setError("");
     const p = prompt.trim();
     if (!p) {
-      setError("Nhập prompt trước khi dùng Magic Prompt.");
+      setError(t('imageforge.enter_prompt_first'));
       inputRef.current?.focus();
       return;
     }
@@ -249,11 +249,11 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-      if (!data?.prompt) throw new Error("Magic prompt không trả prompt.");
+      if (!data?.prompt) throw new Error(t('imageforge.magic_prompt_no_result'));
 
       setPrompt(data.prompt);
     } catch (e: any) {
-      setError(e?.message || "Magic prompt lỗi.");
+      setError(e?.message || t('imageforge.magic_error'));
     } finally {
       setIsMagic(false);
     }
@@ -272,7 +272,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // ---------------------------
 
     if (!prompt.trim() && !hasAnyRefs) {
-      setError("Nhập prompt hoặc upload ảnh tham chiếu (style/nhân vật).");
+      setError(t('imageforge.enter_prompt_or_ref'));
       inputRef.current?.focus();
       return;
     }
@@ -310,9 +310,8 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
       const data = await safeJson(res);
       if (!res.ok) {
-        // Friendly message for 413
         if (res.status === 413) {
-          throw new Error("Ảnh tham chiếu quá lớn. Hãy dùng ảnh < 5MB hoặc giảm kích thước ảnh.");
+          throw new Error(t('imageforge.image_too_large'));
         }
         throw new Error(data?.error || `HTTP ${res.status}`);
       }
@@ -324,10 +323,10 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         const nextArchive = [...out, ...archive].slice(0, 12);
         persistArchive(nextArchive);
       } else {
-        throw new Error("Không nhận được ảnh từ server.");
+        throw new Error(t('imageforge.no_images_from_server'));
       }
     } catch (e: any) {
-      setError(e?.message || "Lỗi!");
+      setError(e?.message || t('imageforge.error_generic'));
     } finally {
       setIsLoading(false);
     }
@@ -361,7 +360,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           onClick={onBack}
           className={`px-4 py-2 rounded-xl text-[10px] uppercase border border-white/10 bg-white/5 hover:bg-white/10 font-bold ${gold}`}
         >
-          ← {isEN ? 'Back to Menu' : 'Quay lại Menu'}
+          ← {t('imageforge.back_to_menu')}
         </button>
 
         <h1 className="text-xl font-black tracking-wide">
@@ -372,7 +371,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           onClick={clearRefs}
           className="px-3 py-2 rounded-xl text-[10px] uppercase border border-white/10 bg-white/5 hover:bg-white/10 font-bold text-white/80"
         >
-          {isEN ? 'Clear Refs' : 'Clear Refs'}
+          {t('imageforge.clear_refs')}
         </button>
 
         {/* NEW HEADER BUTTONS */}
@@ -418,7 +417,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {projects.length === 0 ? (
                   <div className="text-center py-10 opacity-40">
                     <p className="text-3xl mb-2">📭</p>
-                    <p className="text-xs">Chưa có dự án nào.</p>
+                    <p className="text-xs">{t('imageforge.no_projects')}</p>
                   </div>
                 ) : (
                   projects.map(p => (
@@ -430,7 +429,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm("Xóa dự án này?")) {
+                          if (confirm(t('imageforge.delete_project_confirm'))) {
                             fetch(`/api/projects?id=${p.id}`, { method: 'DELETE' }).then(() => fetchProjects());
                           }
                         }}
@@ -451,15 +450,15 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         {/* LEFT: History */}
         <aside className="w-[220px] border-r border-white/5 p-4 flex flex-col gap-4 bg-white/[0.02]">
           <div className="flex justify-between items-center">
-            <span className="text-[10px] opacity-60 font-bold tracking-widest">{isEN ? 'HISTORY' : 'LỊCH SỬ'}</span>
+            <span className="text-[10px] opacity-60 font-bold tracking-widest">{t('imageforge.history')}</span>
             <button onClick={handleClear} className="text-[9px] text-red-300 hover:text-red-200">
-              {isEN ? 'CLEAR ALL' : 'XÓA HẾT'}
+              {t('imageforge.clear_all')}
             </button>
           </div>
 
           <div className="flex flex-col gap-3 overflow-auto pr-1">
             {archive.length === 0 && (
-              <div className="text-[10px] opacity-45">{isEN ? 'No images yet. Generate to save to archive.' : 'Chưa có ảnh. Generate để lưu vào kho.'}</div>
+              <div className="text-[10px] opacity-45">{t('imageforge.no_images_yet')}</div>
             )}
             {archive.map((img, i) => (
               // eslint-disable-next-line @next/next/no-img-element
@@ -484,7 +483,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               {isLoading ? (
                 <div className="flex flex-col items-center gap-4 animate-pulse">
                   <div className="w-16 h-16 border-4 border-[#F5C542] border-t-transparent rounded-full animate-spin shadow-[0_0_30px_rgba(245,197,66,0.2)]" />
-                  <div className="text-sm text-[#F5C542] font-bold tracking-widest">{isEN ? 'GENERATING ARTWORK...' : 'ĐANG SÁNG TẠO TÁC PHẨM...'}</div>
+                  <div className="text-sm text-[#F5C542] font-bold tracking-widest">{t('imageforge.generating')}</div>
                 </div>
               ) : images.length > 0 ? (
                 <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
@@ -503,7 +502,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         alt={`generated-${i}`}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                        <span className="bg-black/60 text-white text-xs px-3 py-1 rounded-full border border-white/20">{isEN ? 'Click to view' : 'Click để xem'}</span>
+                        <span className="bg-black/60 text-white text-xs px-3 py-1 rounded-full border border-white/20">{t('imageforge.click_to_view')}</span>
                       </div>
                     </div>
                   ))}
@@ -513,10 +512,10 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   <div className="w-16 h-16 bg-[#F5C542]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#F5C542]/20 text-3xl">
                     🎨
                   </div>
-                  <div className={`text-xl font-bold ${gold} mb-2 tracking-wide`}>{isEN ? 'STUDIO READY' : 'STUDIO ĐÃ SẴN SÀNG'}</div>
+                  <div className={`text-xl font-bold ${gold} mb-2 tracking-wide`}>{t('imageforge.studio_ready')}</div>
                   <div className={`text-sm ${soft} leading-relaxed max-w-md mx-auto`}>
-                    {isEN ? 'Describe your idea below.' : 'Hãy mô tả ý tưởng của bạn bên dưới.'} <br />
-                    {isEN ? 'Combine Style Reference and Face Lock for professional results.' : 'Kết hợp <strong>Style Reference</strong> và <strong>Face Lock</strong> để có kết quả chuyên nghiệp nhất.'}
+                    {t('imageforge.describe_idea')} <br />
+                    <span dangerouslySetInnerHTML={{ __html: t('imageforge.combine_tip') }} />
                   </div>
                 </div>
               )}
@@ -536,7 +535,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     if (!submitDisabled) handleSubmit();
                   }
                 }}
-                placeholder={isEN ? "Describe your idea (e.g., Doraemon robot cat in Cyberpunk style)..." : "Mô tả ý tưởng của anh (Ví dụ: Mèo máy Doraemon phong cách Cyberpunk)..."}
+                placeholder={t('imageforge.prompt_placeholder')}
                 className="flex-grow bg-transparent border-none focus:ring-0 text-white px-5 py-3 text-sm outline-none placeholder:text-white/30"
               />
 
@@ -546,7 +545,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 onClick={handleMagicPrompt}
                 disabled={isMagic}
                 className={`px-4 py-2.5 rounded-xl font-bold uppercase text-[10px] border border-white/10 bg-white/5 hover:bg-white/10 ${gold} disabled:opacity-50 transition-colors flex flex-col items-center leading-none gap-0.5 min-w-[60px]`}
-                title={isEN ? "Automatically rewrite prompt for better results" : "Tự động viết lại prompt hay hơn"}
+                title={t('imageforge.magic_prompt_title')}
               >
                 <span>✨</span>
                 <span>{isMagic ? "..." : "Magic"}</span>
@@ -557,7 +556,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   value={aspectRatio}
                   onChange={(e) => setAspectRatio(e.target.value as Aspect)}
                   className="bg-black/40 border border-white/10 text-white text-[10px] rounded-lg px-2 py-1 outline-none hover:bg-white/5 cursor-pointer"
-                  title={isEN ? "Aspect Ratio" : "Tỉ lệ ảnh"}
+                  title={t('imageforge.aspect_ratio')}
                 >
                   <option value="16:9">16:9</option>
                   <option value="1:1">1:1</option>
@@ -568,12 +567,12 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   value={numImages}
                   onChange={(e) => setNumImages(parseInt(e.target.value, 10))}
                   className="bg-black/40 border border-white/10 text-white text-[10px] rounded-lg px-2 py-1 outline-none hover:bg-white/5 cursor-pointer"
-                  title={isEN ? "Number of Images" : "Số lượng ảnh"}
+                  title={t('imageforge.num_images')}
                 >
-                  <option value={1}>{isEN ? "1 image" : "1 ảnh"}</option>
-                  <option value={2}>{isEN ? "2 images" : "2 ảnh"}</option>
-                  <option value={3}>{isEN ? "3 images" : "3 ảnh"}</option>
-                  <option value={4}>{isEN ? "4 images" : "4 ảnh"}</option>
+                  <option value={1}>{t('imageforge.image_count_1')}</option>
+                  <option value={2}>{t('imageforge.image_count_2')}</option>
+                  <option value={3}>{t('imageforge.image_count_3')}</option>
+                  <option value={4}>{t('imageforge.image_count_4')}</option>
                 </select>
               </div>
 
@@ -582,7 +581,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 disabled={submitDisabled}
                 className={`ml-1 text-white px-6 py-3.5 rounded-xl font-black uppercase text-[11px] tracking-wider transition-all disabled:opacity-50 disabled:grayscale hover:shadow-[0_0_20px_#C1121F] ${redBtn}`}
               >
-                {isEN ? "Generate Image" : "Tạo Ảnh"}
+                {t('imageforge.generate_image')}
               </button>
             </div>
           </div>
@@ -599,7 +598,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           {/* Style reference */}
           <div className="mb-6">
             <span className={`text-[10px] opacity-70 font-bold tracking-widest block mb-3 ${gold}`}>
-              {isEN ? 'STYLE REFERENCE' : 'PHONG CÁCH THAM CHIẾU'}
+              {t('imageforge.style_reference')}
             </span>
 
             <div className={`rounded-2xl ${panel} p-3`}>
@@ -622,7 +621,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   <img src={URL.createObjectURL(styleRef)} className="w-full h-full object-cover" alt="style-ref" />
                 ) : (
                   <div className="h-full flex items-center justify-center opacity-40 text-xs">
-                    {isEN ? 'Upload style to maintain tone/lighting/vibe' : 'Upload style để giữ tone/ánh sáng/vibe'}
+                    {t('imageforge.upload_style_hint')}
                   </div>
                 )}
               </div>
@@ -633,7 +632,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <div className="mb-6">
             <div className="flex items-end justify-between mb-3">
               <span className={`text-[10px] opacity-70 font-bold tracking-widest block ${gold}`}>
-                {isEN ? 'CHARACTER REFERENCE' : 'NHÂN VẬT THAM CHIẾU'}
+                {t('imageforge.character_reference')}
               </span>
               <label className={`text-[10px] font-bold uppercase px-3 py-2 rounded-xl cursor-pointer text-white ${redBtn}`}>
                 + Add
@@ -663,7 +662,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
               {characterRefs.length === 0 && (
                 <div className={`col-span-2 text-xs ${soft} ${panel} rounded-2xl p-4`}>
-                  {isEN ? 'Add 1–3 character images to unify face/identity.' : 'Thêm 1–3 ảnh nhân vật để đồng nhất gương mặt/identity.'}
+                  {t('imageforge.add_character_hint')}
                 </div>
               )}
             </div>
@@ -673,9 +672,9 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <div className={`rounded-2xl ${panel} p-4`}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className={`text-xs font-bold ${gold}`}>{isEN ? 'Auto Face Lock' : 'Auto khóa Face Lock'}</div>
+                <div className={`text-xs font-bold ${gold}`}>{t('imageforge.auto_face_lock')}</div>
                 <div className="text-[10px] text-white/55 mt-1">
-                  {isEN ? 'Maintain identity based on character refs (recommended)' : 'Giữ identity theo character refs (khuyến nghị bật)'}
+                  {t('imageforge.face_lock_hint')}
                 </div>
               </div>
 
@@ -693,7 +692,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             <div className="mt-3 text-[10px] text-white/55">
-              Face Lock mạnh nhất khi ảnh rõ mặt, ánh sáng tốt, ít filter.
+              {t('imageforge.face_lock_tip')}
             </div>
           </div>
         </aside>

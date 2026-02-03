@@ -7,12 +7,12 @@ const Testimonials: React.FC = () => {
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
 
   const testimonials = [
-    { id: "t1", metric: "Kênh mới lên xu hướng", videoUrl: "sZRqXy4IeIQ", thumb: "/images/testimonials/shorts-1.jpg" },
-    { id: "t2", metric: "Tiết kiệm 80% thời gian", videoUrl: "86pXGV_C0q8", thumb: "/images/testimonials/shorts-2.jpg" },
-    { id: "t3", metric: "Video triệu view", videoUrl: "8nRqWsdg5oI", thumb: "/images/testimonials/shorts-3.png" },
-    { id: "t4", metric: "X2 Doanh thu", videoUrl: "DnWhLE_4lAs", thumb: "/images/testimonials/shorts-4.png" },
-    { id: "t5", metric: "Ý tưởng vô hạn", videoUrl: "DVhPcdq3430", thumb: "/images/testimonials/shorts-5.png" },
-    { id: "t6", metric: "Tăng sub chóng mặt", videoUrl: "4nf-Q_dQkLw", thumb: "/images/testimonials/shorts-6.png" }
+    { id: "t1", metric: t('testimonials_video.metric_1'), videoUrl: "sZRqXy4IeIQ", thumb: "/images/testimonials/shorts-1.jpg" },
+    { id: "t2", metric: t('testimonials_video.metric_2'), videoUrl: "86pXGV_C0q8", thumb: "/images/testimonials/shorts-2.jpg" },
+    { id: "t3", metric: t('testimonials_video.metric_3'), videoUrl: "8nRqWsdg5oI", thumb: "/images/testimonials/shorts-3.png" },
+    { id: "t4", metric: t('testimonials_video.metric_4'), videoUrl: "DnWhLE_4lAs", thumb: "/images/testimonials/shorts-4.png" },
+    { id: "t5", metric: t('testimonials_video.metric_5'), videoUrl: "DVhPcdq3430", thumb: "/images/testimonials/shorts-5.png" },
+    { id: "t6", metric: t('testimonials_video.metric_6'), videoUrl: "4nf-Q_dQkLw", thumb: "/images/testimonials/shorts-6.png" }
   ];
 
   const stats = [
@@ -54,7 +54,7 @@ const Testimonials: React.FC = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[8px] uppercase tracking-wider text-gray-400 font-semibold mb-0.5">Kết quả</p>
+              <p className="text-[8px] uppercase tracking-wider text-gray-400 font-semibold mb-0.5">{t('testimonials_video.result_label')}</p>
               <p className="text-[10px] sm:text-xs font-bold text-white truncate text-ellipsis">{item.metric}</p>
             </div>
           </div>
@@ -77,7 +77,7 @@ const Testimonials: React.FC = () => {
       <div className="container mx-auto px-4 relative z-10 max-w-4xl">
         <div className="text-center mb-12">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-white mb-4 tracking-tight max-w-3xl mx-auto leading-normal">
-            Hãy lắng nghe chia sẻ từ những người sáng tạo thực tế đang sử dụng <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CDAD5A] to-[#F3EAC0]">SEENYT</span> để thúc đẩy sự phát triển của họ.
+            {t('testimonials_video.heading').split('SEENYT')[0]}<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CDAD5A] to-[#F3EAC0]">SEENYT</span>{t('testimonials_video.heading').split('SEENYT')[1]}
           </h2>
         </div>
 

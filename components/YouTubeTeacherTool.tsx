@@ -1,5 +1,6 @@
 import React from 'react';
 import Tab4Learning from './dashboard/Tab4Learning';
+import { useTranslation } from 'next-i18next';
 
 interface YouTubeTeacherToolProps {
     onBack?: () => void;
@@ -8,6 +9,8 @@ interface YouTubeTeacherToolProps {
 
 // Wrapper for the Learning Tab content to behave like a Tool
 const YouTubeTeacherTool: React.FC<YouTubeTeacherToolProps> = ({ onBack, onToolSelect }) => {
+    const { t } = useTranslation('common');
+
     return (
         <div className="h-full flex flex-col text-white overflow-hidden">
             {/* Header wrapper if needed, or rely on Tab4Learning's internal header if appropriate. 
@@ -21,12 +24,12 @@ const YouTubeTeacherTool: React.FC<YouTubeTeacherToolProps> = ({ onBack, onToolS
                         <span className="text-2xl">🎓</span>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-white">Thầy YouTube (AI Mentor)</h2>
+                        <h2 className="text-xl font-bold text-white">{t('tools.teacher.title')}</h2>
                     </div>
                 </div>
                 {onBack && (
                     <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors px-3 py-1 bg-gray-800 rounded hover:bg-gray-700 text-sm">
-                        Quay lại Dashboard
+                        {t('tools.teacher.back')}
                     </button>
                 )}
             </div>

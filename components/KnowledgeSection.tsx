@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Play, BookOpen, ArrowRight, TrendingUp, Lightbulb } from 'lucide-react';
+import { useTranslation } from 'next-i18next';
 
 interface KnowledgeSectionProps {
     featuredVideo?: {
@@ -13,6 +14,8 @@ interface KnowledgeSectionProps {
 }
 
 const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, articles = [] }) => {
+    const { t } = useTranslation('common');
+
     // Placeholder Data (Fallback)
     const DEFAULT_VIDEO = {
         title: "Lộ Trình Làm YouTube 2026: Bắt Đầu Từ Đâu?",
@@ -62,12 +65,12 @@ const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, arti
             <div className="container mx-auto px-6">
                 {/* Section Header */}
                 <div className="text-center mb-16">
-                    <span className="text-[#CDAD5A] font-bold tracking-widest text-xs uppercase mb-2 block">SeenYT Academy</span>
+                    <span className="text-[#CDAD5A] font-bold tracking-widest text-xs uppercase mb-2 block">{t('academy.title')}</span>
                     <h2 className="text-4xl md:text-5xl font-playfair font-black text-white mb-4">
-                        Kiến Thức <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Thực Chiến</span>
+                        {t('academy.heading').split(' ')[0]} <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">{t('academy.heading').split(' ').slice(1).join(' ')}</span>
                     </h2>
                     <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-                        Không chỉ cung cấp công cụ, chúng tôi trao cho bạn tư duy và chiến lược để thành công bền vững.
+                        {t('academy.subtitle')}
                     </p>
                 </div>
 
@@ -79,7 +82,7 @@ const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, arti
                             <span className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center">
                                 <Play size={14} fill="white" className="text-white" />
                             </span>
-                            Video Chiến Lược Mới Nhất
+                            {t('academy.strategy_video')}
                         </h3>
 
                         <div className="relative aspect-video rounded-2xl overflow-hidden border border-gray-800 shadow-[0_0_50px_rgba(168,85,247,0.15)] group">
@@ -128,7 +131,7 @@ const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, arti
                                 <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
                                     <BookOpen size={16} className="text-white" />
                                 </span>
-                                Bài Viết Chuyên Sâu
+                                {t('academy.indepth_articles')}
                             </h3>
 
                             <div className="flex flex-col gap-6">
@@ -148,7 +151,7 @@ const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, arti
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider bg-purple-500/10 px-2 py-0.5 rounded">
-                                                        {article.tag || 'Kiến Thức'}
+                                                        {article.tag || t('academy.default_tag')}
                                                     </span>
                                                     <span className="text-[10px] text-gray-500">{article.date}</span>
                                                 </div>
@@ -168,11 +171,11 @@ const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, arti
                         {/* View All Button */}
                         <div className="mt-8 pt-8 border-t border-gray-800 text-center xl:text-left">
                             <p className="text-gray-400 text-sm mb-4">
-                                Khám phá kho tàng kiến thức giúp kênh của bạn cất cánh.
+                                {t('academy.footer_text')}
                             </p>
                             <Link href="/blog">
                                 <button className="inline-flex items-center gap-2 text-white font-bold hover:text-[#CDAD5A] transition-colors group">
-                                    Xem tất cả bài viết
+                                    {t('academy.view_all')}
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>

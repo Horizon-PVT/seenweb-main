@@ -108,7 +108,7 @@ const PricingCard = ({
           <h2 className="text-5xl font-light tracking-tighter" style={{ color }}>
             {displayPrice >= 1000 ? (displayPrice / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + 'k' : displayPrice.toLocaleString('vi-VN') + ' đ'}
           </h2>
-          <span className="text-gray-400 font-normal text-lg">/tháng</span>
+          <span className="text-gray-400 font-normal text-lg">/{t('pricing.monthly')}</span>
         </div>
 
         {/* Billed note */}
@@ -119,13 +119,13 @@ const PricingCard = ({
         {/* Savings highlight logic */}
         {isYearly && (
           <div className="mt-2 text-xs font-bold text-green-400 bg-green-400/10 py-1 px-2 rounded inline-block">
-            Tiết kiệm {(priceMonthly * 12 - priceYearly).toLocaleString('vi-VN')} đ /năm
+            {t('pricing.discountSaved')} {(priceMonthly * 12 - priceYearly).toLocaleString('vi-VN')} đ /{t('pricing.yearly')}
           </div>
         )}
 
         {promoApplied && (
           <div className="mt-2 text-sm text-yellow-500 font-bold animate-pulse">
-            🎉 Đã áp mã: Giảm còn {(promoApplied.finalAmount).toLocaleString('vi-VN')} đ
+            🎉 {t('pricing.codeApplied')} {promoApplied.code}: {t('pricing.discountSaved')} {(promoApplied.finalAmount).toLocaleString('vi-VN')} đ
           </div>
         )}
       </div>
@@ -154,11 +154,11 @@ const PricingCard = ({
               disabled={applyingPromo || !promoCode.trim()}
               className="px-4 py-2 bg-[#CDAD5A] text-black font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
             >
-              {applyingPromo ? '...' : 'Áp dụng'}
+              {applyingPromo ? '...' : t('pricing.apply')}
             </button>
           </div>
           {promoError && <p className="text-red-400 text-xs text-left">{promoError}</p>}
-          {promoApplied && <p className="text-green-400 text-xs text-left">✓ Mã "{promoApplied.code}" đã lưu!</p>}
+          {promoApplied && <p className="text-green-400 text-xs text-left">✓ {t('pricing.codeApplied')} "{promoApplied.code}" {t('pricing.applied')}!</p>}
         </div>
       )}
 

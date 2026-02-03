@@ -6,6 +6,9 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
+import { GetServerSideProps } from "next";
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 
 // New tab components
 import TabNavigation from "@/components/dashboard/TabNavigation";
@@ -41,6 +44,7 @@ import UnderConstructionTool from "@/components/UnderConstructionTool";
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('start-youtube');
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -89,7 +93,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-[#CDAD5A] text-2xl">Đang tải dashboard...</p>
+        <p className="text-[#CDAD5A] text-2xl">{t('dashboard.loading')}</p>
       </div>
     );
   }
@@ -115,9 +119,9 @@ export default function Dashboard() {
         <div className="flex items-end justify-between">
           <div>
             <h1 className="text-3xl font-black text-white">
-              Chào mừng, <span className="text-[#CDAD5A]">{session?.user?.name || "Creator"}</span>
+              {t('dashboard.welcome')} <span className="text-[#CDAD5A]">{session?.user?.name || "Creator"}</span>
             </h1>
-            <p className="text-gray-400 mt-1">Hôm nay hãy cùng làm bùng nổ kênh của bạn nhé!</p>
+            <p className="text-gray-400 mt-1">{t('dashboard.subtitle')}</p>
           </div>
         </div>
 
@@ -246,3 +250,11 @@ function renderTool(toolId: string, onBack: () => void) {
       );
   }
 }
+
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale || 'vi', ['common'])),
+    },
+  };
+};

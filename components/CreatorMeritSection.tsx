@@ -22,20 +22,18 @@ const CreatorMeritSection: React.FC = () => {
                     {/* Left: Text Content */}
                     <div className="flex-1 text-center md:text-left">
                         <div className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-[#CDAD5A]/20 to-transparent border border-[#CDAD5A]/30 text-[#CDAD5A] font-bold text-xs uppercase tracking-widest mb-6 animate-pulse">
-                            Lời nhắn từ Founder
+                            {t('founder.badge')}
                         </div>
 
                         <h2 className="text-4xl md:text-5xl font-playfair font-black text-white leading-tight mb-6">
-                            Cảm ơn bạn đã tin tưởng <br />
+                            {t('founder.title')} <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CDAD5A] to-yellow-200">
                                 SeenYT
                             </span>
                         </h2>
 
                         <p className="text-lg text-gray-400 leading-relaxed mb-8">
-                            "Hành trình làm YouTube không hề dễ dàng, nhưng bạn không đơn độc.
-                            SeenYT được tạo ra không chỉ là một công cụ, mà là người bạn đồng hành
-                            giúp bạn đi nhanh hơn, xa hơn và kiếm tiền bền vững hơn."
+                            "{t('founder.quote')}"
                         </p>
 
                         <div className="flex flex-col md:flex-row items-center gap-6 justify-center md:justify-start">
@@ -49,8 +47,8 @@ const CreatorMeritSection: React.FC = () => {
                                     />
                                 </div>
                                 <div className="text-left">
-                                    <h4 className="text-white font-bold text-lg">Tùng Phạm</h4>
-                                    <p className="text-[#CDAD5A] text-sm font-medium">Founder SeenYT</p>
+                                    <h4 className="text-white font-bold text-lg">{t('founder.founder_name')}</h4>
+                                    <p className="text-[#CDAD5A] text-sm font-medium">{t('founder.founder_title')}</p>
                                 </div>
                             </div>
 
@@ -85,7 +83,7 @@ const CreatorMeritSection: React.FC = () => {
                                         <div className="w-20 h-20 bg-[#CDAD5A] rounded-full flex items-center justify-center pl-2 shadow-[0_0_30px_rgba(205,173,90,0.5)] group-hover:scale-110 transition-transform duration-300">
                                             <Play fill="white" className="text-white w-8 h-8" />
                                         </div>
-                                        <p className="mt-6 text-white font-bold tracking-wider text-sm drop-shadow-lg">XEM VIDEO CHÀO MỪNG</p>
+                                        <p className="mt-6 text-white font-bold tracking-wider text-sm drop-shadow-lg">{t('founder.video_cta')}</p>
                                     </div>
                                 </div>
                             ) : (

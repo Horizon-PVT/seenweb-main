@@ -1,7 +1,8 @@
 // components/dashboard/Tab1StartYouTube.tsx
-// 3-step flow for beginners
+// 3-step flow for beginners with i18n support
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslation } from 'next-i18next';
 import { hasMinRole } from '../../lib/tab-access';
 import LockedFeatureModal from './LockedFeatureModal';
 
@@ -9,54 +10,54 @@ interface Tab1Props {
     onOpenTool: (toolId: string) => void;
 }
 
-const STEPS = [
-    {
-        step: 1,
-        title: 'Chọn đúng video nên làm',
-        description: 'Hệ thống phân tích thị trường và đối thủ để chỉ ra video dễ làm, ít cạnh tranh và có người xem.',
-        toolId: 'micro-niche-miner',
-        icon: '🎯',
-        color: 'from-blue-500 to-cyan-400',
-        cta: 'Chỉ tôi nên làm video gì →',
-        freeAccess: true, // FREE: 1/day
-    },
-    {
-        step: 2,
-        title: 'Có sẵn kịch bản để làm theo',
-        description: 'Cung cấp sẵn hook, kịch bản và nội dung từng đoạn. Không cần nghĩ – chỉ cần làm theo.',
-        toolId: 'scriptwriter',
-        icon: '✍️',
-        color: 'from-purple-500 to-pink-500',
-        cta: 'Lấy kịch bản video →',
-        freeAccess: false, // FREE: preview only
-    },
-    {
-        step: 3,
-        title: 'Đăng đúng cách để có cơ hội lên view',
-        description: 'Gợi ý tiêu đề, mô tả, tag và hướng thumbnail để video không đăng đại, không đoán mò.',
-        toolId: 'seo',
-        icon: '🚀',
-        color: 'from-amber-400 to-orange-500',
-        cta: 'Chuẩn bị đăng video →',
-        freeAccess: false, // FREE: preview only
-    },
-];
-
 export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
     const { data: session } = useSession();
+    const { t } = useTranslation('common');
     const userRole = (session?.user as any)?.role || 'FREE';
     const isFreeUser = !hasMinRole(userRole, 'CREATIVE');
 
     const [showModal, setShowModal] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
 
+    const STEPS = [
+        {
+            step: 1,
+            title: t('dashboard_tabs.step1_title'),
+            description: t('dashboard_tabs.step1_desc'),
+            toolId: 'micro-niche-miner',
+            icon: '🎯',
+            color: 'from-blue-500 to-cyan-400',
+            cta: t('dashboard_tabs.step1_cta'),
+            freeAccess: true,
+        },
+        {
+            step: 2,
+            title: t('dashboard_tabs.step2_title'),
+            description: t('dashboard_tabs.step2_desc'),
+            toolId: 'scriptwriter',
+            icon: '✍️',
+            color: 'from-purple-500 to-pink-500',
+            cta: t('dashboard_tabs.step2_cta'),
+            freeAccess: false,
+        },
+        {
+            step: 3,
+            title: t('dashboard_tabs.step3_title'),
+            description: t('dashboard_tabs.step3_desc'),
+            toolId: 'seo',
+            icon: '🚀',
+            color: 'from-amber-400 to-orange-500',
+            cta: t('dashboard_tabs.step3_cta'),
+            freeAccess: false,
+        },
+    ];
+
     const handleStepClick = (step: typeof STEPS[0]) => {
-        // FREE users can only use Step 1
         if (isFreeUser && !step.freeAccess) {
             setModalMessage(
                 step.step === 2
-                    ? 'Bạn đã có hướng đi. Nâng cấp để nhận kịch bản đầy đủ và làm video chuyên nghiệp hơn.'
-                    : 'Nâng cấp để nhận SEO tối ưu, giúp video có cơ hội lên view tốt hơn.'
+                    ? t('dashboard_tabs.upgrade_script')
+                    : t('dashboard_tabs.upgrade_seo')
             );
             setShowModal(true);
             return;
@@ -66,8 +67,6 @@ export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
 
     return (
         <div className="space-y-6">
-
-
             {/* Steps */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {STEPS.map((step) => {
@@ -86,7 +85,7 @@ export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
                         >
                             {/* Step Badge */}
                             <div className="absolute top-4 right-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                Bước {step.step}
+                                {t('dashboard_tabs.step')} {step.step}
                             </div>
 
                             {/* Icon */}
@@ -116,7 +115,7 @@ export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
                             {/* FREE indicator */}
                             {step.freeAccess && isFreeUser && (
                                 <p className="text-xs text-green-400 text-center mt-2">
-                                    ✓ Miễn phí 1 lượt/ngày
+                                    {t('dashboard_tabs.free_daily')}
                                 </p>
                             )}
                         </div>
@@ -128,7 +127,7 @@ export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
             {isFreeUser && (
                 <div className="text-center p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl">
                     <p className="text-purple-300 text-sm">
-                        💡 <strong>Mẹo:</strong> Hoàn thành Bước 1 để khám phá ý tưởng video phù hợp với bạn!
+                        💡 <strong>{t('dashboard_tabs.tip')}</strong> {t('dashboard_tabs.tip_text')}
                     </p>
                 </div>
             )}
@@ -137,7 +136,7 @@ export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
             <LockedFeatureModal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
-                title="Mở khóa để làm tiếp"
+                title={t('dashboard_tabs.unlock_title')}
                 message={modalMessage}
             />
         </div>
