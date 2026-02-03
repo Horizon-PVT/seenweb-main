@@ -19,7 +19,8 @@ const TARGET_LANGUAGES = [
     { code: 'ko', name: 'Korean' },
     { code: 'th', name: 'Thai' },
     { code: 'id', name: 'Indonesian' },
-    { code: 'es', name: 'Spanish' }
+    { code: 'es', name: 'Spanish' },
+    { code: 'en', name: 'English' }
 ];
 
 const LOCALES_DIR = path.join(__dirname, '..', 'public', 'locales');

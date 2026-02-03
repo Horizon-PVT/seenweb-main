@@ -1,366 +1,864 @@
 {
-    "menu": {
-        "home": "Home",
-        "tools": "Tools",
-        "pricing": "Pricing",
-        "community": "Community",
-        "login": "Login",
-        "logout": "Logout",
-        "affiliate": "Become a Partner",
-        "hiring": "WE'RE HIRING"
+  "menu": {
+    "home": "Home",
+    "tools": "Tools Board",
+    "pricing": "Pricing",
+    "community": "Community",
+    "login": "Login",
+    "logout": "Logout",
+    "affiliate": "Become an Affiliate",
+    "hiring": "HIRING",
+    "coaching": "Coaching",
+    "personal": "Personal",
+    "features": "Features",
+    "explore": "Explore",
+    "newbie": "Newbie YouTube"
+  },
+  "home": {
+    "meta_title": "SeenYT - The Smartest AI YouTube Tool 2025",
+    "meta_description": "SeenYT - AI tool helps YouTube creators auto-generate videos, find micro-niches, hidden channels, optimize SEO, and monetize most effectively.",
+    "hero_listen_line": "Listen to insights from real creators using SEENYT to accelerate their growth.",
+    "tools_section": {
+      "tag": "Technical Support",
+      "title": "How to Use Tools",
+      "subtitle": "Optimal toolset for YouTube channel growth"
     },
-    "nav": {
-        "all": "All",
-        "newbie": "For Beginners",
-        "hot": "Trending",
-        "content": "Content Creation",
-        "research": "Market Research",
-        "learning": "LEARNING CORNER!",
-        "developer": "Developer"
+    "series_section": {
+      "tag": "Exclusive Series",
+      "title_1": "How to Make",
+      "title_2": "YouTube 2026",
+      "subtitle": "Complete A-Z guide for beginners",
+      "hint": "(Click arrows < > to see more lessons)"
     },
-    "sections": {
-        "trending": "Trending Now",
-        "content_creation": "Content Creation",
-        "research": "Market Research",
-        "learning": "Learning Corner!",
-        "developer": "Developer"
+    "video_series": {
+      "1_title": "The right mindset for YouTube 2026",
+      "1_desc": "Lesson 1: Starting the journey",
+      "2_title": "How to choose a potential niche",
+      "2_desc": "Lesson 2: Niche Strategy",
+      "3_title": "Competitor & Market Analysis",
+      "3_desc": "Lesson 3: Research",
+      "4_title": "Standard video production process",
+      "4_desc": "Lesson 4: Production",
+      "5_title": "SEO & Algorithm Optimization",
+      "5_desc": "Lesson 5: SEO Mastery",
+      "6_title": "Thumbnail & Title Strategy",
+      "6_desc": "Lesson 6: Click-Through Rate",
+      "7_title": "Monetization & Affiliate",
+      "7_desc": "Lesson 7: Monetization",
+      "8_title": "Building an Automated System",
+      "8_desc": "Lesson 8: Automation"
     },
-    "studio": {
-        "subtitle": "Unleash creativity with the ultimate AI toolkit. Elegant design, superior performance."
-    },
-    "hero": {
-        "title": "Find the Right Niche &",
-        "title_highlight": "Create Videos That Go Viral",
-        "subtitle": "No experience needed. Just follow step by step.",
-        "cta_free": "Try Free Now",
-        "cta_community": "JOIN COMMUNITY",
-        "bullet1_q": "Don't know what to do?",
-        "bullet1_a": "We'll show you what videos to make",
-        "bullet2_q": "Don't know how to write?",
-        "bullet2_a": "Ready-made scripts included",
-        "bullet3_q": "Don't know SEO?",
-        "bullet3_a": "Step-by-step upload guide",
-        "trust_line": "Perfect for new YouTubers • No experience needed • Free tier available"
-    },
-    "badges": {
-        "hot": "HOT",
-        "new": "NEW",
-        "exclusive": "EXCLUSIVE",
-        "coming_soon": "COMING SOON",
-        "for_beginners": "FOR BEGINNERS"
-    },
-    "workflow": {
-        "title": "Process",
-        "title_highlight": "3 Steps to Create Videos That Go Viral",
-        "subtitle": "Our system guides you from \"don't know what to do\" → \"video ready to publish\".",
-        "step": "Step",
-        "step1": {
-            "title": "Choose the right video to make",
-            "desc": "Our system analyzes the market and competitors to suggest videos that are easy to make, low competition, and have viewership potential.",
-            "cta": "Show me what video to make →"
-        },
-        "step2": {
-            "title": "Ready-made scripts to follow",
-            "desc": "Pre-made hooks, scripts, and content for each section. No thinking needed – just follow along.",
-            "cta": "Get video script →"
-        },
-        "step3": {
-            "title": "Upload correctly for views",
-            "desc": "Get title, description, tag suggestions and thumbnail guidance so your video isn't uploaded blindly.",
-            "cta": "Prepare to upload video →"
-        }
-    },
-    "stats": {
-        "users": "YouTubers using",
-        "videos": "Videos created",
-        "views": "Views achieved",
-        "satisfaction": "Satisfaction"
-    },
-    "testimonials": {
-        "title": "Community Feedback",
-        "subtitle": "Real success stories",
-        "1": {
-            "quote": "From 0 views to 100k views in just 1 video thanks to the niche mining tool. Absolutely incredible!"
-        },
-        "2": {
-            "quote": "The AI scripts are so good, I just read along. Saved 80% of time thinking about content."
-        },
-        "3": {
-            "quote": "The competitor analysis tool helped me find market gaps instantly."
-        },
-        "4": {
-            "quote": "I'm a newbie but earned $500 in my first month by following the roadmap."
-        },
-        "5": {
-            "quote": "The AI voice sounds so natural, no one can tell it's a machine."
-        }
-    },
-    "coaching": {
-        "badge": "Premium Service",
-        "title": "Coaching 1-1",
-        "titleHighlight": "YouTube & Affiliate",
-        "description": "Want to go faster and further? Personalized coaching program helps you build your digital content empire and create sustainable passive income with Mr. Seen.",
-        "ctaZalo": "Contact via Zalo",
-        "ctaLearnMore": "Learn More",
-        "badgeTitle": "High-Ticket",
-        "badgeSubtitle": "Mastery Program"
-    },
-    "affiliate": {
-        "title": "Join Affiliate – Earn Lifetime Commission with SeenYT",
-        "ctaButton": "CLICK HERE TO JOIN",
-        "ctaButtonLine2": "AFFILIATE",
-        "earningsTitle": "Affiliates Have Earned",
-        "realtimeNote": "Realtime commissions • You could be next!",
-        "videoNotSupported": "Your browser does not support video."
-    },
-    "promotions": {
-        "title": "Hot Promotions & Affiliate Program",
-        "affiliate_basic": "Affiliate Basic",
-        "join_affiliate": "Join Affiliate",
-        "tier_bonus": "Tier & Bonus",
-        "view_tiers": "View Tier & Bonus",
-        "tet_event": "Lunar New Year Event",
-        "join_tet": "Join New Year Event",
-        "new_user": "New User",
-        "register_now": "Register Now",
-        "upgrade_vip": "Upgrade VIP"
-    },
-    "faq": {
-        "title": "FREQUENTLY ASKED QUESTIONS",
-        "q1": "I'm a complete beginner, is SeenYT easy to use?",
-        "a1": "Extremely easy! We designed the interface specifically for non-tech users. There's a 3-step hands-on process, you just follow the instructions to create your video.",
-        "q2": "Can SeenYT help my videos go trending?",
-        "a2": "Yes! Our tools use AI to analyze YouTube's algorithm, find trending topics, and guide you on optimization (SEO, Thumbnail, Script) to maximize your chances of being recommended.",
-        "q3": "Can I monetize videos created with SeenYT?",
-        "a3": "Absolutely. You own 100% of the copyright for videos you create. Many of our users have enabled monetization and are earning revenue from YouTube and Affiliate programs.",
-        "cta_text": "Ready to enter the battlefield?",
-        "cta_button": "Choose Your Plan Now"
-    },
-    "finalCTA": {
-        "title": "STEP INTO THE BATTLE, DON'T JUST BE A SPECTATOR.",
-        "choosePlan": "Choose Your Plan Now",
-        "joinCommunity": "Join SeenYT Community"
-    },
-    "tools": {
-        "virtual-mc": {
-            "name": "AI Virtual MC (Lip Sync)",
-            "short": "Create talking avatars from photos.",
-            "long": "Create AI virtual hosts from photos. Automate video presentations, news, or training without live recording."
-        },
-        "image-forge": {
-            "name": "AI Thumbnail Designer",
-            "short": "Design High-CTR thumbnails with AI.",
-            "long": "Design eye-catching thumbnails with AI. Automatically analyze colors and layouts that drive clicks."
-        },
-        "text-to-speech": {
-            "name": "Text to Speech",
-            "short": "Convert text to emotional voices.",
-            "long": "Convert text to natural-sounding speech. Supports multiple languages and voice styles."
-        },
-        "seo": {
-            "name": "SEO & Keywords Pro",
-            "short": "Optimize keywords for YouTube 2026.",
-            "long": "Analyze and optimize keywords for YouTube algorithm. Create titles, tags, and descriptions for top rankings."
-        },
-        "micro-niche-miner": {
-            "name": "High CPM Niche Finder",
-            "short": "Analyze micro-niche markets.",
-            "long": "Deep dive into micro-niches to maximize ranking potential. Reduce competition with long-tail keywords."
-        },
-        "dubbing": {
-            "name": "AI Dubbing Studio",
-            "short": "Auto-translate and dub videos.",
-            "long": "Transform international videos into your own. Auto-translate, dub, and lip-sync. Support TikTok/YouTube downloads."
-        },
-        "velocity": {
-            "name": "AI Video Generator",
-            "short": "Create faceless videos automatically.",
-            "long": "Create faceless videos automatically. High-quality stock footage, auto scene matching, optimized for Shorts, TikTok, Reels."
-        },
-        "scriptwriter": {
-            "name": "Viral Scriptwriter",
-            "short": "Write scripts with viral structure.",
-            "long": "Write scripts optimized for virality. Focus on the first 30 seconds (Hook) to retain viewers. Works for any niche."
-        },
-        "narrative-studio": {
-            "name": "Story / History Generator",
-            "short": "Create storylines and narratives.",
-            "long": "Deep content storytelling tool. Build scripts with depth, diverse contexts, and emotions. Perfect for storytelling channels."
-        },
-        "script-refiner": {
-            "name": "Script Refiner & Upgrader",
-            "short": "Optimize and polish your scripts.",
-            "long": "AI text optimization to improve wording and make scripts sound more natural and professional."
-        },
-        "rival-scanner": {
-            "name": "Competitor Analysis",
-            "short": "Scan and analyze competitor strategies.",
-            "long": "Deep analysis of competitor strategies. Get data on effective keywords, traffic sources, and successful content patterns."
-        },
-        "hidden-channel-finder": {
-            "name": "Blue Ocean Niche Finder",
-            "short": "Discover fast-growing small channels.",
-            "long": "Find small YouTube channels with explosive growth. Discover unsaturated niches to exploit early."
-        },
-        "thay-youtube": {
-            "name": "YouTube Teacher - 30 Day Course",
-            "short": "30-day hands-on learning roadmap.",
-            "long": "Your 30-day YouTube journey companion. Daily lessons, integrated tools, and content guidance to reach your first 1000 subs."
-        },
-        "niche-engine": {
-            "name": "100% Winning Niche Library",
-            "short": "Choose niches & generate Long Video scripts.",
-            "long": "Long Video Engine helps you choose winning niches, analyze opportunities, and generate detailed content packages with just a few clicks."
-        },
-        "future-eye": {
-            "name": "FUTURE-EYE AI - Future Videos",
-            "short": "Produce international-quality documentaries.",
-            "long": "Specialized AI for Future/Disaster/Tech niche videos. Auto-generate 12 topics, 2000-word scripts, visual sync with Runway prompts."
-        }
-    },
-    "pricing": {
-        "title": "Pricing Plans",
-        "monthly": "Monthly",
-        "yearly": "Yearly",
-        "save2months": "Save ~2 months",
-        "mostPopular": "MOST POPULAR",
-        "useFree": "USE FREE",
-        "startStarter": "START WITH STARTER",
-        "upgradePro": "UPGRADE PRO",
-        "upgradeVip": "UPGRADE VIP",
-        "promoPlaceholder": "Enter promo code",
-        "apply": "Apply",
-        "invalidCode": "Invalid code",
-        "connectionError": "Connection error",
-        "discountSaved": "Saved",
-        "codeApplied": "Code",
-        "applied": "applied",
-        "needSupport": "Need 1-on-1 support or coaching?",
-        "viewCoaching": "View 1-on-1 Coaching Program",
-        "payForPlan": "Pay for",
-        "activationEmail": "Email for activation",
-        "enterEmail": "Enter your email",
-        "autoActivate": "After payment, your plan will be activated instantly!",
-        "creatingLink": "Creating link...",
-        "payNow": "💳 PAY NOW",
-        "redirectNote": "You will be redirected to the payment page. After successful payment, your plan will be",
-        "autoActivated": "auto-activated",
-        "instantly": "instantly!",
-        "invalidEmail": "⚠️ Please enter a valid email!",
-        "paymentError": "Error",
-        "cannotCreateLink": "Cannot create payment link",
-        "serverError": "Server connection error.",
-        "features": {
-            "free1": "✅ High CPM Niche Finder (1x/day)",
-            "free2": "⚠️ Scriptwriter (preview only)",
-            "free3": "⚠️ SEO Tool (preview only)",
-            "free4": "✅ Niche Library (first 5 niches)",
-            "free5": "✅ YouTube Teacher (Day 1-5)",
-            "starter1": "All FREE features (unlimited)",
-            "starter2": "✅ Scriptwriter (full + copy)",
-            "starter3": "✅ SEO Tool (full + copy)",
-            "starter4": "✅ Competitor Analysis",
-            "starter5": "✅ YouTube Teacher (Day 6-20)",
-            "starter6": "✅ 10 AI Dubbing credits",
-            "starter7": "Email support",
-            "pro1": "All STARTER features",
-            "pro2": "✅ Blue Ocean Niche Finder",
-            "pro3": "✅ Story/History Generator",
-            "pro4": "✅ Script Refiner & Upgrader",
-            "pro5": "✅ AI Thumbnail Designer",
-            "pro6": "✅ OpenAI TTS (500k chars)",
-            "pro7": "✅ Niche Library (20+ niches)",
-            "pro8": "✅ 30 AI Dubbing credits",
-            "pro9": "Priority support",
-            "vip1": "All PRO features",
-            "vip2": "✅ AI Dubbing Studio (100 credits)",
-            "vip3": "✅ AI Video Generator (Velocity)",
-            "vip4": "✅ Virtual MC Creator",
-            "vip5": "✅ YouTube Teacher (Day 21-30)",
-            "vip6": "✅ Unlimited Text-to-Speech",
-            "vip7": "1-on-1 Zalo Support (Fast track)"
-        }
-    },
-    "footer": {
-        "copyright": "© 2025 SeenYT. All rights reserved.",
-        "tagline": "Level the YouTube playing field with the power of advanced AI.",
-        "affiliate_program": "Affiliate Program",
-        "company": "A product of NTC International Services JSC",
-        "navigation": "Navigation",
-        "info": "Information",
-        "tools_board": "Tools Board",
-        "pricing_link": "Pricing",
-        "coaching": "1-on-1 Coaching",
-        "legal": "Legal",
-        "legal_info": "Legal Information",
-        "terms": "Terms of Service",
-        "privacy": "Privacy Policy",
-        "disclaimer": "Disclaimer",
-        "aup": "Acceptable Use Policy",
-        "contact": "Contact"
-    },
-    "common": {
-        "loading": "Loading...",
-        "error": "An error occurred.",
-        "back": "Go Back",
-        "submit": "Submit",
-        "cancel": "Cancel",
-        "close": "Close",
-        "generate": "Generate",
-        "copy": "Copy",
-        "copied": "Copied!",
-        "download": "Download",
-        "save": "Save",
-        "reset": "Reset"
-    },
-    "toolUI": {
-        "enterKeyword": "Please enter a keyword to search.",
-        "seedKeyword": "STARTING KEYWORD",
-        "outputLanguage": "OUTPUT LANGUAGE",
-        "searching": "SEARCHING...",
-        "activateSearch": "ACTIVATE SEARCH",
-        "generating": "GENERATING...",
-        "processing": "PROCESSING...",
-        "analyzing": "ANALYZING...",
-        "serverError": "Server error, please try again.",
-        "enterPrompt": "Please enter a prompt.",
-        "noResults": "No results found.",
-        "hiddenChannel": {
-            "title": "FIND HIDDEN CHANNELS & EXPLOSIVE TRENDS",
-            "risingChannels": "RISING HIDDEN CHANNELS",
-            "trendingVideos": "TRENDING VIRAL VIDEOS",
-            "upcomingTrends": "UPCOMING TREND PREDICTIONS",
-            "strengths": "Strengths"
-        },
-        "scriptwriter": {
-            "title": "SCRIPT CREATION: CORE ENGINE",
-            "rawData": "CREATE RAW DATA",
-            "goal": "GOAL",
-            "level": "LEVEL",
-            "tone": "TONE",
-            "format": "FORMAT",
-            "style": "STYLE",
-            "length": "LENGTH",
-            "initStructure": "INITIALIZE STRUCTURE",
-            "scriptFrame": "CLASSIFIED SCRIPT FRAME",
-            "copyBtn": "COPY",
-            "exportTxt": "EXPORT (TXT)",
-            "translateTo": "TRANSLATE...",
-            "refine": "MACRO REFINE",
-            "consistency": "CHARACTER CONSISTENCY",
-            "connect": "CONNECT & COMPOSE"
-        },
-        "seo": {
-            "title": "SEO & KEYWORD OPTIMIZER",
-            "videoTitle": "VIDEO TITLE",
-            "description": "DESCRIPTION",
-            "tags": "TAGS",
-            "optimize": "OPTIMIZE SEO"
-        },
-        "microNiche": {
-            "title": "HIGH CPM NICHE FINDER",
-            "macroNiche": "MACRO NICHE",
-            "analyze": "ANALYZE NICHE"
-        }
+    "tool_videos": {
+      "1_title": "Mining high CPM niches",
+      "1_desc": "Watch detailed guide",
+      "2_title": "Analyze competitor channels",
+      "2_desc": "Watch detailed guide",
+      "3_title": "Video creation tool",
+      "3_desc": "Watch detailed guide",
+      "4_title": "Script Remix",
+      "4_desc": "Watch detailed guide",
+      "5_title": "History Storytelling / Story",
+      "5_desc": "Watch detailed guide",
+      "6_title": "Winning niche library tool",
+      "6_desc": "Watch detailed guide",
+      "7_title": "SEO and keyword tool",
+      "7_desc": "Watch detailed guide",
+      "8_title": "Guide to writing viral scripts",
+      "8_desc": "Watch detailed guide"
     }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "loading": "Loading dashboard...",
+    "welcome": "Welcome,",
+    "subtitle": "Let's make your channel explode today!",
+    "back": "Back"
+  },
+  "affiliate_page": {
+    "back_home": "← Back to Home",
+    "title": "Earn Lifelong Income with SeenYT Affiliate",
+    "subtitle_1": "Introduce the hottest AI YouTube tool 2025 – Get",
+    "commission_30": "30% initial commission",
+    "plus": "+",
+    "recurring_10": "10% monthly recurring",
+    "joined_count": "Joined by",
+    "creators_joined": "creators earning stable income from SeenYT!",
+    "cta_join": "Join Now – It's Free!",
+    "video_demo_alt": "Watch SeenYT AI video creation demo in just 60 seconds!",
+    "benefits_title": "Benefits of Joining",
+    "benefit_1": "High commission: 30% initial",
+    "benefit_2": "10% recurring every month on renewal",
+    "benefit_3": "60-day cookie tracking",
+    "benefit_4": "Withdraw from 1M VND (20th-25th of month)",
+    "benefit_5": "Complete materials: banners, review scripts",
+    "benefit_6": "Private Telegram support group",
+    "tier_title": "Commission Tiers & Special Bonuses",
+    "tier_1": "Tier 1: >10 paid users/month → increase to 35% initial commission",
+    "tier_2": "Tier 2: >20 users/month → 40%",
+    "top_bonus": "Top monthly affiliate: Bonus 5-10 million VND cash or lifetime free VIP",
+    "special_seeding": "Special seeding: Video review → 50% commission + 12-month VIP",
+    "how_to_earn_title": "How to Earn in Just 4 Steps",
+    "step_1_title": "Join for free",
+    "step_1_desc": "Log in → enable affiliate → get your unique link",
+    "step_2_title": "Promote your link",
+    "step_2_desc": "Share via: FB, YouTube, TikTok, Groups, Blogs, Email...",
+    "step_3_title": "Users purchase via your link",
+    "step_3_desc": "You automatically receive commission",
+    "step_4_title": "Easy withdrawal",
+    "step_4_desc": "From 1M VND → bank transfer on 20th-25th of month",
+    "social_proof_title": "Thousands of Creators Have Earned with SeenYT",
+    "testimonial_1_earnings": "50M+/month",
+    "testimonial_1_quote": "\"SeenYT helped my channel grow 300% in views!\"",
+    "testimonial_1_name": "- Minh Hai (100k sub YouTuber)",
+    "testimonial_2_quote": "\"SeenYT Affiliate is the best passive income!\"",
+    "testimonial_3_earnings": "Top 1 this month",
+    "testimonial_3_quote": "\"10M bonus + VIP – thank you, SeenYT!\"",
+    "testimonial_3_name": "- Tuan Kiet MMO"
+  },
+  "affiliate_dashboard": {
+    "back_home": "← Back to Home",
+    "first_login_note_title": "Note for first-time users",
+    "first_login_note_desc_1": "If you are redirected to an unexpected screen upon first login, simply click the",
+    "first_login_note_desc_2": "back arrow (Back)",
+    "first_login_note_desc_3": "in your browser to return to the previous page and try again.",
+    "not_joined_title": "You have not joined the Affiliate program.",
+    "join_now": "Join now",
+    "processing": "Processing...",
+    "affiliate_code": "Affiliate Code",
+    "no_code": "None yet",
+    "total_commission": "Total Commission",
+    "total_referrals": "Total Referrals",
+    "referral_link": "Referral link:",
+    "terms_title": "Affiliate Program Terms",
+    "terms_intro": "By joining the SeenYT Affiliate program, you agree to fully comply with the following terms:",
+    "term_1": "• Commission: 30% for first purchase, 10-15% for upgrades, 10% for monthly renewals.",
+    "term_2": "• Cookie tracking: 60 days.",
+    "term_3": "• Minimum withdrawal: 1,000,000 VND (rounded down to the nearest hundred thousand).",
+    "term_4": "• Payments made on the 20th-25th of each month via bank transfer.",
+    "term_5": "• Self-referrals, group/comment spam, and false advertising (promising easy money) are prohibited.",
+    "term_6": "• SeenYT reserves the right to cancel commission if terms are violated or if the user refunds within 30 days.",
+    "term_7": "• Affiliates are responsible for declaring personal income tax according to Vietnamese law.",
+    "term_8": "• SeenYT reserves the right to change terms (with 30 days prior notice).",
+    "withdrawal_title": "Withdrawal Request",
+    "current_balance": "Current total commission:",
+    "not_eligible_title": "You are not yet eligible for withdrawal",
+    "not_eligible_desc": "Must reach at least",
+    "minimum_amount": "1,000,000 VND",
+    "to_request": "to submit a request.",
+    "bank_name": "Bank Name",
+    "bank_placeholder": "e.g., Vietcombank",
+    "account_number": "Account Number",
+    "account_holder": "Account Holder",
+    "submit_withdrawal": "Submit Withdrawal Request",
+    "not_eligible_btn": "Not Yet Eligible",
+    "payment_schedule": "• Payments made on the 20th-25th of each month.",
+    "error_generic": "An error occurred, please try again."
+  },
+  "knowledge": {
+    "section_title": "Practical Knowledge",
+    "video_latest_title": "Latest Strategy Video",
+    "no_strategy_video": "No strategy videos available yet.",
+    "article_title": "In-Depth Articles",
+    "no_articles": "No articles available yet.",
+    "view_all": "View all articles"
+  },
+  "nav": {
+    "all": "All",
+    "newbie": "For Newbies",
+    "hot": "Trending",
+    "content": "Content Creation",
+    "research": "Market Research",
+    "learning": "WINNING CORNER!",
+    "developer": "Developer"
+  },
+  "sections": {
+    "trending": "Trending",
+    "content_creation": "Content Creation",
+    "research": "Market Research",
+    "learning": "Winning Corner!",
+    "developer": "Developer"
+  },
+  "studio": {
+    "subtitle": "Unleash creativity with the ultimate AI toolset. Elegant design, superior performance."
+  },
+  "hero": {
+    "title": "Helps you find the right niche and",
+    "title_highlight": "make videos go top view",
+    "subtitle": "No experience needed, just follow step-by-step.",
+    "cta_free": "Try for free",
+    "cta_roadmap": "Roadmap for beginners",
+    "cta_community": "JOIN THE COMMUNITY",
+    "bullet1_q": "Don't know what to do?",
+    "bullet1_a": "Shows you what videos to make",
+    "bullet2_q": "Don't know how to write?",
+    "bullet2_a": "Ready-made scripts",
+    "bullet3_q": "Not familiar with SEO?",
+    "bullet3_a": "Guides you on proper posting",
+    "trust_line": "Suitable for new YouTubers • No experience needed • Free plan available"
+  },
+  "badges": {
+    "hot": "HOT",
+    "new": "NEW",
+    "exclusive": "EXCLUSIVE",
+    "coming_soon": "COMING SOON",
+    "for_beginners": "FOR BEGINNERS"
+  },
+  "workflow": {
+    "title": "Workflow",
+    "title_highlight": "3 Steps to Make Your Videos Go Top View",
+    "subtitle": "The system guides you from \"not knowing what to do\" → \"having videos ready to upload\".",
+    "step": "Step",
+    "step1": {
+      "title": "Choose the right videos to make",
+      "desc": "The system analyzes the market and competitors to identify easy-to-make, low-competition videos with audience interest.",
+      "cta": "Show me what videos to make →"
+    },
+    "step2": {
+      "title": "Ready-made scripts to follow",
+      "desc": "Provides hooks, scripts, and segment content. No need to think – just follow along.",
+      "cta": "Get video script →"
+    },
+    "step3": {
+      "title": "Post correctly for a chance to get views",
+      "desc": "Suggests titles, descriptions, tags, and thumbnail guidance so videos aren't posted randomly or by guesswork.",
+      "cta": "Prepare to post video →"
+    }
+  },
+  "stats": {
+    "users": "YouTubers using",
+    "videos": "Videos created",
+    "views": "Views achieved",
+    "satisfaction": "Satisfaction"
+  },
+  "testimonials": {
+    "1": {
+      "quote": "From 0 views to 100k views in just 1 video thanks to the niche mining tool. Unbelievable!"
+    },
+    "2": {
+      "quote": "The AI-written script is so good, I just need to read it. Saves 80% of time thinking about content."
+    },
+    "3": {
+      "quote": "The competitor analysis tool helped me find market gaps instantly."
+    },
+    "4": {
+      "quote": "I'm a newbie but earned $500 in the first month by following the roadmap."
+    },
+    "5": {
+      "quote": "The AI voice-over is so natural, no one even realizes it's machine-generated."
+    },
+    "title": "What the Community Says",
+    "subtitle": "Real success stories"
+  },
+  "coaching": {
+    "badge": "Premium Service",
+    "title": "1-1 Coaching",
+    "titleHighlight": "YouTube & Affiliate",
+    "description": "Want to go faster and further? Our personalized coaching program helps you build a digital content empire and create sustainable passive income with Mr. Seen.",
+    "ctaZalo": "Contact Zalo for Consultation",
+    "ctaLearnMore": "Learn More",
+    "badgeTitle": "High-Ticket",
+    "badgeSubtitle": "Mastery Program"
+  },
+  "affiliate": {
+    "title": "Join Affiliate – Earn Lifelong Income with SeenYT",
+    "ctaButton": "CLICK HERE TO JOIN",
+    "ctaButtonLine2": "AFFILIATE",
+    "earningsTitle": "Affiliates Have Earned",
+    "realtimeNote": "Real-time commission • You could be next!",
+    "videoNotSupported": "Your browser does not support the video tag."
+  },
+  "promotions": {
+    "title": "Hot Promotions & Affiliate Programs",
+    "affiliate_basic": "Basic Affiliate",
+    "join_affiliate": "Join Affiliate",
+    "tier_bonus": "Tier & Bonus",
+    "view_tiers": "View Tiers & Bonus",
+    "tet_event": "Tet Event",
+    "join_tet": "Join Tet Event",
+    "new_user": "New User",
+    "register_now": "Register Now",
+    "upgrade_vip": "Upgrade to VIP"
+  },
+  "faq": {
+    "title": "FREQUENTLY ASKED QUESTIONS",
+    "q1": "I'm a complete beginner, is SeenYT easy to use?",
+    "a1": "Extremely easy! We designed the interface specifically for non-tech-savvy users. With a 3-step, hand-holding process, you just need to follow the instructions to create a video.",
+    "q2": "Does SeenYT help my videos go viral/trending?",
+    "a2": "Yes! Our tool uses AI to analyze YouTube's algorithm, find trending topics, and guide you on how to optimize (SEO, Thumbnail, Script) to maximize your chances of being recommended.",
+    "q3": "Can I monetize videos created with SeenYT?",
+    "a3": "Absolutely. You own 100% copyright of the videos you create. Many of our users have enabled monetization and are earning revenue from YouTube and Affiliate programs.",
+    "cta_text": "Ready to enter the battle?",
+    "cta_button": "Choose the OMNISCIENT Plan Now"
+  },
+  "finalCTA": {
+    "title": "STEP INTO THE BATTLE, DON'T JUST BE A SPECTATOR.",
+    "choosePlan": "Choose the OMNISCIENT Plan",
+    "joinCommunity": "Join the SEENYT COMMUNITY"
+  },
+  "tools": {
+    "virtual-mc": {
+      "name": "Create Virtual MC (AI Idol) - Lip Sync",
+      "short": "Create a virtual MC speaking from a photo.",
+      "long": "Tool to create a virtual MC speaking from a photo. Automate host, news, or training videos without direct filming."
+    },
+    "image-forge": {
+      "name": "Image Creation - AI Thumbnail Design",
+      "short": "Design High CTR AI Thumbnails.",
+      "long": "Design thumbnails using artificial intelligence. Automatically analyzes colors and layouts to stimulate high click-through rates (High CTR)."
+    },
+    "text-to-speech": {
+      "name": "Text to Speech",
+      "short": "Convert text to emotional speech.",
+      "long": "Convert text into emotional speech. Supports multiple languages and many natural-sounding voices."
+    },
+    "seo": {
+      "name": "SEO & Keyword Optimization",
+      "short": "Optimize keywords for YouTube 2026 algorithm standards.",
+      "long": "Tool for analyzing and optimizing keywords to YouTube's 2026 algorithm standards. Supports generating video titles, tags, and descriptions."
+    },
+    "micro-niche-miner": {
+      "name": "High CPM Niche Mining",
+      "short": "Analyze micro-niche markets.",
+      "long": "Deep dive into micro-niche markets to optimize for TOP ranking potential."
+    },
+    "dubbing": {
+      "name": "AI Dubbing Studio (Voice Over)",
+      "short": "Automatically translate and dub videos.",
+      "long": "Turn international videos into your own. Automatically translate, dub into Vietnamese, and lip-sync (Auto-Dubbing)."
+    },
+    "velocity": {
+      "name": "AI Video Creation",
+      "short": "Automate Faceless video creation.",
+      "long": "Software for automated Faceless video creation. Supports a library of high-quality stock videos."
+    },
+    "scriptwriter": {
+      "name": "Viral Scriptwriter",
+      "short": "Write scripts with viral-standard structure.",
+      "long": "Tool to write scripts with viral-standard structure. Focuses on optimizing the first 30 seconds (Hook) to retain viewers."
+    },
+    "narrative-studio": {
+      "name": "History Storytelling / Story",
+      "short": "Create storylines and drive content.",
+      "long": "Tool to support in-depth storyline creation and content direction. Helps build profound scripts."
+    },
+    "script-refiner": {
+      "name": "Script Editing & Upgrading",
+      "short": "Optimize text, edit tone of voice.",
+      "long": "AI text optimization solution that improves wording and refines tone for a more natural and professional feel."
+    },
+    "rival-scanner": {
+      "name": "Competitor Channel Analysis",
+      "short": "Scan and analyze competitor strategies.",
+      "long": "Deeply scan and analyze competitor strategies. Provides data on the most effective keywords."
+    },
+    "hidden-channel-finder": {
+      "name": "Green Niche Finder",
+      "short": "Discover fast-growing small YouTube channels.",
+      "long": "Tool to discover small YouTube channels experiencing explosive growth. Helps find untapped niche topics."
+    },
+    "thay-youtube": {
+      "name": "YouTube Master - 30-Day Curriculum",
+      "short": "30-day hands-on curriculum.",
+      "long": "Accompanying you through your first 30 days on YouTube. Provides detailed daily curriculum and supporting tools."
+    },
+    "niche-engine": {
+      "name": "100% Winning Niche Library",
+      "short": "Select niche & Generate Long Video script.",
+      "long": "The Long Video Engine helps you choose winning niches, analyze opportunities, and generate detailed content deployment packages."
+    },
+    "future-eye": {
+      "name": "FUTURE-EYE AI - Future Videos",
+      "short": "Produce international quality documentary videos.",
+      "long": "Dedicated AI tool for producing YouTube videos in Future/Disaster/Technology niches. Automatically generates 12 topics, writes 2000-word scripts."
+    },
+    "teacher": {
+      "title": "YouTube Master (AI Mentor)",
+      "back": "Back to Dashboard"
+    },
+    "winning_niche": {
+      "title": "100% Winning Niche Library",
+      "desc": "A treasure trove of proven successful niches.",
+      "back": "BACK",
+      "updating_title": "Library is being updated",
+      "updating_desc": "We are compiling data from thousands of successful channels to bring you a list of \"unbeatable\" niches."
+    },
+    "keyword-research": {
+      "name": "Keyword Research (Keyword.io)",
+      "short": "In-depth keyword analysis from YouTube.",
+      "long": "Powerful keyword research tool to help you find high-search volume, low-competition keywords. Integrates AI to suggest content strategies."
+    },
+    "x-hot-news": {
+      "name": "X-Trend Hunter Pro",
+      "short": "Hunt X trends & Auto-generate viral videos.",
+      "long": "Dedicated Admin tool: Scans hot trends from X (Twitter), analyzes viral opportunities, and automatically writes multi-language video scripts (EN/JP/KR/ES)."
+    }
+  },
+  "pricing": {
+    "title": "Pricing",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save2months": "Save ~2 months",
+    "mostPopular": "MOST POPULAR",
+    "useFree": "USE FREE",
+    "startStarter": "START WITH STARTER",
+    "upgradePro": "UPGRADE TO PRO",
+    "upgradeVip": "UPGRADE TO VIP",
+    "promoPlaceholder": "Enter promotion code",
+    "apply": "Apply",
+    "invalidCode": "Invalid code",
+    "connectionError": "Connection error",
+    "discountSaved": "Discount",
+    "codeApplied": "Code",
+    "applied": "has been applied",
+    "needSupport": "Need 1-1 support or coaching?",
+    "viewCoaching": "View 1-1 Coaching program",
+    "payForPlan": "Pay for plan",
+    "activationEmail": "Activation email",
+    "enterEmail": "Enter your email",
+    "autoActivate": "After payment, the plan will be automatically activated instantly!",
+    "creatingLink": "Creating link...",
+    "payNow": "💳 PAY NOW",
+    "redirectNote": "You will be redirected to the payment page. After successful payment, the plan will be",
+    "autoActivated": "automatically activated",
+    "instantly": "instantly!",
+    "invalidEmail": "⚠️ Please enter a valid email!",
+    "paymentError": "Error",
+    "cannotCreateLink": "Cannot create payment link",
+    "serverError": "Server connection error.",
+    "features": {
+      "free1": "✅ High CPM Niche Mining (1 use/day)",
+      "free2": "⚠️ Scriptwriter (preview)",
+      "free3": "⚠️ SEO Optimization (preview)",
+      "free4": "✅ Niche Library (first 5 niches)",
+      "free5": "✅ YouTube Master (Day 1-5)",
+      "starter1": "All FREE features (unlimited)",
+      "starter2": "✅ Scriptwriter (full + copy)",
+      "starter3": "✅ SEO Optimization (full + copy)",
+      "starter4": "✅ Competitor Channel Analysis",
+      "starter5": "✅ YouTube Master (Day 6-20)",
+      "starter6": "✅ 10 AI Dubbing credits",
+      "starter7": "Email support",
+      "pro1": "All STARTER features",
+      "pro2": "✅ Green Niche Finder (Hidden Channels)",
+      "pro3": "✅ History Storytelling / Story",
+      "pro4": "✅ Script Editing & Upgrading",
+      "pro5": "✅ AI Thumbnail Creation",
+      "pro6": "✅ OpenAI Text-to-Speech (500k characters)",
+      "pro7": "✅ Niche Library (20+ niches)",
+      "pro8": "✅ 30 AI Dubbing credits",
+      "pro9": "Priority support",
+      "vip1": "All PRO plan features",
+      "vip2": "✅ AI Dubbing Studio (100 credits)",
+      "vip3": "✅ AI Video Creation (Velocity)",
+      "vip4": "✅ Create Virtual MC (Virtual MC)",
+      "vip5": "✅ YouTube Master (Day 21-30)",
+      "vip6": "✅ Unlimited Text-to-Speech",
+      "vip7": "1-1 Support via Zalo (Super fast)"
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 SeenYT. All rights reserved.",
+    "tagline": "SeenYT's mission is to empower every Vietnamese creator – especially beginners, no experience, no large capital needed – to create quality content, find high-earning niches, optimize SEO, thumbnails, scripts… to turn their YouTube passion into a real and sustainable income source.\nWe believe that: Everyone deserves a chance to shine on YouTube, regardless of their starting point. And SeenYT will always accompany you on that journey.",
+    "affiliate_program": "Affiliate Program",
+    "company": "A product of NTC International Services JSC",
+    "navigation": "Navigation",
+    "info": "Information",
+    "tools_board": "Tools Board",
+    "pricing_link": "Pricing",
+    "coaching": "1-1 Coaching",
+    "legal": "Legal",
+    "legal_info": "Legal Information",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "disclaimer": "Disclaimer",
+    "aup": "Acceptable Use Policy",
+    "contact": "Contact"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred.",
+    "back": "Back",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "close": "Close",
+    "generate": "Generate",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "save": "Save",
+    "reset": "Reset"
+  },
+  "toolUI": {
+    "enterKeyword": "Please enter a keyword to search.",
+    "seedKeyword": "SEED KEYWORD",
+    "outputLanguage": "OUTPUT LANGUAGE",
+    "searching": "SEARCHING...",
+    "activateSearch": "ACTIVATE SEARCH",
+    "generating": "GENERATING...",
+    "processing": "PROCESSING...",
+    "analyzing": "ANALYZING...",
+    "serverError": "Server error, please try again.",
+    "enterPrompt": "Please enter the information.",
+    "noResults": "No results found.",
+    "hiddenChannel": {
+      "title": "FIND HIDDEN CHANNELS & EXPLOSIVE TRENDS",
+      "risingChannels": "EXPLODING HIDDEN CHANNELS",
+      "trendingVideos": "TRENDING VIDEOS",
+      "upcomingTrends": "UPCOMING TREND PREDICTIONS",
+      "strengths": "Strengths",
+      "hero_title": "Deep Ocean Exploration",
+      "hero_desc": "Scan with sonar to find rising channels (Underdog) and unexplored hidden trends.",
+      "target_label": "TARGET (Keyword)",
+      "language_label": "LANGUAGE",
+      "scan_btn": "ACTIVATE SONAR",
+      "scanning": "SCANNING THE OCEAN...",
+      "return": "RETURN TO OVERVIEW",
+      "growth_metric": "GROWTH METRIC",
+      "core_strengths": "CORE STRENGTHS",
+      "viral_factor": "VIRAL FACTOR"
+    },
+    "scriptwriter": {
+      "title": "GALAXY CREATION: SCRIPT CORE",
+      "rawData": "GENERATE RAW DATA",
+      "goal": "GOAL",
+      "level": "LEVEL",
+      "tone": "TONE",
+      "format": "FORMAT",
+      "style": "STYLE",
+      "length": "LENGTH",
+      "initStructure": "INITIALIZE STRUCTURE",
+      "scriptFrame": "CLASSIFIED SCRIPT FRAMEWORK",
+      "copyBtn": "COPY",
+      "exportTxt": "EXPORT (TXT)",
+      "translateTo": "TRANSLATE...",
+      "refine": "MACRO REFINEMENT",
+      "consistency": "CHARACTER CONSISTENCY",
+      "connect": "COMPOSITE CONNECTION"
+    },
+    "seo": {
+      "title": "SEO & KEYWORD OPTIMIZATION",
+      "videoTitle": "VIDEO TITLE",
+      "description": "DESCRIPTION",
+      "tags": "TAGS",
+      "optimize": "OPTIMIZE SEO"
+    },
+    "microNiche": {
+      "title": "HIGH CPM NICHE MINING",
+      "macroNiche": "MACRO NICHE",
+      "analyze": "ANALYZE NICHE"
+    },
+    "rival": {
+      "title": "RIVAL SCANNER V3.0",
+      "abort": "ABORT MISSION",
+      "status": "NETWORK STATUS: SECURE",
+      "placeholder": "ENTER TARGET COORDINATES (CHANNEL URL / HANDLE)...",
+      "scan_btn": "INITIATE SCAN",
+      "scanning": "SCANNING...",
+      "idle": "RADAR AWAITING COMMANDS",
+      "target_acquired": "TARGET ACQUIRED",
+      "weaknesses": "Strategic Weaknesses",
+      "untapped": "Untapped Niches",
+      "counter_plan": "Detailed Counter Plan",
+      "decrypted_tags": "Decrypted Keywords",
+      "audience_gap": "Audience Gap Analysis",
+      "persona": "Content Persona",
+      "title_analysis": "Title Analysis",
+      "thumb_analysis": "Thumbnail Analysis",
+      "sys_load": "SYSTEM LOAD",
+      "confidential": "CONFIDENTIAL",
+      "acquiring": "ACQUIRING DATA..."
+    },
+    "veocity": {
+      "title": "VEOCITY",
+      "subtitle": "Newsroom AI Studio",
+      "return": "BACK",
+      "setup": "SETUP",
+      "rundown": "SCRIPT",
+      "on_air": "ON AIR",
+      "script_placeholder": "ENTER SCRIPT OR PASTE NEWS HERE...",
+      "analyze_btn": "ANALYZE SCRIPT",
+      "export_btn": "EXPORT FILE & ACTIVATE FLOW",
+      "live": "LIVE",
+      "teleprompter": "TELEPROMPTER",
+      "settings": "BROADCAST SETTINGS",
+      "aspect_ratio": "Aspect Ratio",
+      "visual_style": "Visual Style",
+      "director_notes": "Director Notes",
+      "master_prompt": "Main Character Prompt (Consistency Lock)",
+      "visual_prompt": "Visual Prompt (Camera Angle/Action)",
+      "emotion": "Emotion",
+      "status_notes": "Status / Notes",
+      "ready_queue": "Ready Queue",
+      "exported": "Script Exported",
+      "modify": "Modify Script",
+      "new_broadcast": "New Broadcast",
+      "master_prompt_ph": "Describe the main character's appearance for consistency...",
+      "visual_prompt_ph": "Example: Moody dark lighting..."
+    }
+  },
+  "header": {
+    "checking": "Checking...",
+    "login": "LOGIN",
+    "register": "REGISTER"
+  },
+  "slot_machine": {
+    "title": "Lucky Spin",
+    "subtitle": "Exclusive for new members",
+    "spin_btn": "SPIN NOW & GET REWARD",
+    "spinning": "Spinning...",
+    "congrats_title": "Congratulations!",
+    "congrats_desc": "You have won the prize:",
+    "generating": "Generating exclusive code...",
+    "code_label": "Your code (expires in 24h):",
+    "one_time_use": "One-time use only",
+    "use_now": "USE CODE NOW (20% Off)",
+    "activate_now": "ACTIVATE +3 DAYS NOW",
+    "or_better_offer": "Or get a better offer",
+    "share_fb": "Share on FB to get up to 15 FREE days!",
+    "countdown": "Offer ends in:",
+    "alert_code": "Your code: {{code}}",
+    "alert_admin": "Please send this code to Admin via Zalo to activate immediately!"
+  },
+  "academy": {
+    "title": "SeenYT Academy",
+    "heading": "Practical Knowledge",
+    "subtitle": "Beyond just tools, we equip you with the mindset and strategies for sustainable success.",
+    "strategy_video": "Latest Strategy Video",
+    "indepth_articles": "In-Depth Articles",
+    "view_all": "View all articles",
+    "footer_text": "Explore a wealth of knowledge to help your channel take off.",
+    "default_tag": "Knowledge"
+  },
+  "video_tips": {
+    "watch_now": "WATCH NOW",
+    "watch": "WATCH",
+    "default_desc": "Watch the detailed guide to master effective usage."
+  },
+  "founder": {
+    "badge": "Message from the Founder",
+    "title": "Thank you for your trust",
+    "quote": "The YouTube journey is not easy, but you are not alone. SeenYT was created not just as a tool, but as a companion to help you go faster, further, and earn more sustainably.",
+    "video_cta": "WATCH WELCOME VIDEO",
+    "founder_name": "Tung Pham",
+    "founder_title": "Founder SeenYT"
+  },
+  "testimonials_video": {
+    "heading": "Listen to insights from real creators using SEENYT to accelerate their growth.",
+    "result_label": "Results",
+    "metric_1": "New channel trending",
+    "metric_2": "Save 80% of time",
+    "metric_3": "Million-view videos",
+    "metric_4": "2X Revenue",
+    "metric_5": "Unlimited ideas",
+    "metric_6": "Rapid subscriber growth"
+  },
+  "dashboard_tabs": {
+    "step": "Step",
+    "step1_title": "Choose the right videos to make",
+    "step1_desc": "The system analyzes the market and competitors to identify easy-to-make, low-competition videos with audience interest.",
+    "step1_cta": "Show me what videos to make →",
+    "step2_title": "Ready-made scripts to follow",
+    "step2_desc": "Provides hooks, scripts, and segment content. No need to think – just follow along.",
+    "step2_cta": "Get video script →",
+    "step3_title": "Post correctly for a chance to get views",
+    "step3_desc": "Suggests titles, descriptions, tags, and thumbnail guidance so videos aren't posted randomly or by guesswork.",
+    "step3_cta": "Prepare to post video →",
+    "free_daily": "✓ 1 free use/day",
+    "upgrade_script": "You have a direction. Upgrade to get full scripts and make more professional videos.",
+    "upgrade_seo": "Upgrade to get optimized SEO, helping your videos have a better chance of getting views.",
+    "tip": "Tip:",
+    "tip_text": "Complete Step 1 to discover video ideas that are right for you!",
+    "unlock_title": "Unlock to continue"
+  },
+  "sidebar": {
+    "overview": "Overview",
+    "my_tools": "MY TOOLS",
+    "account": "ACCOUNT",
+    "upgrade_vip": "Upgrade to VIP",
+    "logout": "Logout",
+    "my_account": "My Account",
+    "premium_feature": "Premium Feature",
+    "locked_message": "The {{feature}} feature is only available for {{role}} plans and above. Please upgrade to use it!"
+  },
+  "imageforge": {
+    "back_to_menu": "Back to Menu",
+    "clear_refs": "Clear Refs",
+    "history": "HISTORY",
+    "clear_all": "CLEAR ALL",
+    "no_images": "No images yet. Generate to save to gallery.",
+    "generating": "CREATING ARTWORK...",
+    "click_to_view": "Click to view",
+    "studio_ready": "STUDIO READY",
+    "describe_idea": "Please describe your idea below.",
+    "combine_tips": "Combine Style Reference and Face Lock for the most professional results.",
+    "prompt_placeholder": "Describe your idea (Example: Doraemon robot cat in Cyberpunk style)...",
+    "generate_image": "Generate Image",
+    "style_reference": "STYLE REFERENCE",
+    "upload_style_hint": "Upload style to maintain tone/lighting/vibe",
+    "character_reference": "CHARACTER REFERENCE",
+    "add_character_hint": "Add 1–3 character images to unify face/identity.",
+    "auto_face_lock": "Auto Face Lock",
+    "face_lock_hint": "Maintain identity based on character refs (recommended to enable)",
+    "face_lock_tip": "Face Lock works best with clear faces, good lighting, and minimal filters.",
+    "login_to_save": "Please log in to save the project!",
+    "project_name": "Project Name:",
+    "saved": "✅ Project saved!",
+    "save_failed": "❌ Save failed:",
+    "create_new_confirm": "Create a new project? Unsaved changes will be lost.",
+    "delete_archive_confirm": "Delete all images from gallery?",
+    "max_3_refs": "Maximum 3 character reference images.",
+    "enter_prompt_first": "Enter prompt before using Magic Prompt.",
+    "magic_error": "Magic prompt error.",
+    "enter_prompt_or_ref": "Enter prompt or upload reference images (style/character).",
+    "image_too_large": "Reference image too large. Please use images < 5MB or reduce image size.",
+    "no_images_from_server": "No images received from server.",
+    "no_projects": "No projects yet.",
+    "delete_project_confirm": "Delete this project?",
+    "no_images_yet": "No images yet. Generate to save to gallery.",
+    "combine_tip": "Combine Style Reference and Face Lock for the most professional results.",
+    "magic_prompt_title": "Automatically rewrite prompts better",
+    "aspect_ratio": "Aspect ratio",
+    "num_images": "Number of images",
+    "image_count_1": "1 image",
+    "image_count_2": "2 images",
+    "image_count_3": "3 images",
+    "image_count_4": "4 images",
+    "magic_prompt_no_result": "Magic prompt returned no prompt.",
+    "error_generic": "Error!"
+  },
+  "tts_tool": {
+    "title": "AUDIO CREATOR STUDIO",
+    "tab_text": "Text",
+    "tab_file": "Upload File",
+    "guide_title": "Guide",
+    "step1": "Step 1:",
+    "step1_text_hint": "Enter content",
+    "step1_file_hint": "Upload file",
+    "step2": "Step 2:",
+    "step2_hint": "Select voice (Click button on the right)",
+    "step3": "Step 3:",
+    "step3_hint": "Click \"Generate Audio\"",
+    "import_txt": "Import file (.txt)",
+    "placeholder": "Enter text to convert to speech...",
+    "char_count": "characters",
+    "dialogue_on": "Dialogue mode is on",
+    "drag_drop": "Drag and drop file here or",
+    "select_file": "Select File (TXT, SRT)",
+    "supported": "Supported: .txt, .srt",
+    "remove_file": "Remove file",
+    "generate_btn": "GENERATE AUDIO",
+    "processing": "Processing...",
+    "dialogue_title": "2-person dialogue",
+    "dialogue_hint": "Use [A] [B] to mark",
+    "voice_label": "Voice",
+    "clone_new": "+ Clone New Voice",
+    "speed_label": "Speed",
+    "result_title": "RESULTS",
+    "download": "Download",
+    "no_audio": "No audio yet",
+    "clone_title": "Clone New Voice",
+    "clone_tip": "Tip:",
+    "clone_tip_text": "It is recommended to use .WAV files (mono, 22050Hz) for best quality.",
+    "clone_expire": "Voice will be saved in the system for 30 days.",
+    "clone_upload_hint": "Upload an audio file (WAV/MP3) of your sample voice (~10s).",
+    "clone_name_placeholder": "Voice Name (e.g., Tung's Voice)",
+    "cancel": "Cancel",
+    "uploading": "Uploading...",
+    "clone_btn": "Clone Voice",
+    "delete_voice_confirm": "Are you sure you want to delete this voice?",
+    "delete_voice_error": "Error deleting voice",
+    "delete_failed": "Delete failed:",
+    "missing_file_name": "Missing file or name.",
+    "enter_content": "Please enter content!",
+    "select_file_error": "Please select a file!",
+    "only_txt": "Only supports importing .txt files (plain text)",
+    "error_dialogue": "Error creating dialogue",
+    "error_audio": "Error creating audio",
+    "error_file": "Error processing file",
+    "voice_label_a": "Voice [A]",
+    "voice_label_b": "Voice [B]"
+  },
+  "scriptwriter_tool": {
+    "back_to_studio": "BACK TO STUDIO",
+    "title": "CINEMATIC WRITER",
+    "pro_studio": "PRO STUDIO",
+    "new": "NEW",
+    "my_projects": "MY PROJECTS",
+    "create_new_confirm": "CREATE NEW? Unsaved data will be lost.",
+    "no_projects": "No projects yet.",
+    "save_hint": "Click \"SAVE PROJECT\" to save.",
+    "delete_project_confirm": "Delete this project?",
+    "login_to_save": "Please log in to save the project!",
+    "project_name_prompt": "Project Name:",
+    "saved_success": "✅ Project saved successfully!",
+    "save_failed": "❌ Save failed:",
+    "enter_idea": "Please enter your idea.",
+    "core_concept": "Core Concept",
+    "idea_placeholder": "Describe your video idea, plot, or topic...",
+    "goal": "Goal",
+    "level": "Level",
+    "tone": "Tone",
+    "style": "Style",
+    "format": "Format",
+    "length": "Length",
+    "generate_script": "GENERATE SCRIPT",
+    "writing": "WRITING...",
+    "save_project": "SAVE PROJECT",
+    "saved_locally": "SAVED LOCALLY",
+    "no_script": "NO SCRIPT LOADED",
+    "ready_to_write": "Ready to write your masterpiece",
+    "chat_placeholder": "Ask AI to rewrite, shorten, or change tone...",
+    "refine": "Refine",
+    "translate": "Translate...",
+    "pro_vip_feature": "Feature exclusive to PRO/VIP plans."
+  },
+  "niche_miner": {
+    "title": "NICHE MINER PRO",
+    "search_placeholder": "Enter keywords to find niches...",
+    "search_btn": "SEARCH",
+    "searching": "Searching...",
+    "no_results": "No results found",
+    "cpm_high": "High CPM",
+    "competition_low": "Low competition",
+    "growth_potential": "Growth potential"
+  },
+  "veocity_tool": {
+    "title": "AI VIDEO CREATOR",
+    "create_video": "CREATE VIDEO",
+    "creating": "Creating video...",
+    "script_placeholder": "Enter your video script...",
+    "select_style": "Select style",
+    "select_voice": "Select voice",
+    "video_ready": "Video is ready!",
+    "download_video": "Download Video",
+    "no_video": "No video yet"
+  },
+  "niche_engine": {
+    "title": "NICHE LIBRARY",
+    "search_niches": "Search niches...",
+    "filter_all": "All",
+    "filter_verified": "Verified",
+    "filter_trending": "Trending",
+    "no_niches": "No niches yet",
+    "select_niche": "Select a niche to view details"
+  },
+  "common_tool": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success!",
+    "retry": "Retry",
+    "my_projects": "My Projects",
+    "new_project": "New Project",
+    "login_required": "Login required",
+    "upgrade_required": "Upgrade plan required",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "export": "Export file"
+  }
 }
