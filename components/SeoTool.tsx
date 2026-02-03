@@ -4,6 +4,8 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { PhiIcon } from './AnimatedIcons';
+import UpgradeModal from './UpgradeModal'; // ADDED
+import { AnimatePresence } from 'framer-motion'; // ADDED
 
 interface SeoToolProps {
     onBack: () => void;
@@ -87,13 +89,17 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
     const { t } = useTranslation('common');
     const router = useRouter();
     const isEN = router.locale === 'en';
+    const userRole = (session?.user as any)?.role || 'FREE'; // ADDED ROLE CHECK
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [output, setOutput] = useState<OutputData | null>(null);
     const [coreIdea, setCoreIdea] = useState('');
+    const [showUpgrade, setShowUpgrade] = useState(false); // ADDED STATE
     const buttonRef = useRef<HTMLButtonElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // ... (KEEP FILE UPLOAD) ...
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -109,6 +115,14 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // --- FREEMIUM GATE ---
+        // Minimum Role: SUPER (Professional)
+        if (['FREE', 'USER', 'CREATIVE'].includes(userRole) && userRole !== 'ADMIN') {
+            setShowUpgrade(true);
+            return;
+        }
+
         if (!coreIdea) {
             setError("Chưa nhập ý tưởng!");
             return;
@@ -331,6 +345,10 @@ const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
                     )}
                 </div>
             </div>
+            {/* Upgrade Modal */}
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 };

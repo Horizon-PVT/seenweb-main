@@ -31,15 +31,16 @@ export const TOOLS = [
   { id: 'micro-niche-miner', name: 'Tìm Micro Niches', roleMin: ROLES.FREE },
   { id: 'niche-engine', name: 'Thư viện ngách thắng 100%', roleMin: ROLES.FREE }, // 5 ngách FREE, 6+ requires SUPER
   { id: 'thay-youtube', name: 'Thầy YouTube', roleMin: ROLES.FREE }, // Day 0-5 FREE, 6-20 CREATIVE, 21-30 VIP
-  { id: 'rival-scanner', name: 'Phân tích đối thủ (độc quyền)', roleMin: ROLES.CREATIVE },
-  { id: 'hidden-channel-finder', name: 'Tìm kênh ẩn (độc quyền)', roleMin: ROLES.SUPER },
-  { id: 'narrative-studio', name: 'Narrative Studio (độc quyền) – kiếm tiền KDP Amazon', roleMin: ROLES.SUPER },
-  { id: 'script-refiner', name: 'Viết kịch bản nâng cao', roleMin: ROLES.SUPER },
-  { id: 'image-forge', name: 'Tạo Thumbnail AI', roleMin: ROLES.SUPER },
-  { id: 'text-to-speech', name: 'Text-to-Speech OpenAI', roleMin: ROLES.SUPER }, // Hidden limit: 500k chars then fallback to Edge
-  { id: 'velocity', name: 'Tạo Video (Velocity Tool)', roleMin: ROLES.VIP },
-  { id: 'dubbing', name: 'AI Dubbing Studio', roleMin: ROLES.VIP },
-  { id: 'virtual-mc', name: 'Virtual MC', roleMin: ROLES.VIP },
+  { id: 'rival-scanner', name: 'Phân tích đối thủ (độc quyền)', roleMin: ROLES.FREE }, // Freemium gate
+  { id: 'hidden-channel-finder', name: 'Tìm kênh ẩn (độc quyền)', roleMin: ROLES.FREE }, // Freemium
+  { id: 'narrative-studio', name: 'Narrative Studio (độc quyền) – kiếm tiền KDP Amazon', roleMin: ROLES.FREE }, // Freemium
+  { id: 'script-refiner', name: 'Viết kịch bản nâng cao', roleMin: ROLES.FREE }, // Freemium
+  { id: 'image-forge', name: 'Tạo Thumbnail AI', roleMin: ROLES.FREE }, // Freemium
+  { id: 'text-to-speech', name: 'Text-to-Speech OpenAI', roleMin: ROLES.FREE }, // Freemium
+  { id: 'velocity', name: 'Tạo Video (Velocity Tool)', roleMin: ROLES.FREE }, // Freemium
+  { id: 'dubbing', name: 'AI Dubbing Studio', roleMin: ROLES.FREE }, // Freemium
+  { id: 'virtual-mc', name: 'Virtual MC', roleMin: ROLES.FREE }, // Freemium
+  { id: 'keyword-research', name: 'Nghiên cứu từ khóa', roleMin: ROLES.FREE }, // Freemium: Limit data inside
 ] as const;
 
 // TTS CHARACTER LIMITS (hidden, auto-switch to Edge TTS when exceeded)

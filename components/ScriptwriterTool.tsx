@@ -4,6 +4,8 @@ import Head from 'next/head'; // Kept but can be removed if strictly component
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import UpgradeModal from './UpgradeModal'; // ADDED
+import { AnimatePresence } from 'framer-motion'; // ADDED
 import {
     ArrowLeft,
     PenTool,
@@ -92,6 +94,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
     const [chatRequest, setChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [showUpgrade, setShowUpgrade] = useState(false); // ADDED STATE
 
     // --- PROJECT HISTORY LOGIC ---
     const [showHistory, setShowHistory] = useState(false);
@@ -169,6 +172,13 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
     // --- LOGIC: WRITE ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // --- FREEMIUM GATE (GATED FOR FREE/USER) ---
+        // Minimum Role: CREATIVE (Basic Paid) or SUPER
+        if (['FREE', 'USER'].includes(userRole) && userRole !== 'ADMIN') {
+            setShowUpgrade(true);
+            return;
+        }
         if (!idea) {
             setError("Vui lòng nhập ý tưởng.");
             return;
@@ -611,6 +621,11 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
                     animation: progress 20s linear forwards;
                 }
             `}</style>
+
+            {/* Upgrade Modal */}
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

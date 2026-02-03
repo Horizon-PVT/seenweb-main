@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import VoiceSelector from './voice/VoiceSelector';
 import AudioVisualizer from './voice/AudioVisualizer';
 
@@ -28,6 +29,8 @@ const VoiceStudioTool = () => {
     const [cloneFile, setCloneFile] = useState<File | null>(null);
     const [cloning, setCloning] = useState(false);
     const [clonedVoices, setClonedVoices] = useState<{ id: string, name: string }[]>([]);
+
+    const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const srtInputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +70,15 @@ const VoiceStudioTool = () => {
     }, [audioUrl]);
 
     const handleGenerate = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         if (!text) return alert('Vui lòng nhập nội dung!');
 
         setGenerating(true);
@@ -112,6 +124,15 @@ const VoiceStudioTool = () => {
     const handleSRTGenerate = async () => { /* ... existing logic ... */ }; // keeping simple for brevity in thought, but implementing full
 
     const handleClone = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         if (!cloneFile) return alert('Vui lòng chọn file audio mẫu!');
         if (!cloneName) return alert('Vui lòng đặt tên cho giọng!');
 
@@ -325,6 +346,10 @@ const VoiceStudioTool = () => {
                 </div>
 
             </div>
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 };

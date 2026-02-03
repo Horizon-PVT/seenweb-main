@@ -56,6 +56,15 @@ const Header: React.FC = () => {
 
         {/* NAV */}
         <nav className="hidden md:flex items-center space-x-6">
+          {/* 0. Newbie */}
+          <Link
+            href="/new-youtuber"
+            className="text-[#00ffb4] hover:text-[#CDAD5A] transition-colors duration-300 font-bold text-sm flex items-center gap-1"
+          >
+            {t('menu.newbie', 'YouTube Mới')}
+            <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded-full animate-pulse">HOT</span>
+          </Link>
+
           {/* 1. Huấn luyện */}
           <Link
             href="/coaching"

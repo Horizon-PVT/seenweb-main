@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 
 export default function VirtualMCTool() {
     const { data: session } = useSession();
@@ -11,15 +12,13 @@ export default function VirtualMCTool() {
     const { t } = useTranslation('common');
     const isEN = router.locale === 'en';
 
-    const userRole = (session?.user as any)?.role || "FREE";
-    const isPro = userRole === 'SUPER' || userRole === 'ADMIN';
-
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [audioFile, setAudioFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<string>(''); // starting, processing, succeeded, failed
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
     // Audio visualization mock state
     const [audioVisLevel, setAudioVisLevel] = useState(0);
@@ -42,6 +41,15 @@ export default function VirtualMCTool() {
     });
 
     const handleGenerate = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         if (!imageFile || !audioFile) {
             alert("Vui lòng chọn đủ Ảnh Idol và File Âm thanh!");
             return;
@@ -132,27 +140,8 @@ export default function VirtualMCTool() {
                 <p className="text-cyan-300/60 text-xs tracking-[0.3em] mt-2 uppercase">Neural Rendering Engine v3.0 // Online</p>
             </div>
 
-            {/* PRO LOCK OVERLAY */}
-            {!isPro && (
-                <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/80 flex flex-col items-center justify-center rounded-xl overflow-hidden">
-                    <div className="relative p-10 max-w-lg text-center border border-pink-500/30 bg-black/90 rounded-2xl shadow-[0_0_100px_rgba(236,72,153,0.2)]">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent"></div>
-                        <div className="text-7xl mb-6 animate-bounce">💎</div>
-                        <h3 className="text-3xl font-black text-white mb-2 uppercase italic">ACCESS DENIED</h3>
-                        <p className="text-gray-400 mb-8">
-                            Tính năng tạo Idol AI cao cấp chỉ dành cho thành viên
-                            <span className="text-pink-500 font-bold glow-pink"> SUPER (PRO)</span>.
-                        </p>
-                        <Link href="/pricing" className="group relative inline-flex justify-center items-center px-8 py-4 font-bold text-white transition-all duration-200 bg-pink-600 font-lg rounded-lg hover:bg-pink-500 hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:-translate-y-1">
-                            <span className="mr-2">🚀</span> NÂNG CẤP NGAY
-                            <div className="absolute inset-0 rounded-lg ring-2 ring-white/20 group-hover:ring-white/50 animate-pulse"></div>
-                        </Link>
-                    </div>
-                </div>
-            )}
-
             {/* MAIN LAYOUT */}
-            <div className={`relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto p-4 ${!isPro ? 'blur-sm grayscale opacity-30 pointer-events-none' : ''}`}>
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto p-4">
 
                 {/* DOCTOR / INPUT PANEL */}
                 <div className="lg:col-span-4 space-y-4">
@@ -369,9 +358,9 @@ export default function VirtualMCTool() {
                         </div>
                     )}
                 </div>
+
             </div>
 
-            {/* Global Styles for Animations */}
             <style jsx global>{`
                 @keyframes scan {
                     0% { top: 0%; opacity: 0; }
@@ -386,9 +375,10 @@ export default function VirtualMCTool() {
                     text-shadow: 0 0 10px rgba(236, 72, 153, 0.7);
                 }
             `}</style>
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }
-
-// Add Tailwind Animation config in tailwind.config.js if not present,
-// using inline style for now to ensure it works immediately.

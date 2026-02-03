@@ -120,7 +120,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                                     }
                 `}
                             >
-                                <div className="text-lg">
+                                <div className={`text-lg ${isActive ? 'text-white' : (tool.color || 'text-gray-400')} transition-colors`}>
                                     <Icon size={20} />
                                 </div>
                                 <span className="flex-1 text-sm">{tool.label}</span>

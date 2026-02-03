@@ -3,6 +3,9 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useSession } from "next-auth/react"; // Import useSession
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
     ArrowLeft,
     Book,
@@ -87,6 +90,7 @@ const LoadingQuill: React.FC<{ text: string }> = ({ text }) => (
 );
 
 export default function NarrativeStudioPage() {
+    const { data: session } = useSession();
     const router = useRouter();
     const isEN = router.locale === 'en';
 
@@ -110,11 +114,22 @@ export default function NarrativeStudioPage() {
     const [outputView, setOutputView] = useState<OutputView>('preview');
     const [bookSummary, setBookSummary] = useState('');
 
+    const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
+
     const pageRefs = useRef<Array<HTMLDivElement | null>>([]);
     const selectedKDP = KDP_TRIM_SIZES[selectedTrimSize];
 
     // --- LOGIC: GENERATE SCENES ---
     const handleGenerateScenes = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         setError(null);
         setIsLoading(true);
         setLoadingMessage('1/2. Analyzing Chronicle...'); // Themed message
@@ -612,6 +627,10 @@ export default function NarrativeStudioPage() {
                     <AlertCircle size={20} /> {error}
                 </div>
             )}
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

@@ -31,6 +31,7 @@ import StoryStudioTool from "@/components/StoryStudioTool";
 import ScriptRefinerTool from "@/components/ScriptRefinerTool";
 import RivalScannerTool from "@/components/RivalScannerTool";
 import HiddenChannelFinderTool from "@/components/HiddenChannelFinderTool";
+import KeywordResearchTool from "@/components/KeywordResearchTool";
 
 // Development / Placeholders
 import DubbingTool from "@/components/DubbingTool"; // For AI Voice Dubbing
@@ -216,6 +217,10 @@ function renderTool(toolId: string, onBack: () => void) {
     // 12. hidden-channel-finder
     case 'hidden-channel-finder':
       return <HiddenChannelFinderTool onBack={onBack} />;
+
+    // 13. keyword-research
+    case 'keyword-research':
+      return <KeywordResearchTool onBack={onBack} />;
 
     // 13. ai-dubbing (Dev)
     case 'ai-dubbing':

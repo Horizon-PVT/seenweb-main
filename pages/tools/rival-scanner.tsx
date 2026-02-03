@@ -1,8 +1,11 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useSession } from "next-auth/react"; // Import useSession
+import { canAccessTool, ROLES } from "@/lib/roles"; // Import roles
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
     Radar,
     Target,
@@ -45,12 +48,14 @@ interface OutputData {
 }
 
 export default function RivalScannerPage() {
+    const { data: session } = useSession();
     const router = useRouter();
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [output, setOutput] = useState<OutputData | null>(null);
     const [scanProgress, setScanProgress] = useState(0);
     const [radarAngle, setRadarAngle] = useState(0);
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
     // Radar Animation Effect
     useEffect(() => {
@@ -76,6 +81,19 @@ export default function RivalScannerPage() {
 
     // Extract scan logic
     const performScan = async (targetInput: string) => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        // Check if userRole meets the requirement for Rival Scanner (originally CREATIVE)
+        // Since we removed the dashboard gate, we must enforce it here.
+        // We can manually check logic: FREE < CREATIVE.
+        const allowed = ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(userRole);
+
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         setIsLoading(true);
         setOutput(null);
 
@@ -347,6 +365,10 @@ export default function RivalScannerPage() {
                 )}
 
             </main>
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
 
             <style jsx global>{`
                 .radial-gradient-green {

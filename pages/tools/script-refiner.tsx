@@ -3,6 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useSession } from "next-auth/react"; // Import useSession
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
     ArrowLeft,
     FileText,
@@ -32,6 +35,7 @@ interface OutputData {
 }
 
 export default function ScriptRefinerPage() {
+    const { data: session } = useSession();
     const router = useRouter();
     const isEN = router.locale === 'en';
 
@@ -48,6 +52,8 @@ export default function ScriptRefinerPage() {
     const [iterativeChatRequest, setIterativeChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
+
+    const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
 
     const buttonRef = useRef<HTMLButtonElement>(null);
     const outputRef = useRef<HTMLDivElement>(null);
@@ -90,6 +96,16 @@ export default function ScriptRefinerPage() {
     // --- API: INITIAL REWRITE ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         if (!originalScript) {
             setError("Please enter original content.");
             return;
@@ -406,6 +422,10 @@ export default function ScriptRefinerPage() {
                     padding: 0 2px;
                 }
             `}</style>
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
-import { useSession } from "next-auth/react"; // ADDED
-import { Save, Folder, PlusSquare, Trash2 } from "lucide-react"; // ADDED ICONS
+import { useSession } from "next-auth/react";
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
+import { Save, Folder, PlusSquare, Trash2 } from "lucide-react";
+
 type Aspect = "16:9" | "1:1" | "9:16";
 
 type RefUpload = {
@@ -66,6 +69,8 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [images, setImages] = useState<string[]>([]);
   const [archive, setArchive] = useState<string[]>([]);
   const [error, setError] = useState<string>("");
+
+  const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
 
   // References
   const [styleRef, setStyleRef] = useState<File | null>(null);
@@ -256,6 +261,16 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const handleSubmit = async () => {
     setError("");
+
+    // --- FREEMIUM GATE CHECK ---
+    const userRole = ((session?.user as any)?.role || "FREE");
+    const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+    if (!allowed) {
+      setShowUpgrade(true);
+      return;
+    }
+    // ---------------------------
+
     if (!prompt.trim() && !hasAnyRefs) {
       setError("Nhập prompt hoặc upload ảnh tham chiếu (style/nhân vật).");
       inputRef.current?.focus();
@@ -710,6 +725,10 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </div>
         )
       }
+
+      <AnimatePresence>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      </AnimatePresence>
     </div >
   );
 };

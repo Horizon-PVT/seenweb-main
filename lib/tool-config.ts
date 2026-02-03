@@ -17,7 +17,10 @@ import {
     GraduationCap, // Thay Youtube
     Library, // Niche Engine
     Mic2, // Dubbing
-    User // Virtual MC
+    User, // Virtual MC
+    Target, // Keyword Research
+    Search, // ADDED
+    FileText // ADDED
 } from 'lucide-react';
 
 export interface ToolConfig {
@@ -28,6 +31,7 @@ export interface ToolConfig {
     status: 'active' | 'beta' | 'maintenance' | 'construction' | 'new';
     componentName?: string; // For dynamic imports
     minRole: 'FREE' | 'USER' | 'CREATIVE' | 'SUPER' | 'VIP' | 'ADMIN';
+    color?: string; // ADDED
 }
 
 export const TOOLS: ToolConfig[] = [
@@ -39,7 +43,8 @@ export const TOOLS: ToolConfig[] = [
         icon: GraduationCap,
         status: 'active',
         componentName: 'ThayYoutubeTool',
-        minRole: 'FREE'
+        minRole: 'FREE',
+        color: 'text-red-500' // ADDED
     },
     // 2. Thư viện ngách thắng 100%
     {
@@ -49,7 +54,8 @@ export const TOOLS: ToolConfig[] = [
         icon: Library,
         status: 'active',
         componentName: 'NicheEngineTool',
-        minRole: 'CREATIVE' // Basic
+        minRole: 'FREE', // Freemium Teaser
+        color: 'text-yellow-500' // ADDED
     },
     // 3. Tạo Ảnh - Thiết Kế Thumbnail AI
     {
@@ -59,7 +65,8 @@ export const TOOLS: ToolConfig[] = [
         icon: ImageIcon,
         status: 'active',
         componentName: 'ImageForgeTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-pink-500' // ADDED
     },
     // 4. AI Voice Studio (TTS + Clone)
     {
@@ -69,27 +76,30 @@ export const TOOLS: ToolConfig[] = [
         icon: Mic,
         status: 'active',
         componentName: 'VoiceStudioTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-blue-400' // ADDED
     },
-    // 5. Tối Ưu SEO & Từ Khóa
+    // 5. Tối Ưu SEO & Từ Khóa (KEEP SUPER)
     {
-        id: 'seo-tool',
-        label: 'Tối Ưu SEO & Từ Khóa',
-        description: 'Tăng hạng video trên tìm kiếm',
-        icon: Zap,
+        id: 'seo-tool', // Changed ID
+        label: 'Tối Ưu SEO & Từ Khóa', // Reverted Label
+        description: 'Phân tích từ khóa sâu',
+        icon: Search,
         status: 'active',
         componentName: 'SeoTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // FREEMIUM UNLOCKED // Professional
+        color: 'text-green-500' // ADDED
     },
-    // 6. Đào Ngách CPM Cao
+    // 6. Đào Ngách CPM Cao (KEEP SUPER)
     {
         id: 'micro-niche-miner',
-        label: 'Đào Ngách CPM Cao',
-        description: 'Tìm ngách kiếm tiền hiệu quả',
-        icon: Compass,
+        label: 'Đào Ngách CPM Cao', // Changed Label
+        description: 'Tìm ngách có CPM cao',
+        icon: Target, // Changed Icon
         status: 'active',
         componentName: 'MicroNicheMinerTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // FREEMIUM UNLOCKED // Professional
+        color: 'text-amber-500' // ADDED
     },
     // 7. Tạo Video Bằng AI
     {
@@ -99,17 +109,19 @@ export const TOOLS: ToolConfig[] = [
         icon: Video,
         status: 'active',
         componentName: 'VeocityTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-orange-500' // ADDED
     },
-    // 8. Viết Kịch Bản Viral
+    // 8. Viết Kịch Bản Viral (KEEP CREATIVE for now)
     {
-        id: 'scriptwriter',
-        label: 'Viết Kịch Bản Viral',
-        description: 'AI viết kịch bản triệu view',
-        icon: PenTool,
+        id: 'scriptwriter', // Changed ID
+        label: 'Viết Kịch Bản Viral', // Reverted Label
+        description: 'Viết kịch bản AI',
+        icon: FileText,
         status: 'active',
         componentName: 'ScriptwriterTool',
-        minRole: 'CREATIVE' // Basic
+        minRole: 'FREE', // FREEMIUM UNLOCKED // Basic
+        color: 'text-purple-400' // ADDED
     },
     // 9. Kể Chuyện Lịch Sử / Story
     {
@@ -119,7 +131,8 @@ export const TOOLS: ToolConfig[] = [
         icon: BookOpen,
         status: 'active',
         componentName: 'StoryStudioTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-indigo-400' // ADDED
     },
     // 10. Chỉnh Sửa & Nâng Cấp Kịch Bản
     {
@@ -129,7 +142,8 @@ export const TOOLS: ToolConfig[] = [
         icon: PenTool,
         status: 'active',
         componentName: 'ScriptRefinerTool',
-        minRole: 'CREATIVE' // Basic
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-teal-400' // ADDED
     },
     // 11. Phân Tích Kênh Đối Thủ
     {
@@ -139,7 +153,8 @@ export const TOOLS: ToolConfig[] = [
         icon: Radar,
         status: 'active',
         componentName: 'RivalScannerTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-red-400' // ADDED
     },
     // 12. Tìm Ngách Xanh
     {
@@ -149,12 +164,24 @@ export const TOOLS: ToolConfig[] = [
         icon: Ghost,
         status: 'active',
         componentName: 'HiddenChannelFinderTool',
-        minRole: 'SUPER' // Professional
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-emerald-400' // ADDED
+    },
+    // 13. Nghiên Cứu Từ Khóa
+    {
+        id: 'keyword-research',
+        label: 'Nghiên Cứu Từ Khóa',
+        description: 'Tìm ý tưởng video & phân tích cạnh tranh',
+        icon: Target, // Using Zap or Target, imported below
+        status: 'active',
+        componentName: 'KeywordResearchTool',
+        minRole: 'FREE', // Freemium gate inside
+        color: 'text-cyan-400' // ADDED
     },
 
     // --- DEVELOPMENT TOOLS ---
 
-    // 13. AI Voice Dubbing
+    // 14. AI Voice Dubbing
     {
         id: 'ai-dubbing',
         label: 'AI Voice Dubbing',
@@ -162,16 +189,18 @@ export const TOOLS: ToolConfig[] = [
         icon: Mic2,
         status: 'construction',
         componentName: 'DubbingTool',
-        minRole: 'VIP' // Development typically reserved or high tier
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-gray-500' // ADDED
     },
-    // 14. Virtual MC Creator
+    // 15. Virtual MC Creator
     {
         id: 'virtual-mc',
         label: 'Virtual MC Creator',
         description: 'Tạo nhân vật MC ảo',
-        icon: User,
+        icon: User, // Using User icon
         status: 'construction',
         componentName: 'VirtualMCTool',
-        minRole: 'VIP'
+        minRole: 'FREE', // Freemium Gate
+        color: 'text-gray-500' // ADDED
     }
 ];

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface VideoData {
     id: string;
@@ -14,96 +15,226 @@ interface VideoTipsSectionProps {
     subtitle: string;
     videos: VideoData[];
     tag?: string;
+    variant?: 'default' | 'compact';
+    hint?: string;
 }
 
-const VideoTipsSection: React.FC<VideoTipsSectionProps> = ({ title, subtitle, videos = [], tag }) => {
+const ITEMS_PER_PAGE = 4;
+
+const VideoTipsSection: React.FC<VideoTipsSectionProps> = ({ title, subtitle, videos = [], tag, variant = 'default', hint }) => {
     const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(0);
 
     // If no videos, don't render anything
     if (!videos || videos.length === 0) return null;
 
-    // Duplicate for scrolling effect
-    const allVideos = [...videos, ...videos];
+    const totalPages = Math.ceil(videos.length / ITEMS_PER_PAGE);
+
+    const handleNext = () => {
+        setCurrentPage((prev) => (prev + 1) % totalPages);
+    };
+
+    const handlePrev = () => {
+        setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+    };
+
+    const currentVideos = videos.slice(
+        currentPage * ITEMS_PER_PAGE,
+        (currentPage + 1) * ITEMS_PER_PAGE
+    );
+
+    const isCompact = variant === 'compact';
 
     return (
         <>
-            <section className="py-20 bg-black/50 border-y border-gray-800/50 overflow-hidden">
-                <div className="container mx-auto px-6 text-center">
-                    {tag && (
-                        <span className="text-[#CDAD5A] font-bold tracking-widest text-xs uppercase mb-2 block">
-                            {tag}
-                        </span>
-                    )}
-                    <h2 className="text-4xl font-playfair text-white mb-4">
-                        {title}
-                    </h2>
-                    <p className="text-xl text-gray-400 mb-12">{subtitle}</p>
+            <section className="py-20 bg-black/50 border-y border-gray-800/50 overflow-hidden relative">
+                {/* Background Ambient Glow */}
+                <div className="absolute top-0 left-1/4 w-1/2 h-full bg-purple-900/10 blur-[120px] pointer-events-none" />
 
-                    <div className="relative w-full overflow-hidden before:absolute before:left-0 before:top-0 before:bottom-0 before:w-24 before:bg-gradient-to-r before:from-black/50 before:to-transparent before:z-10 after:absolute after:right-0 after:top-0 after:bottom-0 after:w-24 after:bg-gradient-to-l after:from-black/50 after:to-transparent after:z-10">
-                        <div className="flex animate-scroll-left">
-                            {allVideos.map((video, index) => (
-                                <div
-                                    key={`${video.id || video.youtubeId}-${index}`}
-                                    className="group flex-shrink-0 w-80 mx-4 cursor-pointer"
-                                    onClick={() => setSelectedVideoId(video.youtubeId)}
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-12">
+                        {tag && (
+                            <motion.span
+                                initial={{ opacity: 0, y: 10 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                className="text-[#CDAD5A] font-bold tracking-widest text-xs uppercase mb-2 block"
+                            >
+                                {tag}
+                            </motion.span>
+                        )}
+                        <motion.h2
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 }}
+                            className="text-4xl font-playfair text-white mb-4"
+                        >
+                            {title}
+                        </motion.h2>
+                        <motion.p
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2 }}
+                            className="text-xl text-gray-400"
+                        >
+                            {subtitle}
+                        </motion.p>
+                        {hint && (
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.3 }}
+                                className="text-sm text-gray-500 mt-2 italic animate-pulse"
+                            >
+                                {hint}
+                            </motion.p>
+                        )}
+                    </div>
+
+                    <div className="relative">
+                        {/* Navigation Arrows */}
+                        {totalPages > 1 && (
+                            <>
+                                <button
+                                    onClick={handlePrev}
+                                    className="hidden md:flex absolute -left-12 top-1/2 -translate-y-1/2 z-20 w-10 h-10 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white hover:bg-[#CDAD5A] hover:text-black transition-all duration-300"
                                 >
-                                    <div className="h-full p-4 bg-[#111] border border-gray-800 rounded-xl transition-all duration-300 hover:border-[#CDAD5A]/50 hover:bg-gray-900 group-hover:-translate-y-2">
-                                        <div className="relative mb-4 overflow-hidden rounded-lg aspect-video bg-gray-900">
-                                            <img
-                                                src={video.thumbnailUrl || `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
-                                                alt={video.title}
-                                                className="absolute inset-0 w-full h-full object-cover z-0 group-hover:scale-110 transition-transform duration-500"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    // Fallback to mqdefault if hq not found (rare)
-                                                    if (target.src.includes('hqdefault')) {
-                                                        target.src = target.src.replace('hqdefault', 'mqdefault');
-                                                    }
-                                                }}
-                                            />
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                                <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                                                    <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M8 5v14l11-7z" />
-                                                    </svg>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                                <button
+                                    onClick={handleNext}
+                                    className="hidden md:flex absolute -right-12 top-1/2 -translate-y-1/2 z-20 w-10 h-10 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white hover:bg-[#CDAD5A] hover:text-black transition-all duration-300"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            </>
+                        )}
+
+                        <div className="min-h-[340px]">
+                            <AnimatePresence mode='wait'>
+                                <motion.div
+                                    key={currentPage}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                                >
+                                    {currentVideos.map((video, index) => (
+                                        <motion.div
+                                            key={video.id || video.youtubeId}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.1 }}
+                                            whileHover={{ y: -8, scale: 1.02 }}
+                                            className="group cursor-pointer"
+                                            onClick={() => setSelectedVideoId(video.youtubeId)}
+                                        >
+                                            <div className="h-full bg-[#111] border border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 group-hover:border-[#CDAD5A]/50 group-hover:shadow-[0_0_30px_rgba(205,173,90,0.15)] relative">
+                                                <div className={`${isCompact ? 'h-36' : 'aspect-video'} bg-gray-900 overflow-hidden relative`}>
+                                                    <img
+                                                        src={video.thumbnailUrl || `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
+                                                        alt={video.title}
+                                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            if (target.src.includes('hqdefault')) {
+                                                                target.src = target.src.replace('hqdefault', 'mqdefault');
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 backdrop-blur-[2px]">
+                                                        <motion.div
+                                                            whileHover={{ scale: 1.15 }}
+                                                            className={`${isCompact ? 'w-10 h-10' : 'w-14 h-14'} bg-red-600 rounded-full flex items-center justify-center shadow-lg text-white`}
+                                                        >
+                                                            <svg className={`${isCompact ? 'w-4 h-4 ml-0.5' : 'w-6 h-6 ml-1'}`} fill="currentColor" viewBox="0 0 24 24">
+                                                                <path d="M8 5v14l11-7z" />
+                                                            </svg>
+                                                        </motion.div>
+                                                    </div>
+
+                                                    {/* Optional Badge */}
+                                                    <div className={`absolute ${isCompact ? 'top-2 right-2 px-1.5 py-0.5 text-[9px]' : 'top-3 right-3 px-2 py-0.5 text-[10px]'} bg-black/60 backdrop-blur-md rounded font-bold text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity delay-100`}>
+                                                        {isCompact ? 'WATCH' : 'WATCH NOW'}
+                                                    </div>
                                                 </div>
+
+                                                <div className={`${isCompact ? 'p-3' : 'p-5'}`}>
+                                                    <h3 className={`${isCompact ? 'text-sm' : 'text-lg'} font-bold text-white mb-1 line-clamp-2 leading-tight group-hover:text-[#CDAD5A] transition-colors`}>
+                                                        {video.title}
+                                                    </h3>
+                                                    <p className={`${isCompact ? 'text-[10px]' : 'text-xs'} text-gray-500 line-clamp-2 leading-relaxed`}>
+                                                        {video.description || "Xem hướng dẫn chi tiết để nắm bắt cách sử dụng hiệu quả."}
+                                                    </p>
+                                                </div>
+
+                                                {/* Bottom gradient line */}
+                                                <div className={`absolute bottom-0 left-0 w-full ${isCompact ? 'h-[1px]' : 'h-[2px]'} bg-gradient-to-r from-transparent via-[#CDAD5A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                                             </div>
-                                            {/* Optional: Episode Number or badge can go here with z-20 */}
-                                        </div>
-                                        <h3 className="text-lg font-bold text-white mb-1 line-clamp-2 leading-tight group-hover:text-[#CDAD5A] transition-colors">{video.title}</h3>
-                                        <p className="text-xs text-gray-500 line-clamp-2">{video.description}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
+
+                        {/* Pagination Dots */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center mt-8 gap-2">
+                                {Array.from({ length: totalPages }).map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setCurrentPage(i)}
+                                        className={`w-2 h-2 rounded-full transition-all duration-300 ${currentPage === i
+                                            ? 'bg-[#CDAD5A] w-6'
+                                            : 'bg-gray-700 hover:bg-gray-500'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
 
             {/* YouTube Modal */}
-            {selectedVideoId && (
-                <div
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-md"
-                    onClick={() => setSelectedVideoId(null)}
-                >
-                    <div className="relative w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            onClick={() => setSelectedVideoId(null)}
-                            className="absolute -top-12 right-0 text-white text-4xl hover:text-[#CDAD5A] transition-colors"
+            <AnimatePresence>
+                {selectedVideoId && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-md"
+                        onClick={() => setSelectedVideoId(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-800"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            ×
-                        </button>
-                        <div className="relative pb-[56.25%] h-0 rounded-2xl overflow-hidden shadow-2xl border border-gray-800">
-                            <iframe
-                                className="absolute top-0 left-0 w-full h-full"
-                                src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+                            <button
+                                onClick={() => setSelectedVideoId(null)}
+                                className="absolute -top-12 right-0 text-white text-4xl hover:text-[#CDAD5A] transition-colors z-50 focus:outline-none"
+                            >
+                                ×
+                            </button>
+                            <div className="relative pb-[56.25%] h-0">
+                                <iframe
+                                    className="absolute top-0 left-0 w-full h-full"
+                                    src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 };

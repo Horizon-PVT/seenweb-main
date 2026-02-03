@@ -11,7 +11,8 @@
         "coaching": "Huấn luyện",
         "personal": "Cá nhân",
         "features": "Tính năng",
-        "explore": "Khám phá"
+        "explore": "Khám phá",
+        "newbie": "YouTube Mới"
     },
     "nav": {
         "all": "Tất cả",
@@ -37,6 +38,7 @@
         "title_highlight": "làm video lên top view",
         "subtitle": "Không cần kinh nghiệm, chỉ cần làm theo từng bước.",
         "cta_free": "Dùng thử miễn phí",
+        "cta_roadmap": "Lộ trình cho người mới",
         "cta_community": "GIA NHẬP CỘNG ĐỒNG",
         "bullet1_q": "Không biết làm gì?",
         "bullet1_a": "Chỉ cho bạn video nên làm",

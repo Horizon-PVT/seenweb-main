@@ -24,6 +24,7 @@ const DEFAULT_TOOL_VIDEOS = [
   { id: 't5', title: 'Kể Chuyện Lịch Sử / Story', youtubeId: '-yV4qOEkxZw', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-5.jpg' },
   { id: 't6', title: 'Tool thư viện ngách thắng', youtubeId: 'CNbEXE6pj1Q', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-6.jpg' },
   { id: 't7', title: 'Tool seo và từ khoá', youtubeId: 'M4UBTX8omq0', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-7.jpg' },
+  { id: 't8', title: 'Hướng dẫn viết kịch bản viral', youtubeId: 'NGLzDUTPvgs', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-8.jpg' },
 ];
 
 import Header from "../components/Header";
@@ -132,6 +133,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
           title={<span className="text-[#CDAD5A]">Hướng Dẫn Sử Dụng Tools</span>}
           subtitle="Bộ công cụ tối ưu để phát triển kênh YouTube"
           videos={(tutorialVideos && tutorialVideos.length > 0) ? tutorialVideos : DEFAULT_TOOL_VIDEOS}
+          variant="compact"
         />
 
         {/* Course Series (Hardcoded or DB) */}
@@ -139,6 +141,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
           tag="Series Độc Quyền"
           title={<>Hướng Dẫn Làm <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">YouTube 2026</span></>}
           subtitle="Trọn bộ bí kíp từ A-Z dành cho người mới bắt đầu"
+          hint="(Bấm mũi tên < > để xem tiếp các bài học)"
           videos={VIDEO_SERIES_2026}
         />
 

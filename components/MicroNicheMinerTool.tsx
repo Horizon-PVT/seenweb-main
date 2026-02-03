@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react'; // ADDED
+import { AnimatePresence } from 'framer-motion'; // ADDED
+import UpgradeModal from './UpgradeModal'; // ADDED
 import {
   Compass,
   Search,
@@ -214,14 +217,26 @@ interface MicroNicheMinerToolProps {
 
 export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps) {
   const router = useRouter();
+  const { data: session } = useSession(); // ADDED
+  const userRole = (session?.user as any)?.role || 'FREE'; // ADDED
+
   const [input, setInput] = useState('');
   const [market, setMarket] = useState<TargetMarket>('VN');
   const [isLoading, setIsLoading] = useState(false);
   const [output, setOutput] = useState<OutputData | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false); // ADDED
   const isVN = market === 'VN';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // --- FREEMIUM GATE (GATED FOR FREE/USER) ---
+    // Minimum Role: SUPER (Professional)
+    if (['FREE', 'USER', 'CREATIVE'].includes(userRole) && userRole !== 'ADMIN') {
+      setShowUpgrade(true);
+      return;
+    }
+
     if (!input.trim()) return;
 
     setIsLoading(true);
@@ -370,6 +385,11 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
         }}
       ></div>
       <div className="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none z-0"></div>
+
+      {/* Upgrade Modal */}
+      <AnimatePresence>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

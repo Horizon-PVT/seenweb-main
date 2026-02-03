@@ -3,6 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useSession } from "next-auth/react"; // Import useSession
+import { AnimatePresence } from 'framer-motion'; // Import AnimatePresence
+import UpgradeModal from '@/components/UpgradeModal'; // Import UpgradeModal
 import {
     Search,
     ArrowLeft,
@@ -58,12 +61,14 @@ const SonarLoader: React.FC = () => (
 );
 
 export default function HiddenChannelFinderPage() {
+    const { data: session } = useSession(); // Access session
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [output, setOutput] = useState<OutputData | null>(null);
     const [seedQuery, setSeedQuery] = useState('');
     const [outputLanguage, setOutputLanguage] = useState('Tiếng Việt');
+    const [showUpgrade, setShowUpgrade] = useState(false); // State for upgrade modal
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,6 +76,17 @@ export default function HiddenChannelFinderPage() {
             setError('Please enter a keyword to start scanning.');
             return;
         }
+
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        // Originally required SUPER (higher than CREATIVE)
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
 
         setIsLoading(true);
         setError('');
@@ -310,6 +326,11 @@ export default function HiddenChannelFinderPage() {
                     </div>
                 )}
             </main>
+
+            {/* UPGRADE MODAL */}
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

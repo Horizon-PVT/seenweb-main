@@ -48,14 +48,14 @@ function Icon({
   className,
 }: {
   name:
-    | "spark"
-    | "bolt"
-    | "shield"
-    | "chart"
-    | "clock"
-    | "wand"
-    | "check"
-    | "arrow";
+  | "spark"
+  | "bolt"
+  | "shield"
+  | "chart"
+  | "clock"
+  | "wand"
+  | "check"
+  | "arrow";
   className?: string;
 }) {
   const common = { className: className ?? "h-5 w-5" };
@@ -185,6 +185,27 @@ function ToolShot({ src, alt, badge }: { src: string; alt: string; badge: string
   );
 }
 
+function VideoShot({ videoId, badge }: { videoId: string; badge: string }) {
+  return (
+    <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-[0_20px_80px_rgba(0,0,0,0.55)]">
+      <div className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/35 px-3 py-1 text-xs font-black text-white/80 backdrop-blur pointer-events-none">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#00ffb4]" />
+        {badge}
+      </div>
+
+      <div className="relative aspect-video w-full">
+        <iframe
+          className="absolute inset-0 h-full w-full"
+          src={`https://www.youtube.com/embed/${videoId}?rel=0`}
+          title={badge}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function NewYoutuberLanding() {
   const router = useRouter();
   const { status } = useSession();
@@ -228,7 +249,7 @@ export default function NewYoutuberLanding() {
     if (!mounted) return;
     try {
       window.localStorage.setItem("seenyt_trial_slots_left_v4", String(slotsLeft));
-    } catch {}
+    } catch { }
   }, [mounted, slotsLeft]);
 
   const cd = useCountdownToEndOfDayBangkok(mounted);
@@ -365,8 +386,8 @@ export default function NewYoutuberLanding() {
                 </div>
 
                 <h1 className="mt-6 text-[42px] font-black leading-[1.12] tracking-[-0.02em] md:text-[64px] md:leading-[1.08] lg:text-[72px]">
-                 Làm YouTube Không Lên View?
-                 
+                  Làm YouTube Không Lên View?
+
                   <span className="mt-4 block">
                     Người Mới —{" "}
                     <span className="bg-gradient-to-r from-[#00ffb4] via-[#ff70d6] to-[#7a5cff] bg-clip-text text-transparent">
@@ -378,7 +399,7 @@ export default function NewYoutuberLanding() {
 
                 <p className="mt-6 max-w-[640px] text-base leading-7 text-white/70 md:text-lg md:leading-8">
                   Người mới thường sai ở: chọn ngách – viết script – tối ưu SEO.
-SeenYT gom 3 bước này thành 1 path, làm đúng từ đầu.
+                  SeenYT gom 3 bước này thành 1 path, làm đúng từ đầu.
 
                 </p>
 
@@ -655,9 +676,9 @@ SeenYT gom 3 bước này thành 1 path, làm đúng từ đầu.
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <ToolShot src="/landing/micro-niche.png" alt="Micro niche tool preview" badge="Micro Niche" />
-              <ToolShot src="/landing/script.png" alt="Scriptwriter tool preview" badge="Scriptwriter" />
-              <ToolShot src="/landing/seo.png" alt="SEO tool preview" badge="SEO" />
+              <VideoShot videoId="fwIst_IscQs" badge="Micro Niche" />
+              <VideoShot videoId="NGLzDUTPvgs" badge="Scriptwriter" />
+              <VideoShot videoId="M4UBTX8omq0" badge="SEO" />
             </div>
 
             <div className="mt-10 rounded-3xl border border-white/10 bg-white/[0.04] p-7 shadow-[0_20px_80px_rgba(0,0,0,0.55)] backdrop-blur">

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useSession } from "next-auth/react"; // ADDED
 import Link from 'next/link';
 import {
     ArrowLeft,
@@ -18,8 +19,10 @@ import {
     User,
     ListVideo
 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion'; // ADDED
+import UpgradeModal from '@/components/UpgradeModal'; // ADDED
 
-// --- TYPES (Strictly Preserved) ---
+// ... (TYPES preserved)
 type Phase = 'setup' | 'timeline' | 'output';
 
 interface Scene {
@@ -45,6 +48,7 @@ const LoadingSignal: React.FC<{ text: string }> = ({ text }) => (
 );
 
 export default function VeocityPage() {
+    const { data: session } = useSession(); // ADDED
     const router = useRouter();
     const isEN = router.locale === 'en';
 
@@ -53,6 +57,7 @@ export default function VeocityPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState('');
+    const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
 
     // Setup Phase
     const [script, setScript] = useState('');
@@ -66,6 +71,15 @@ export default function VeocityPage() {
 
     // --- LOGIC: ANALYZE SCRIPT ---
     const handleAnalyzeScript = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         if (!script) {
             setError("Script input required / Vui lòng nhập kịch bản.");
             return;
@@ -132,6 +146,7 @@ export default function VeocityPage() {
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-gray-200 font-sans selection:bg-red-900 selection:text-white overflow-hidden flex flex-col">
+            {/* ... (Header and Main omitted for brevity, logic remains same) ... */}
             <Head>
                 <title>VEOCITY | BROADCAST STUDIO</title>
             </Head>
@@ -431,6 +446,10 @@ export default function VeocityPage() {
                     <span className="font-bold text-sm tracking-wide">{error}</span>
                 </div>
             )}
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

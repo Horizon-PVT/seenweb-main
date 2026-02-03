@@ -135,6 +135,20 @@ const toolsHot: Tool[] = [
     thumbColor: "from-yellow-400 to-orange-400",
     imageSrc: "/images/tool-niche-miner.jpg",
   },
+  {
+    id: "keyword-research",
+    name: "Nghiên Cứu Từ Khóa (Keyword.io)",
+    shortDescription: "Phân tích từ khóa chuyên sâu từ YouTube.",
+    longDescription: "Công cụ nghiên cứu từ khóa mạnh mẽ, giúp bạn tìm ra các từ khóa có lượng tìm kiếm cao nhưng độ cạnh tranh thấp. Tích hợp AI để gợi ý chiến lược nội dung.",
+    seoKeywords: ["Keyword Tool", "Research", "Từ Khóa"],
+    features: ["Deep Analysis", "Volume/Competition", "AI Suggest"],
+    icon: CompassIcon,
+    component: null as any,
+    isHot: true,
+    isPro: true,
+    thumbColor: "from-amber-400 to-yellow-600",
+    imageSrc: "/images/tool-keyword.jpg"
+  }
 ];
 
 const toolsContent: Tool[] = [
@@ -233,6 +247,20 @@ const toolsResearch: Tool[] = [
     thumbColor: "from-indigo-500 to-purple-500",
     imageSrc: "/images/tool-hidden-gem.jpg",
   },
+  {
+    id: "keyword-research",
+    name: "Nghiên Cứu Từ Khóa (Keyword.io)",
+    shortDescription: "Phân tích từ khóa chuyên sâu từ YouTube.",
+    longDescription: "Công cụ nghiên cứu từ khóa mạnh mẽ, giúp bạn tìm ra các từ khóa có lượng tìm kiếm cao nhưng độ cạnh tranh thấp. Tích hợp AI để gợi ý chiến lược nội dung.",
+    seoKeywords: ["Keyword Tool", "Research", "Từ Khóa"],
+    features: ["Deep Analysis", "Volume/Competition", "AI Suggest"],
+    icon: CompassIcon,
+    component: null as any,
+    isHot: true,
+    isPro: true,
+    thumbColor: "from-amber-400 to-yellow-600",
+    imageSrc: "/images/tool-keyword.jpg"
+  }
 ];
 
 const toolsVeryHot: Tool[] = [
@@ -401,7 +429,8 @@ const ToolsGrid: React.FC = () => {
       'thay-youtube': '/tools/thay-youtube',
       'niche-engine': '/studio/niche-engine',
       'future-eye': '/tools/future-eye',
-      'x-hot-news': '/tools/x-trend-hunter'
+      'x-hot-news': '/tools/x-trend-hunter',
+      'keyword-research': '/tools/keyword-research', // NEW ROUTE
     };
 
     if (routes[tool.id]) {

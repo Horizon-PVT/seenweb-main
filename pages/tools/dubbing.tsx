@@ -3,12 +3,15 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { Wand2, Youtube, Upload, Play, Download, Check, Edit3, Volume2, ArrowRight, Loader2, Video as VideoIcon } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 
 export default function DubbingTool() {
     const { data: session } = useSession();
     const [step, setStep] = useState(1); // 1: Input, 2: Edit, 3: Result
     const [loading, setLoading] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
+    const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
 
     // Data
     const [videoUrl, setVideoUrl] = useState('');
@@ -21,6 +24,15 @@ export default function DubbingTool() {
 
     // STEP 1: Process Video
     const handleTranscribe = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         if (!videoUrl) return;
         setLoading(true);
         setLogs(['Đang tải video...', 'Đang tách âm thanh...']);
@@ -49,6 +61,15 @@ export default function DubbingTool() {
 
     // STEP 2: Synthesize & Merge
     const handleSynthesize = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
         setLoading(true);
         setLogs([]);
         addLog('Đang tạo giọng đọc AI (EdgeTTS)...');
@@ -278,6 +299,10 @@ export default function DubbingTool() {
                     </div>
                 )}
             </main>
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

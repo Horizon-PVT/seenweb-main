@@ -119,22 +119,32 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* 2 NÚT CTA song song */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
-          {/* Nút Dùng thử miễn phí */}
-          <button
-            onClick={handleTryFreeClick}
-            className="w-full sm:w-auto min-w-[200px] bg-[#A855F7] text-white font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] active:scale-95"
-          >
-            {t('hero.cta_free', 'Dùng thử miễn phí')}
-          </button>
+        {/* 2 NÚT CTA song song */}
+        <div className="flex flex-col items-center gap-4 w-full">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
+            {/* Nút Dùng thử miễn phí */}
+            <button
+              onClick={handleTryFreeClick}
+              className="w-full sm:w-auto min-w-[200px] bg-[#A855F7] text-white font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] active:scale-95"
+            >
+              {t('hero.cta_free', 'Dùng thử miễn phí')}
+            </button>
 
-          {/* Nút Xem demo */}
-          {/* Nút Cộng Đồng (Thay cho Demo) */}
+            {/* Nút Lộ trình cho người mới */}
+            <button
+              onClick={() => router.push('/new-youtuber')}
+              className="w-full sm:w-auto min-w-[200px] bg-gradient-to-r from-[#00ffb4] to-cyan-400 text-black font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(0,255,180,0.6)] active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>🗺️</span> {t('hero.cta_roadmap', 'Lộ trình cho người mới')}
+            </button>
+          </div>
+
+          {/* Nút Cộng Đồng (Xuống dòng) */}
           <button
             onClick={() => router.push('/community')}
-            className="w-full sm:w-auto min-w-[200px] bg-red-600 text-white font-bold py-4 px-8 text-lg rounded-full hover:bg-red-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(220,38,38,0.4)] animate-pulse"
+            className="w-full sm:w-auto min-w-[240px] bg-transparent border border-red-600/50 text-red-500 font-bold py-3 px-8 text-base rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
           >
-            <span>🚀</span> {t('hero.cta_community', 'GIA NHẬP CỘNG ĐỒNG')}
+            {t('hero.cta_community', '🚀 GIA NHẬP CỘNG ĐỒNG')}
           </button>
         </div>
 
