@@ -18,9 +18,34 @@ export const config = {
 };
 
 // CONSTANTS (EDGE)
-// ... (omitted)
+const TRUSTED_CLIENT_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
+const SEC_MS_GEC_VERSION = '1-130.0.2849.68';
+const WINDOWS_FILE_TIME_EPOCH = 116444736000000000n;
 
-// ... (omitted helper funcs)
+// Helper: Get server time offset for Edge TTS
+async function getServerTimeOffset(): Promise<number> {
+    try {
+        const response = await fetch('https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list?trustedclienttoken=' + TRUSTED_CLIENT_TOKEN);
+        const serverDate = response.headers.get('date');
+        if (serverDate) {
+            return new Date(serverDate).getTime() - Date.now();
+        }
+    } catch (e) {
+        console.warn('Failed to get server time offset:', e);
+    }
+    return 0;
+}
+
+// Helper: Generate Sec-MS-GEC token
+function generateSecMsGec(timeOffset: number): string {
+    const ticks = BigInt(Math.round((Date.now() + timeOffset) / 1000)) * 10000000n + WINDOWS_FILE_TIME_EPOCH;
+    const roundedTicks = (ticks / 3000000000n) * 3000000000n;
+    const hash = createHash('sha256')
+        .update(roundedTicks.toString() + TRUSTED_CLIENT_TOKEN)
+        .digest('hex')
+        .toUpperCase();
+    return hash;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
