@@ -35,7 +35,7 @@ import { canAccessTool, type Role } from "@/lib/roles";
 // NEW UI COMPONENTS
 import AnimatedBackground from "./ui/AnimatedBackground";
 import NeonHeader from "./ui/NeonHeader";
-import GlassCard from "./ui/GlassCard";
+import GlassCard, { ViewMode } from "./ui/GlassCard";
 
 export interface Tool {
   id: string;
@@ -330,7 +330,7 @@ const toolsDeveloper: Tool[] = [
 ];
 
 /* =========================
-   SECTION
+   SECTION (Collapsible + View Mode)
    ========================= */
 type SectionVariant = 'default' | 'gold' | 'fire' | 'blue' | 'green';
 
@@ -342,7 +342,10 @@ const ToolSection: React.FC<{
   isExclusiveSection?: boolean;
   variant?: SectionVariant;
   t: any;
-}> = ({ title, tools, userRole, onOpen, isExclusiveSection = false, variant = 'default', t }) => {
+  defaultCollapsed?: boolean;
+  viewMode?: ViewMode;
+}> = ({ title, tools, userRole, onOpen, isExclusiveSection = false, variant = 'default', t, defaultCollapsed = false, viewMode = 'grid' }) => {
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   const getThemeColor = () => {
     switch (variant) {
@@ -356,37 +359,65 @@ const ToolSection: React.FC<{
 
   const themeColor = getThemeColor();
 
+  // Different grid layouts for Grid vs List mode
+  const gridClassName = viewMode === 'list'
+    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-4'
+    : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 pl-4';
+
   return (
-    <div className="mb-16 relative">
+    <div className="mb-12 relative">
       {/* Decorative Line */}
       <div className="absolute left-0 top-3 bottom-3 w-px bg-gradient-to-b from-transparent via-gray-700 to-transparent opacity-30"></div>
 
-      <div className="flex items-end gap-4 mb-8 pl-6 relative">
+      {/* Header with Collapse Button */}
+      <div
+        className="flex items-center gap-3 mb-6 pl-6 relative cursor-pointer group"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
         <div className="absolute left-[3px] top-1 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor, boxShadow: `0 0 10px ${themeColor}` }}></div>
 
-        <h3 className="text-2xl font-black uppercase tracking-widest text-white/90" style={{ textShadow: '0 0 20px rgba(0,0,0,0.5)' }}>
+        <h3 className="text-lg md:text-xl font-black uppercase tracking-widest text-white/90 group-hover:text-white transition-colors" style={{ textShadow: '0 0 20px rgba(0,0,0,0.5)' }}>
           {title}
         </h3>
 
         {isExclusiveSection && (
-          <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-[10px] font-bold text-black shadow-lg">
-            PREMIUM ACCESS
+          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-[9px] font-bold text-black shadow-lg">
+            PREMIUM
           </span>
         )}
+
+        {/* Collapse Toggle */}
+        <button className="ml-auto mr-2 p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-all">
+          <svg
+            className={`w-3 h-3 text-gray-400 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-180'}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Tool Count */}
+        <span className="text-[10px] text-gray-500 font-mono">{tools.length}</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 pl-4">
-        {tools.map((tool, i) => (
-          <GlassCard
-            key={tool.id}
-            index={i}
-            tool={tool}
-            isLocked={!canAccessTool(tool.id, userRole)}
-            onOpen={() => onOpen(tool)}
-            showExclusiveBadge={isExclusiveSection}
-            t={t}
-          />
-        ))}
+      {/* Collapsible Content */}
+      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[3000px] opacity-100'}`}>
+        <div className={gridClassName}>
+          {tools.map((tool, i) => (
+            <GlassCard
+              key={tool.id}
+              index={i}
+              tool={tool}
+              isLocked={!canAccessTool(tool.id, userRole)}
+              onOpen={() => onOpen(tool)}
+              showExclusiveBadge={isExclusiveSection}
+              t={t}
+              viewMode={viewMode}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -405,6 +436,8 @@ const ToolsGrid: React.FC = () => {
   const { t } = useTranslation('common');
 
   const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   const [showUpgradeGate, setShowUpgradeGate] = useState(false);
   const [selectedToolForUpsell, setSelectedToolForUpsell] = useState<Tool | null>(null);
@@ -476,6 +509,99 @@ const ToolsGrid: React.FC = () => {
         {/* 2. NEON HEADER */}
         <NeonHeader />
 
+        {/* 🔍 SEARCH BAR + VIEW TOGGLE */}
+        <div className="flex justify-center items-center gap-3 mb-8">
+          <div className="relative w-full max-w-md">
+            <input
+              type="text"
+              placeholder="Tìm kiếm tools..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-5 py-2.5 pl-10 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 backdrop-blur-md transition-all"
+            />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-sm"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* View Toggle */}
+          <div className="flex rounded-lg bg-white/5 border border-white/10 p-0.5">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-cyan-500 text-black' : 'text-gray-400 hover:text-white'}`}
+              title="Grid View"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-cyan-500 text-black' : 'text-gray-400 hover:text-white'}`}
+              title="List View"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* 🎯 WORKFLOW RECOMMENDATION - Mobile Responsive */}
+        {!searchQuery && activeTab === 'all' && (
+          <div className="mb-12 p-4 md:p-6 rounded-2xl bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/20 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <span className="text-xl">🎯</span>
+              <h3 className="text-base md:text-lg font-bold text-white">Workflow Đề Xuất</h3>
+              <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold hidden sm:inline">NEW</span>
+            </div>
+            {/* Vertical on mobile, horizontal on md+ */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
+              <button
+                onClick={() => router.push('/tools/micro-niche-miner')}
+                className="w-full md:w-auto group flex items-center gap-3 px-4 md:px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-amber-500/50 hover:bg-amber-500/10 transition-all"
+              >
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 font-bold shrink-0">1</span>
+                <div className="text-left flex-1">
+                  <p className="text-white font-bold text-sm">Đào Ngách CPM Cao</p>
+                  <p className="text-gray-500 text-xs">Tìm thị trường vàng</p>
+                </div>
+              </button>
+              {/* Arrow - changes direction based on screen */}
+              <span className="text-cyan-500 text-xl md:text-2xl rotate-90 md:rotate-0">→</span>
+              <button
+                onClick={() => router.push('/tools/scriptwriter')}
+                className="w-full md:w-auto group flex items-center gap-3 px-4 md:px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-green-500/50 hover:bg-green-500/10 transition-all"
+              >
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/20 text-green-400 font-bold shrink-0">2</span>
+                <div className="text-left flex-1">
+                  <p className="text-white font-bold text-sm">Viết Kịch Bản</p>
+                  <p className="text-gray-500 text-xs">Script viral</p>
+                </div>
+              </button>
+              <span className="text-cyan-500 text-xl md:text-2xl rotate-90 md:rotate-0">→</span>
+              <button
+                onClick={() => router.push('/tools/seo-tool')}
+                className="w-full md:w-auto group flex items-center gap-3 px-4 md:px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all"
+              >
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold shrink-0">3</span>
+                <div className="text-left flex-1">
+                  <p className="text-white font-bold text-sm">SEO & Từ Khóa</p>
+                  <p className="text-gray-500 text-xs">Tối ưu tiêu đề</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 3. GLASS NAVIGATION */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-16">
           <div className="p-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex flex-wrap justify-center">
@@ -484,7 +610,7 @@ const ToolsGrid: React.FC = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as TabType)}
+                  onClick={() => { setActiveTab(item.id as TabType); setSearchQuery(''); }}
                   className={`
                       relative px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 uppercase tracking-wider
                       ${isActive
@@ -502,14 +628,52 @@ const ToolsGrid: React.FC = () => {
 
         {/* 4. CONTENT GRID */}
         <div className="min-h-[500px] animate-fade-in-up">
-          {activeTab === 'all' ? (
+          {/* SEARCH RESULTS MODE */}
+          {searchQuery ? (
+            <div className="animate-fade-in">
+              {(() => {
+                const query = searchQuery.toLowerCase();
+                const searchResults = allTools.filter(tool =>
+                  tool.name.toLowerCase().includes(query) ||
+                  tool.shortDescription.toLowerCase().includes(query) ||
+                  tool.seoKeywords?.some(k => k.toLowerCase().includes(query))
+                );
+
+                if (searchResults.length === 0) {
+                  return (
+                    <div className="text-center py-20">
+                      <span className="text-5xl mb-4 block">🔍</span>
+                      <p className="text-gray-400 text-lg">Không tìm thấy tool nào cho "{searchQuery}"</p>
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="mt-4 px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-full hover:bg-cyan-500/30 transition-all"
+                      >
+                        Xem tất cả tools
+                      </button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <ToolSection
+                    title={`🔍 KẾT QUẢ TÌM KIẾM (${searchResults.length})`}
+                    tools={searchResults}
+                    userRole={userRole}
+                    onOpen={handleOpenTool}
+                    t={t}
+                    viewMode={viewMode}
+                  />
+                );
+              })()}
+            </div>
+          ) : activeTab === 'all' ? (
             <>
-              <ToolSection title={'🏆 ' + t('sections.learning', 'ACADEMY & ROADMAP')} tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="gold" t={t} />
-              <ToolSection title={'🔥 ' + t('sections.trending', 'TRENDING MODULES')} tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" t={t} />
-              <ToolSection title={'📝 ' + t('sections.content_creation', 'CREATIVE SUITE')} tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" t={t} />
-              <ToolSection title={'📊 ' + t('sections.research', 'MARKET INTELLIGENCE')} tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" t={t} />
+              <ToolSection title={'🏆 ' + t('sections.learning', 'ACADEMY & ROADMAP')} tools={toolsVeryHot} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="gold" t={t} viewMode={viewMode} />
+              <ToolSection title={'🔥 ' + t('sections.trending', 'TRENDING MODULES')} tools={toolsHot} userRole={userRole} onOpen={handleOpenTool} variant="fire" t={t} viewMode={viewMode} />
+              <ToolSection title={'📝 ' + t('sections.content_creation', 'CREATIVE SUITE')} tools={toolsContent} userRole={userRole} onOpen={handleOpenTool} variant="blue" t={t} viewMode={viewMode} />
+              <ToolSection title={'📊 ' + t('sections.research', 'MARKET INTELLIGENCE')} tools={toolsResearch} userRole={userRole} onOpen={handleOpenTool} variant="green" t={t} viewMode={viewMode} />
               {userRole === 'ADMIN' && (
-                <ToolSection title={'🔧 ' + t('sections.developer', 'DEV CONSOLE')} tools={toolsDeveloper} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="default" t={t} />
+                <ToolSection title={'🔧 ' + t('sections.developer', 'DEV CONSOLE')} tools={toolsDeveloper} userRole={userRole} onOpen={handleOpenTool} isExclusiveSection={true} variant="default" t={t} viewMode={viewMode} />
               )}
             </>
           ) : (
@@ -520,6 +684,7 @@ const ToolsGrid: React.FC = () => {
                 userRole={userRole}
                 onOpen={handleOpenTool}
                 t={t}
+                viewMode={viewMode}
               />
             </div>
           )}
