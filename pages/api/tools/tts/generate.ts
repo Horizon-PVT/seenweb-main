@@ -1,11 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
-import { prisma } from '@/lib/prisma';
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 // Railway TTS server URL (set in Vercel env vars)
 const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
+
+// Edge TTS endpoint (internal)
+const EDGE_TTS_URL = process.env.EDGE_TTS_URL || '/api/tools/tts/edge';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -27,32 +29,56 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const { text, voice = 'alba', customVoiceId, isVN, rate } = req.body;
-        // ... (rest of logic) ...
+
+        if (!text) {
+            return res.status(400).json({ error: 'Missing text parameter' });
+        }
+
         if (isVN) {
-            // ...
-            // Use Edge TTS
-            // ...
+            // Vietnamese - use Edge TTS via internal API
+            const baseUrl = process.env.NEXTAUTH_URL || `http://${req.headers.host}`;
+            const response = await fetch(`${baseUrl}/api/tools/tts/edge`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': req.headers.cookie || ''
+                },
+                body: JSON.stringify({
+                    text,
+                    voice: voice || 'vi-VN-HoaiMyNeural'
+                }),
+            });
+
             if (!response.ok) {
-                // ...
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Edge TTS failed: ${response.status}`);
             }
+
             const audioBuffer = await response.arrayBuffer();
 
             // INCREMENT USAGE
             await incrementUserUsage((session?.user as any).id, 'text-to-speech');
 
-            res.setHeader('Content-Type', 'audio/mp3');
+            res.setHeader('Content-Type', 'audio/mpeg');
+            res.setHeader('X-TTS-Provider', 'Edge');
             res.send(Buffer.from(audioBuffer));
             return;
 
         } else {
-            // ...
-            // Submit Job
+            // Non-Vietnamese - use Railway TTS server (job queue)
             const response = await fetch(`${TTS_SERVER_URL}/job/submit`, {
-                // ...
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text,
+                    voice: customVoiceId || voice,
+                    rate: rate || 1.0
+                }),
             });
 
             if (!response.ok) {
-                // ...
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `TTS Server failed: ${response.status}`);
             }
 
             const data = await response.json();
@@ -78,6 +104,6 @@ export const config = {
         bodyParser: {
             sizeLimit: '1mb'
         },
-        responseLimit: false // Support large audio responses
+        responseLimit: false
     }
 };
