@@ -59,6 +59,15 @@ export const TOOLS = [
 
 export const TTS_OPENAI_CHAR_LIMIT = 500000;
 
+// MAX_DAILY_USAGE - for activate.ts and admin functions
+export const MAX_DAILY_USAGE: Record<string, number> = {
+  FREE: 1,
+  CREATIVE: 20,
+  SUPER: 50,
+  VIP: 9999,
+  ADMIN: 9999,
+};
+
 export function canAccessTool(toolId: string, userRole: Role) {
   return true; // UI always accessible
 }
