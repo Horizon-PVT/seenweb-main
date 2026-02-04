@@ -55,12 +55,12 @@ const Landing: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
                             icon: "🚀"
                         },
                         {
-                            title: "Ngày 6-20: Tăng Tốc (Starter)",
+                            title: "Ngày 6-20: Tăng Tốc (Cơ Bản)",
                             desc: "Tối ưu hóa Retention, học cách viết Hook viral và giữ chân khán giả.",
                             icon: "⚡"
                         },
                         {
-                            title: "Ngày 21-30: Về Đích (VIP)",
+                            title: "Ngày 21-30: Về Đích (Chuyên Nghiệp)",
                             desc: "Xây dựng series, biến người xem thành Fan trung thành và bắt đầu kiếm tiền.",
                             icon: "🏆"
                         }

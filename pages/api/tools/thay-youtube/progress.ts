@@ -62,10 +62,10 @@ export default async function handler(
             }
         });
 
-        // Unlock next day
+        // Unlock next day - Fixed logic to not overwrite COMPLETED/SKIPPED
         const nextDay = day + 1;
         if (nextDay <= 30) {
-            // Check if next day already exists
+            // Check if next day record exists and what its status is
             const nextDayProgress = await prisma.teacherRoadmapProgress.findUnique({
                 where: {
                     roadmapId_day: {
@@ -76,6 +76,7 @@ export default async function handler(
             });
 
             if (!nextDayProgress) {
+                // Day doesn't exist - create with OPEN
                 await prisma.teacherRoadmapProgress.create({
                     data: {
                         roadmapId: roadmap.id,
@@ -84,7 +85,22 @@ export default async function handler(
                         unlockedAt: new Date()
                     }
                 });
+            } else if (nextDayProgress.status === 'LOCKED') {
+                // Day exists but stuck as LOCKED - fix it
+                await prisma.teacherRoadmapProgress.update({
+                    where: {
+                        roadmapId_day: {
+                            roadmapId: roadmap.id,
+                            day: nextDay
+                        }
+                    },
+                    data: {
+                        status: 'OPEN',
+                        unlockedAt: new Date()
+                    }
+                });
             }
+            // If status is OPEN/COMPLETED/SKIPPED, don't change it
         }
 
         return res.status(200).json({ message: "Progress updated", nextDay });
