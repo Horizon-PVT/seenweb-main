@@ -68,6 +68,9 @@ export const MAX_DAILY_USAGE: Record<string, number> = {
   ADMIN: 9999,
 };
 
+// Alias for payos-webhook.ts compatibility  
+export const USAGE_LIMITS = MAX_DAILY_USAGE;
+
 export function canAccessTool(toolId: string, userRole: Role) {
   return true; // UI always accessible
 }
