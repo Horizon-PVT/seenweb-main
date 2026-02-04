@@ -83,13 +83,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(400).json({ error: 'ID là bắt buộc' });
             }
 
+            // ✅ Logic thông minh: Nếu đổi role mà không truyền maxDailyUsage -> Tự động cập nhật theo role mới
+            let newMaxUsage = maxDailyUsage;
+            if (role && maxDailyUsage === undefined) {
+                // Nếu chỉ đổi role, tự động set quota theo role đó (để tránh trường hợp lên VIP mà vẫn limit 3)
+                newMaxUsage = MAX_DAILY_USAGE[role as Role] || 3;
+            }
+
             const user = await prisma.user.update({
                 where: { id },
                 data: {
                     ...(email && { email }),
                     ...(name && { name }),
                     ...(role && { role }),
-                    ...(maxDailyUsage !== undefined && { maxDailyUsage })
+                    ...(newMaxUsage !== undefined && { maxDailyUsage: newMaxUsage }) // Use calculated usage
                 }
             });
 

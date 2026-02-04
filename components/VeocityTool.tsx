@@ -4,6 +4,8 @@ import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
     ArrowLeft,
     Monitor,
@@ -58,6 +60,7 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState('');
+    const [showUpgrade, setShowUpgrade] = useState(false); // NEW: Upgrade modal state
 
     // Setup Phase
     const [script, setScript] = useState('');
@@ -88,7 +91,16 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
             });
 
             const result: any = await response.json();
-            if (!response.ok) throw new Error(result.error || `Error ${response.status}`);
+            if (!response.ok) {
+                // FIX: Check for PLAN errors and show modal instead of toast
+                const errStr = String(result.error || '').toUpperCase();
+                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(result.error || `Error ${response.status}`);
+            }
 
             setMasterCharacterPrompt(result.masterCharacterPrompt);
             setScenes(result.scenes.map((s: any, i: number) => ({
@@ -102,7 +114,13 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
             setPhase('timeline');
 
         } catch (err: any) {
-            setError(`Analysis Failed: ${err.message}`);
+            // FIX: Safety net for PLAN errors in catch block
+            const errStr = String(err.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(`Analysis Failed: ${err.message}`);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -399,6 +417,11 @@ export default function VeocityTool({ onBack }: VeocityToolProps) {
                     <span className="font-bold text-sm tracking-wide">{error}</span>
                 </div>
             )}
+
+            {/* UPGRADE MODAL */}
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

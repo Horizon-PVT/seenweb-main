@@ -1,17 +1,25 @@
-// File: components/SeoTool.tsx (SeenYT Alpha Strategy UI)
-import React, { useState, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+// File: components/SeoTool.tsx
+// UNIFIED: Same UI and logic as Homepage (pages/tools/seo-tool.tsx)
+
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useTranslation } from 'next-i18next';
-import { PhiIcon } from './AnimatedIcons';
-import UpgradeModal from './UpgradeModal'; // ADDED
-import { AnimatePresence } from 'framer-motion'; // ADDED
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
+import {
+    Cpu,
+    Activity,
+    Target,
+    Globe,
+    Zap,
+    FileText,
+    Brain,
+    ChevronLeft,
+    Layers,
+    Copy,
+    Check
+} from 'lucide-react';
 
-interface SeoToolProps {
-    onBack: () => void;
-}
-
-// --- NEW STRATEGY DATA STRUCTURE (Matching Backend) ---
+// --- TYPES (Same as Homepage) ---
 interface OutputData {
     strategy: {
         hook: {
@@ -30,6 +38,18 @@ interface OutputData {
             ourAngle: string;
         };
     };
+    audit: {
+        titleScore: number;
+        titleCritique: string;
+        thumbnailCritique: string;
+    };
+    checklist: {
+        titleLength: { score: number; status: string; message: string };
+        wordCount: { score: number; status: string; message: string };
+        tagCount: { score: number; status: string; message: string };
+        hasQuestion: boolean;
+        hasNumber: boolean;
+    };
     content: {
         titles: {
             text: string;
@@ -43,7 +63,7 @@ interface OutputData {
             text: string;
             relevance: number;
         }[];
-        thumbnails: { // CHANGED TO ARRAY
+        thumbnails: {
             concept: string;
             text: string;
             colorPalette: string;
@@ -52,305 +72,497 @@ interface OutputData {
     };
 }
 
-// --- Icons ---
-const StrategyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>;
-const EmotionIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>;
-const EyeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+interface SeoToolProps {
+    onBack?: () => void;
+}
 
-// --- Helper Components ---
+// --- HELPER COMPONENTS ---
 const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
     const [copied, setCopied] = useState(false);
     return (
         <button
             onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 navigator.clipboard.writeText(textToCopy);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             }}
-            className={`text-[10px] px-2 py-1 rounded border transition-colors ${copied ? 'bg-green-500 text-white' : 'bg-gray-700 text-gray-300 border-gray-600 hover:bg-gray-600'}`}
+            className={`p-1.5 rounded transition-all duration-300 ${copied ? 'bg-[#00f3ff] text-black' : 'bg-transparent text-[#00f3ff] hover:bg-[#00f3ff]/10 border border-[#00f3ff]/30'}`}
+            title="Copy to Clipboard"
         >
-            {copied ? 'Đã Copy' : 'Copy'}
+            {copied ? <Check size={14} strokeWidth={3} /> : <Copy size={14} />}
         </button>
     );
 };
 
-const Loader: React.FC = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center">
-        <div className="w-32 h-32 text-[#008080] animate-spin-slow"><PhiIcon /></div>
-        <p className="mt-4 text-sm font-semibold text-[#CDAD5A] tracking-widest animate-pulse">KHỞI ĐỘNG "SEENYT ALPHA ENGINE"...</p>
-        <p className="text-xs text-gray-500 mt-1">Đang phân tích tâm lý người xem...</p>
-    </div>
-);
-
-// --- MAIN COMPONENT ---
-const SeoTool: React.FC<SeoToolProps> = ({ onBack }) => {
-    const { data: session } = useSession();
-    const { t } = useTranslation('common');
+export default function SeoTool({ onBack }: SeoToolProps) {
     const router = useRouter();
     const isEN = router.locale === 'en';
-    const userRole = (session?.user as any)?.role || 'FREE'; // ADDED ROLE CHECK
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [output, setOutput] = useState<OutputData | null>(null);
     const [coreIdea, setCoreIdea] = useState('');
-    const [showUpgrade, setShowUpgrade] = useState(false); // ADDED STATE
-    const buttonRef = useRef<HTMLButtonElement>(null);
+    const [activeTab, setActiveTab] = useState<'strategy' | 'content' | 'checklist'>('strategy');
+    const [showUpgrade, setShowUpgrade] = useState(false);
+    const [gridOffset, setGridOffset] = useState(0);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ... (KEEP FILE UPLOAD) ...
+    // Grid animation
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setGridOffset(prev => (prev + 0.5) % 30);
+        }, 50);
+        return () => clearInterval(interval);
+    }, []);
 
+    // LOGIC: File Upload
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (event) => {
-                const content = event.target?.result as string;
-                setCoreIdea(prev => prev + (prev ? '\n' : '') + content);
+                const text = event.target?.result as string;
+                setCoreIdea(prev => prev + (prev ? '\n' : '') + text);
             };
             reader.readAsText(file);
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // --- FREEMIUM GATE ---
-        // Minimum Role: SUPER (Professional)
-        if (['FREE', 'USER', 'CREATIVE'].includes(userRole) && userRole !== 'ADMIN') {
-            setShowUpgrade(true);
-            return;
-        }
-
-        if (!coreIdea) {
-            setError("Chưa nhập ý tưởng!");
-            return;
-        }
-
+    // LOGIC: Submit Handler - SAME AS HOMEPAGE (API-based quota check)
+    const performAnalysis = async (inputIdea: string) => {
         setIsLoading(true);
         setError('');
         setOutput(null);
 
         try {
-            // Auto detect language
+            // Auto detect language logic
             let language = 'English';
-            if (/[àáâãäåæçèéêëìíîïđñòóôõöøùúûüýþÿ]/.test(coreIdea)) language = 'Tiếng Việt';
-            else if (/[ぁ-ゟァ-ヿ]/.test(coreIdea)) language = 'Japanese';
-            else if (/[가-힣]/.test(coreIdea)) language = 'Korean';
-            else if (/[\u4e00-\u9fff]/.test(coreIdea)) language = 'Chinese';
-            else if (/[ñáéíóúü]/.test(coreIdea)) language = 'Spanish';
-            else if (/[àâéèêëîïôûùüçœæ]/.test(coreIdea)) language = 'French';
-            else if (/[äöüß]/.test(coreIdea)) language = 'German';
-            else if (/[а-яА-ЯёЁ]/.test(coreIdea)) language = 'Russian';
+            if (/[àáâãäåæçèéêëìíîïđñòóôõöøùúûüýþÿ]/.test(inputIdea)) language = 'Tiếng Việt';
+            else if (/[ぁ-ゟァ-ヿ]/.test(inputIdea)) language = 'Japanese';
+            else if (/[가-힣]/.test(inputIdea)) language = 'Korean';
+            else if (/[\u4e00-\u9fff]/.test(inputIdea)) language = 'Chinese';
 
             const response = await fetch('/api/seo-tool', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    coreIdea,
+                    coreIdea: inputIdea,
                     outputLanguage: language
                 }),
             });
             const result = await response.json();
-            if (!response.ok) throw new Error(result.error);
-            setOutput(result as OutputData);
+            if (!response.ok) {
+                const errRaw = result?.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                // FIX: Check for PLAN errors and show modal
+                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(result.error);
+            }
+
+            // Artificial delay for effect
+            setTimeout(() => {
+                setOutput(result as OutputData);
+                setIsLoading(false);
+            }, 800);
+
         } catch (err: any) {
-            setError(err.message || "Lỗi Alpha Engine");
-        } finally {
+            const errStr = String(err.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(err.message || "SYSTEM FAILURE");
+            }
             setIsLoading(false);
         }
     };
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!coreIdea) {
+            setError("MISSING DATA INPUT");
+            return;
+        }
+        performAnalysis(coreIdea);
+    };
+
     return (
-        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 bg-[#1a1a08] seo-tuner-bg">
-            {/* Header */}
-            <div className="flex justify-between items-center border-b border-gray-800 pb-4">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg shadow-purple-900/50">
-                        <StrategyIcon />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-white font-playfair tracking-wide">SEENYT ALPHA <span className="text-[#CDAD5A] text-sm font-normal">PRO</span></h2>
-                        <p className="text-xs text-gray-400">Strategic Intelligence Engine 2026</p>
+        <div className="min-h-full bg-[#050b14] text-[#00f3ff] font-mono overflow-x-hidden selection:bg-[#00f3ff] selection:text-black">
+            {/* BACKGROUND EFFECTS */}
+            <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#003c42] via-[#050b14] to-[#000000]"></div>
+            <div
+                className="fixed inset-0 pointer-events-none z-0 opacity-20"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px)',
+                    backgroundSize: '30px 30px',
+                    transform: `translateY(${gridOffset}px) perspective(500px) rotateX(20deg)`
+                }}
+            ></div>
+
+            {/* HEADER */}
+            <header className="sticky top-0 left-0 right-0 h-16 bg-[#050b14]/80 backdrop-blur-md border-b border-[#00f3ff]/30 flex items-center justify-between px-6 z-50 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
+                <div className="flex items-center gap-4">
+                    {onBack && (
+                        <button onClick={onBack} className="flex items-center gap-2 text-[#00f3ff]/70 hover:text-[#00f3ff] transition-colors">
+                            <ChevronLeft size={18} /> <span className="text-xs font-bold tracking-widest">EXIT_MODULE</span>
+                        </button>
+                    )}
+                    <div className="h-8 w-px bg-[#00f3ff]/20"></div>
+                    <div className="flex items-center gap-2">
+                        <Brain className="text-[#00f3ff] animate-pulse" size={24} />
+                        <div>
+                            <h1 className="text-lg font-black tracking-[0.2em] leading-none text-white drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]">ALPHA_STRATEGY</h1>
+                            <p className="text-[9px] text-[#00f3ff] tracking-widest opacity-80">INTELLIGENCE ENGINE V4.0</p>
+                        </div>
                     </div>
                 </div>
-                <button onClick={onBack} className="text-gray-400 hover:text-white">&times; {isEN ? 'Exit' : 'Thoát'}</button>
-            </div>
+                <div className="hidden md:flex items-center gap-4 text-[10px] font-bold text-[#00f3ff]/60">
+                    <span className="flex items-center gap-1"><Cpu size={12} /> CORE: ONLINE</span>
+                    <span className="flex items-center gap-1"><Globe size={12} /> NETWORK: SECURE</span>
+                </div>
+            </header>
 
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow min-h-0">
-                {/* LEFT: Input */}
-                <form onSubmit={handleSubmit} className="lg:col-span-3 flex flex-col space-y-4 h-full">
-                    <label className="text-sm font-bold text-[#CDAD5A]">{isEN ? 'IDEA / RAW SCRIPT' : 'Ý TƯỞNG / KỊCH BẢN GỐC'}</label>
-                    <textarea
-                        value={coreIdea}
-                        onChange={e => setCoreIdea(e.target.value)}
-                        placeholder={isEN ? 'Paste your script or raw idea here...' : 'Paste kịch bản hoặc ý tưởng thô sơ vào đây...'}
-                        className="w-full h-full min-h-[200px] p-4 bg-black/40 border border-gray-700 rounded-lg focus:border-[#CDAD5A] focus:ring-1 focus:ring-[#CDAD5A] text-gray-300 resize-none"
-                    ></textarea>
-                    <div className="flex gap-2">
-                        <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-xs">📂 {isEN ? 'Upload File' : 'Upload File'}</button>
-                        <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-                    </div>
-                    <button disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-[#CDAD5A] to-[#b89c4a] text-black font-bold rounded shadow-lg hover:shadow-[#CDAD5A]/20 transition-all disabled:opacity-50">
-                        {isLoading ? (isEN ? 'ANALYZING...' : 'ĐANG PHÂN TÍCH...') : (isEN ? 'RUN STRATEGY 🚀' : 'CHẠY CHIẾN LƯỢC 🚀')}
-                    </button>
-                    {error && <p className="text-red-500 text-center text-xs">{error}</p>}
-                </form>
+            {/* MAIN CONTENT */}
+            <main className="pt-8 px-4 pb-12 max-w-7xl mx-auto min-h-[calc(100vh-4rem)] relative z-10 flex flex-col lg:flex-row gap-8">
 
-                {/* RIGHT: Output Dashboard */}
-                <div className="lg:col-span-9 h-full overflow-y-auto custom-scrollbar pr-2 pb-10">
-                    {isLoading && <Loader />}
+                {/* LEFT: INPUT CONSOLE */}
+                <div className="w-full lg:w-1/3 flex flex-col gap-4">
+                    <div className="bg-[#0a1520]/80 border border-[#00f3ff]/30 p-1 relative group rounded-lg backdrop-blur-sm">
+                        {/* Holo Corners */}
+                        <div className="absolute -top-px -left-px w-3 h-3 border-t-2 border-l-2 border-[#00f3ff]"></div>
+                        <div className="absolute -top-px -right-px w-3 h-3 border-t-2 border-r-2 border-[#00f3ff]"></div>
+                        <div className="absolute -bottom-px -left-px w-3 h-3 border-b-2 border-l-2 border-[#00f3ff]"></div>
+                        <div className="absolute -bottom-px -right-px w-3 h-3 border-b-2 border-r-2 border-[#00f3ff]"></div>
 
-                    {!isLoading && !output && (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-600 opacity-50 space-y-4">
-                            <div className="w-32 h-32 border-2 border-dashed border-gray-700 rounded-full flex items-center justify-center">
-                                <StrategyIcon />
+                        <div className="p-4 bg-[#050b14]/90 rounded h-full flex flex-col">
+                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#00f3ff] mb-4">
+                                <FileText size={14} /> INPUT_DATA_STREAM
+                            </label>
+
+                            <textarea
+                                value={coreIdea}
+                                onChange={e => setCoreIdea(e.target.value)}
+                                placeholder="> ENTER VIDEO CONCEPT OR RAW SCRIPT DATA..."
+                                className="w-full flex-grow min-h-[300px] bg-transparent border-none outline-none text-white placeholder-gray-600 font-mono text-sm resize-none custom-scrollbar"
+                                spellCheck={false}
+                            ></textarea>
+
+                            <div className="mt-4 pt-4 border-t border-[#00f3ff]/20 flex gap-2">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="px-4 py-2 bg-[#00f3ff]/10 hover:bg-[#00f3ff]/20 text-[#00f3ff] text-xs font-bold border border-[#00f3ff]/30 rounded transition-all flex items-center gap-2"
+                                >
+                                    <Layers size={14} /> LOAD_FILE
+                                </button>
+                                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isLoading}
+                                    className="flex-grow px-6 py-2 bg-[#00f3ff] hover:bg-[#fff] text-black text-xs font-bold tracking-widest rounded shadow-[0_0_15px_rgba(0,243,255,0.5)] transition-all disabled:opacity-50 disabled:shadow-none"
+                                >
+                                    {isLoading ? 'PROCESSING...' : 'RUN_ANALYSIS >>'}
+                                </button>
                             </div>
-                            <p>{isEN ? 'Ready to receive data...' : 'Sẵn sàng tiếp nhận dữ liệu...'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* RIGHT: OUTPUT HOLOGRAPHIC DISPLAY */}
+                <div className="w-full lg:w-2/3 min-h-[500px] flex flex-col relative">
+
+                    {/* LOADING STATE */}
+                    {isLoading && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#050b14]/80 backdrop-blur z-20">
+                            <div className="relative w-32 h-32">
+                                <div className="absolute inset-0 border-4 border-[#00f3ff]/30 rounded-full animate-ping"></div>
+                                <div className="absolute inset-2 border-4 border-t-[#00f3ff] border-r-transparent border-b-[#00f3ff] border-l-transparent rounded-full animate-spin"></div>
+                                <Brain className="absolute inset-0 m-auto text-[#00f3ff] animate-pulse" size={48} />
+                            </div>
+                            <div className="mt-8 text-center">
+                                <div className="text-[#00f3ff] font-bold text-lg tracking-[0.3em] animate-pulse">ANALYZING GEOMETRY</div>
+                                <div className="text-[#00f3ff]/60 text-xs mt-2">CALCULATING VIRAL VECTORS...</div>
+                            </div>
                         </div>
                     )}
 
+                    {/* EMPTY STATE */}
+                    {!output && !isLoading && (
+                        <div className="flex-grow flex flex-col items-center justify-center opacity-30 border-2 border-dashed border-[#00f3ff]/20 rounded-lg bg-[#00f3ff]/5">
+                            <Activity size={80} className="text-[#00f3ff] mb-4" />
+                            <div className="text-2xl font-black tracking-widest text-[#00f3ff]">SYSTEM_READY</div>
+                            <p className="text-sm">AWAITING INPUT TO COMMENCE SIMULATION</p>
+                        </div>
+                    )}
+
+                    {/* RESULTS DASHBOARD */}
                     {output && !isLoading && (
-                        <div className="space-y-6 animate-fade-in-up">
+                        <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
 
-                            {/* 1. STRATEGY DASHBOARD (Top Row) */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* Hook Card */}
-                                <div className="p-4 bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl relative overflow-hidden group hover:border-blue-500/50 transition-colors">
-                                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20"><StrategyIcon /></div>
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-blue-400 font-bold text-sm">HOOK SCORE</h3>
-                                        <span className={`text-2xl font-black ${output.strategy.hook.score >= 80 ? 'text-green-500' : 'text-yellow-500'}`}>{output.strategy.hook.score}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-400 mb-3">{output.strategy.hook.analysis}</p>
-                                    <div className="bg-blue-900/20 p-2 rounded border border-blue-500/20">
-                                        <p className="text-[10px] text-blue-300 font-bold uppercase mb-1">💡 Visual Interrupt</p>
-                                        <p className="text-xs text-gray-300">{output.strategy.hook.visualInterrupt}</p>
-                                    </div>
-                                </div>
-
-                                {/* Emotion Card */}
-                                <div className="p-4 bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl relative overflow-hidden group hover:border-red-500/50 transition-colors">
-                                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20"><EmotionIcon /></div>
-                                    <h3 className="text-red-400 font-bold text-sm mb-1">CẢM XÚC CHỦ ĐẠO</h3>
-                                    <div className="flex items-baseline gap-2 mb-2">
-                                        <h4 className="text-xl font-bold text-white uppercase">{output.strategy.emotional.mainTrigger}</h4>
-                                        <span className="text-xs text-red-500">({output.strategy.emotional.triggerScore}/10)</span>
-                                    </div>
-                                    <p className="text-xs text-gray-400 italic">"{output.strategy.emotional.explanation}"</p>
-                                </div>
-
-                                {/* Spy Gap Card */}
-                                <div className="p-4 bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-xl relative overflow-hidden group hover:border-purple-500/50 transition-colors">
-                                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20"><EyeIcon /></div>
-                                    <h3 className="text-purple-400 font-bold text-sm mb-1">KẺ HỞ THỊ TRƯỜNG</h3>
-                                    <span className="inline-block px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] rounded mb-2 border border-purple-500/20">
-                                        {output.strategy.spyGap.marketStatus}
-                                    </span>
-                                    <p className="text-xs text-gray-300 mb-2">⛔ <strong>Họ thiếu:</strong> {output.strategy.spyGap.competitorMiss}</p>
-                                    <p className="text-xs text-green-400">✅ <strong>Ta làm:</strong> {output.strategy.spyGap.ourAngle}</p>
-                                </div>
+                            {/* TABS NAVIGATION */}
+                            <div className="flex border-b border-[#00f3ff]/20">
+                                <button
+                                    onClick={() => setActiveTab('strategy')}
+                                    className={`px-6 py-3 text-xs font-bold tracking-widest transition-all ${activeTab === 'strategy' ? 'bg-[#00f3ff]/10 text-[#00f3ff] border-b-2 border-[#00f3ff]' : 'text-gray-500 hover:text-[#00f3ff]/60'}`}
+                                >
+                                    1. STRATEGY
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('content')}
+                                    className={`px-6 py-3 text-xs font-bold tracking-widest transition-all ${activeTab === 'content' ? 'bg-[#ff0055]/10 text-[#ff0055] border-b-2 border-[#ff0055]' : 'text-gray-500 hover:text-[#ff0055]/60'}`}
+                                >
+                                    2. CONTENT & THUMBNAILS
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('checklist')}
+                                    className={`px-6 py-3 text-xs font-bold tracking-widest transition-all ${activeTab === 'checklist' ? 'bg-[#00ff88]/10 text-[#00ff88] border-b-2 border-[#00ff88]' : 'text-gray-500 hover:text-[#00ff88]/60'}`}
+                                >
+                                    3. SEO CHECKLIST
+                                </button>
                             </div>
 
-                            {/* 2. TITLES (Viral Optimized) */}
-                            <div>
-                                <h3 className="text-lg font-bold text-white mb-3 font-playfair flex items-center gap-2">
-                                    <span className="text-[#CDAD5A]">1.</span> TIÊU ĐỀ VIRAL
-                                </h3>
-                                <div className="space-y-2">
-                                    {output.content.titles.map((title, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors group">
-                                            <div>
-                                                <p className="text-gray-200 font-semibold text-base">{title.text}</p>
-                                                <div className="flex gap-2 mt-1">
-                                                    <span className="text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">Viral Score: {title.viralScore}/100</span>
-                                                </div>
-                                            </div>
-                                            <CopyButton textToCopy={title.text} />
+                            {/* TAB 1: STRATEGY */}
+                            {activeTab === 'strategy' && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-left-4 duration-300">
+                                    {/* CARD 1 */}
+                                    <div className="bg-[#00f3ff]/5 border border-[#00f3ff]/30 rounded p-4 relative overflow-hidden group hover:bg-[#00f3ff]/10 transition-all">
+                                        <div className="absolute top-0 right-0 p-2 text-[#00f3ff]/20 group-hover:text-[#00f3ff]/40 transition-all"><Target size={40} /></div>
+                                        <h3 className="text-[#00f3ff] text-[10px] font-bold tracking-widest uppercase mb-1">HOOK EFFICIENCY</h3>
+                                        <div className="text-4xl font-black text-white mb-2 font-numeric">{output.strategy.hook.score}%</div>
+                                        <div className="h-1 w-full bg-[#00f3ff]/20 rounded-full overflow-hidden mb-3">
+                                            <div className="h-full bg-[#00f3ff] shadow-[0_0_10px_#00f3ff]" style={{ width: `${output.strategy.hook.score}%` }}></div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                        <p className="text-xs text-gray-300 leading-tight border-l-2 border-[#00f3ff] pl-2">{output.strategy.hook.analysis}</p>
+                                    </div>
 
-                            {/* 3. DESCRIPTION (Formatted) */}
-                            <div>
-                                <h3 className="text-lg font-bold text-white mb-3 font-playfair flex items-center gap-2">
-                                    <span className="text-[#CDAD5A]">2.</span> MÔ TẢ CHUẨN SEO
-                                </h3>
-                                <div className="p-5 bg-black/40 border border-gray-700 rounded-lg">
-                                    <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed font-sans">
-                                        {output.content.description.body}
+                                    {/* CARD 2 */}
+                                    <div className="bg-[#ff0055]/5 border border-[#ff0055]/30 rounded p-4 relative overflow-hidden group hover:bg-[#ff0055]/10 transition-all">
+                                        <div className="absolute top-0 right-0 p-2 text-[#ff0055]/20 group-hover:text-[#ff0055]/40 transition-all"><Zap size={40} /></div>
+                                        <h3 className="text-[#ff0055] text-[10px] font-bold tracking-widest uppercase mb-1">EMOTIONAL CORE</h3>
+                                        <div className="text-2xl font-black text-white mb-1">{output.strategy.emotional.mainTrigger}</div>
+                                        <p className="text-[10px] text-[#ff0055] mb-2">INTENSITY: {output.strategy.emotional.triggerScore}/10</p>
+                                        <p className="text-xs text-gray-300 italic opacity-80">"{output.strategy.emotional.explanation}"</p>
                                     </div>
-                                    <div className="mt-4 pt-4 border-t border-gray-800 flex flex-wrap gap-2">
-                                        {output.content.description.hashtags.map((tag, i) => (
-                                            <span key={i} className="text-[#008080] font-bold text-xs">{tag}</span>
-                                        ))}
-                                    </div>
-                                    <div className="mt-3 flex justify-end">
-                                        <CopyButton textToCopy={`${output.content.description.body}\n\n${output.content.description.hashtags.join(' ')}`} />
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/* 4. TAGS & THUMBNAILS (Split) */}
-                            <div className="space-y-6">
-                                {/* Tags */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-white mb-3 font-playfair flex items-center gap-2">
-                                        <span className="text-[#CDAD5A]">3.</span> NICHE TAGS
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2 p-4 bg-black/40 border border-gray-700 rounded-lg min-h-[100px] content-start">
-                                        {output.content.tags.map((tag, i) => (
-                                            <span key={i} className="px-3 py-1 bg-gray-800 text-gray-300 rounded-full text-xs border border-gray-700 flex items-center gap-1">
-                                                {tag.text}
-                                                <span className="text-[9px] text-gray-500">| {tag.relevance}</span>
-                                            </span>
-                                        ))}
+                                    {/* CARD 3 */}
+                                    <div className="bg-[#aa00ff]/5 border border-[#aa00ff]/30 rounded p-4 relative overflow-hidden group hover:bg-[#aa00ff]/10 transition-all">
+                                        <div className="absolute top-0 right-0 p-2 text-[#aa00ff]/20 group-hover:text-[#aa00ff]/40 transition-all"><Globe size={40} /></div>
+                                        <h3 className="text-[#aa00ff] text-[10px] font-bold tracking-widest uppercase mb-1">MARKET GAP</h3>
+                                        <div className="inline-block px-2 py-0.5 bg-[#aa00ff]/20 text-[#d08bff] text-[10px] rounded mb-2 font-bold border border-[#aa00ff]/40">
+                                            {output.strategy.spyGap.marketStatus?.toUpperCase()}
+                                        </div>
+                                        <div className="text-xs text-gray-300 mb-1"><span className="text-red-400 font-bold">MISSING:</span> {output.strategy.spyGap.competitorMiss}</div>
+                                        <div className="text-xs text-gray-300"><span className="text-green-400 font-bold">OUR ANGLE:</span> {output.strategy.spyGap.ourAngle}</div>
                                     </div>
                                 </div>
+                            )}
 
-                                {/* Thumbnails Grid */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-white mb-3 font-playfair flex items-center gap-2">
-                                        <span className="text-[#CDAD5A]">4.</span> THUMBNAIL CONCEPTS (A/B/C Testing)
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {output.content.thumbnails.map((thumb, i) => (
-                                            <div key={i} className="p-4 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-lg h-full flex flex-col">
-                                                <div className="mb-3">
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <div className="text-[10px] text-gray-500 uppercase tracking-widest">OPTION {i + 1}</div>
-                                                        <CopyButton textToCopy={thumb.prompt} />
+                            {/* TAB 2: CONTENT */}
+                            {activeTab === 'content' && (
+                                <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* TITLES */}
+                                        <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-4">
+                                            <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
+                                                <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
+                                                OPTIMIZED TITLES
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {output.content.titles.map((t, i) => (
+                                                    <div key={i} className="group relative p-3 bg-black/40 border border-[#00f3ff]/10 hover:border-[#00f3ff]/40 hover:bg-[#00f3ff]/5 rounded transition-all">
+                                                        <div className="flex justify-between items-start gap-4">
+                                                            <div className="text-sm font-medium text-gray-200">{t.text}</div>
+                                                            <CopyButton textToCopy={t.text} />
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-2">
+                                                            <div className="h-1 w-20 bg-gray-800 rounded-full overflow-hidden">
+                                                                <div className="h-full bg-green-500" style={{ width: `${t.viralScore}%` }}></div>
+                                                            </div>
+                                                            <span className="text-[9px] text-green-400 font-bold">V-SCORE: {t.viralScore}</span>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-lg font-black text-white px-2 py-1 bg-black/50 border-l-2 border-red-500 inline-block mb-2">
-                                                        "{thumb.text}"
-                                                    </p>
-                                                    <p className="text-xs text-gray-300 italic mb-2">"{thumb.concept}"</p>
-                                                </div>
-                                                <div className="mt-auto pt-3 border-t border-gray-700 space-y-1">
-                                                    <p className="text-[10px] text-gray-400"><strong>🎨 Màu:</strong> {thumb.colorPalette}</p>
-                                                    <div className="bg-black/30 p-2 rounded text-[10px] text-gray-500 font-mono h-16 overflow-y-auto custom-scrollbar">
-                                                        {thumb.prompt}
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* DESCRIPTION & TAGS */}
+                                        <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-4 flex flex-col gap-4">
+                                            <div>
+                                                <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
+                                                    <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
+                                                    SEO DESCRIPTION
+                                                </h3>
+                                                <div className="relative group">
+                                                    <div className="p-3 bg-black/40 border border-[#00f3ff]/10 rounded text-xs text-gray-300 font-sans whitespace-pre-wrap h-40 overflow-y-auto custom-scrollbar">
+                                                        {output.content.description.body}
+                                                    </div>
+                                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <CopyButton textToCopy={output.content.description.body} />
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
+
+                                            <div className="flex-grow">
+                                                <h3 className="text-white text-xs font-bold uppercase mb-2 flex items-center justify-between">
+                                                    <span>TAGS CLOUD</span>
+                                                    <CopyButton textToCopy={output.content.tags.map(t => t.text).join(', ')} />
+                                                </h3>
+                                                <div className="flex flex-wrap gap-1.5 align-content-start h-full">
+                                                    {output.content.tags.map((tag, i) => (
+                                                        <span key={i} className="px-2 py-0.5 bg-[#00f3ff]/5 border border-[#00f3ff]/20 text-[#00f3ff] text-[10px] rounded hover:bg-[#00f3ff] hover:text-black transition-colors cursor-default">
+                                                            {tag.text}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* ROW 3: THUMBNAILS */}
+                                    <div className="bg-[#0a1520]/80 border border-[#00f3ff]/20 rounded p-6">
+                                        <h3 className="text-white text-xs font-bold uppercase mb-4 flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_5px_#00f3ff]"></span>
+                                            VISUAL CONCEPTS (A/B TESTING)
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {output.content.thumbnails.map((thumb, i) => (
+                                                <div key={i} className="bg-black/40 border border-[#00f3ff]/10 rounded p-4 flex flex-col relative group hover:border-[#00f3ff]/40 transition-all">
+                                                    <div className="absolute -top-3 left-4 bg-[#050b14] px-2 text-[#00f3ff] text-[10px] font-bold border border-[#00f3ff]/30 rounded">
+                                                        CONCEPT {String.fromCharCode(65 + i)}
+                                                    </div>
+                                                    <div className="mt-2 mb-4">
+                                                        <div className="text-white font-black text-lg leading-tight uppercase mb-2 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]">
+                                                            "{thumb.text}"
+                                                        </div>
+                                                        <p className="text-xs text-gray-400 font-sans">{thumb.concept}</p>
+                                                    </div>
+                                                    <div className="mt-auto space-y-2">
+                                                        <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                                                            <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: thumb.colorPalette.split(' ')[0] }}></span>
+                                                            {thumb.colorPalette}
+                                                        </div>
+                                                        <div className="bg-[#00f3ff]/5 p-2 rounded border border-[#00f3ff]/10 text-[10px] text-[#00f3ff]/70 font-mono break-all line-clamp-2 hover:line-clamp-none transition-all cursor-help relative group/prompt">
+                                                            PROMPT: {thumb.prompt}
+                                                            <div className="absolute top-1 right-1 opacity-0 group-hover/prompt:opacity-100">
+                                                                <CopyButton textToCopy={thumb.prompt} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* TAB 3: CHECKLIST */}
+                            {activeTab === 'checklist' && output.checklist && (
+                                <div className="grid grid-cols-1 gap-6 animate-in fade-in zoom-in duration-300">
+                                    <div className="bg-[#0a1520]/80 border border-[#00ff88]/20 rounded p-6">
+                                        <h3 className="text-white text-xs font-bold uppercase mb-6 flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-[#00ff88] rounded-full shadow-[0_0_5px_#00ff88]"></span>
+                                            TECHNICAL SEO AUDIT (VIDIQ STANDARD)
+                                        </h3>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            {/* Left: Scorecard */}
+                                            <div className="space-y-6">
+                                                {/* Title Length */}
+                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded border border-gray-800">
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white mb-1">Title Length</div>
+                                                        <div className={`text-xs ${output.checklist.titleLength.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                            {output.checklist.titleLength.message}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`text-xl font-bold ${output.checklist.titleLength.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {output.checklist.titleLength.score}/100
+                                                    </div>
+                                                </div>
+
+                                                {/* Word Count */}
+                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded border border-gray-800">
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white mb-1">Script Depth</div>
+                                                        <div className={`text-xs ${output.checklist.wordCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                            {output.checklist.wordCount.message}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`text-xl font-bold ${output.checklist.wordCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {output.checklist.wordCount.score}/100
+                                                    </div>
+                                                </div>
+
+                                                {/* Tags */}
+                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded border border-gray-800">
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white mb-1">Tag Volume</div>
+                                                        <div className={`text-xs ${output.checklist.tagCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                            {output.checklist.tagCount.message}
+                                                        </div>
+                                                    </div>
+                                                    <div className={`text-xl font-bold ${output.checklist.tagCount.status === 'Good' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                                        {output.checklist.tagCount.score}/100
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Right: Engagement Checks */}
+                                            <div className="space-y-4">
+                                                <div className={`p-4 rounded border ${output.checklist.hasQuestion ? 'bg-[#00ff88]/10 border-[#00ff88]/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        {output.checklist.hasQuestion ? <Check className="text-[#00ff88]" /> : <div className="text-red-500">✕</div>}
+                                                        <span className="font-bold text-white">Curiosity Question in Title</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-2">Titles with questions ("?") have 2x higher CTR.</p>
+                                                </div>
+
+                                                <div className={`p-4 rounded border ${output.checklist.hasNumber ? 'bg-[#00ff88]/10 border-[#00ff88]/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        {output.checklist.hasNumber ? <Check className="text-[#00ff88]" /> : <div className="text-red-500">✕</div>}
+                                                        <span className="font-bold text-white">Contains Numbers/Lists</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-2">Numbers (e.g. "Top 5") stop the scroll effectively.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                         </div>
                     )}
                 </div>
-            </div>
-            {/* Upgrade Modal */}
+            </main>
+
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(0, 243, 255, 0.05);
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(0, 243, 255, 0.3);
+                    border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 243, 255, 0.6);
+                }
+                .font-numeric {
+                    font-variant-numeric: tabular-nums;
+                }
+            `}</style>
             <AnimatePresence>
                 {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
             </AnimatePresence>
         </div>
     );
-};
-
-export default SeoTool;
+}

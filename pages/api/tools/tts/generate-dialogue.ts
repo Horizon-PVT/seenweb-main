@@ -2,6 +2,10 @@
 // API for 2-person dialogue TTS generation
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]';
+
 const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,8 +13,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // 🔐 Authentication check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+        return res.status(401).json({ error: 'Please login' });
+    }
+
+    // 🛡️ STRICT QUOTA CHECK
+    try {
+        await checkUserQuota((session.user as any).id, 'text-to-speech');
+    } catch (error: any) {
+        return res.status(403).json({ error: error.message });
+    }
+
     try {
         const { text, voice1, voice2, speed } = req.body;
+
 
         if (!text) {
             return res.status(400).json({ error: 'Text is required' });
@@ -56,6 +74,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const data = await response.json();
+
+        // INCREMENT USAGE
+        await incrementUserUsage((session.user as any).id, 'text-to-speech');
 
         res.status(200).json({
             success: true,

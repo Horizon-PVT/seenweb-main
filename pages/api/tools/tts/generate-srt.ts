@@ -11,9 +11,26 @@ export const config = {
 
 const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
 
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // 🔐 Authentication check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+        return res.status(401).json({ error: 'Please login' });
+    }
+
+    // 🛡️ STRICT QUOTA CHECK
+    try {
+        await checkUserQuota((session.user as any).id, 'text-to-speech');
+    } catch (error: any) {
+        return res.status(403).json({ error: error.message });
     }
 
     try {
@@ -56,6 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Forward audio buffer
         const audioBuffer = await response.arrayBuffer();
+
+        // INCREMENT USAGE
+        await incrementUserUsage((session.user as any).id, 'text-to-speech');
+
         res.setHeader('Content-Type', 'audio/wav');
         res.setHeader('Content-Disposition', `attachment; filename="srt_audio_${Date.now()}.wav"`);
         res.send(Buffer.from(audioBuffer));

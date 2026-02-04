@@ -17,6 +17,8 @@ export default function DashboardLayout({
     activeTool,
     onToolSelect
 }: DashboardLayoutProps) {
+    const [isCollapsed, setIsCollapsed] = React.useState(false);
+
     return (
         <div className="min-h-screen bg-black text-white font-sans flex">
             <Head>
@@ -25,11 +27,13 @@ export default function DashboardLayout({
             </Head>
 
             {/* Sidebar (Desktop) */}
-            <div className="hidden md:block w-64 flex-shrink-0">
+            <div className={`hidden md:block ${isCollapsed ? 'w-20' : 'w-64'} flex-shrink-0 transition-all duration-300`}>
                 <Sidebar
                     userRole={userRole}
                     activeTool={activeTool}
                     onToolSelect={onToolSelect}
+                    isCollapsed={isCollapsed}
+                    toggleCollapse={() => setIsCollapsed(!isCollapsed)}
                 />
             </div>
 

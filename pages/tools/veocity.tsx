@@ -97,7 +97,15 @@ export default function VeocityPage() {
             });
 
             const result: any = await response.json();
-            if (!response.ok) throw new Error(result.error || `Error ${response.status}`);
+            if (!response.ok) {
+                const errStr = String(result.error || '').toUpperCase();
+                if (response.status === 403 || errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA')) {
+                    setShowUpgrade(true);
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(result.error || `Error ${response.status}`);
+            }
 
             setMasterCharacterPrompt(result.masterCharacterPrompt);
             setScenes(result.scenes.map((s: any, i: number) => ({
@@ -111,7 +119,12 @@ export default function VeocityPage() {
             setPhase('timeline');
 
         } catch (err: any) {
-            setError(`Analysis Failed: ${err.message}`);
+            const errStr = String(err.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(`Analysis Failed: ${err.message}`);
+            }
         } finally {
             setIsLoading(false);
         }

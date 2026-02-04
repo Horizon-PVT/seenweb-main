@@ -1,79 +1,100 @@
 // File: lib/quota.ts
 import { prisma } from './prisma';
-import { ROLES, USAGE_LIMITS } from './roles';
+import { ROLES, ROLE_LIMITS, FREE_ALLOWED_TOOLS, CREATIVE_ALLOWED_TOOLS, Role } from './roles';
+
+const EVENT_NAME = 'TOOL_USAGE';
 
 /**
- * Checks if a user has sufficient quota.
- * Automatically resets quota if it's a new day (UTC based).
- * Throws an error if quota is exceeded.
+ * STRICT QUOTA CHECK (Per Tool)
+ * - FREE: 1 lifetime use per allowed tool.
+ * - CREATIVE/BASIC: 20 uses per day per allowed tool.
+ * - SUPER/PRO: 50 uses per day per tool (ALL TOOLS).
  */
-export async function checkUserQuota(userId: string): Promise<void> {
+export async function checkUserQuota(userId: string, toolId?: string): Promise<void> {
     const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: {
-            role: true,
-            dailyUsage: true,
-            maxDailyUsage: true,
-            lastUsageDate: true,
-        },
-    }) as any;
+        select: { role: true },
+    });
 
-    if (!user) {
-        throw new Error('User not found');
+    if (!user) throw new Error('User not found');
+
+    const role = (user.role || 'FREE') as Role;
+    const limit = ROLE_LIMITS[role];
+
+    // 0. VIP/ADMIN Bypass
+    if (limit.count >= 9999) return;
+
+    if (!toolId) {
+        // Fallback if no toolId provided (should not happen in strict mode, but pass for safety)
+        return;
     }
 
-    // 1. Reset logic (No Cron)
-    const now = new Date();
-    const lastDate = user.lastUsageDate ? new Date(user.lastUsageDate) : null;
+    // 1. Check Allowed Tools for FREE
+    if (role === 'FREE') {
+        if (!FREE_ALLOWED_TOOLS.includes(toolId)) {
+            throw new Error('PLAN_LOCKED'); // Show Upgrade Popup immediately
+        }
+    }
 
-    // Use UTC comparison to ensure consistency regardless of server time
-    const isNewDay = !lastDate ||
-        now.getUTCFullYear() !== lastDate.getUTCFullYear() ||
-        now.getUTCMonth() !== lastDate.getUTCMonth() ||
-        now.getUTCDate() !== lastDate.getUTCDate();
+    // 2. Check Allowed Tools for CREATIVE/BASIC
+    if (role === 'CREATIVE') {
+        if (!CREATIVE_ALLOWED_TOOLS.includes(toolId)) {
+            throw new Error('PLAN_LOCKED'); // Show Upgrade Popup - need PRO plan
+        }
+    }
 
-    if (isNewDay) {
-        // Reset usage in background (or await if critical consistency needed)
-        // We update lastUsageDate here to mark the reset "epoch"
-        await prisma.user.update({
-            where: { id: userId },
-            data: {
-                dailyUsage: 0,
-                lastUsageDate: now,
-            },
+    // 2. Count Usage (Event Based)
+    let usageCount = 0;
+
+    if (limit.type === 'LIFETIME') {
+        // Count ALL time usage for this tool
+        usageCount = await prisma.event.count({
+            where: {
+                userId: userId,
+                name: EVENT_NAME,
+                path: toolId
+            }
         });
-        // Continue with usage = 0
-        return;
+    } else {
+        // Count DAILY usage (Start of UTC Day)
+        const now = new Date();
+        const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+        usageCount = await prisma.event.count({
+            where: {
+                userId: userId,
+                name: EVENT_NAME,
+                path: toolId,
+                createdAt: {
+                    gte: startOfDay
+                }
+            }
+        });
     }
 
-    // 2. Check Roles (Infinite usage ONLY for VIP/ADMIN)
-    // ✅ FIX: CREATIVE và SUPER có quota giới hạn, chỉ VIP/ADMIN không giới hạn
-    if (['VIP', 'ADMIN'].includes(user.role)) {
-        return;
-    }
+    // 3. Throw Error if Limit Reached
+    if (usageCount >= limit.count) {
+        if (role === 'FREE') {
+            throw new Error('FREE_QUOTA_EXCEEDED'); // "Bạn đã dùng hết 1 lần miễn phí"
+        }
 
-    // 3. Check Quota (for FREE, CREATIVE, SUPER)
-    // Ensure we use the freshly reset 0 if isNewDay was true (handled by return above)
-    if (user.dailyUsage >= user.maxDailyUsage) {
-        const roleMessages: Record<string, string> = {
-            FREE: 'Bạn đã hết lượt sử dụng miễn phí hôm nay (3/3 lượt). Nâng cấp lên Starter để có 30 lượt/ngày!',
-            CREATIVE: 'Bạn đã hết lượt sử dụng Starter hôm nay (30/30 lượt). Nâng cấp lên Pro để có 100 lượt/ngày!',
-            SUPER: 'Bạn đã hết lượt sử dụng Pro hôm nay (100/100 lượt). Nâng cấp lên VIP để dùng không giới hạn!',
-        };
-        throw new Error(roleMessages[user.role] || 'Bạn đã hết lượt sử dụng hôm nay. Vui lòng nâng cấp!');
+        throw new Error(`Bạn đã đạt giới hạn ${limit.count} lần/ngày cho công cụ này. Vui lòng nâng cấp gói!`);
     }
 }
 
 /**
- * Increments the user's daily usage count.
- * Should be called AFTER a successful tool execution.
+ * Increments usage by tracking an Event.
  */
-export async function incrementUserUsage(userId: string): Promise<void> {
-    await prisma.user.update({
-        where: { id: userId },
+export async function incrementUserUsage(userId: string, toolId?: string): Promise<void> {
+    if (!toolId) return; // Must have toolId to track properly
+
+    // Create a usage event
+    await prisma.event.create({
         data: {
-            dailyUsage: { increment: 1 },
-            lastUsageDate: new Date(), // Update timestamp of latest usage
-        },
+            name: EVENT_NAME,
+            userId: userId,
+            path: toolId,
+            // properties: { timestamp: new Date() } 
+        }
     });
 }

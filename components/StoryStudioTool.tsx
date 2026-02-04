@@ -1,5 +1,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
   ArrowLeft,
   Book,
@@ -96,6 +98,7 @@ export default function StoryStudioTool({ onBack }: StoryStudioToolProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState('Initializing...');
+  const [showUpgrade, setShowUpgrade] = useState(false); // NEW: Upgrade modal state
 
   const [selectedTrimSize, setSelectedTrimSize] = useState<TrimSizeKey>('6x9 (Tiêu chuẩn)');
   const [coverUrl, setCoverUrl] = useState<string | undefined>(undefined);
@@ -134,6 +137,13 @@ export default function StoryStudioTool({ onBack }: StoryStudioToolProps) {
 
       if (!res.ok) {
         const err = await res.json();
+        // FIX: Check for PLAN errors and show modal instead of toast
+        const errStr = String(err.error || '').toUpperCase();
+        if (res.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+          setShowUpgrade(true);
+          setIsLoading(false);
+          return;
+        }
         throw new Error(err.error || 'Unknown analysis error.');
       }
 
@@ -162,7 +172,13 @@ export default function StoryStudioTool({ onBack }: StoryStudioToolProps) {
 
     } catch (e: any) {
       console.error("Analysis Error:", e);
-      setError(e.message);
+      // FIX: Safety net for PLAN errors in catch block
+      const errStr = String(e.message || '').toUpperCase();
+      if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+        setShowUpgrade(true);
+      } else {
+        setError(e.message);
+      }
       setIsLoading(false);
     }
   };
@@ -604,6 +620,11 @@ export default function StoryStudioTool({ onBack }: StoryStudioToolProps) {
           <AlertCircle size={20} /> {error}
         </div>
       )}
+
+      {/* UPGRADE MODAL */}
+      <AnimatePresence>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

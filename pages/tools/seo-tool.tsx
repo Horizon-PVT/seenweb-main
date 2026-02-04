@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
     Cpu,
     Activity,
@@ -99,6 +101,7 @@ export default function SeoToolPage() {
     const [output, setOutput] = useState<OutputData | null>(null);
     const [coreIdea, setCoreIdea] = useState('');
     const [activeTab, setActiveTab] = useState<'strategy' | 'content' | 'checklist'>('strategy'); // New Tab State
+    const [showUpgrade, setShowUpgrade] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Holographic Grid Animation
@@ -147,7 +150,17 @@ export default function SeoToolPage() {
                 }),
             });
             const result = await response.json();
-            if (!response.ok) throw new Error(result.error);
+            if (!response.ok) {
+                const errRaw = result?.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(result.error);
+            }
 
             // Artificial delay for effect
             setTimeout(() => {
@@ -156,7 +169,12 @@ export default function SeoToolPage() {
             }, 800);
 
         } catch (err: any) {
-            setError(err.message || "SYSTEM FAILURE");
+            const errStr = String(err.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(err.message || "SYSTEM FAILURE");
+            }
             setIsLoading(false);
         }
     };
@@ -550,6 +568,9 @@ export default function SeoToolPage() {
                     font-variant-numeric: tabular-nums;
                 }
             `}</style>
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div >
     );
 }

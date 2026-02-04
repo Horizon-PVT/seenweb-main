@@ -7,6 +7,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getCached, setCache, generateCacheKey, CACHE_PREFIXES } from '@/lib/cache';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 const youtube = google.youtube({ version: 'v3', auth: process.env.YOUTUBE_API_KEY });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -26,6 +27,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { tool, input, macroNiche, outputLanguage = 'Tiếng Việt' } = req.body;
 
   if (!tool) return res.status(400).json({ error: 'Thiếu tool' });
+
+  // 🛡️ QUOTA CHECK
+  const toolIdMap: Record<string, string> = {
+    'micro': 'micro-niche-miner',
+    'rival': 'rival-scanner',
+    'hidden': 'hidden-channel-finder'
+  };
+  const resolvedToolId = toolIdMap[tool] || tool;
+
+  try {
+    await checkUserQuota((session.user as any).id, resolvedToolId);
+  } catch (error: any) {
+    if (error.message === 'PLAN_LOCKED') {
+      return res.status(403).json({ error: 'PLAN_LOCKED', message: 'Vui lòng nâng cấp để sử dụng tính năng này.' });
+    }
+    if (error.message === 'FREE_QUOTA_EXCEEDED') {
+      return res.status(403).json({ error: 'FREE_QUOTA_EXCEEDED', message: 'Bạn đã hết lượt dùng thử miễn phí.' });
+    }
+    return res.status(403).json({ error: error.message });
+  }
+
 
   // Redis cache check
   const cacheInput = `youtube:${tool}:${input || macroNiche}`;
@@ -171,6 +193,9 @@ Trả về JSON (không markdown):
   "audienceGapAnalysis": ["Điều khán giả comment/tìm kiếm mà kênh bỏ qua"],
   "videoPersonaScore": {"tone": "Nghiêm túc/Hài hước?", "emotion": "Tò mò/Sợ hãi/Vui vẻ?"}
 }`;
+
+      // INCREMENT USAGE FOR RIVAL SCANNER
+      await incrementUserUsage((session.user as any).id, resolvedToolId);
     }
 
     // ==================== 2. HIDDEN CHANNEL FINDER – GIỮ NGUYÊN 100% ====================
@@ -234,6 +259,8 @@ Trả về đúng JSON (8-12 kênh, 6-10 video, 6-8 xu hướng):
   ],
   "upcomingTrends": ["Xu hướng 1 cực chi tiết", "Xu hướng 2", "..."]
 }`;
+      // INCREMENT USAGE FOR HIDDEN CHANNEL
+      await incrementUserUsage((session.user as any).id, resolvedToolId);
     }
 
     // ==================== 3. MICRO NICHE MINER – ĐÃ FIX HOÀN HẢO + QUỐC TẾ ====================
@@ -440,6 +467,10 @@ RETURN ONLY PURE JSON, START WITH { AND END WITH }, NO MISSING BRACKETS, NO EXTR
         text = text.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
 
         const data = JSON.parse(text);
+
+        // INCREMENT USAGE AFTER SUCCESS
+        await incrementUserUsage((session.user as any).id, resolvedToolId);
+
         // Save to Redis (async, don't wait)
         setCache(cacheKey, data, CACHE_TTL_SECONDS);
         return res.status(200).json(data);
@@ -447,6 +478,9 @@ RETURN ONLY PURE JSON, START WITH { AND END WITH }, NO MISSING BRACKETS, NO EXTR
       } catch (e: any) {
         console.error(`Micro Niche Miner - Lần ${attempt} thất bại:`, e.message);
         if (attempt === 3) {
+          // INCREMENT USAGE EVEN ON FALLBACK IF IT'S USEFUL
+          await incrementUserUsage((session.user as any).id, resolvedToolId);
+
           const fallbackData = {
             topNiches: formattedLowFloor.slice(0, 8).map(c => ({
               nicheName: `${macroNiche} - ${c.name.split(' ')[0] || 'Pro'} Style`,

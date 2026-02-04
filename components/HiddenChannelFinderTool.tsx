@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
   Search,
   ArrowLeft,
@@ -65,6 +67,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
   const [output, setOutput] = useState<OutputData | null>(null);
   const [seedQuery, setSeedQuery] = useState('');
   const [outputLanguage, setOutputLanguage] = useState('Tiếng Việt');
+  const [showUpgrade, setShowUpgrade] = useState(false); // NEW: Upgrade modal state
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +91,17 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
         }),
       });
 
-      if (!res.ok) throw new Error('Server connection lost. Please retry.');
+      if (!res.ok) {
+        // FIX: Check for PLAN errors from API response
+        const errData = await res.json().catch(() => ({}));
+        const errStr = String(errData.error || '').toUpperCase();
+        if (res.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+          setShowUpgrade(true);
+          setIsLoading(false);
+          return;
+        }
+        throw new Error(errData.error || 'Server connection lost. Please retry.');
+      }
 
       const data = await res.json();
 
@@ -99,7 +112,13 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
 
       setOutput(data);
     } catch (err: any) {
-      setError(err.message || 'Sonar malfunction. Scan failed.');
+      // FIX: Safety net for PLAN errors in catch block
+      const errStr = String(err.message || '').toUpperCase();
+      if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+        setShowUpgrade(true);
+      } else {
+        setError(err.message || 'Sonar malfunction. Scan failed.');
+      }
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -309,6 +328,11 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
           </div>
         )}
       </main>
+
+      {/* UPGRADE MODAL */}
+      <AnimatePresence>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

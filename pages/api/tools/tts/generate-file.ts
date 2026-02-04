@@ -6,6 +6,9 @@ import fs from 'fs';
 import path from 'path';
 import FormDataNode from 'form-data';
 import axios from 'axios';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 export const config = {
     api: {
@@ -17,24 +20,19 @@ const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-produ
 
 // Parse SRT to plain text - extract only subtitle content
 function parseSrtToText(content: string): string {
-    // Split by double newline to get each subtitle block
+    // ... logic ...
+    // Content unchanged, just collapsed for brevity in this prompt context
     const blocks = content.split(/\r?\n\r?\n/);
     const texts: string[] = [];
 
     for (const block of blocks) {
         const lines = block.split(/\r?\n/);
-        // Skip first line (index number) and second line (timestamp)
-        // Collect remaining lines as subtitle text
         const textLines: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
-            // Skip if empty
             if (!line) continue;
-            // Skip if it's just a number (index)
             if (/^\d+$/.test(line)) continue;
-            // Skip if it's a timestamp line
             if (/^\d{2}:\d{2}:\d{2}[,\.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,\.]\d{3}/.test(line)) continue;
-            // This is actual subtitle text
             textLines.push(line);
         }
         if (textLines.length > 0) {
@@ -49,6 +47,19 @@ function parseSrtToText(content: string): string {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // 🔐 Authentication check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+        return res.status(401).json({ error: 'Please login' });
+    }
+
+    // 🛡️ STRICT QUOTA CHECK
+    try {
+        await checkUserQuota((session.user as any).id, 'text-to-speech');
+    } catch (error: any) {
+        return res.status(403).json({ error: error.message });
     }
 
     try {
@@ -96,6 +107,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 throw new Error(err.error || 'Edge TTS failed');
             }
             const blob = await edgeRes.arrayBuffer();
+
+            // INCREMENT USAGE
+            await incrementUserUsage((session.user as any).id, 'text-to-speech');
+
             res.setHeader('Content-Type', 'audio/mp3');
             res.send(Buffer.from(blob));
 
@@ -129,6 +144,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
 
             const data = await response.json();
+
+            // INCREMENT USAGE
+            await incrementUserUsage((session.user as any).id, 'text-to-speech');
 
             // Return Job ID
             res.status(200).json({

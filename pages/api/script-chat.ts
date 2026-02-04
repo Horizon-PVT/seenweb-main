@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI } from "@google/genai";
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from "@/lib/quota";
 
 interface ErrorResponse {
   error: string;
@@ -19,8 +20,14 @@ export default async function handler(
 
   // 🔐 Authentication check
   const session = await getServerSession(req, res, authOptions);
-  if (!session) {
+  if (!session || !session.user || !session.user.id) {
     return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
+  }
+
+  try {
+    await checkUserQuota(session.user.id, 'scriptwriter');
+  } catch (err: any) {
+    return res.status(403).json({ error: err.message });
   }
 
   try {
@@ -54,6 +61,8 @@ Hãy viết lại TOÀN BỘ kịch bản mới đã được chỉnh sửa theo
     });
 
     const editedScriptText = response.text?.trim() || "";
+
+    await incrementUserUsage(session.user.id, 'scriptwriter');
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.status(200).send(editedScriptText);

@@ -17,6 +17,8 @@ import {
     Globe,
     Flag
 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 
 // --- TYPES (Strictly Preserved from Original) ---
 interface NicheData {
@@ -210,6 +212,7 @@ export default function MicroNicheMinerPage() {
     const [market, setMarket] = useState<TargetMarket>('VN');
     const [isLoading, setIsLoading] = useState(false);
     const [output, setOutput] = useState<OutputData | null>(null);
+    const [showUpgrade, setShowUpgrade] = useState(false);
     const isVN = market === 'VN';
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -236,11 +239,26 @@ export default function MicroNicheMinerPage() {
                 // Formatting data just in case, similar to original component logic expectation
                 setOutput(data as OutputData);
             } else {
-                throw new Error(data.error || (isVN ? 'Lỗi phản hồi hệ thống' : 'System Error'));
+                const errRaw = data?.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                } else {
+                    console.error('Miner API Error:', errRaw);
+                }
             }
         } catch (error: any) {
-            console.error('Miner Error:', error);
-            alert((isVN ? 'Lỗi: ' : 'Error: ') + error.message);
+            console.error('Miner Network Error:', error);
+            const errStr = String(error.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                // Only alert if it's NOT a plan error
+                // alert((isVN ? 'Lỗi: ' : 'Error: ') + error.message);
+                // Better to just log it to avoid UI blocking
+                console.error("System Error", error);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -363,6 +381,9 @@ export default function MicroNicheMinerPage() {
                 }}
             ></div>
             <div className="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none z-0"></div>
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

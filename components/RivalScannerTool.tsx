@@ -4,6 +4,8 @@ import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
   Radar,
   Target,
@@ -59,6 +61,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
   const [output, setOutput] = useState<OutputData | null>(null);
   const [scanProgress, setScanProgress] = useState(0);
   const [radarAngle, setRadarAngle] = useState(0);
+  const [showUpgrade, setShowUpgrade] = useState(false); // NEW: Upgrade modal state
 
   // Radar Animation Effect
   useEffect(() => {
@@ -110,11 +113,23 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
           throw new Error("Invalid Data Structure");
         }
       } else {
-        alert('Error: ' + (data.error || 'Unknown Error'));
+        // FIX: Replace alert with UpgradeModal for plan errors
+        const errStr = String(data.error || '').toUpperCase();
+        if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+          setShowUpgrade(true);
+        } else {
+          console.error('API Error:', data.error);
+        }
         setIsLoading(false);
       }
     } catch (error: any) {
-      alert('Error: ' + error.message);
+      // FIX: Safety net for plan errors in catch block
+      const errStr = String(error.message || '').toUpperCase();
+      if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+        setShowUpgrade(true);
+      } else {
+        console.error('Rival Scanner Error:', error);
+      }
       setIsLoading(false);
     }
   };
@@ -340,6 +355,11 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
         )}
 
       </main>
+
+      {/* UPGRADE MODAL */}
+      <AnimatePresence>
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      </AnimatePresence>
 
       <style jsx global>{`
                 .radial-gradient-green {

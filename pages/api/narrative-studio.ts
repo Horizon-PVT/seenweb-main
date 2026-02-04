@@ -8,6 +8,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI, Type, GenerateImagesConfig } from "@google/genai";
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 interface SceneAnalysis {
   imagePrompt: string;
@@ -50,13 +51,26 @@ export default async function handler(
     return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
   }
 
-  if (!apiKey) {
-    return res.status(500).json({ error: "Thiếu GEMINI_API_KEY trong biến môi trường." });
-  }
-
   const { action, storyIdea, style, language, numberOfScenes, imagePrompt, aspectRatio, coverPrompt } = req.body;
 
+  // 🛡️ STRICT QUOTA CHECK
+  if (['analyze', 'generateImage', 'generateCover'].includes(action)) {
+    try {
+      // narrative-studio is the ID in roles.ts for this tool
+      await checkUserQuota((session.user as any).id, 'narrative-studio');
+    } catch (error: any) {
+      // If quota exceeded, return 403.
+      // Frontend needs to handle this to show Upgrade Modal.
+      // Since other tools return 403 with specific message, we match that.
+      if (error.message === 'PLAN_LOCKED' || error.message === 'FREE_QUOTA_EXCEEDED') {
+        return res.status(403).json({ error: error.message });
+      }
+      return res.status(403).json({ error: error.message });
+    }
+  }
+
   if (action === 'analyze') {
+
     // --- Xử lý Phân tích Cảnh (Gemini) ---
     if (!storyIdea) {
       return res.status(400).json({ error: "Thiếu 'storyIdea' cho hành động 'analyze'." });
@@ -123,6 +137,7 @@ export default async function handler(
         scenes: parsedOutput.scenes,
         bookSummary: parsedOutput.bookSummary // TRẢ VỀ TRƯỜNG MỚI
       });
+      await incrementUserUsage((session!.user as any).id, 'narrative-studio');
 
     } catch (e: any) {
       console.error("Lỗi AI phân tích cảnh:", e);
@@ -150,6 +165,7 @@ export default async function handler(
 
       if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image) {
         const imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
+        await incrementUserUsage((session!.user as any).id, 'narrative-studio');
         res.status(200).json({ imageUrl: imageUrl });
       } else {
         throw new Error("API generateImages không trả về hình ảnh nào.");
@@ -183,6 +199,7 @@ export default async function handler(
 
       if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image) {
         const imageUrl = `data:image/jpeg;base64,${response.generatedImages[0].image.imageBytes}`;
+        await incrementUserUsage((session!.user as any).id, 'narrative-studio');
         res.status(200).json({ imageUrl: imageUrl });
       } else {
         throw new Error("API generateImages không trả về hình ảnh nào.");

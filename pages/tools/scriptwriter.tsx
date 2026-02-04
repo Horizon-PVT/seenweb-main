@@ -4,6 +4,8 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
     ArrowLeft,
     PenTool,
@@ -89,6 +91,7 @@ export default function ScriptwriterPage() {
     const [chatRequest, setChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
     // --- PROJECT HISTORY LOGIC ---
     const [showHistory, setShowHistory] = useState(false);
@@ -186,9 +189,20 @@ export default function ScriptwriterPage() {
             const scriptText = await response.text();
 
             if (!response.ok) {
-                let errorMessage = `Error ${response.status}: ${scriptText}`;
-                try { errorMessage = JSON.parse(scriptText).error || errorMessage; } catch (e) { /* Ignore */ }
-                throw new Error(errorMessage);
+                // Check if it's a JSON error response first
+                let errorJson;
+                try {
+                    errorJson = JSON.parse(scriptText);
+                } catch (e) {
+                    // Not JSON
+                }
+
+                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return; // Stop here
+                }
+
+                throw new Error((errorJson && errorJson.error) || `Error ${response.status}: ${scriptText}`);
             }
             setOutputScript(scriptText);
         } catch (err: any) {
@@ -201,12 +215,6 @@ export default function ScriptwriterPage() {
     // --- LOGIC: REFINE / TRANSLATE ---
     const handleRefine = async (type: 'refine' | 'consistency' | 'translate', lang: string = 'en') => {
         if (!outputScript) return;
-
-        // Gating Check (Visual Only implementation for this page, logic implied)
-        if (['FREE', 'CREATIVE', 'USER'].includes(userRole) && type !== 'translate') { // Example logic from original
-            alert("Tính năng dành riêng cho gói PRO/VIP.");
-            return;
-        }
 
         setIsLoading(true);
         setLoadingMessage(type === 'translate' ? "TRANSLATING..." : "REFINING...");
@@ -230,6 +238,18 @@ export default function ScriptwriterPage() {
             const refinedScriptText = await response.text();
 
             if (!response.ok) {
+                // Check if it's a JSON error response first
+                let errorJson;
+                try {
+                    errorJson = JSON.parse(refinedScriptText);
+                } catch (e) {
+                    // Not JSON
+                }
+
+                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return; // Stop here
+                }
                 throw new Error("Refinement failed.");
             }
             setOutputScript(refinedScriptText);
@@ -261,7 +281,21 @@ export default function ScriptwriterPage() {
             });
 
             const editedScriptText = await response.text();
-            if (!response.ok) throw new Error("Edit failed.");
+            if (!response.ok) {
+                // Check if it's a JSON error response first
+                let errorJson;
+                try {
+                    errorJson = JSON.parse(editedScriptText);
+                } catch (e) {
+                    // Not JSON
+                }
+
+                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return; // Stop here
+                }
+                throw new Error("Edit failed.");
+            }
             setOutputScript(editedScriptText);
         } catch (err: any) {
             setError(err.message);
@@ -609,6 +643,9 @@ export default function ScriptwriterPage() {
                     animation: progress 20s linear forwards;
                 }
             `}</style>
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 }

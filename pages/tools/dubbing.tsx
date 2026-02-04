@@ -52,8 +52,13 @@ export default function DubbingTool() {
             setTimeout(() => setStep(2), 1000);
         } catch (e: any) {
             console.error(e);
-            addLog(`❌ LOG LỖI KỸ THUẬT: ${e.message}`);
-            alert(`Lỗi hệ thống: ${e.message}. Vui lòng thử lại link khác hoặc tải lại trang.`);
+            const errStr = String(e.message || '').toUpperCase();
+            if (errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA') || errStr.includes('403')) {
+                setShowUpgrade(true);
+            } else {
+                addLog(`❌ LOG LỖI KỸ THUẬT: ${e.message}`);
+                alert(`Lỗi hệ thống: ${e.message}. Vui lòng thử lại link khác hoặc tải lại trang.`);
+            }
         } finally {
             setLoading(false);
         }
@@ -102,7 +107,12 @@ export default function DubbingTool() {
             setTimeout(() => setStep(3), 1000);
 
         } catch (e: any) {
-            addLog(`Lỗi: ${e.message}`);
+            const errStr = String(e.message || '').toUpperCase();
+            if (errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA') || errStr.includes('403')) {
+                setShowUpgrade(true);
+            } else {
+                addLog(`Lỗi: ${e.message}`);
+            }
         } finally {
             setLoading(false);
         }

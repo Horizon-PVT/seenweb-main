@@ -3,6 +3,9 @@ import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { createHash } from 'crypto';
 import https from 'https';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 
 export const config = {
@@ -15,42 +18,26 @@ export const config = {
 };
 
 // CONSTANTS (EDGE)
-const TRUSTED_CLIENT_TOKEN = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
-const SEC_MS_GEC_VERSION = "1-130.0.2849.68";
-const WIN_EPOCH = 11644473600;
-const S_TO_NS = 1e9;
+// ... (omitted)
 
-// --- Helper: Get Server Time Offset ---
-async function getServerTimeOffset(): Promise<number> {
-    return new Promise((resolve) => {
-        const req = https.request('https://edge.microsoft.com', { method: 'HEAD', timeout: 3000 }, (res) => {
-            if (res.headers.date) {
-                const serverTime = new Date(res.headers.date).getTime();
-                const localTime = Date.now();
-                resolve(serverTime - localTime);
-            } else {
-                resolve(0);
-            }
-        });
-        req.on('error', () => resolve(0));
-        req.on('timeout', () => req.abort());
-        req.end();
-    });
-}
-
-// Generate Token
-function generateSecMsGec(timeOffset: number) {
-    const now = Date.now() + timeOffset;
-    let ticks = (now / 1000) + WIN_EPOCH;
-    ticks -= ticks % 300;
-    ticks *= S_TO_NS / 100;
-    const strToHash = `${ticks.toFixed(0)}${TRUSTED_CLIENT_TOKEN}`;
-    return createHash("sha256").update(strToHash, "ascii").digest("hex").toUpperCase();
-}
+// ... (omitted helper funcs)
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // 🔐 Authentication check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+        return res.status(401).json({ error: 'Please login' });
+    }
+
+    // 🛡️ STRICT QUOTA CHECK
+    try {
+        await checkUserQuota((session.user as any).id, 'text-to-speech');
+    } catch (error: any) {
+        return res.status(403).json({ error: error.message });
     }
 
     const { text, voice = 'vi-VN-HoaiMyNeural' } = req.body;
@@ -64,6 +51,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             const timeOffset = await getServerTimeOffset();
             const audioBuffer = await generateEdgeAudio(text, voice, timeOffset);
+
+            // INCREMENT USAGE (EDGE)
+            await incrementUserUsage((session.user as any).id, 'text-to-speech');
 
             res.setHeader('Content-Type', 'audio/mpeg');
             res.setHeader('Content-Length', audioBuffer.length);
@@ -98,6 +88,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // results is array of { base64, shortText }.
         const buffers = results.map((r: any) => Buffer.from(r.base64, 'base64'));
         const finalBuffer = Buffer.concat(buffers);
+
+        // INCREMENT USAGE (GOOGLE FALLBACK)
+        await incrementUserUsage((session.user as any).id, 'text-to-speech');
 
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Length', finalBuffer.length);

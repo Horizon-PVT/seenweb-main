@@ -2,6 +2,9 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI, Type } from "@google/genai";
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]'; // Corrected path
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 interface Scene { originalText: string; prompt: string; }
 interface AnalysisResponse { masterCharacterPrompt: string; scenes: Scene[]; }
@@ -24,9 +27,26 @@ export default async function handler(
 ) {
   if (req.method !== 'POST') { return res.status(405).json({ error: `Method ${req.method} Not Allowed` }); }
 
+  // 🔐 Authentication check
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
+  }
+
+  // 🛡️ STRICT QUOTA CHECK
+  try {
+    await checkUserQuota((session.user as any).id, 'velocity');
+  } catch (error: any) {
+    if (error.message === 'PLAN_LOCKED' || error.message === 'FREE_QUOTA_EXCEEDED') {
+      return res.status(403).json({ error: error.message });
+    }
+    return res.status(403).json({ error: error.message });
+  }
+
   try {
     const { script, userApiKey } = req.body;
     if (!script) { return res.status(400).json({ error: "Thiếu kịch bản (script)." }); }
+
 
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey) { return res.status(500).json({ error: "Lỗi cấu hình API Key." }); }
@@ -91,6 +111,9 @@ export default async function handler(
       originalText: scene.originalText,
       prompt: `${masterPrompt} ${scene.prompt}` // Prefix master để Veo3 match character
     }));
+
+    // INCREMENT USAGE
+    await incrementUserUsage((session.user as any).id, 'velocity');
 
     res.status(200).json({ masterCharacterPrompt: masterPrompt, scenes: finalScenes });
 

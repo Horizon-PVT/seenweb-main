@@ -77,17 +77,6 @@ export default function HiddenChannelFinderPage() {
             return;
         }
 
-        // --- FREEMIUM GATE CHECK ---
-        const userRole = ((session?.user as any)?.role || "FREE");
-        // Originally required SUPER (higher than CREATIVE)
-        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
-
-        if (!allowed) {
-            setShowUpgrade(true);
-            return;
-        }
-        // ---------------------------
-
         setIsLoading(true);
         setError('');
         setOutput(null);
@@ -103,9 +92,19 @@ export default function HiddenChannelFinderPage() {
                 }),
             });
 
-            if (!res.ok) throw new Error('Server connection lost. Please retry.');
-
             const data = await res.json();
+
+            if (!res.ok) {
+                const errRaw = data?.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                if (res.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(errRaw || 'Server connection lost. Please retry.');
+            }
 
             // Data Safety Check
             data.risingChannels = Array.isArray(data.risingChannels) ? data.risingChannels : [];
@@ -114,7 +113,12 @@ export default function HiddenChannelFinderPage() {
 
             setOutput(data);
         } catch (err: any) {
-            setError(err.message || 'Sonar malfunction. Scan failed.');
+            const errStr = String(err.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(err.message || 'Sonar malfunction. Scan failed.');
+            }
             console.error(err);
         } finally {
             setIsLoading(false);

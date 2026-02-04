@@ -56,14 +56,21 @@ export default function RivalScannerPage() {
     const [scanProgress, setScanProgress] = useState(0);
     const [radarAngle, setRadarAngle] = useState(0);
     const [showUpgrade, setShowUpgrade] = useState(false);
+    const [isMounted, setIsMounted] = useState(false); // Fix hydration
 
-    // Radar Animation Effect
+    // Set mounted state after hydration
     useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    // Radar Animation Effect - only run after mount
+    useEffect(() => {
+        if (!isMounted) return;
         const interval = setInterval(() => {
             setRadarAngle(prev => (prev + 5) % 360);
         }, 50);
         return () => clearInterval(interval);
-    }, []);
+    }, [isMounted]);
 
     // Fake Scan Progress
     useEffect(() => {
@@ -81,19 +88,6 @@ export default function RivalScannerPage() {
 
     // Extract scan logic
     const performScan = async (targetInput: string) => {
-        // --- FREEMIUM GATE CHECK ---
-        const userRole = ((session?.user as any)?.role || "FREE");
-        // Check if userRole meets the requirement for Rival Scanner (originally CREATIVE)
-        // Since we removed the dashboard gate, we must enforce it here.
-        // We can manually check logic: FREE < CREATIVE.
-        const allowed = ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(userRole);
-
-        if (!allowed) {
-            setShowUpgrade(true);
-            return;
-        }
-        // ---------------------------
-
         setIsLoading(true);
         setOutput(null);
 
@@ -118,11 +112,27 @@ export default function RivalScannerPage() {
                     throw new Error("Invalid Data Structure");
                 }
             } else {
-                alert('Error: ' + (data.error || 'Unknown Error'));
+                const errRaw = data?.error || '';
+                const errStr = String(errRaw).toUpperCase();
+                // Check multiple variations of plan/quota errors
+                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                } else {
+                    // Fallback for other errors (Logic already handled upgrade above)
+                    console.error('API Error:', errRaw);
+                }
                 setIsLoading(false);
             }
         } catch (error: any) {
-            alert('Error: ' + error.message);
+            console.error('[RIVAL-SCANNER DEBUG] Caught error:', error);
+            const errStr = String(error.message || '').toUpperCase();
+            console.log('[RIVAL-SCANNER DEBUG] Error string:', errStr);
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                console.log('[RIVAL-SCANNER DEBUG] PLAN ERROR DETECTED - SHOWING UPGRADE MODAL');
+                setShowUpgrade(true);
+            } else {
+                console.error("Rival Scanner Error", error);
+            }
             setIsLoading(false);
         }
     };
@@ -220,14 +230,14 @@ export default function RivalScannerPage() {
                             {/* Sweep */}
                             <div
                                 className="absolute w-1/2 h-1/2 top-0 left-0 origin-bottom-right bg-gradient-to-r from-transparent to-[#00ff41]/50 border-r border-[#00ff41]"
-                                style={{ transform: `rotate(${radarAngle}deg)` }}
+                                style={{ transform: `rotate(${isMounted ? radarAngle : 0}deg)` }}
                             ></div>
 
                             {/* Ping Dots */}
                             <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-[#00ff41] rounded-full animate-ping"></div>
                             <div className="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-[#00ff41] rounded-full animate-ping delay-75"></div>
 
-                            <div className="absolute text-[#00ff41] font-bold text-xs tracking-widest mt-2">{Math.floor(scanProgress)}% COMPLETE</div>
+                            <div className="absolute text-[#00ff41] font-bold text-xs tracking-widest mt-2">{isMounted ? Math.floor(scanProgress) : 0}% COMPLETE</div>
                         </div>
                         <div className="mt-8 text-[#008f11] animate-pulse text-sm tracking-[0.3em] font-bold">
                             ACQUIRING TARGET DATA...

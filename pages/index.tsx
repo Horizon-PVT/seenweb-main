@@ -44,7 +44,7 @@ import PricingTable from "../components/PricingTable";
 import AffiliateSection from "../components/AffiliateSection";
 import FinalCTA from "../components/FinalCTA";
 import OnboardingModal from "../components/OnboardingModal";
-import WorkflowSection from "../components/WorkflowSection";
+
 import FAQ from "../components/FAQ";
 import Footer from "../components/Footer";
 import ChatbotWidget from "../components/ChatbotWidget";
@@ -205,7 +205,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
       <main>
         <HeroSection />
         <CreatorMeritSection />
-        <WorkflowSection />
+
         <Testimonials />
 
         {/* Tool Guides (Priority: DB -> Fallback) */}

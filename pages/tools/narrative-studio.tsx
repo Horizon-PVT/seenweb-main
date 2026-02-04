@@ -155,7 +155,15 @@ export default function NarrativeStudioPage() {
 
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error || 'Unknown analysis error.');
+                const errRaw = err.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                if (res.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(errRaw || 'Unknown analysis error.');
             }
 
             const data = await res.json();
@@ -183,7 +191,12 @@ export default function NarrativeStudioPage() {
 
         } catch (e: any) {
             console.error("Analysis Error:", e);
-            setError(e.message);
+            const errStr = String(e.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(e.message);
+            }
             setIsLoading(false);
         }
     };
@@ -210,7 +223,14 @@ export default function NarrativeStudioPage() {
 
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error || 'Image generation failed.');
+                const errRaw = err.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                if (res.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    return; // Stop generation loop if quota hit
+                }
+                throw new Error(errRaw || 'Image generation failed.');
             }
 
             const data = await res.json();
@@ -218,7 +238,12 @@ export default function NarrativeStudioPage() {
                 i === index ? { ...s, imageUrl: data.imageUrl } : s
             ));
         } catch (e: any) {
-            setError(`Error Scene ${index + 1}: ${e.message}. (Skipped)`);
+            const errStr = String(e.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(`Error Scene ${index + 1}: ${e.message}. (Skipped)`);
+            }
         }
     }, [scenes, selectedTrimSize]); // Added selectedTrimSize dependency implicitly via KDP_TRIM_SIZES access, though it's constant
 
@@ -260,13 +285,25 @@ export default function NarrativeStudioPage() {
 
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error || 'Cover generation failed');
+                const errRaw = err.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                if (res.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(errRaw || 'Cover generation failed');
             }
 
             const data = await res.json();
             setCoverUrl(data.imageUrl);
         } catch (e: any) {
-            setError(`Cover Error: ${e.message}`);
+            const errStr = String(e.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(`Cover Error: ${e.message}`);
+            }
         } finally {
             setIsGeneratingCover(false);
         }

@@ -27,7 +27,7 @@ export default async function handler(
 
   try {
     // Check quota before calling AI
-    await checkUserQuota(session.user.id);
+    await checkUserQuota(session.user.id, 'scriptwriter');
   } catch (err: any) {
     return res.status(403).json({ error: err.message });
   }
@@ -162,7 +162,7 @@ Example:
     const scriptText = response.text?.trim() || "";
 
     // 2. Increment Usage after success
-    await incrementUserUsage(session.user.id);
+    await incrementUserUsage(session.user.id, 'scriptwriter');
 
     // Trả về kết quả dạng text
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');

@@ -16,6 +16,7 @@ const planToRole: Record<string, string> = {
 
 const PricingCard = ({
   plan,
+  title, // New prop
   priceMonthly,
   priceYearly,
   features,
@@ -29,6 +30,7 @@ const PricingCard = ({
   t,
 }: {
   plan: string;
+  title?: string;
   priceMonthly: number;
   priceYearly: number;
   features: string[];
@@ -98,13 +100,18 @@ const PricingCard = ({
     >
       {isFeatured && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-600 text-black font-black text-sm px-6 py-2 rounded-full shadow-xl z-10 whitespace-nowrap">
-          {t('pricing.mostPopular', 'MOST POPULAR')}
+          {t('pricing.mostPopular', 'PHỔ BIẾN NHẤT')}
         </div>
       )}
-      <h3 className="text-2xl font-bold mb-3 text-white tracking-wide">{plan}</h3>
+      <h3 className="text-2xl font-bold mb-3 text-white tracking-wide uppercase">{title || plan}</h3>
 
       <div className="mb-6">
         <div className="flex items-baseline justify-center gap-1">
+          {isYearly && (
+            <span className="text-gray-400 line-through text-2xl font-bold mr-2 decoration-gray-500 decoration-2 opacity-100">
+              {priceMonthly >= 1000 ? (priceMonthly / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + 'k' : priceMonthly.toLocaleString('vi-VN')}
+            </span>
+          )}
           <h2 className="text-5xl font-light tracking-tighter" style={{ color }}>
             {displayPrice >= 1000 ? (displayPrice / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + 'k' : displayPrice.toLocaleString('vi-VN') + ' đ'}
           </h2>
@@ -139,7 +146,7 @@ const PricingCard = ({
         ))}
       </ul>
 
-      {!isFree && !isVip && (
+      {!isFree && (
         <div className="mt-6 space-y-2">
           <div className="flex space-x-2">
             <input
@@ -166,7 +173,7 @@ const PricingCard = ({
         onClick={handleClick}
         className="mt-6 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl hover:shadow-cyan-500/20"
       >
-        {isFree ? t('pricing.useFree', 'DÙNG FREE') : isVip ? t('pricing.upgradeVip', 'ĐĂNG KÝ NGAY') : plan === "BASIC" ? t('pricing.startStarter', 'BẮT ĐẦU NGAY') : t('pricing.upgradePro', 'NÂNG CẤP')}
+        {isFree ? t('pricing.useFree', 'DÙNG FREE') : isVip ? "NÂNG CẤP CHUYÊN NGHIỆP" : "BẮT ĐẦU VỚI CƠ BẢN"}
       </button>
     </div>
   );
@@ -205,7 +212,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
     return 0;
   };
 
-  const currentCheckoutPrice = getPlanPrice(selectedPlan === "STARTER" || selectedPlan === "BASIC" ? "BASIC" : "PROFESSIONAL", checkoutYearly);
+  const currentCheckoutPrice = selectedAmount > 0 ? selectedAmount : getPlanPrice(selectedPlan === "STARTER" || selectedPlan === "BASIC" ? "BASIC" : "PROFESSIONAL", checkoutYearly);
 
   const handleUpgrade = (plan: string, amount: number, role: string, yearly: boolean) => {
     setSelectedPlan(plan);
@@ -269,23 +276,25 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             {t('pricing.subtitle', 'Unlock the full potential of your content with our premium tools.')}
           </p>
 
-          {/* TOGGLE SWITCH INSIDE HEADER */}
-          <div className="inline-flex items-center justify-center p-1 bg-gray-800 rounded-full border border-gray-700 shadow-xl">
-            <button
-              onClick={() => setIsYearly(false)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${!isYearly ? 'bg-gradient-to-r from-[#CDAD5A] to-[#F2E5BC] text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
-            >
-              {t('pricing.monthly', 'Monthly')}
-            </button>
-            <button
-              onClick={() => setIsYearly(true)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isYearly ? 'bg-gradient-to-r from-[#CDAD5A] to-[#F2E5BC] text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
-            >
-              {t('pricing.yearly', 'Yearly')}
-              <span className={`text-[10px] px-2 py-0.5 rounded-full ${isYearly ? 'bg-black text-white' : 'bg-green-500 text-black'}`}>
-                -30%
-              </span>
-            </button>
+          {/* COMPACT TOGGLE SWITCH - INTEGRATED ABOVE CARDS */}
+          <div className="flex justify-center mb-6">
+            <div className="bg-gray-900/80 backdrop-blur-md p-1 rounded-full border border-gray-700 flex items-center shadow-2xl">
+              <button
+                onClick={() => setIsYearly(false)}
+                className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${!isYearly ? 'bg-gray-700 text-white shadow-inner' : 'text-gray-400 hover:text-white'}`}
+              >
+                {t('pricing.monthly', 'Tháng')}
+              </button>
+              <button
+                onClick={() => setIsYearly(true)}
+                className={`relative px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isYearly ? 'bg-gradient-to-r from-[#CDAD5A] to-[#F2E5BC] text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
+              >
+                {t('pricing.yearly', 'Năm')}
+                <span className="absolute -top-3 -right-3 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm animate-bounce">
+                  -30%
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -293,6 +302,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
           {/* GÓI CƠ BẢN (STARTER) */}
           <PricingCard
             plan="BASIC"
+            title="CƠ BẢN"
             priceMonthly={169000}
             priceYearly={1390000} // ~30% OFF (Original 1.69m)
             features={[
@@ -301,18 +311,20 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
               t('pricing.features.starter3', '✅ Phân tích Đối thủ (20/ngày)'),
               t('pricing.features.starter4', '✅ YouTube Teacher (Ngày 1-10)'),
               t('pricing.features.starter5', '✅ AI Voice Dubbing (10 credits)'),
+              t('pricing.features.starter_thumbnail', '✅ Tạo Thumbnail AI'),
               t('pricing.features.starter6', 'Email support'),
             ]}
             color="#CDAD5A"
             glow="0 0 30px rgba(205,173,90,0.3)"
             isYearly={isYearly}
-            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("STARTER", isYearly ? 1390000 : 169000, "CREATIVE", yearly)}
+            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("STARTER", amount, "CREATIVE", yearly)}
             t={t}
           />
 
           {/* GÓI CHUYÊN NGHIỆP (VIP) */}
           <PricingCard
             plan="PROFESSIONAL"
+            title="CHUYÊN NGHIỆP"
             priceMonthly={499000}
             priceYearly={4190000} // ~30% OFF (Original 4.99m)
             features={[
@@ -334,7 +346,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             isVip
             isFeatured
             isYearly={isYearly}
-            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("VIP", isYearly ? 4190000 : 499000, "VIP", yearly)}
+            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("PRO", amount, "SUPER", yearly)}
             t={t}
           />
         </div>

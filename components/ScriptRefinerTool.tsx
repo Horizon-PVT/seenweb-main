@@ -1,17 +1,28 @@
-// File: components/ScriptRefinerTool.tsx (Hoàn Chỉnh - Gọi Backend)
+// File: components/ScriptRefinerTool.tsx
+// UNIFIED: Same UI and logic as Homepage (pages/tools/script-refiner.tsx)
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useTranslation } from 'next-i18next';
-// Xóa: import { GoogleGenAI, Type } from "@google/genai";
-import { HourglassIcon } from './AnimatedIcons';
-import DOMPurify from 'dompurify'; // Giữ lại import này
+import { useSession } from "next-auth/react";
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
+import DOMPurify from 'dompurify';
+import {
+    ArrowLeft,
+    FileText,
+    Zap,
+    Copy,
+    Download,
+    Repeat,
+    Check,
+    SplitSquareHorizontal,
+    MessageSquare,
+    Sparkles,
+    Maximize2,
+    Minimize2
+} from 'lucide-react';
 
-interface ScriptRefinerToolProps {
-    onBack: () => void;
-}
-
-// Giữ lại interface OutputData
+// --- TYPES ---
 interface OutputData {
     refinedScript: string;
     diffScript: string;
@@ -23,23 +34,16 @@ interface OutputData {
     };
 }
 
-// Giữ lại Loader
-const Loader: React.FC = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center">
-        <div className="w-24 h-24 text-[#008080]">
-            <HourglassIcon />
-        </div>
-        <p className="mt-4 text-sm font-semibold text-[#008080] tracking-widest animate-pulse">ĐANG TÁI CẤU TRÚC...</p>
-    </div>
-);
+interface ScriptRefinerToolProps {
+    onBack?: () => void;
+}
 
-// Bắt đầu Component
-const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
+export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
+    const { data: session } = useSession();
     const router = useRouter();
-    const { t } = useTranslation('common');
     const isEN = router.locale === 'en';
 
-    // --- Các state giữ nguyên ---
+    // --- STATE ---
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [originalScript, setOriginalScript] = useState('');
@@ -51,66 +55,42 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
     const [initialChatRequest, setInitialChatRequest] = useState('');
     const [iterativeChatRequest, setIterativeChatRequest] = useState('');
     const [copySuccess, setCopySuccess] = useState('');
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [showUpgrade, setShowUpgrade] = useState(false);
+
     const buttonRef = useRef<HTMLButtonElement>(null);
     const outputRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // --- Các hàm helper giữ nguyên ---
-
-    // Read URL params from extension and fetch transcript
-    const [fetchingTranscript, setFetchingTranscript] = React.useState(false);
-
-    // Updated Handlers for Manual Workflow
-    React.useEffect(() => {
-        if (router.query.source === 'extension' && router.query.video) {
-            const title = router.query.title as string || '';
-            const isManual = router.query.manual === 'true';
-
-            if (isManual) {
-                setOriginalScript(`👋 Đã nhận tín hiệu từ Extension!\n\nKịch bản đã được copy vào Clipboard.\n\n👉 Vui lòng bấm Ctrl+V (hoặc Cmd+V) để dán vào đây.\n\nVideo: ${title}`);
-            } else {
-                setOriginalScript(`Video: ${title}\n\nVui lòng dán kịch bản vào đây.`);
-            }
-        }
-    }, [router.query.source, router.query.video, router.query.title, router.query.manual]);
-
+    // --- HANDLERS ---
     const handleCopy = () => {
         if (output?.refinedScript) {
             navigator.clipboard.writeText(output.refinedScript).then(() => {
-                setCopySuccess('Đã sao chép!');
+                setCopySuccess('Copied!');
                 setTimeout(() => setCopySuccess(''), 2000);
             });
         }
     };
 
-    const handleExport = (format: 'txt' | 'pdf') => {
+    const handleExport = () => {
         if (!output?.refinedScript) return;
-        if (format === 'pdf') {
-            alert('Chức năng xuất PDF đang được phát triển!');
-            return;
-        }
         const blob = new Blob([output.refinedScript], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = 'refined-script-seenvt.txt';
+        link.download = 'refined-script.txt';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
-    // --- XÓA CÁC HÀM GỌI GEMINI CŨ ---
-    // const runGeminiWithSchema = async (...) => { ... }; // Đã xóa
-    // const runGeminiStreamForUpdate = async (...) => { ... }; // Đã xóa
-
-
-    // --- HÀM handleSubmit MỚI (Gọi Backend /api/script-refiner-initial) ---
+    // --- API: INITIAL REWRITE (Fixed to use API-based quota) ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!originalScript) {
-            setError("Vui lòng nhập nội dung nguyên bản.");
+            setError("Please enter original content.");
             return;
         }
-        buttonRef.current?.classList.add('animate-emerald-pulse-strong');
-        setTimeout(() => buttonRef.current?.classList.remove('animate-emerald-pulse-strong'), 1000);
 
         setIsLoading(true);
         setError('');
@@ -132,25 +112,38 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
 
             const result: any = await response.json();
 
+            // FIX: Check for PLAN errors and show modal (API-based quota)
             if (!response.ok) {
-                throw new Error(result.error || `Lỗi ${response.status}`);
+                const errRaw = result?.error || '';
+                const errStr = String(errRaw).toUpperCase();
+
+                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                    setShowUpgrade(true);
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(result.error || `Error ${response.status}`);
             }
 
             if (!result.refinedScript || !result.diffScript || !result.metrics) {
-                throw new Error("Dữ liệu trả về từ API không đúng cấu trúc.");
+                throw new Error("Invalid API response structure.");
             }
 
             setOutput(result as OutputData);
 
         } catch (err: any) {
-            setError(`Lỗi: ${err.message || "Không thể tái cấu trúc. Vui lòng thử lại."}`);
-            console.error("Lỗi gọi API /api/script-refiner-initial:", err);
+            const errStr = String(err.message || '').toUpperCase();
+            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                setShowUpgrade(true);
+            } else {
+                setError(`Error: ${err.message}`);
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
-    // --- HÀM handleIterativeSubmit MỚI (Gọi Backend /api/script-refiner-iterative) ---
+    // --- API: ITERATIVE CHAT ---
     const handleIterativeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!iterativeChatRequest || !output?.refinedScript) return;
@@ -174,176 +167,261 @@ const ScriptRefinerTool: React.FC<ScriptRefinerToolProps> = ({ onBack }) => {
             const editedScriptText = await response.text();
 
             if (!response.ok) {
-                let errorMessage = `Lỗi ${response.status}: ${editedScriptText}`;
-                try { errorMessage = JSON.parse(editedScriptText).error || errorMessage; } catch (e) { /* Ignore */ }
+                let errorMessage = `Error ${response.status}: ${editedScriptText}`;
+                try { errorMessage = JSON.parse(editedScriptText).error || errorMessage; } catch (e) { }
                 throw new Error(errorMessage);
             }
 
-            // Cập nhật lại refinedScript, giữ nguyên diff/metrics
-            setOutput(prev => prev ? {
-                ...prev,
-                refinedScript: editedScriptText
-            } : null);
-
-            if (outputRef.current) {
-                outputRef.current.classList.add('binary-update-effect');
-                setTimeout(() => {
-                    outputRef.current?.classList.remove('binary-update-effect');
-                }, 500);
-            }
+            setOutput(prev => prev ? { ...prev, refinedScript: editedScriptText } : null);
 
         } catch (err: any) {
-            setError(`Lỗi: ${err.message || "Không thể chỉnh sửa. Vui lòng thử lại."}`);
-            console.error("Lỗi gọi API /api/script-refiner-iterative:", err);
+            setError(`Error: ${err.message}`);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // --- Phần JSX return giữ nguyên ---
-    // (Giống hệt file gốc takeuchi999999999-png/t-ng-1-/t-ng-1--8b1251be0ac36a0ed1b7d1a7a42014a6663853b3/components/ScriptRefinerTool.tsx)
     return (
-        <div className="fade-in-content flex flex-col h-full text-sm p-4 md:p-6 space-y-4 bg-[#1a2e1a] digital-flow-bg bg-opacity-30">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl md:text-2xl text-center font-playfair text-[#90ee90] tracking-wider">
-                    {isEN ? 'SCRIPT REFINER (REWRITE)' : 'V. VIẾT LẠI KỊCH BẢN (SCRIPT REFINER)'}
-                </h2>
-                <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors pr-2">&times; {isEN ? 'Back' : 'Trở Về'}</button>
-            </div>
+        <div className={`min-h-full bg-gray-50 text-gray-900 font-sans flex flex-col transition-all duration-300 ${isFullScreen ? 'fixed inset-0 z-50' : ''} notranslate`} translate="no">
+            {/* HEADER */}
+            <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-20">
+                <div className="flex items-center gap-4">
+                    {onBack && (
+                        <button onClick={onBack} className="text-gray-500 hover:text-black transition-colors">
+                            <ArrowLeft size={20} />
+                        </button>
+                    )}
+                    <div className="h-6 w-px bg-gray-200"></div>
+                    <div className="flex items-center gap-2">
+                        <div className="bg-emerald-100 p-1.5 rounded">
+                            <Sparkles size={16} className="text-emerald-600" />
+                        </div>
+                        <h1 className="text-sm font-bold tracking-wide uppercase text-gray-800">Script Refiner AI</h1>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsFullScreen(!isFullScreen)}
+                        className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded transition-colors"
+                        title="Toggle Fullscreen Focus"
+                    >
+                        {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                    </button>
+                    <div className="px-3 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-semibold text-gray-600">
+                        {isLoading ? 'Processing...' : 'Ready'}
+                    </div>
+                </div>
+            </header>
 
-            {/* Main Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 flex-grow min-h-0">
-                {/* LEFT COLUMN - Form */}
-                <form onSubmit={handleSubmit} className="lg:col-span-4 flex flex-col space-y-3 pr-2 overflow-y-auto">
-                    {/* Original Script Input */}
-                    <div>
-                        <div className="flex justify-between items-end mb-1">
-                            <label className="text-sm font-bold text-[#CDAD5A] font-playfair">{isEN ? 'ORIGINAL CONTENT' : 'NỘI DUNG NGUYÊN BẢN'}</label>
+            {/* MAIN EDITOR AREA */}
+            <main className="flex-grow flex flex-col lg:flex-row overflow-hidden">
+
+                {/* LEFT: INPUT */}
+                <div className={`flex flex-col border-r border-gray-200 bg-white transition-all duration-300 ${output ? 'lg:w-1/2' : 'lg:w-full max-w-4xl mx-auto border-r-0'}`}>
+                    <div className="p-6 flex-grow flex flex-col overflow-hidden">
+                        <div className="flex justify-between items-center mb-4">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                                <FileText size={14} /> Original Draft
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="file"
+                                    accept=".txt,.md,.srt,.vtt"
+                                    className="hidden"
+                                    ref={fileInputRef}
+                                    onClick={(e) => (e.currentTarget.value = '')}
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            const text = event.target?.result;
+                                            if (typeof text === 'string') {
+                                                setOriginalScript(text);
+                                            }
+                                        };
+                                        reader.readAsText(file);
+                                    }}
+                                />
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium hover:underline cursor-pointer flex items-center gap-1"
+                                >
+                                    <Download size={12} className="rotate-180" /> Import File
+                                </button>
+                            </div>
+                        </div>
+
+                        <textarea
+                            value={originalScript}
+                            onChange={e => setOriginalScript(e.target.value)}
+                            placeholder="Paste your rough script, transcript, or import a text file..."
+                            className="flex-grow w-full resize-none outline-none text-base leading-relaxed text-gray-700 placeholder-gray-300"
+                        />
+                    </div>
+
+                    {/* CONTROL BAR */}
+                    <div className="p-6 bg-gray-50 border-t border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Rewrite Level</label>
+                                <select value={rewriteLevel} onChange={e => setRewriteLevel(e.target.value)} className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+                                    <option value="Minor">Minor Polish (Fix grammar)</option>
+                                    <option value="Standard">Standard (Improve flow)</option>
+                                    <option value="Complete">Complete Overhaul (Rewrite)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Goal</label>
+                                <select value={optimizeGoal} onChange={e => setOptimizeGoal(e.target.value)} className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+                                    <option value="Engagement">Maximize Engagement</option>
+                                    <option value="Clarity">Maximize Clarity</option>
+                                    <option value="SEO">SEO Optimization</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Target Language</label>
+                                <select value={language} onChange={e => setLanguage(e.target.value)} className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:border-emerald-500 outline-none">
+                                    <option value="Original">Keep Original</option>
+                                    <option value="English">English (United States)</option>
+                                    <option value="Tiếng Việt">Vietnamese</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 items-end">
+                            <div className="flex-grow">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Custom Instruction (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={initialChatRequest}
+                                    onChange={e => setInitialChatRequest(e.target.value)}
+                                    placeholder="e.g. Make it sound more like a TED Talk..."
+                                    className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:border-emerald-500 outline-none"
+                                />
+                            </div>
                             <button
-                                type="button"
-                                onClick={async () => {
-                                    try {
-                                        const text = await navigator.clipboard.readText();
-                                        if (text) setOriginalScript(text);
-                                        else alert('Clipboard trống!');
-                                    } catch (e) {
-                                        // Manual paste fallback suggestion if permission denied
-                                        alert('Không thể đọc clipboard tự động. Vui lòng bấm vào ô bên dưới và ấn Ctrl+V (hoặc Cmd+V) để dán.');
-                                    }
-                                }}
-                                className="text-[10px] px-2 py-1 bg-[#CDAD5A]/10 border border-[#CDAD5A] text-[#CDAD5A] rounded hover:bg-[#CDAD5A] hover:text-black transition-colors"
+                                onClick={handleSubmit}
+                                disabled={isLoading || !originalScript}
+                                className="bg-emerald-600 text-white font-bold py-2 px-6 rounded shadow-md hover:bg-emerald-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed h-[38px]"
                             >
-                                {isEN ? 'Paste from Clipboard' : 'Dán từ Clipboard'}
+                                {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Zap size={18} />}
+                                Refine
                             </button>
                         </div>
-                        <textarea value={originalScript} onChange={e => setOriginalScript(e.target.value)} placeholder={isEN ? "Paste script or raw text here..." : "Dán kịch bản hoặc văn bản gốc vào đây..."} className="w-full h-48 obsidian-textarea focus:border-[#008080]"></textarea>
+                        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
                     </div>
-                    {/* Rewrite Options */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'REWRITE LEVEL' : 'MỨC ĐỘ VIẾT LẠI'}</label>
-                            <select value={rewriteLevel} onChange={e => setRewriteLevel(e.target.value)} className="w-full obsidian-select">
-                                <option value="Minor">{isEN ? 'Minor Changes' : 'Thay đổi nhỏ'}</option>
-                                <option value="Standard">{isEN ? 'Standard' : 'Tiêu chuẩn'}</option>
-                                <option value="Complete">{isEN ? 'Complete Overhaul' : 'Hoàn toàn mới'}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-[#CDAD5A]">{isEN ? 'OPTIMIZE GOAL' : 'MỤC TIÊU TỐI ƯU'}</label>
-                            <select value={optimizeGoal} onChange={e => setOptimizeGoal(e.target.value)} className="w-full obsidian-select">
-                                <option value="Engagement">{isEN ? 'Engagement' : 'Tương tác'}</option>
-                                <option value="Clarity">{isEN ? 'Clarity' : 'Rõ ràng'}</option>
-                                <option value="SEO">{isEN ? 'SEO' : 'SEO'}</option>
-                            </select>
-                        </div>
-                    </div>
-                    {/* Language Option */}
-                    <div>
-                        <label className="text-xs font-bold text-[#CDAD5A]">CHUYỂN NGÔN NGỮ</label>
-                        <select value={language} onChange={e => setLanguage(e.target.value)} className="w-full obsidian-select">
-                            <option value="Original">Giữ nguyên</option>
-                            <option value="English">Tiếng Anh</option>
-                            <option value="Tiếng Việt">Tiếng Việt</option>
-                            {/* Thêm các ngôn ngữ khác nếu API backend hỗ trợ */}
-                        </select>
-                    </div>
-                    {/* Initial Chat Request */}
-                    <div>
-                        <label className="text-sm font-bold text-[#008080]">{isEN ? 'CHAT: ADDITIONAL INSTRUCTION' : 'CHAT: GỬI HƯỚNG DẪN BỔ SUNG'}</label>
-                        <input type="text" value={initialChatRequest} onChange={e => setInitialChatRequest(e.target.value)} placeholder={isEN ? "Ex: 'Make the hook more dramatic'..." : "VD: 'Phần hook phải kịch tính hơn'..."} className="w-full obsidian-input" />
-                    </div>
-                    {/* Submit Button */}
-                    <button ref={buttonRef} type="submit" disabled={isLoading} className="w-full mt-auto bg-[#008080] text-white font-bold py-3 px-5 border-2 border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow disabled:bg-gray-600 disabled:cursor-not-allowed">
-                        {isLoading && !output ? (isEN ? "RESTRUCTURING..." : "ĐANG TÁI CẤU TRÚC...") : (isEN ? "RESTRUCTURE CONTENT" : "TÁI CẤU TRÚC NỘI DUNG")}
-                    </button>
-                    {/* Error Message */}
-                    {error && <p className="text-red-500 text-center text-xs">{error}</p>}
-                </form>
-
-                {/* RIGHT COLUMN - Output */}
-                <div className="lg:col-span-6 flex flex-col space-y-3 min-h-0">
-                    {/* Loading State */}
-                    {isLoading && !output && <Loader />}
-                    {/* Initial State */}
-                    {!isLoading && !output && (
-                        <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
-                            <div className="w-24 h-24 opacity-20"><HourglassIcon /></div>
-                            <p className="mt-4">Chờ nội dung để tái cấu trúc...</p>
-                        </div>
-                    )}
-                    {/* Output Display */}
-                    {output && (
-                        <>
-                            {/* Metrics Display */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center p-2 bg-black/30 border border-gray-700/50 rounded-sm">
-                                <div><p className="font-bold text-lg text-[#008080]">{output.metrics.uniqueness}</p><p className="text-xs text-gray-400">{isEN ? 'Uniqueness' : 'Độ Độc Đáo'}</p></div>
-                                <div><p className="font-bold text-lg text-gray-300">{output.metrics.similarity}</p><p className="text-xs text-gray-400">{isEN ? 'Similarity' : 'Độ Tương Đồng'}</p></div>
-                                <div><p className="font-bold text-lg text-gray-300">{output.metrics.readTime}</p><p className="text-xs text-gray-400">{isEN ? 'Read Time' : 'Thời Gian Đọc'}</p></div>
-                                <div><p className="font-bold text-lg text-gray-300">{output.metrics.wordCount}</p><p className="text-xs text-gray-400">{isEN ? 'Word Count' : 'Số Từ'}</p></div>
-                            </div>
-
-                            {/* Script/Diff Display */}
-                            <div ref={outputRef} className={`holographic-output flex-grow p-3 text-sm overflow-y-auto whitespace-pre-wrap ${diffView ? 'diff-view' : ''}`}>
-                                {isLoading && <Loader /> /* Hiển thị loader nhỏ khi đang chat */}
-                                {!isLoading && (diffView
-                                    ? <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(output.diffScript) }} />
-                                    : output.refinedScript
-                                )}
-                            </div>
-
-                            {/* Iterative Chat Form */}
-                            <form onSubmit={handleIterativeSubmit} className="space-y-2">
-                                <label className="text-sm font-bold text-[#CDAD5A]">CHAT: YÊU CẦU CHỈNH SỬA THÊM</label>
-                                <div className="flex items-center gap-2">
-                                    <input type="text" value={iterativeChatRequest} onChange={e => setIterativeChatRequest(e.target.value)} placeholder="VD: 'Kéo dài đoạn 3 thêm 50 từ'..." className="w-full obsidian-input !py-1 text-xs" disabled={isLoading} />
-                                    <button type="submit" className="text-xs p-1 px-3 bg-[#008080]/50 border border-[#008080] hover:bg-[#008080] transition-colors rounded-sm disabled:opacity-50" disabled={!iterativeChatRequest || isLoading}>Gửi</button>
-                                </div>
-                            </form>
-
-                            {/* Action Buttons & Diff Toggle */}
-                            <div className="flex items-center justify-between gap-2 flex-wrap">
-                                <div className="flex items-center gap-2">
-                                    <button onClick={handleCopy} className="text-xs py-2 px-3 bg-[#008080] text-white font-bold border border-[#008080] rounded-sm hover:bg-transparent hover:text-[#008080] transition-colors" disabled={isLoading}>{copySuccess || (isEN ? 'COPY' : 'SAO CHÉP')}</button>
-                                    <button onClick={() => alert('Đang phát triển...')} className="text-xs py-2 px-3 bg-[#CDAD5A] text-black font-bold border border-[#CDAD5A] rounded-sm hover:bg-transparent hover:text-[#CDAD5A] transition-colors" disabled={isLoading}>{isEN ? 'SAVE TO LOG' : 'LƯU VÀO LOG'}</button>
-                                    <button onClick={() => handleExport('txt')} className="text-xs py-2 px-3 bg-transparent border border-gray-600 rounded-sm hover:border-[#CDAD5A] hover:text-[#CDAD5A] transition-colors" disabled={isLoading}>{isEN ? 'EXPORT FILE' : 'XUẤT FILE'}</button>
-                                    <button disabled className="text-xs py-2 px-3 bg-gray-700 text-gray-400 font-bold border border-gray-600 rounded-sm cursor-not-allowed flex items-center gap-1">🔒 TTS (MAGISTRATE)</button>
-                                </div>
-                                <div className="flex items-center">
-                                    <label htmlFor="diff-toggle" className="text-xs text-gray-300 mr-2">{isEN ? 'Compared View' : 'Đối Chiếu'}</label>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="diff-toggle" checked={diffView} onChange={() => setDiffView(!diffView)} className="sr-only peer" disabled={isLoading} />
-                                        <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#008080]"></div>
-                                    </label>
-                                </div>
-                            </div>
-                            {copySuccess && <p className="text-xs text-[#CDAD5A] text-right">{copySuccess}</p>}
-                        </>
-                    )}
                 </div>
-            </div>
+
+                {/* RIGHT: OUTPUT */}
+                {output && (
+                    <div className="flex flex-col lg:w-1/2 bg-white animate-in slide-in-from-right duration-500">
+                        {/* METRICS HEADER */}
+                        <div className="bg-gray-50 border-b border-gray-200 p-4 grid grid-cols-4 gap-4">
+                            {[
+                                { label: 'Uniqueness', value: output.metrics.uniqueness, color: 'text-emerald-600' },
+                                { label: 'Similarity', value: output.metrics.similarity, color: 'text-blue-600' },
+                                { label: 'Read Time', value: output.metrics.readTime, color: 'text-gray-700' },
+                                { label: 'Words', value: output.metrics.wordCount, color: 'text-gray-700' },
+                            ].map((m, i) => (
+                                <div key={i} className="text-center">
+                                    <div className={`text-lg font-bold ${m.color}`}>{m.value}</div>
+                                    <div className="text-[10px] uppercase text-gray-400 font-bold">{m.label}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* CONTENT */}
+                        <div className="flex-grow relative overflow-hidden flex flex-col bg-slate-50">
+                            <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-white p-1 rounded-full shadow border border-gray-200">
+                                <button
+                                    onClick={() => setDiffView(false)}
+                                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${!diffView ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:bg-gray-100'}`}
+                                >
+                                    Final
+                                </button>
+                                <button
+                                    onClick={() => setDiffView(true)}
+                                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${diffView ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'}`}
+                                >
+                                    Diff
+                                </button>
+                            </div>
+
+                            <div ref={outputRef} className="flex-grow overflow-y-auto p-8 font-serif text-lg leading-relaxed text-gray-800 whitespace-pre-wrap">
+                                {isLoading && (
+                                    <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-20 flex items-center justify-center">
+                                        <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                                    </div>
+                                )}
+
+                                {diffView ? (
+                                    <div
+                                        className="diff-content"
+                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(output.diffScript) }}
+                                    />
+                                ) : output.refinedScript}
+                            </div>
+
+                            {/* CHAT BAR */}
+                            <div className="p-4 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+                                <form onSubmit={handleIterativeSubmit} className="flex gap-2 relative">
+                                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                                        <MessageSquare size={16} className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={iterativeChatRequest}
+                                        onChange={e => setIterativeChatRequest(e.target.value)}
+                                        placeholder="Ask for changes (e.g. 'Shorten the intro', 'Make it funnier')..."
+                                        className="pl-10 flex-grow bg-gray-100 border-0 rounded-full px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                        disabled={isLoading}
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={!iterativeChatRequest || isLoading}
+                                        className="bg-black text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-800 transition-colors disabled:opacity-50"
+                                    >
+                                        <Repeat size={16} />
+                                    </button>
+                                </form>
+
+                                <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                                    <div className="flex gap-2">
+                                        <button onClick={handleCopy} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                                            {copySuccess ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                                            {copySuccess || 'Copy'}
+                                        </button>
+                                        <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                                            <Download size={14} /> Export
+                                        </button>
+                                    </div>
+                                    <span className="text-[10px] text-gray-400 font-mono">AI Model: Gemini 1.5 Pro</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </main>
+
+            <style jsx global>{`
+                .diff-content del {
+                    background-color: #fee2e2;
+                    text-decoration: none;
+                    color: #b91c1c;
+                    padding: 0 2px;
+                }
+                .diff-content ins {
+                    background-color: #dcfce7;
+                    text-decoration: none;
+                    color: #15803d;
+                    padding: 0 2px;
+                }
+            `}</style>
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
-};
-
-export default ScriptRefinerTool;
+}

@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI, Type } from "@google/genai";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]";
-import { checkUserQuota } from "@/lib/quota";
+import { checkUserQuota, incrementUserUsage } from "@/lib/quota";
 import {
   searchVideos,
   analyzeTopVideos,
@@ -171,7 +171,7 @@ export default async function handler(
   if (!session?.user?.id) return res.status(401).json({ error: "Unauthorized" });
 
   try {
-    await checkUserQuota(session.user.id);
+    await checkUserQuota(session.user.id, 'seo-tool');
   } catch (err: any) {
     return res.status(403).json({ error: err.message });
   }
@@ -287,6 +287,7 @@ B. **CONTENT**:
     // Optional: Fetch YouTube data in background or parallel if needed for future advanced features
     // For now, relies purely on AI Strategy for speed and reasoning
 
+    await incrementUserUsage(session.user.id, 'seo-tool');
     res.status(200).json(data);
   } catch (error: any) {
     console.error("AI Error:", error);

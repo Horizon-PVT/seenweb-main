@@ -116,40 +116,47 @@ export default function Dashboard() {
       <div className="space-y-8">
 
         {/* Welcome Section */}
-        <div className="flex items-end justify-between">
-          <div>
-            <h1 className="text-3xl font-black text-white">
-              {t('dashboard.welcome')} <span className="text-[#CDAD5A]">{session?.user?.name || "Creator"}</span>
-            </h1>
-            <p className="text-gray-400 mt-1">{t('dashboard.subtitle')}</p>
+        <div className="relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold text-white tracking-tight">
+                Chào mừng, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CDAD5A] to-[#F2E0A0]">{session?.user?.name || "Creator"}</span>
+                <span className="ml-2 text-2xl">👋</span>
+              </h1>
+              <p className="text-gray-400 mt-2 text-lg font-light">Hôm nay bạn muốn sáng tạo điều gì tuyệt vời?</p>
+            </div>
           </div>
         </div>
 
-        {/* YouTube Stats Card */}
-        <YouTubeStatsCard userRole={userRole} userEmail={session?.user?.email || ''} />
+        {/* YouTube Stats Card - Wrapped with glass effect */}
+        <div className="backdrop-blur-sm">
+          <YouTubeStatsCard userRole={userRole} userEmail={session?.user?.email || ''} />
+        </div>
 
-        {/* Main Tab System */}
-        <div className="bg-[#1a1a20]/30 rounded-3xl p-6 border border-gray-800/50">
-          <TabNavigation
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            userRole={userRole}
-            onLockedTabClick={handleLockedTabClick}
-          />
+        {/* Main Tab System - Softer container */}
+        <div className="bg-[#1a1a20]/20 rounded-3xl p-1 border border-white/5 backdrop-blur-md shadow-2xl">
+          <div className="bg-[#0D0D10]/40 rounded-[22px] p-6 sm:p-8">
+            <TabNavigation
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              userRole={userRole}
+              onLockedTabClick={handleLockedTabClick}
+            />
 
-          <div className="mt-8">
-            {activeTab === 'start-youtube' && (
-              <Tab1StartYouTube onOpenTool={handleOpenTool} />
-            )}
-            {activeTab === 'optimize' && (
-              <Tab2Optimize onOpenTool={handleOpenTool} />
-            )}
-            {activeTab === 'automation' && (
-              <Tab3Automation onOpenTool={handleOpenTool} />
-            )}
-            {activeTab === 'learning' && (
-              <Tab4Learning onOpenTool={handleOpenTool} />
-            )}
+            <div className="mt-8 animate-fadeIn">
+              {activeTab === 'start-youtube' && (
+                <Tab1StartYouTube onOpenTool={handleOpenTool} />
+              )}
+              {activeTab === 'optimize' && (
+                <Tab2Optimize onOpenTool={handleOpenTool} />
+              )}
+              {activeTab === 'automation' && (
+                <Tab3Automation onOpenTool={handleOpenTool} />
+              )}
+              {activeTab === 'learning' && (
+                <Tab4Learning onOpenTool={handleOpenTool} />
+              )}
+            </div>
           </div>
         </div>
 

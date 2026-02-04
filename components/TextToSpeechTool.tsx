@@ -4,6 +4,8 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'next-i18next';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from './UpgradeModal';
 import VoiceGalleryModal from './VoiceGalleryModal';
 
 interface TextToSpeechToolProps {
@@ -28,6 +30,7 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
     // Tab State: 'text' or 'file'
     const [activeTab, setActiveTab] = useState<'text' | 'file'>('text');
     const [showVoiceGallery, setShowVoiceGallery] = useState(false);
+    const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
     const [galleryTarget, setGalleryTarget] = useState<'voice1' | 'voice2'>('voice1'); // For dialogue mode
 
     // Common State
@@ -206,36 +209,6 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                 const finishedJobId = await pollJobStatus(data.jobId);
 
                 // Download Result
-                const dlRes = await fetch(`/api/tools/tts/check-status?jobId=${finishedJobId}`); // Get correct download link logic or just use download endpoint
-                // Actually the plan says: GET /job/{job_id}/download proxied via check-status? Or separate?
-                // Plan: "Create check-status.ts - Proxy download when status is completed" -> Wait, check-status returns JSON.
-                // We need a download link.
-                // Let's call the Python download endpoint via a proxy? 
-                // Currently `check-status.ts` only returns JSON.
-                // Let's make a direct link to the Python server via local-worker proxy if possible? 
-                // Or better: Use the same `check-status` API to get the download link?
-                // Actually, let's keep it simple: server.py has /job/{id}/download.
-                // WE need to access it. Since it's behind ngrok/cloudflare, the frontend cannot reach it directly easily if CORS/Auth issues.
-                // But we are on localhost for now or cloudflare.
-                // BETTER: Modify `check-status.ts` to handle download OR create `download-job.ts`. 
-                // For now, let's fetch the blob via a new API call?
-                // Actually, let's just use the `check-status` API to return the file if we add a query param `download=true`.
-                // OR simpler: just fetch from python in `handleGenerate` after polling.
-
-                // Fetch the file content via Next.js Proxy (we can reuse generate endpoint logic or make a new one).
-                // Let's hack it: Server.py has /job/{id}/download.
-                // We can't hit 127.0.0.1:8000 from browser if using Cloudflare.
-                // We must proxy through Next.js.
-                // Let's assume we create a temp `/api/tools/tts/download-job?id=...` that proxies.
-                // I forgot to create that in the plan.
-                // I can implement it right here inside `handleGenerate` by fetching through a proxy.
-                // Wait, `check-status.ts` is just a proxy right? 
-                // Let's re-read `check-status.ts` ... it calls `res.json(data)`.
-
-                // I will add a quick `download-job` API or just fetch it here using a clever use of `generate`? No.
-                // I'll create `pages/api/tools/tts/download.ts` quickly next step.
-                // For now, let's assume it exists: `/api/tools/tts/download?jobId=${finishedJobId}`
-
                 setStatusMessage('Downloading file...');
                 const downloadRes = await fetch(`/api/tools/tts/download-result?jobId=${finishedJobId}`);
                 if (!downloadRes.ok) throw new Error('Download failed');
@@ -258,7 +231,10 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                             rate: Math.round((speed - 1) * 100)
                         })
                     });
-                    if (!res.ok) throw new Error('Edge TTS Failed');
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.error || 'Edge TTS Failed');
+                    }
                     const blob = await res.blob();
                     setAudioUrl(URL.createObjectURL(blob));
                     setProgress(100);
@@ -295,6 +271,10 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                 }
             }
         } catch (err: any) {
+            const errStr = String(err.message || '').toUpperCase();
+            if (errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA') || errStr.includes('403')) {
+                setShowUpgrade(true);
+            }
             setError(err.message);
             setStatusMessage('Failed');
         } finally {
@@ -663,6 +643,10 @@ const TextToSpeechTool: React.FC<TextToSpeechToolProps> = ({ onBack }) => {
                     </div>
                 </div>
             )}
+
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 };
