@@ -25,6 +25,7 @@ const nextConfig = {
       { protocol: "https", hostname: "minio.kodaflow.com" },
       { protocol: "https", hostname: "api.dicebear.com" },
       { protocol: "https", hostname: "randomuser.me" },
+      { protocol: "https", hostname: "img.youtube.com" },
     ],
     // Enable image optimization for better performance
     unoptimized: false,

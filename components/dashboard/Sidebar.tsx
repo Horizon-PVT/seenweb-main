@@ -137,6 +137,25 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
                         {!isCollapsed && <span className="text-sm font-medium">AI Coach</span>}
                     </div>
 
+                    {/* Explore Section */}
+                    {!isCollapsed && <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 mt-4 tracking-wider">KHÁM PHÁ</div>}
+                    <div
+                        onClick={() => router.push('/dashboard/trends')}
+                        className={`
+                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl transition-all duration-200 cursor-pointer group mb-1
+                            ${router.pathname === '/dashboard/trends'
+                                ? 'bg-pink-600/20 text-pink-400 font-bold border border-pink-500/30'
+                                : 'text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700'
+                            }
+                        `}
+                        title="Xu hướng"
+                    >
+                        <TrendingUp size={20} strokeWidth={1.5} />
+                        {!isCollapsed && <span className="text-sm font-medium">Xu hướng</span>}
+                    </div>
+
+                    <div className="h-4"></div>
+
                     {/* Upgrade Pro - Moved UP */}
                     <div
                         onClick={() => setShowCheckout(true)}
