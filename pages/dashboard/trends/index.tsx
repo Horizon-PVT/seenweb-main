@@ -24,7 +24,7 @@ export default function TrendsPage({ user }: any) {
     }, []);
 
     return (
-        <DashboardLayout user={user}>
+        <DashboardLayout userRole={user?.role}>
             <Head>
                 <title>Khám phá Xu hướng | SeenYT</title>
             </Head>
