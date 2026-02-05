@@ -54,14 +54,16 @@ export default function TrendsPage({ user }: any) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-    // Basic session check, redirect if not logged in
-    const { getSession } = await import('next-auth/react');
-    const session = await getSession(context);
+    const { getServerSession } = await import('next-auth');
+    const { authOptions } = await import('../../api/auth/[...nextauth]');
+
+    // Check session securely on server
+    const session = await getServerSession(context.req, context.res, authOptions);
 
     if (!session) {
         return {
             redirect: {
-                destination: '/login',
+                destination: '/login', // Adjust this if your login route is different (e.g., '/')
                 permanent: false,
             },
         };
