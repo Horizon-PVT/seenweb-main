@@ -13,9 +13,16 @@ interface Voice {
     description: string;
 }
 
+// Vietnamese preset voices (Edge TTS)
+const VN_PRESET_VOICES: Voice[] = [
+    { id: 'vi-VN-HoaiMyNeural', name: 'Hoài My', gender: 'female', accent: 'VN', description: 'Giọng nữ tự nhiên' },
+    { id: 'vi-VN-NamMinhNeural', name: 'Nam Minh', gender: 'male', accent: 'VN', description: 'Giọng nam trầm ấm' },
+];
+
 const VoiceStudioTool = () => {
     const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<'tts' | 'clone'>('tts');
+    const [language, setLanguage] = useState<'en' | 'vi'>('en');
     const [text, setText] = useState('');
     const [selectedVoice, setSelectedVoice] = useState('alba');
     const [voices, setVoices] = useState<Voice[]>([]);
@@ -86,20 +93,18 @@ const VoiceStudioTool = () => {
         setIsPlaying(true); // Fake visualization during generation
 
         try {
-            const formData = new FormData();
-            formData.append('text', text);
-
-            const isCustom = selectedVoice.startsWith('custom_');
-            if (isCustom) {
-                formData.append('voice', 'custom');
-                formData.append('customVoiceId', selectedVoice);
-            } else {
-                formData.append('voice', selectedVoice);
-            }
+            const isCustom = selectedVoice.startsWith('custom_') || selectedVoice.startsWith('vn_clone_');
 
             const res = await fetch('/api/tools/tts/generate', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text,
+                    voice: selectedVoice,
+                    language,
+                    isVN: language === 'vi',
+                    customVoiceId: isCustom ? selectedVoice : undefined
+                })
             });
 
             if (!res.ok) {
@@ -186,6 +191,22 @@ const VoiceStudioTool = () => {
                             System Online
                         </div>
                     </div>
+                </div>
+
+                {/* Language Toggle */}
+                <div className="flex p-1 bg-black/40 rounded-full border border-white/10">
+                    <button
+                        onClick={() => { setLanguage('en'); setSelectedVoice('alba'); }}
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        🌍 English
+                    </button>
+                    <button
+                        onClick={() => { setLanguage('vi'); setSelectedVoice('vi-VN-HoaiMyNeural'); }}
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'vi' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        🇻🇳 Tiếng Việt
+                    </button>
                 </div>
 
                 {/* Tabs Pills */}
@@ -337,11 +358,18 @@ const VoiceStudioTool = () => {
 
                         {/* Voice Selector Component */}
                         <VoiceSelector
-                            voices={voices}
+                            voices={language === 'vi' ? VN_PRESET_VOICES : voices}
                             selectedVoiceId={selectedVoice}
                             onSelect={setSelectedVoice}
-                            clonedVoices={clonedVoices}
+                            clonedVoices={clonedVoices.filter(v => language === 'vi' ? v.id.startsWith('vn_clone_') : v.id.startsWith('custom_'))}
                         />
+
+                        {/* Language Badge */}
+                        <div className="mt-4 text-center">
+                            <span className={`text-xs px-3 py-1 rounded-full ${language === 'vi' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                {language === 'vi' ? '🇻🇳 Vietnamese Engine (Edge TTS)' : '🌍 English Engine (Pocket TTS)'}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
