@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import TrendGallery from '@/components/TrendGallery';
-import { requireAuth } from '@/lib/auth'; // Assuming this exists or similar auth check
+
 import { GetServerSideProps } from 'next';
 
 export default function TrendsPage({ user }: any) {
