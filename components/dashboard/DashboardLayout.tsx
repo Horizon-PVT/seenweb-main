@@ -1,6 +1,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import Head from 'next/head';
+import AICoachChat from '../ai-coach/AICoachChat';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -38,14 +39,17 @@ export default function DashboardLayout({
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 min-w-0 bg-black min-h-screen">
-                {/* Mobile Header Placeholder (Can add hamburger here later) */}
-
+            <main className="flex-1 min-w-0 bg-black min-h-screen pb-32">
                 {/* Content Container */}
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
                     {children}
                 </div>
             </main>
+
+            {/* AI Coach Chat Widget */}
+            <AICoachChat />
         </div>
     );
 }
+
+

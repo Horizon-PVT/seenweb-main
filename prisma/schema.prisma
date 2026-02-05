@@ -77,6 +77,9 @@ model User {
   youtubeChannels     YouTubeChannel[]
   extraChannelSlots   Int             @default(0) // Extra slots purchased on top of plan limit
 
+  // AI COACH PERSONALIZATION
+  aiCoachSettings     Json?  // { nickname, channelInfo, personality, helpStyle, additionalInfo }
+
   @@map("users")
 }
 

@@ -119,11 +119,29 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
                         {!isCollapsed && <span className="text-sm font-medium">{t('sidebar.overview')}</span>}
                     </div>
 
+                    {/* AI Coach */}
+                    <div
+                        onClick={() => router.push('/dashboard/ai-coach')}
+                        className={`
+                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl transition-all duration-200 cursor-pointer group mb-1
+                            ${router.pathname === '/dashboard/ai-coach'
+                                ? 'bg-purple-600/20 text-purple-400 font-bold border border-purple-500/30'
+                                : 'text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700'
+                            }
+                        `}
+                        title="AI Coach"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        {!isCollapsed && <span className="text-sm font-medium">AI Coach</span>}
+                    </div>
+
                     {/* Upgrade Pro - Moved UP */}
                     <div
                         onClick={() => setShowCheckout(true)}
                         className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl cursor-pointer transition-all duration-300 group mb-6
+                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl cursor-pointer transition-all duration-300 group mb-2
                             bg-gradient-to-r from-purple-600/10 to-blue-600/10 text-purple-400 hover:text-white hover:from-purple-600 hover:to-blue-600 border border-purple-500/20 hover:border-purple-500/50
                         `}
                         title="Nâng cấp Pro"
@@ -132,56 +150,75 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
                         {!isCollapsed && <span className="text-sm font-bold whitespace-nowrap">Nâng cấp Pro</span>}
                     </div>
 
+                    {/* Install Extension */}
+                    <a
+                        href="https://chromewebstore.google.com/detail/seenyt-youtube-seo-ai-gro/ajjimohhpmkhgagldoegomjobgpkffdc"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`
+                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl cursor-pointer transition-all duration-300 group mb-4
+                            bg-gradient-to-r from-green-600/10 to-emerald-600/10 text-green-400 hover:text-white hover:from-green-600 hover:to-emerald-600 border border-green-500/20 hover:border-green-500/50
+                        `}
+                        title="Cài Extension"
+                    >
+                        <svg className="w-5 h-5 group-hover:scale-110 transition-transform flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                        </svg>
+                        {!isCollapsed && <span className="text-sm font-medium whitespace-nowrap">Cài Extension</span>}
+                    </a>
 
                     {/* Tools Section */}
-                    {!isCollapsed && <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 tracking-wider mt-6">{t('sidebar.my_tools')}</div>}
+                    {!isCollapsed && <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 tracking-wider">{t('sidebar.my_tools')}</div>}
                     {isCollapsed && <div className="h-px bg-gray-800 mx-2 my-2"></div>}
 
-                    {/* Grouped Tools */}
-                    {[
-                        { id: 'startup', label: 'Khởi động', icon: Zap },
-                        { id: 'breakthrough', label: 'Vượt rào', icon: TrendingUp },
-                        { id: 'research', label: 'Nghiên cứu', icon: Search },
-                        { id: 'learning', label: 'Học tập', icon: BookOpen },
-                        { id: 'dev', label: 'Đang phát triển', icon: Settings }
-                    ].map((group) => {
-                        const groupTools = TOOLS.filter(t => t.group === group.id);
-                        if (groupTools.length === 0) return null;
+                    {/* Grouped Tools - Scrollable */}
+                    <div className="max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                        {[
+                            { id: 'startup', label: 'Khởi động', icon: Zap },
+                            { id: 'breakthrough', label: 'Vượt rào', icon: TrendingUp },
+                            { id: 'research', label: 'Nghiên cứu', icon: Search },
+                            { id: 'learning', label: 'Học tập', icon: BookOpen },
+                            { id: 'dev', label: 'Đang phát triển', icon: Settings }
+                        ].map((group) => {
+                            const groupTools = TOOLS.filter(t => t.group === group.id);
+                            if (groupTools.length === 0) return null;
 
-                        return (
-                            <div key={group.id} className="mb-4">
-                                {!isCollapsed && (
-                                    <div className="px-4 text-[10px] font-bold text-gray-500 uppercase mb-2 flex items-center gap-2 tracking-wider opacity-70">
-                                        {group.label}
-                                    </div>
-                                )}
-                                {groupTools.map((tool) => {
-                                    const isActive = activeTool === tool.id;
-                                    const Icon = tool.icon;
-
-                                    return (
-                                        <div
-                                            key={tool.id}
-                                            onClick={() => handleToolClick(tool)}
-                                            className={`
-                                                flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-2.5 rounded-xl transition-all duration-200 cursor-pointer group relative mb-1
-                                                ${isActive
-                                                    ? 'bg-gradient-to-r from-purple-900/50 to-blue-900/50 text-white font-medium border border-purple-500/30'
-                                                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                                                }
-                                            `}
-                                            title={tool.label}
-                                        >
-                                            <div className={`text-lg ${isActive ? 'text-white' : (tool.color || 'text-gray-400')} transition-colors`}>
-                                                <Icon size={20} />
-                                            </div>
-                                            {!isCollapsed && <span className="flex-1 text-sm truncate">{tool.label}</span>}
+                            return (
+                                <div key={group.id} className="mb-2">
+                                    {!isCollapsed && (
+                                        <div className="px-4 text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-2 tracking-wider opacity-70">
+                                            {group.label}
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        );
-                    })}
+                                    )}
+                                    {groupTools.map((tool) => {
+                                        const isActive = activeTool === tool.id;
+                                        const Icon = tool.icon;
+
+                                        return (
+                                            <div
+                                                key={tool.id}
+                                                onClick={() => handleToolClick(tool)}
+                                                className={`
+                                                flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-2 rounded-xl transition-all duration-200 cursor-pointer group relative mb-0.5
+                                                ${isActive
+                                                        ? 'bg-gradient-to-r from-purple-900/50 to-blue-900/50 text-white font-medium border border-purple-500/30'
+                                                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                                                    }
+                                            `}
+                                                title={tool.label}
+                                            >
+                                                <div className={`text-lg ${isActive ? 'text-white' : (tool.color || 'text-gray-400')} transition-colors`}>
+                                                    <Icon size={18} />
+                                                </div>
+                                                {!isCollapsed && <span className="flex-1 text-sm truncate">{tool.label}</span>}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })}
+                    </div>
 
                     <div className="h-px bg-gray-800 my-4 mx-4"></div>
                 </nav>
