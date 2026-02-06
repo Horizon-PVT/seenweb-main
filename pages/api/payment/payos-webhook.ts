@@ -90,9 +90,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? JSON.parse(paymentRequest.paymentInfo)
             : {};
 
-        // Find or create user
-        let user = await prisma.user.findUnique({
-            where: { email: paymentRequest.email }
+        // Normalize email to lowercase for case-insensitive matching
+        const normalizedEmail = paymentRequest.email.toLowerCase();
+
+        // Find or create user (case-insensitive email lookup)
+        let user = await prisma.user.findFirst({
+            where: {
+                email: {
+                    equals: normalizedEmail,
+                    mode: 'insensitive'
+                }
+            }
         });
 
         // Calculate dubbing credits based on role
@@ -132,7 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // New User Creation (Unlikely for slot upgrade but safe to have)
             user = await prisma.user.create({
                 data: {
-                    email: paymentRequest.email,
+                    email: normalizedEmail, // Use normalized lowercase email
                     role: isSlotUpgrade ? 'SUPER' : paymentRequest.role, // If slot upgrade, ensure at least SUPER/PRO? Or keep current?
                     // Safe default: If buying slots, they are likely already PRO/SUPER.
                     extraChannelSlots: isSlotUpgrade ? extraSlotsToAdd : 0,

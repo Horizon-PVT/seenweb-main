@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { GoogleGenAI, Modality, GenerateImagesConfig } from "@google/genai";
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 /** FIX 413: allow larger JSON bodies for base64 images */
 export const config = {
@@ -44,8 +45,15 @@ export default async function handler(
 
   // 🔐 Authentication check
   const session = await getServerSession(req, res, authOptions);
-  if (!session) {
+  if (!session || !session.user) {
     return res.status(401).json({ error: "Bạn cần đăng nhập để sử dụng tính năng này." });
+  }
+
+  // 🔒 Quota check
+  try {
+    await checkUserQuota((session.user as any).id, 'image-forge');
+  } catch (err: any) {
+    return res.status(403).json({ error: err.message });
   }
 
   try {
@@ -134,6 +142,7 @@ export default async function handler(
       });
 
       const generatedImages = await Promise.all(calls);
+      await incrementUserUsage((session.user as any).id, 'image-forge');
       return res.status(200).json({ generatedImages });
     }
 
@@ -165,6 +174,7 @@ export default async function handler(
         .filter((url): url is string => typeof url === "string") || [];
     if (!imageUrls.length) throw new Error("Imagen không trả về ảnh (hoặc ảnh bị lỗi).");
 
+    await incrementUserUsage((session.user as any).id, 'image-forge');
     return res.status(200).json({ generatedImages: imageUrls });
   } catch (err: any) {
     console.error("API /api/image-forge error:", err);

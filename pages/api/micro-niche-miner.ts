@@ -27,7 +27,7 @@ export default async function handler(
 
   try {
     // Check quota before calling AI
-    await checkUserQuota(session.user.id);
+    await checkUserQuota(session.user.id, 'micro-niche-miner');
   } catch (err: any) {
     return res.status(403).json({ error: err.message });
   }
@@ -119,7 +119,7 @@ export default async function handler(
     }
 
     // 2. Increment Usage after success
-    await incrementUserUsage(session.user.id);
+    await incrementUserUsage(session.user.id, 'micro-niche-miner');
 
     res.status(200).json(parsedOutput);
 

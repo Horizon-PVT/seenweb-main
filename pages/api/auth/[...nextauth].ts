@@ -73,8 +73,17 @@ export const authOptions: NextAuthOptions = {
       if (!user?.email) return false;
 
       try {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
+        // Normalize email to lowercase for consistent matching
+        const normalizedEmail = user.email.toLowerCase();
+
+        // Case-insensitive email lookup
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            email: {
+              equals: normalizedEmail,
+              mode: 'insensitive'
+            }
+          },
           select: { id: true },
         });
 
@@ -85,7 +94,7 @@ export const authOptions: NextAuthOptions = {
         if (!existingUser) {
           const newUser = await prisma.user.create({
             data: {
-              email: user.email,
+              email: normalizedEmail, // Always store lowercase email
               name: user.name || null,
               image: user.image || null,
               role: "FREE",
@@ -125,11 +134,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token }) {
       if (token.email) {
         try {
-          // Log trigger for debugging (optional if trigger arg was added, but strictly fetching DB here)
-          // console.log("JWT Callback Triggered for:", token.email); 
+          // Normalize email for case-insensitive lookup
+          const normalizedEmail = (token.email as string).toLowerCase();
 
-          const dbUser = await prisma.user.findUnique({
-            where: { email: token.email as string },
+          const dbUser = await prisma.user.findFirst({
+            where: {
+              email: {
+                equals: normalizedEmail,
+                mode: 'insensitive'
+              }
+            },
             select: {
               id: true,
               role: true,
