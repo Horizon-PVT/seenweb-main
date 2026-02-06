@@ -143,7 +143,7 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
     try {
         const videos = await prisma.videoTip.findMany({
             where: { type: 'TUTORIAL' },
-            orderBy: { order: 'asc' },
+            orderBy: { displayOrder: 'asc' },
         });
         tutorialVideos = JSON.parse(JSON.stringify(videos));
     } catch (error) {
