@@ -1,34 +1,40 @@
 
 import React from 'react';
 import { useTranslation } from 'next-i18next';
+import { Rocket } from 'lucide-react';
 
 const FinalCTA: React.FC = () => {
   const { t } = useTranslation('common');
 
   return (
-    <section id="final-cta" className="py-24 bg-gradient-to-t from-black to-gray-900/50">
+    <section id="final-cta" className="py-12 bg-gradient-to-t from-black to-gray-900/50">
       <div className="container mx-auto px-6 text-center">
-        {/* Giant Bronze Hand Icon Placeholder */}
-        <div className="text-8xl text-[#CDAD5A] mb-8 animate-pulse">
-          ✋
+        {/* Compact Icon */}
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-[#CDAD5A]/10 border border-[#CDAD5A]/30 rounded-full mb-6">
+          <Rocket className="w-8 h-8 text-[#CDAD5A]" />
         </div>
-        <h2 className="text-4xl md:text-5xl font-playfair text-[#CDAD5A] mb-6 max-w-4xl mx-auto leading-tight animate-ring inline-block">
-          {t('finalCTA.title', 'STEP INTO THE BATTLE, DON\'T JUST BE A SPECTATOR.')}
+
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 max-w-2xl mx-auto leading-tight">
+          {t('finalCTA.title', 'Hãy bước vào trận chiến, đừng chỉ là khán giả.')}
         </h2>
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-12">
+        <p className="text-gray-400 text-sm mb-6 max-w-lg mx-auto">
+          {t('finalCTA.subtitle', 'Bắt đầu hành trình xây kênh YouTube bền vững ngay hôm nay.')}
+        </p>
+
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
           <a
             href="#pricing"
-            className="w-full sm:w-auto bg-[#008080] text-white font-bold py-4 px-12 text-lg border-2 border-[#008080] rounded-sm transition-all duration-300 transform hover:scale-105 hover:bg-transparent hover:text-[#008080] active:scale-95 emerald-glow inline-block"
+            className="px-8 py-3 bg-gradient-to-r from-[#CDAD5A] to-[#F2D06B] text-black font-bold text-sm rounded-lg hover:shadow-[0_0_20px_rgba(205,173,90,0.5)] transition-all"
           >
-            {t('finalCTA.choosePlan', 'Choose Your Plan Now')}
+            {t('finalCTA.choosePlan', 'Chọn Gói Ngay')}
           </a>
           <a
             href="https://zalo.me/g/lhxazc331"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto text-gray-400 hover:text-white transition-colors py-4 px-12 text-lg inline-block"
+            className="px-8 py-3 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 font-medium text-sm rounded-lg transition-colors"
           >
-            {t('finalCTA.joinCommunity', 'Join SeenYT Community')}
+            {t('finalCTA.joinCommunity', 'Tham gia Cộng đồng')}
           </a>
         </div>
       </div>

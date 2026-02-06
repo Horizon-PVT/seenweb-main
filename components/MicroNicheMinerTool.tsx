@@ -230,12 +230,9 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // --- FREEMIUM GATE (GATED FOR FREE/USER) ---
-    // Minimum Role: SUPER (Professional)
-    if (['FREE', 'USER', 'CREATIVE'].includes(userRole) && userRole !== 'ADMIN') {
-      setShowUpgrade(true);
-      return;
-    }
+    // --- QUOTA HANDLED SERVER-SIDE ---
+    // Removed client-side block to sync with Dashboard logic. 
+    // API will check for 'FREE' quota (1 use) and return 403 if exceeded.
 
     if (!input.trim()) return;
 
@@ -258,11 +255,27 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
       if (response.ok && data.topNiches && Array.isArray(data.topNiches)) {
         setOutput(data as OutputData);
       } else {
+        const errRaw = data?.error || '';
+        const errStr = String(errRaw).toUpperCase();
+
+        // Handle Quota/Plan errors by showing Upgrade Modal
+        if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+          setShowUpgrade(true);
+          return;
+        }
+
         throw new Error(data.error || (isVN ? 'Lỗi phản hồi hệ thống' : 'System Error'));
       }
     } catch (error: any) {
       console.error('Miner Error:', error);
-      alert((isVN ? 'Lỗi: ' : 'Error: ') + error.message);
+      const errStr = String(error.message || '').toUpperCase();
+
+      // Safety catch for standard errors that might contain quota keywords
+      if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+        setShowUpgrade(true);
+      } else {
+        alert((isVN ? 'Lỗi: ' : 'Error: ') + error.message);
+      }
     } finally {
       setIsLoading(false);
     }

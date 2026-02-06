@@ -23,7 +23,8 @@ export default function AdminPromotions({ session }: any) {
         minOrder: 0,
         usageLimit: null as number | null,
         status: 'ACTIVE',
-        description: ''
+        description: '',
+        imageUrl: ''
     });
 
     useEffect(() => { fetchData(); }, [activeTab]);
@@ -52,6 +53,7 @@ export default function AdminPromotions({ session }: any) {
                 usageLimit: item.usageLimit || null,
                 status: item.status,
                 description: item.description || '',
+                imageUrl: item.imageUrl || '',
             });
         } else {
             setEditingItem(null);
@@ -65,7 +67,8 @@ export default function AdminPromotions({ session }: any) {
                 minOrder: 0,
                 usageLimit: null,
                 status: 'ACTIVE',
-                description: ''
+                description: '',
+                imageUrl: ''
             });
         }
         setShowModal(true);
@@ -188,6 +191,57 @@ export default function AdminPromotions({ session }: any) {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại khuyến mại *</label><select value={formData.promotionType} onChange={(e) => setFormData({ ...formData, promotionType: e.target.value as PromotionType })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="CODE">Mã khuyến mại</option><option value="PROGRAM">Chương trình khuyến mại</option></select></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Mã *</label><input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white uppercase focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
+
+                            {/* Image Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Ảnh banner (Tùy chọn)</label>
+                                <div className="flex items-start space-x-4">
+                                    <div className="flex-1">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+
+                                                const data = new FormData();
+                                                data.append('file', file);
+
+                                                try {
+                                                    const res = await fetch('/api/admin/upload', {
+                                                        method: 'POST',
+                                                        body: data,
+                                                    });
+                                                    const json = await res.json();
+                                                    if (json.url) {
+                                                        setFormData({ ...formData, imageUrl: json.url });
+                                                    } else {
+                                                        alert('Upload failed: ' + (json.error || 'Unknown error'));
+                                                    }
+                                                } catch (err) {
+                                                    console.error(err);
+                                                    alert('Upload error');
+                                                }
+                                            }}
+                                            className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#CDAD5A] file:text-black hover:file:bg-[#bfa04d]"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">Hỗ trợ JPG, PNG. Tối đa 5MB.</p>
+                                    </div>
+                                    {formData.imageUrl && (
+                                        <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-gray-600 group">
+                                            <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Loại giảm giá *</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="PERCENT">Phần trăm (%)</option><option value="FIXED">Cố định (VND)</option><option value="BONUS_DAYS">Tặng thêm ngày</option></select></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">{formData.type === 'BONUS_DAYS' ? 'Số ngày tặng thêm *' : 'Giá trị *'}</label><input type="number" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) })} placeholder={formData.type === 'BONUS_DAYS' ? 'VD: 15 (tặng thêm 15 ngày)' : ''} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Đơn tối thiểu</label><input type="number" value={formData.minOrder} onChange={(e) => setFormData({ ...formData, minOrder: parseFloat(e.target.value) })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
@@ -200,6 +254,10 @@ export default function AdminPromotions({ session }: any) {
                             </div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Trạng thái</label><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="ACTIVE">Hoạt động</option><option value="INACTIVE">Tắt</option></select></div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Mô tả</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]" /></div>
+
+                            {/* Image Upload */}
+
+
                             <div className="flex justify-end space-x-3 pt-4">
                                 <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">Hủy</button>
                                 <button type="submit" className="px-6 py-2 bg-gradient-to-r from-[#008080] to-[#CDAD5A] text-white rounded-lg hover:opacity-90">{editingItem ? 'Cập nhật' : 'Tạo mới'}</button>

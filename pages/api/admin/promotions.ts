@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (req.method === 'POST') {
-            const { code, type, value, promotionType, startDate, endDate, minOrder, usageLimit, status, description } = req.body;
+            const { code, type, value, promotionType, startDate, endDate, minOrder, usageLimit, status, description, imageUrl } = req.body;
             if (!code || !type || value === undefined) return res.status(400).json({ error: 'Code, type and value are required' });
 
             const promo = await prisma.promotion.create({
@@ -36,13 +36,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     usageLimit: usageLimit || null,
                     status: status || 'ACTIVE',
                     description: description || null,
+                    imageUrl: imageUrl || null,
                 },
             });
             return res.status(201).json(promo);
         }
 
         if (req.method === 'PUT') {
-            const { id, code, type, value, promotionType, startDate, endDate, minOrder, usageLimit, status, description } = req.body;
+            const { id, code, type, value, promotionType, startDate, endDate, minOrder, usageLimit, status, description, imageUrl } = req.body;
             if (!id) return res.status(400).json({ error: 'Promotion ID is required' });
 
             const updateData: any = {};
@@ -56,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (usageLimit !== undefined) updateData.usageLimit = usageLimit || null;
             if (status !== undefined) updateData.status = status;
             if (description !== undefined) updateData.description = description || null;
+            if (imageUrl !== undefined) updateData.imageUrl = imageUrl || null;
 
             const promo = await prisma.promotion.update({ where: { id }, data: updateData });
             return res.status(200).json(promo);

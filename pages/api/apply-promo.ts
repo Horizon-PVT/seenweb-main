@@ -38,11 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ error: 'Mã khuyến mại không còn hiệu lực' });
         }
 
-        // Validate promotion type (only CODE can be applied)
-        if (promo.promotionType !== 'CODE') {
-            console.log('[Apply Promo] Invalid promotionType:', promo.promotionType);
-            return res.status(400).json({ error: 'Mã này không thể áp dụng trực tiếp' });
-        }
+        // Validate promotion type (Allow both CODE and PROGRAM if they have a code)
+        // if (promo.promotionType !== 'CODE') {
+        //     console.log('[Apply Promo] Invalid promotionType:', promo.promotionType);
+        //     return res.status(400).json({ error: 'Mã này không thể áp dụng trực tiếp' });
+        // }
 
         // Validate date range
         const now = new Date();

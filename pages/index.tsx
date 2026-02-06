@@ -34,14 +34,14 @@ import HeroSection from "../components/HeroSection";
 import CreatorMeritSection from "../components/CreatorMeritSection";
 import KnowledgeSection from "../components/KnowledgeSection";
 import VideoTipsSection from "../components/VideoTipsSection";
-import CoachingSection from "../components/CoachingSection";
+import ExploreSection from "../components/ExploreSection";
 import ToolsGrid from "../components/ToolsGrid";
 import Partners from "../components/Partners";
 import Projects from "../components/Projects";
 import Testimonials from "../components/Testimonials";
 import BlogTeaser from "../components/BlogTeaser";
 import PricingTable from "../components/PricingTable";
-import AffiliateSection from "../components/AffiliateSection";
+// AffiliateSection merged into ExploreSection
 import FinalCTA from "../components/FinalCTA";
 import OnboardingModal from "../components/OnboardingModal";
 
@@ -208,14 +208,10 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
 
         <Testimonials />
 
-        {/* Tool Guides (Priority: DB -> Fallback) */}
-        <VideoTipsSection
-          tag={t('home.tools_section.tag')}
-          title={<span className="text-[#CDAD5A]">{t('home.tools_section.title')}</span>}
-          subtitle={t('home.tools_section.subtitle')}
-          videos={(tutorialVideos && tutorialVideos.length > 0) ? tutorialVideos : DEFAULT_TOOL_VIDEOS}
-          variant="compact"
-        />
+        {/* ✅ Anchor để nút "Quay lại menu" cuộn về đúng vị trí */}
+        <section id="bang-cong-cu-seenyt">
+          <ToolsGrid />
+        </section>
 
         {/* Course Series (Hardcoded or DB) */}
         <VideoTipsSection
@@ -226,27 +222,20 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
           videos={VIDEO_SERIES_2026}
         />
 
-        <KnowledgeSection featuredVideo={featuredStrategyVideo} articles={articles} />
-        {/* PromotionCarousel moved to Left Sidebar */}
-
-        {/* ✅ Anchor để nút "Quay lại menu" cuộn về đúng vị trí */}
-        <section id="bang-cong-cu-seenyt">
-          <ToolsGrid />
-        </section>
-
         <section id="pricing" className="scroll-mt-20">
           <PricingTable />
         </section>
 
-        <CoachingSection />
-        <AffiliateSection />
-        <FinalCTA />
+        <KnowledgeSection featuredVideo={featuredStrategyVideo} articles={articles} />
+
+        <ExploreSection />
         <FAQ />
+        <FinalCTA />
       </main>
       <Footer />
       <ChatbotWidget />
-      <FloatingSidebar />
-      <LeftPromotionSidebar />
+      <ChatbotWidget />
+      {/* Sidebars REMOVED for clean layout */}
 
       {/* ✅ Overlay full-screen: mở cho TẤT CẢ tool */}
       {openAnyTool && toolId && (

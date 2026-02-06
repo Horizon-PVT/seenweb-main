@@ -23,9 +23,13 @@ const Header: React.FC = () => {
     targetId: string
   ) => {
     e.preventDefault();
-    const targetElement = document.querySelector(targetId);
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (router.pathname === '/') {
+      const targetElement = document.querySelector(targetId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else {
+      router.push('/' + targetId);
     }
   };
 
@@ -114,7 +118,7 @@ const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* 4. Khám phá Dropdown */}
+          {/* 4. Khám phá Dropdown (Updated with Promotions) */}
           <div className="relative group">
             <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm py-2">
               Khám phá
@@ -132,6 +136,52 @@ const Header: React.FC = () => {
                 className="block px-4 py-3 text-sm text-cyan-400 hover:bg-white/5 hover:text-cyan-300 transition-colors font-bold tracking-wide"
               >
                 TUYỂN DỤNG
+              </Link>
+              {/* New Promotion Link */}
+              <Link
+                href="/promotions"
+                className="block px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors font-bold tracking-wide flex items-center gap-2"
+              >
+                <span className="text-yellow-400">🎁</span> KHUYẾN MẠI
+              </Link>
+            </div>
+          </div>
+
+          {/* 5. Hỗ trợ (Support) Dropdown - New */}
+          <div className="relative group">
+            <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-sm py-2">
+              Hỗ trợ
+              <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b] border border-white/10 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
+              <a
+                href="https://zalo.me/g/lhxazc331"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-4 py-3 text-sm text-blue-400 hover:bg-white/5 hover:text-blue-300 transition-colors flex items-center gap-2"
+              >
+                💬 Zalo Hỗ Trợ
+              </a>
+              <a
+                href="https://www.facebook.com/profile.php?id=61585796132941"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-4 py-3 text-sm text-blue-600 hover:bg-white/5 hover:text-blue-500 transition-colors flex items-center gap-2"
+              >
+                📘 Facebook
+              </a>
+              <a
+                href="https://t.me/AdSeenYT"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-4 py-3 text-sm text-sky-400 hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center gap-2"
+              >
+                ✈️ Telegram
+              </a>
+              <Link href="/guides">
+                <span className="block px-4 py-3 text-sm text-[#CDAD5A] hover:bg-white/5 hover:text-yellow-300 transition-colors flex items-center gap-2 cursor-pointer">
+                  📚 Hướng dẫn sử dụng
+                </span>
               </Link>
             </div>
           </div>
