@@ -32,10 +32,10 @@ export default function CheckoutModal({
         setMounted(true);
     }, []);
 
-    // CONTEXTUAL LOGIC STATE
-    const isFree = currentChannelCount === 0;
-    const isBasic = currentChannelCount === 1;
-    const isPro = currentChannelCount >= 2;
+    // CONTEXTUAL LOGIC STATE — use actual plan role, not channel count
+    const isFree = !currentPlan || currentPlan === 'FREE' || currentPlan === 'USER';
+    const isBasic = currentPlan === 'BASIC';
+    const isPro = currentPlan === 'PRO' || currentPlan === 'ADMIN';
 
     // Smart Defaults based on User State
     useEffect(() => {
@@ -115,11 +115,12 @@ export default function CheckoutModal({
                 email,
                 amount: Math.round(displayPrice),
                 plan: planDescription,
-                role: targetPlanRole, // This might need refinement in backend to handle specific slot counts? 
-                // For now, let's rely on amount verification or we might need to send extraChannelSlots count.
-                // But the prompt just asked to fix the button first.
-                // Let's assume backend/manual upgrade handles the role assignment based on amount/desc or logic later.
-                note: `Channels: ${channelCount}, Cycle: ${billingCycle}`
+                role: targetPlanRole,
+                note: `Channels: ${channelCount}, Cycle: ${billingCycle}`,
+                // Explicit data for webhook — no more text parsing
+                billingCycle,
+                isSlotUpgrade: isUpgrade,
+                extraChannelSlots: isUpgrade ? (channelCount - currentChannelCount) : 0
             });
 
             if (res.data.success && res.data.data.paymentUrl) {
@@ -244,7 +245,7 @@ export default function CheckoutModal({
                                         <div className="relative h-12 flex items-center">
                                             <input
                                                 type="range"
-                                                min={currentChannelCount || 3}
+                                                min={Math.max(currentChannelCount + 1, 3)}
                                                 max="10"
                                                 step="1"
                                                 value={channelCount}

@@ -26,10 +26,8 @@ export function calculatePrice(channels: number, billing: 'MONTHLY' | 'YEARLY'):
         // User explicitly stated: 499k/month for Pro (2 channels)
         monthlyTotal = 499000;
     } else {
-        // 3+ Channels: Pro Base + (N-2) * Extra (139k)
-        // Assuming extra slot pricing remains similar or should scale? 
-        // Let's keep extra slot add-on logic but base it on 499k.
-        monthlyTotal = 499000 + ((channels - 2) * 150000); // Bump extra slot slightly to 150k or keep 139? Let's use 150k for rounder numbers or keep 139k. User didn't specify extra slot price.
+        // 3+ Channels: Pro Base + (N-2) * Extra Slot Price
+        monthlyTotal = 499000 + ((channels - 2) * PRICING_CONFIG.EXTRA_SLOT);
     }
 
     if (billing === 'YEARLY') {

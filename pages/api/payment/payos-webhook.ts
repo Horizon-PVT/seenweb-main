@@ -111,28 +111,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // ... (User find/create logic above)
 
         // LOGIC TO DETERMINE UPGRADE TYPE
-        // 1. Check if it's a SLOT UPGRADE
-        const description = (paymentInfo.plan || '').toString().toLowerCase(); // e.g., "nang cap them 1 slot"
-        const note = (paymentInfo.note || '').toString().toLowerCase();
+        // Read explicit data from paymentInfo instead of parsing text
+        const billingCycle = (paymentInfo.billingCycle || 'MONTHLY').toString().toUpperCase();
+        const isSlotUpgrade = paymentInfo.isSlotUpgrade === true;
+        let extraSlotsToAdd = isSlotUpgrade ? (parseInt(paymentInfo.extraChannelSlots) || 1) : 0;
 
-        let extraSlotsToAdd = 0;
-        let isSlotUpgrade = false;
-
-        if (description.includes('slot') || note.includes('slot')) {
-            isSlotUpgrade = true;
-            // Parse number of slots if possible, default to 1
-            // Use Regex to find number before "slot" or "channel"?
-            // Simplest: Check amount / 139000? Or assume 1 for now based on button logic.
-            // But user might buy multiple. Let's rely on amount if description is vague.
-            // For now, let's assume safely 1 slot if it's a slot upgrade packet from the modal.
-            // Better: Parse "them X slot" from description.
-            const match = description.match(/them (\d+) slot/);
-            if (match && match[1]) {
-                extraSlotsToAdd = parseInt(match[1]);
-            } else {
-                extraSlotsToAdd = 1; // Default fallback
-            }
-        }
+        // Membership duration based on billing cycle
+        const membershipDays = billingCycle === 'YEARLY' ? 365 : 30;
 
         // 2. Logic to update User
         if (!user) {
@@ -143,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     role: isSlotUpgrade ? 'PRO' : paymentRequest.role, // If slot upgrade, ensure at least PRO
                     // Safe default: If buying slots, they are likely already PRO.
                     extraChannelSlots: isSlotUpgrade ? extraSlotsToAdd : 0,
-                    membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                    membershipExpiry: new Date(Date.now() + membershipDays * 24 * 60 * 60 * 1000),
                     dubbingCredits: 10, // Default starter
                     maxDailyUsage: USAGE_LIMITS[(isSlotUpgrade ? 'PRO' : paymentRequest.role) as keyof typeof USAGE_LIMITS] || 3,
                 }
@@ -152,9 +137,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const currentExpiry = user.membershipExpiry || new Date();
             const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
 
-            // Prepare update data
+            // Prepare update data — extend by correct number of days based on billing cycle
             const updateData: any = {
-                membershipExpiry: new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000), // Extend 30 days
+                membershipExpiry: new Date(baseDate.getTime() + membershipDays * 24 * 60 * 60 * 1000),
             };
 
             // If it's a Slot Upgrade, increment slots, DO NOT change role

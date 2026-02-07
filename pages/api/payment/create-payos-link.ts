@@ -26,7 +26,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         plan,
         role = 'BASIC',
         note = '',
-        referralCode = null
+        referralCode = null,
+        // New explicit fields for webhook processing
+        billingCycle = 'MONTHLY',
+        isSlotUpgrade = false,
+        extraChannelSlots = 0
     } = req.body;
 
     try {
@@ -41,13 +45,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 2. Generate unique order code
         const orderCode = Number(String(Date.now()).slice(-8));
 
-        // 3. Prepare payment info
+        // 3. Prepare payment info — includes all data webhook needs
         const paymentInfoObject = {
             plan,
             role,
             amount,
             note,
             referralCode,
+            billingCycle,
+            isSlotUpgrade,
+            extraChannelSlots,
             timestamp: new Date().toISOString()
         };
 
