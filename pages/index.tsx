@@ -234,7 +234,6 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
       </main>
       <Footer />
       <ChatbotWidget />
-      <ChatbotWidget />
       {/* Sidebars REMOVED for clean layout */}
 
       {/* ✅ Overlay full-screen: mở cho TẤT CẢ tool */}
