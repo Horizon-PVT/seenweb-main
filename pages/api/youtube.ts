@@ -24,9 +24,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
   }
 
+  // 🔍 DEBUG: Log session data to find root cause
+  const userId = (session.user as any)?.id;
+  const userRole = (session.user as any)?.role;
+  const userEmail = session.user?.email;
+  console.log(`[YOUTUBE API DEBUG] User: ${userEmail}, Role: ${userRole}, ID: ${userId}`);
+
   const { tool, input, macroNiche, outputLanguage = 'Tiếng Việt' } = req.body;
 
   if (!tool) return res.status(400).json({ error: 'Thiếu tool' });
+
+  // 🛡️ Guard: If user.id is missing from session, we can't check quota
+  if (!userId) {
+    console.error(`[YOUTUBE API] CRITICAL: session.user.id is missing! Email: ${userEmail}, Role: ${userRole}`);
+    console.error(`[YOUTUBE API] Full session.user:`, JSON.stringify(session.user));
+    return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng xuất và đăng nhập lại.' });
+  }
 
   // 🛡️ QUOTA CHECK
   const toolIdMap: Record<string, string> = {
@@ -37,8 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const resolvedToolId = toolIdMap[tool] || tool;
 
   try {
-    await checkUserQuota((session.user as any).id, resolvedToolId);
+    await checkUserQuota(userId, resolvedToolId);
   } catch (error: any) {
+    console.log(`[YOUTUBE API] Quota check FAILED for ${userEmail} (role: ${userRole}): ${error.message}`);
     if (error.message === 'PLAN_LOCKED') {
       return res.status(403).json({ error: 'PLAN_LOCKED', message: 'Vui lòng nâng cấp để sử dụng tính năng này.' });
     }

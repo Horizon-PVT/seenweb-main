@@ -24,14 +24,8 @@ export default function DubbingTool() {
 
     // STEP 1: Process Video
     const handleTranscribe = async () => {
-        // --- FREEMIUM GATE CHECK ---
-        const userRole = ((session?.user as any)?.role || "FREE");
-        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
-        if (!allowed) {
-            setShowUpgrade(true);
-            return;
-        }
-        // ---------------------------
+        // Access control is handled by the backend API quota check
+        // Do NOT gate here - session.user.role may be undefined even for ADMIN users
 
         if (!videoUrl) return;
         setLoading(true);
@@ -66,14 +60,8 @@ export default function DubbingTool() {
 
     // STEP 2: Synthesize & Merge
     const handleSynthesize = async () => {
-        // --- FREEMIUM GATE CHECK ---
-        const userRole = ((session?.user as any)?.role || "FREE");
-        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
-        if (!allowed) {
-            setShowUpgrade(true);
-            return;
-        }
-        // ---------------------------
+        // Access control is handled by the backend API quota check
+        // Do NOT gate here - session.user.role may be undefined even for ADMIN users
 
         setLoading(true);
         setLogs([]);

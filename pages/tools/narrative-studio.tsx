@@ -121,14 +121,8 @@ export default function NarrativeStudioPage() {
 
     // --- LOGIC: GENERATE SCENES ---
     const handleGenerateScenes = async () => {
-        // --- FREEMIUM GATE CHECK ---
-        const userRole = ((session?.user as any)?.role || "FREE");
-        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
-        if (!allowed) {
-            setShowUpgrade(true);
-            return;
-        }
-        // ---------------------------
+        // Access control is handled by the backend API quota check
+        // Do NOT gate here - session.user.role may be undefined even for ADMIN users
 
         setError(null);
         setIsLoading(true);

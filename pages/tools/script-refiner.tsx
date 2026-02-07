@@ -97,14 +97,8 @@ export default function ScriptRefinerPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // --- FREEMIUM GATE CHECK ---
-        const userRole = ((session?.user as any)?.role || "FREE");
-        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
-        if (!allowed) {
-            setShowUpgrade(true);
-            return;
-        }
-        // ---------------------------
+        // Access control is handled by the backend API quota check
+        // Do NOT gate here - session.user.role may be undefined even for ADMIN users
 
         if (!originalScript) {
             setError("Please enter original content.");
