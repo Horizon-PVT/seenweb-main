@@ -89,7 +89,7 @@ const Header: React.FC = () => {
         </Link>
 
         {/* DESKTOP NAV */}
-        <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
+        <nav id="desktop-nav" className="hidden md:flex items-center space-x-4 lg:space-x-6">
           {/* 0. Newbie */}
           <Link
             href="/new-youtuber"
@@ -246,6 +246,7 @@ const Header: React.FC = () => {
 
           {/* HAMBURGER BUTTON - mobile only */}
           <button
+            id="mobile-hamburger"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-1.5 ml-1"
             aria-label="Toggle menu"
