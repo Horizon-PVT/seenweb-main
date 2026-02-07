@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import "@/styles/custom-styles.css"; // Import styles tùy chỉnh toàn cục
+import "@/styles/responsive-failsafe.css"; // GLOBAL fix: ensures Tailwind responsive classes work on ALL machines
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { SessionProvider } from "next-auth/react";
