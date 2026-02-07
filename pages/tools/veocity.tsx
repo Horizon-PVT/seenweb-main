@@ -119,12 +119,8 @@ export default function VeocityPage() {
             setPhase('timeline');
 
         } catch (err: any) {
-            const errStr = String(err.message || '').toUpperCase();
-            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
-                setShowUpgrade(true);
-            } else {
-                setError(`Analysis Failed: ${err.message}`);
-            }
+            console.error('Veocity Error:', err);
+            setError(`Analysis Failed: ${err.message}`);
         } finally {
             setIsLoading(false);
         }

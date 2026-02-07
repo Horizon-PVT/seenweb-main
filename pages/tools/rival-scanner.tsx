@@ -114,25 +114,19 @@ export default function RivalScannerPage() {
             } else {
                 const errRaw = data?.error || '';
                 const errStr = String(errRaw).toUpperCase();
-                // Check multiple variations of plan/quota errors
-                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                // ONLY show upgrade for SPECIFIC plan errors, NOT system errors
+                const isPlanError = errStr.includes('PLAN_LOCKED') || errStr.includes('FREE_QUOTA_EXCEEDED');
+                if (response.status === 403 && isPlanError) {
                     setShowUpgrade(true);
                 } else {
-                    // Fallback for other errors (Logic already handled upgrade above)
                     console.error('API Error:', errRaw);
+                    alert(errRaw || 'Có lỗi xảy ra, vui lòng thử lại.');
                 }
                 setIsLoading(false);
             }
         } catch (error: any) {
-            console.error('[RIVAL-SCANNER DEBUG] Caught error:', error);
-            const errStr = String(error.message || '').toUpperCase();
-            console.log('[RIVAL-SCANNER DEBUG] Error string:', errStr);
-            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
-                console.log('[RIVAL-SCANNER DEBUG] PLAN ERROR DETECTED - SHOWING UPGRADE MODAL');
-                setShowUpgrade(true);
-            } else {
-                console.error("Rival Scanner Error", error);
-            }
+            console.error('Rival Scanner Error:', error);
+            alert('Lỗi kết nối, vui lòng thử lại.');
             setIsLoading(false);
         }
     };

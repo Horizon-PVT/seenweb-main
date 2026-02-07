@@ -98,7 +98,9 @@ export default function HiddenChannelFinderPage() {
                 const errRaw = data?.error || '';
                 const errStr = String(errRaw).toUpperCase();
 
-                if (res.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                // ONLY show upgrade for SPECIFIC plan errors, NOT system errors
+                const isPlanError = errStr.includes('PLAN_LOCKED') || errStr.includes('FREE_QUOTA_EXCEEDED');
+                if (res.status === 403 && isPlanError) {
                     setShowUpgrade(true);
                     setIsLoading(false);
                     return;
@@ -113,13 +115,8 @@ export default function HiddenChannelFinderPage() {
 
             setOutput(data);
         } catch (err: any) {
-            const errStr = String(err.message || '').toUpperCase();
-            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
-                setShowUpgrade(true);
-            } else {
-                setError(err.message || 'Sonar malfunction. Scan failed.');
-            }
-            console.error(err);
+            console.error('Hidden Channel Finder Error:', err);
+            setError(err.message || 'Sonar malfunction. Scan failed.');
         } finally {
             setIsLoading(false);
         }

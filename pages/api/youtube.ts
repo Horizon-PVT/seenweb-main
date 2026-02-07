@@ -511,8 +511,10 @@ RETURN ONLY PURE JSON, START WITH { AND END WITH }, NO MISSING BRACKETS, NO EXTR
   } catch (error: any) {
     console.error("Server error:", error.message);
     if (error.response?.status === 403 || error.message.includes('quota')) {
-      return res.status(429).json({ error: 'Quota YouTube API vượt quá, thử lại sau 5 phút nhé!' });
+      // IMPORTANT: Do NOT use words like 'quota', 'limit', 'plan', 'locked' in error messages
+      // because frontend will match them and show upgrade modal incorrectly!
+      return res.status(429).json({ error: 'SYSTEM_ERROR: YouTube API tạm hết lượt gọi. Vui lòng thử lại sau 5 phút.' });
     }
-    return res.status(500).json({ error: 'Lỗi server: ' + error.message });
+    return res.status(500).json({ error: 'SYSTEM_ERROR: Lỗi hệ thống, vui lòng thử lại.' });
   }
 }

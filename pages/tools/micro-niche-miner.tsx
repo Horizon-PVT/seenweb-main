@@ -242,23 +242,18 @@ export default function MicroNicheMinerPage() {
                 const errRaw = data?.error || '';
                 const errStr = String(errRaw).toUpperCase();
 
-                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
+                // ONLY show upgrade for SPECIFIC plan errors, NOT system errors
+                const isPlanError = errStr.includes('PLAN_LOCKED') || errStr.includes('FREE_QUOTA_EXCEEDED');
+                if (response.status === 403 && isPlanError) {
                     setShowUpgrade(true);
                 } else {
                     console.error('Miner API Error:', errRaw);
+                    alert(errRaw || 'Có lỗi xảy ra, vui lòng thử lại.');
                 }
             }
         } catch (error: any) {
             console.error('Miner Network Error:', error);
-            const errStr = String(error.message || '').toUpperCase();
-            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
-                setShowUpgrade(true);
-            } else {
-                // Only alert if it's NOT a plan error
-                // alert((isVN ? 'Lỗi: ' : 'Error: ') + error.message);
-                // Better to just log it to avoid UI blocking
-                console.error("System Error", error);
-            }
+            alert('Lỗi kết nối, vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
