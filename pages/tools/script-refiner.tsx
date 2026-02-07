@@ -58,6 +58,16 @@ export default function ScriptRefinerPage() {
     const buttonRef = useRef<HTMLButtonElement>(null);
     const outputRef = useRef<HTMLDivElement>(null);
 
+    // Helper: strip SRT/VTT timestamps and sequence numbers from text
+    const stripSrt = (text: string): string => {
+        return text
+            .replace(/^WEBVTT.*$/m, '')                           // VTT header
+            .replace(/^\d+\s*$/gm, '')                            // Sequence numbers
+            .replace(/\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->.*$/gm, '') // Timestamps
+            .replace(/\n{3,}/g, '\n\n')                           // Collapse blank lines
+            .trim();
+    };
+
     // --- EFFECT: EXTENSION INTEGRATION ---
     useEffect(() => {
         if (router.query.source === 'extension' && router.query.video) {
@@ -115,7 +125,7 @@ export default function ScriptRefinerPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    originalScript,
+                    originalScript: stripSrt(originalScript),
                     rewriteLevel,
                     optimizeGoal,
                     language,
@@ -248,7 +258,8 @@ export default function ScriptRefinerPage() {
                                         reader.onload = (event) => {
                                             const text = event.target?.result;
                                             if (typeof text === 'string') {
-                                                setOriginalScript(text);
+                                                const isSrt = file.name.endsWith('.srt') || file.name.endsWith('.vtt');
+                                                setOriginalScript(isSrt ? stripSrt(text) : text);
                                             }
                                         };
                                         reader.readAsText(file);
@@ -359,7 +370,7 @@ export default function ScriptRefinerPage() {
                                 </button>
                             </div>
 
-                            <div ref={outputRef} className="flex-grow overflow-y-auto p-8 font-serif text-lg leading-relaxed text-gray-800 whitespace-pre-wrap">
+                            <div ref={outputRef} className="flex-grow overflow-y-auto p-8 font-serif text-lg leading-relaxed text-gray-800">
                                 {isLoading && (
                                     <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-20 flex items-center justify-center">
                                         <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
@@ -371,7 +382,19 @@ export default function ScriptRefinerPage() {
                                         className="diff-content"
                                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(output.diffScript) }}
                                     />
-                                ) : output.refinedScript}
+                                ) : (
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: DOMPurify.sanitize(
+                                                output.refinedScript
+                                                    .replace(/\n\n/g, '</p><p style="margin-bottom:1em">')
+                                                    .replace(/\n/g, '<br/>')
+                                                    .replace(/^/, '<p style="margin-bottom:1em">')
+                                                    .replace(/$/, '</p>')
+                                            )
+                                        }}
+                                    />
+                                )}
                             </div>
 
                             {/* CHAT BAR */}
