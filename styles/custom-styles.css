@@ -9,9 +9,12 @@ body {
   overflow-x: hidden;
 }
 
-/* ===== RESPONSIVE HEADER FAILSAFE =====
-   Explicit media queries to guarantee nav/hamburger behavior
-   even if Tailwind responsive utilities are purged in production */
+/* ===== RESPONSIVE LAYOUT FAILSAFE =====
+   Explicit media queries to guarantee layout behavior
+   even if Tailwind responsive utilities don't work on some machines.
+   This fixes the "bè to" (too large/spread out) issue. */
+
+/* Mobile-first defaults */
 #desktop-nav {
   display: none !important;
 }
@@ -20,6 +23,40 @@ body {
   display: flex !important;
 }
 
+#hero-bullets {
+  flex-direction: column !important;
+}
+
+#hero-cta-row {
+  flex-direction: column !important;
+}
+
+#hero-cta-free,
+#hero-cta-roadmap,
+#hero-cta-community {
+  width: 100% !important;
+}
+
+/* sm breakpoint (640px) - CTA buttons go side-by-side */
+@media (min-width: 640px) {
+  #hero-cta-row {
+    flex-direction: row !important;
+  }
+
+  #hero-cta-free,
+  #hero-cta-roadmap,
+  #hero-cta-community {
+    width: auto !important;
+  }
+}
+
+/* Mobile-first defaults for testimonials and creator merit */
+#testimonials-grid,
+#creator-merit-layout {
+  flex-direction: column !important;
+}
+
+/* md breakpoint (768px) - Full desktop layout */
 @media (min-width: 768px) {
   #desktop-nav {
     display: flex !important;
@@ -27,6 +64,19 @@ body {
 
   #mobile-hamburger {
     display: none !important;
+  }
+
+  #hero-bullets {
+    flex-direction: row !important;
+    gap: 2rem !important;
+  }
+
+  #testimonials-grid {
+    flex-direction: row !important;
+  }
+
+  #creator-merit-layout {
+    flex-direction: row !important;
   }
 }
 

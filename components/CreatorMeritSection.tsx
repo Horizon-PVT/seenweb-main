@@ -15,7 +15,7 @@ const CreatorMeritSection: React.FC = () => {
             <div className="absolute -right-20 bottom-20 w-72 h-72 bg-blue-900/20 rounded-full blur-[100px]" />
 
             <div className="container mx-auto px-6 relative z-10">
-                <div className="flex flex-col md:flex-row items-center gap-12 max-w-6xl mx-auto">
+                <div id="creator-merit-layout" className="flex flex-col md:flex-row items-center gap-12 max-w-6xl mx-auto">
 
                     {/* Left: Text Content */}
                     <div className="flex-1 text-center md:text-left">

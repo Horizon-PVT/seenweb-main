@@ -103,7 +103,7 @@ const HeroSection: React.FC = () => {
         </h2>
 
         {/* Value Bullets */}
-        <div className="flex flex-col md:flex-row gap-4 md:gap-8 text-left text-gray-200 mb-10 text-sm md:text-base bg-black/40 p-4 rounded-xl backdrop-blur-sm border border-white/5">
+        <div id="hero-bullets" className="flex flex-col md:flex-row gap-4 md:gap-8 text-left text-gray-200 mb-10 text-sm md:text-base bg-black/40 p-4 rounded-xl backdrop-blur-sm border border-white/5">
           <div className="flex items-center gap-2">
             <span className="text-green-400 text-xl">✓</span>
             <span>{t('hero.bullet1_q', 'Không biết làm gì?')} → <strong>{t('hero.bullet1_a', 'Chỉ cho bạn video nên làm')}</strong></span>
@@ -121,10 +121,11 @@ const HeroSection: React.FC = () => {
         {/* 2 NÚT CTA song song */}
         {/* 2 NÚT CTA song song */}
         <div className="flex flex-col items-center gap-4 w-full">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
+          <div id="hero-cta-row" className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
             {/* Nút Dùng thử miễn phí */}
             <button
               onClick={handleTryFreeClick}
+              id="hero-cta-free"
               className="w-full sm:w-auto min-w-[200px] bg-[#A855F7] text-white font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] active:scale-95"
             >
               {t('hero.cta_free', 'Dùng thử miễn phí')}
@@ -133,6 +134,7 @@ const HeroSection: React.FC = () => {
             {/* Nút Lộ trình cho người mới */}
             <button
               onClick={() => router.push('/new-youtuber')}
+              id="hero-cta-roadmap"
               className="w-full sm:w-auto min-w-[200px] bg-gradient-to-r from-[#00ffb4] to-cyan-400 text-black font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(0,255,180,0.6)] active:scale-95 flex items-center justify-center gap-2"
             >
               <span>🗺️</span> {t('hero.cta_roadmap', 'Lộ trình cho người mới')}
@@ -142,6 +144,7 @@ const HeroSection: React.FC = () => {
           {/* Nút Cộng Đồng (Xuống dòng) */}
           <button
             onClick={() => router.push('/community')}
+            id="hero-cta-community"
             className="w-full sm:w-auto min-w-[240px] bg-transparent border border-red-600/50 text-red-500 font-bold py-3 px-8 text-base rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
           >
             {t('hero.cta_community', '🚀 GIA NHẬP CỘNG ĐỒNG')}

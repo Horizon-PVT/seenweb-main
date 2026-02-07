@@ -85,7 +85,7 @@ const Testimonials: React.FC = () => {
             Compact Masonry Layout 
             Gap reduced to 4
         */}
-        <div className="flex flex-col md:flex-row gap-4 justify-center items-start">
+        <div id="testimonials-grid" className="flex flex-col md:flex-row gap-4 justify-center items-start">
           {/* Column 1 */}
           <div className="flex-1 flex flex-col gap-4 w-full md:w-auto">
             {renderVideoCard(testimonials[0])}
