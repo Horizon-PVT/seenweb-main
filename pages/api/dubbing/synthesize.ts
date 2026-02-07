@@ -8,6 +8,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
 export const config = {
     api: {
@@ -19,6 +21,12 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).end();
+
+    // Auth check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session || !session.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     const { projectId, segments, voice, speed } = req.body;
     // segments: { id, start, end, translated }[]

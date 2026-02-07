@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (oldRole === 'FREE') {
         type = 'FIRST_PURCHASE';
         baseAmount = paymentRequest.amount * RATE_NEW;
-      } else if (oldRole === 'CREATIVE' && newRole === 'SUPER') {
+      } else if (oldRole === 'BASIC' && newRole === 'PRO') {
         type = 'UPGRADE';
         baseAmount = 300000 * RATE_UPGRADE; // chênh lệch cố định 649k - 349k = 300k
       } else {

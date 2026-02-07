@@ -14,7 +14,7 @@ export default function Tab1StartYouTube({ onOpenTool }: Tab1Props) {
     const { data: session } = useSession();
     const { t } = useTranslation('common');
     const userRole = (session?.user as any)?.role || 'FREE';
-    const isFreeUser = !hasMinRole(userRole, 'CREATIVE');
+    const isFreeUser = !hasMinRole(userRole, 'BASIC');
 
     const [showModal, setShowModal] = useState(false);
     const [modalMessage, setModalMessage] = useState('');

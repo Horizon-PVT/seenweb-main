@@ -2,7 +2,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
-import axios from 'axios'; 
+import axios from 'axios';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
@@ -10,20 +10,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Dữ liệu phải được gửi từ dịch vụ quét chuyển khoản bên ngoài
-    const { 
-        email, 
-        role = 'CREATIVE', 
-        amount, 
-        orderCode, 
-        plan, 
-        note = '' 
-    } = req.body; 
+    const {
+        email,
+        role = 'BASIC',
+        amount,
+        orderCode,
+        plan,
+        note = ''
+    } = req.body;
 
     try {
         if (!orderCode || !amount || !email || !plan) {
             return res.status(400).json({ success: false, error: 'Missing required fields: orderCode, amount, email, or plan.' });
         }
-        
+
         // Chuẩn bị paymentInfo (JSON hợp lệ)
         const paymentInfoObject = { plan, role, amount, note, timestamp: new Date().toISOString() };
         const paymentInfoString = JSON.stringify(paymentInfoObject);
@@ -31,10 +31,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // LƯU ĐƠN HÀNG VÀO DATABASE
         const newPayment = await prisma.paymentRequest.create({
             data: {
-                email: email, 
+                email: email,
                 amount: amount,
                 orderCode: orderCode,
-                role: role, 
+                role: role,
                 status: 'PENDING_MANUAL', // TRẠNG THÁI CHỜ KÍCH HOẠT
                 paymentInfo: paymentInfoString,
             }
@@ -52,13 +52,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 ------------------------------------
 Sếp check App Ngân hàng và kích hoạt ngay nhé!
 `;
-        
+
         await axios.post('http://localhost:3000/api/notify/telegram', {
             message: telegramMessage
         });
 
-        return res.status(200).json({ 
-            success: true, 
+        return res.status(200).json({
+            success: true,
             message: 'Payment request saved and Telegram notified.',
             data: newPayment
         });

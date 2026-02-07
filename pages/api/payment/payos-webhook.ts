@@ -105,9 +105,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Calculate dubbing credits based on role
         let dubbingCreditsToAdd = 0;
-        if (paymentRequest.role === 'CREATIVE') dubbingCreditsToAdd = 10;
-        else if (paymentRequest.role === 'SUPER') dubbingCreditsToAdd = 30;
-        else if (paymentRequest.role === 'VIP') dubbingCreditsToAdd = 100;
+        if (paymentRequest.role === 'BASIC') dubbingCreditsToAdd = 10;
+        else if (paymentRequest.role === 'PRO') dubbingCreditsToAdd = 30;
 
         // ... (User find/create logic above)
 
@@ -141,12 +140,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             user = await prisma.user.create({
                 data: {
                     email: normalizedEmail, // Use normalized lowercase email
-                    role: isSlotUpgrade ? 'SUPER' : paymentRequest.role, // If slot upgrade, ensure at least SUPER/PRO? Or keep current?
-                    // Safe default: If buying slots, they are likely already PRO/SUPER.
+                    role: isSlotUpgrade ? 'PRO' : paymentRequest.role, // If slot upgrade, ensure at least PRO
+                    // Safe default: If buying slots, they are likely already PRO.
                     extraChannelSlots: isSlotUpgrade ? extraSlotsToAdd : 0,
                     membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                     dubbingCredits: 10, // Default starter
-                    maxDailyUsage: USAGE_LIMITS[(isSlotUpgrade ? 'SUPER' : paymentRequest.role) as keyof typeof USAGE_LIMITS] || 3,
+                    maxDailyUsage: USAGE_LIMITS[(isSlotUpgrade ? 'PRO' : paymentRequest.role) as keyof typeof USAGE_LIMITS] || 3,
                 }
             });
         } else {

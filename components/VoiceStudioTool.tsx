@@ -79,7 +79,7 @@ const VoiceStudioTool = () => {
     const handleGenerate = async () => {
         // --- FREEMIUM GATE CHECK ---
         const userRole = ((session?.user as any)?.role || "FREE");
-        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        const allowed = ['PRO', 'ADMIN'].includes(userRole);
         if (!allowed) {
             setShowUpgrade(true);
             return;
@@ -131,7 +131,7 @@ const VoiceStudioTool = () => {
     const handleClone = async () => {
         // --- FREEMIUM GATE CHECK ---
         const userRole = ((session?.user as any)?.role || "FREE");
-        const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+        const allowed = ['PRO', 'ADMIN'].includes(userRole);
         if (!allowed) {
             setShowUpgrade(true);
             return;

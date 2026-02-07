@@ -2,16 +2,22 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { MAX_DAILY_USAGE } from '@/lib/roles';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 
+    // 🔐 BẢO MẬT: Kiểm tra quyền Admin
+    const session = await getServerSession(req, res, authOptions);
+    if (!session || (session.user as any)?.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Bạn không có quyền thực hiện thao tác này.' });
+    }
+
     // Lấy biến cần thiết
     const { requestId, userEmail } = req.body;
-
-    // ⚠️ BẢO MẬT: Thêm logic kiểm tra Admin ở đây
 
     try {
         if (!requestId || !userEmail) {
@@ -51,11 +57,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const maxUsage = MAX_DAILY_USAGE[userRole] || 9999;
 
         // Calculate dubbing credits based on role/plan
-        // STARTER (CREATIVE) = 10, PRO (SUPER) = 30, VIP = 100
+        // BASIC = 10, PRO = 30
         let dubbingCreditsToAdd = 0;
-        if (payment.role === 'CREATIVE') dubbingCreditsToAdd = 10;
-        else if (payment.role === 'SUPER') dubbingCreditsToAdd = 30;
-        else if (payment.role === 'VIP') dubbingCreditsToAdd = 100;
+        if (payment.role === 'BASIC') dubbingCreditsToAdd = 10;
+        else if (payment.role === 'PRO') dubbingCreditsToAdd = 30;
 
         await prisma.user.upsert({
             where: { email: userEmail },

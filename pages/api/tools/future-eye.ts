@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 import { GoogleGenAI, Type } from "@google/genai";
 
 // ---------------------------------------------------------
@@ -114,6 +115,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
     const session = await getServerSession(req, res, authOptions);
     if (!session?.user) return res.status(401).json({ error: "Unauthorized" });
+    const userId = (session.user as any).id;
+
+    // Quota check (PRO-only tool)
+    try {
+        await checkUserQuota(userId, 'future-eye');
+    } catch (error: any) {
+        if (error.message === 'PLAN_LOCKED') {
+            return res.status(403).json({ error: 'PLAN_LOCKED' });
+        }
+        if (error.message === 'FREE_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'FREE_QUOTA_EXCEEDED' });
+        }
+        if (error.message === 'DAILY_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'DAILY_QUOTA_EXCEEDED' });
+        }
+        throw error;
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "Server configuration error" });
     const ai = new GoogleGenAI({ apiKey });
@@ -155,6 +174,7 @@ JSON FORMAT:
                 contents: [{ parts: [{ text: prompt }] }],
                 config: { responseMimeType: "application/json", responseSchema: topicsSchema },
             });
+            await incrementUserUsage(userId, 'future-eye');
             return res.status(200).json(JSON.parse(response.text || "{}"));
         }
 
@@ -198,6 +218,7 @@ OUTPUT JSON SCHEMA:
             });
             const data = JSON.parse(response.text || "{}");
             data.cpm = cpm; // Pass CPM back
+            await incrementUserUsage(userId, 'future-eye');
             return res.status(200).json(data);
         }
 
@@ -218,6 +239,7 @@ ${JSON.stringify(segmentsToTranslate)}`;
                 contents: [{ parts: [{ text: prompt }] }],
                 config: { responseMimeType: "application/json", responseSchema: translationSchema },
             });
+            await incrementUserUsage(userId, 'future-eye');
             return res.status(200).json(JSON.parse(response.text || "{}"));
         }
 
@@ -247,6 +269,7 @@ JSON ONLY.`;
                 contents: [{ parts: [{ text: prompt }] }],
                 config: { responseMimeType: "application/json", responseSchema: visualSyncSchema },
             });
+            await incrementUserUsage(userId, 'future-eye');
             return res.status(200).json(JSON.parse(response.text || "{}"));
         }
 

@@ -38,12 +38,12 @@ export default async function handler(
 
         // Determine user tier logic
         // Day 0-5: FREE (all users)
-        // Day 6-20: CƠ BẢN/BASIC (CREATIVE+) 
-        // Day 21-30: CHUYÊN NGHIỆP/PRO (SUPER+)
+        // Day 6-20: CƠ BẢN/BASIC (BASIC+) 
+        // Day 21-30: CHUYÊN NGHIỆP/PRO (PRO+)
 
-        // Check user tier levels
-        const isBasic = ["CREATIVE", "SUPER", "VIP", "ADMIN"].includes(user.role);  // CƠ BẢN+
-        const isPro = ["SUPER", "VIP", "ADMIN"].includes(user.role);                 // CHUYÊN NGHIỆP+
+        // Check user role hierarchy
+        const isBasic = ["BASIC", "PRO", "ADMIN"].includes(user.role);  // CƠ BẢN+
+        const isPro = ["PRO", "ADMIN"].includes(user.role);                 // CHUYÊN NGHIỆP+
 
         // Filter ROADMAP_DATA based on tier and progress?
         // User requested "locked" to show paywall. So we might want to return METADATA for all days,
@@ -70,11 +70,11 @@ export default async function handler(
 
             if (i >= 6 && i <= 20 && !isBasic) {
                 lockedByTier = true;
-                requiredTier = "CƠ BẢN";  // CREATIVE+ required
+                requiredTier = "CƠ BẢN";  // BASIC+ required
             }
             if (i >= 21 && !isPro) {
                 lockedByTier = true;
-                requiredTier = "CHUYÊN NGHIỆP";  // SUPER+ required (not VIP only!)
+                requiredTier = "CHUYÊN NGHIỆP";  // PRO+ required
             }
 
             // Data for this day

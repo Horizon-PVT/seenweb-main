@@ -1,7 +1,7 @@
 // lib/tab-access.ts
 // Tab/Tool access configuration for 2-layer dashboard
 
-export type UserRole = 'FREE' | 'USER' | 'CREATIVE' | 'SUPER' | 'VIP' | 'ADMIN';
+export type UserRole = 'FREE' | 'USER' | 'BASIC' | 'PRO' | 'ADMIN';
 
 export type TabId = 'start-youtube' | 'optimize' | 'automation' | 'learning';
 
@@ -9,9 +9,8 @@ export type TabId = 'start-youtube' | 'optimize' | 'automation' | 'learning';
 const ROLE_HIERARCHY: Record<UserRole, number> = {
     FREE: 0,
     USER: 0,
-    CREATIVE: 1, // STARTER
-    SUPER: 2,    // PRO
-    VIP: 3,
+    BASIC: 1,
+    PRO: 2,
     ADMIN: 99,
 };
 
@@ -28,14 +27,14 @@ export const TABS = [
         id: 'optimize' as TabId,
         label: 'Tăng view & tối ưu',
         icon: '🚀',
-        minRole: 'SUPER' as UserRole, // PRO+
+        minRole: 'PRO' as UserRole, // PRO+
         description: 'Công cụ nâng cao để tối ưu kênh',
     },
     {
         id: 'automation' as TabId,
         label: 'Làm nhanh & tự động',
         icon: '🤖',
-        minRole: 'CREATIVE' as UserRole, // STARTER+ (for Dubbing)
+        minRole: 'BASIC' as UserRole, // BASIC+ (for Dubbing)
         description: 'Tự động hóa với AI',
     },
     {
@@ -49,10 +48,10 @@ export const TABS = [
 
 // Tab 3 tool access per role
 export const TAB3_TOOLS = {
-    'text-to-speech': { minRole: 'SUPER' as UserRole, label: 'Text-to-Speech' },
-    'ai-dubbing-studio': { minRole: 'CREATIVE' as UserRole, label: 'AI Dubbing Studio' },
-    'velocity': { minRole: 'VIP' as UserRole, label: 'Tạo Video AI' },
-    'virtual-mc': { minRole: 'VIP' as UserRole, label: 'MC Ảo' },
+    'text-to-speech': { minRole: 'PRO' as UserRole, label: 'Text-to-Speech' },
+    'ai-dubbing-studio': { minRole: 'BASIC' as UserRole, label: 'AI Dubbing Studio' },
+    'velocity': { minRole: 'PRO' as UserRole, label: 'Tạo Video AI' },
+    'virtual-mc': { minRole: 'PRO' as UserRole, label: 'MC Ảo' },
 };
 
 // Tab 2 tools (all PRO+)
@@ -65,8 +64,14 @@ export const TAB2_TOOLS = [
 
 // Helper functions
 export function hasMinRole(userRole: string, minRole: UserRole): boolean {
-    const normalizedRole = (userRole === 'USER' ? 'FREE' : userRole) as UserRole;
-    return ROLE_HIERARCHY[normalizedRole] >= ROLE_HIERARCHY[minRole];
+    // Normalize legacy role names
+    let normalizedRole = userRole;
+    if (normalizedRole === 'USER') normalizedRole = 'FREE';
+    if (normalizedRole === 'CREATIVE') normalizedRole = 'BASIC';
+    if (normalizedRole === 'SUPER') normalizedRole = 'PRO';
+    if (normalizedRole === 'VIP') normalizedRole = 'PRO';
+
+    return (ROLE_HIERARCHY[normalizedRole as UserRole] ?? 0) >= ROLE_HIERARCHY[minRole];
 }
 
 export function canAccessTab(userRole: string, tabId: TabId): boolean {
@@ -92,7 +97,7 @@ export function getTabLockMessage(tabId: TabId, userRole: string): string | null
         case 'optimize':
             return 'Nâng cấp lên PRO để mở khóa các công cụ tối ưu nâng cao.';
         case 'automation':
-            return 'Nâng cấp lên STARTER để sử dụng AI Dubbing.';
+            return 'Nâng cấp lên BASIC để sử dụng AI Dubbing.';
         default:
             return 'Nâng cấp để mở khóa tính năng này.';
     }
@@ -100,12 +105,13 @@ export function getTabLockMessage(tabId: TabId, userRole: string): string | null
 
 // Niche-engine access by role
 export function getNicheEngineLimit(userRole: string): number {
-    const role = (userRole === 'USER' ? 'FREE' : userRole) as UserRole;
+    const role = hasMinRole(userRole, 'ADMIN') ? 'ADMIN' :
+        hasMinRole(userRole, 'PRO') ? 'PRO' :
+            hasMinRole(userRole, 'BASIC') ? 'BASIC' : 'FREE';
     switch (role) {
         case 'FREE': return 5;
-        case 'CREATIVE': return 10; // STARTER
-        case 'SUPER': return 999; // PRO - full
-        case 'VIP': return 999;
+        case 'BASIC': return 10;
+        case 'PRO': return 999;
         case 'ADMIN': return 999;
         default: return 5;
     }
@@ -113,12 +119,13 @@ export function getNicheEngineLimit(userRole: string): number {
 
 // Thay-youtube day access by role
 export function getThayYoutubeAccess(userRole: string): { minDay: number; maxDay: number } {
-    const role = (userRole === 'USER' ? 'FREE' : userRole) as UserRole;
+    const role = hasMinRole(userRole, 'ADMIN') ? 'ADMIN' :
+        hasMinRole(userRole, 'PRO') ? 'PRO' :
+            hasMinRole(userRole, 'BASIC') ? 'BASIC' : 'FREE';
     switch (role) {
         case 'FREE': return { minDay: 0, maxDay: 5 };
-        case 'CREATIVE': return { minDay: 0, maxDay: 20 }; // STARTER
-        case 'SUPER': return { minDay: 0, maxDay: 20 }; // PRO
-        case 'VIP': return { minDay: 0, maxDay: 30 };
+        case 'BASIC': return { minDay: 0, maxDay: 20 };
+        case 'PRO': return { minDay: 0, maxDay: 30 };
         case 'ADMIN': return { minDay: 0, maxDay: 30 };
         default: return { minDay: 0, maxDay: 5 };
     }

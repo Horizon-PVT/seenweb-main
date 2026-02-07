@@ -245,7 +245,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
                 {/* User Mini Profile & Settings */}
                 <div className="p-4 border-t border-gray-800 bg-[#0a0a0c] relative">
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
-                        <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-xs text-white ${userRole === 'VIP' ? 'bg-gradient-to-tr from-yellow-400 to-orange-500' : 'bg-gradient-to-tr from-gray-700 to-gray-600'}`}>
+                        <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-xs text-white ${userRole === 'PRO' ? 'bg-gradient-to-tr from-yellow-400 to-orange-500' : 'bg-gradient-to-tr from-gray-700 to-gray-600'}`}>
                             {userRole.charAt(0)}
                         </div>
 
@@ -304,7 +304,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
                 isOpen={showCheckout}
                 onClose={() => setShowCheckout(false)}
                 currentPlan={userRole}
-                currentChannelCount={userRole === 'VIP' ? 10 : userRole === 'SUPER' ? 2 : 1}
+                currentChannelCount={userRole === 'PRO' ? 2 : userRole === 'BASIC' ? 1 : 0}
                 userEmail={session?.user?.email || ''}
             />
         </>

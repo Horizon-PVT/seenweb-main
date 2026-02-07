@@ -28,7 +28,7 @@ export default async function handler(
   }
 
   try {
-    await checkUserQuota(session.user.id, 'scriptwriter');
+    await checkUserQuota(session.user.id, 'script-refiner');
   } catch (err: any) {
     return res.status(403).json({ error: err.message });
   }
@@ -99,7 +99,7 @@ Kịch bản đã dịch sang '${langName}':`; // <--- Đảm bảo có dấu ` 
 
     const refinedScriptText = response.text?.trim() || "";
 
-    await incrementUserUsage(session.user.id, 'scriptwriter');
+    await incrementUserUsage(session.user.id, 'script-refiner');
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.status(200).send(refinedScriptText);

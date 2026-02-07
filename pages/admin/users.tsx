@@ -14,7 +14,7 @@ interface User {
     createdAt: string;
 }
 
-const ROLES = ['FREE', 'CREATIVE', 'SUPER', 'VIP', 'ADMIN'];
+const ROLES = ['FREE', 'BASIC', 'PRO', 'ADMIN'];
 
 export default function AdminUsersPage() {
     const { data: session, status } = useSession();
@@ -184,10 +184,9 @@ export default function AdminUsersPage() {
                                     <td className="px-4 py-3">{user.name || '-'}</td>
                                     <td className="px-4 py-3 text-center">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${user.role === 'ADMIN' ? 'bg-red-100 text-red-700' :
-                                            user.role === 'VIP' ? 'bg-yellow-100 text-yellow-700' :
-                                                user.role === 'SUPER' ? 'bg-purple-100 text-purple-700' :
-                                                    user.role === 'CREATIVE' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                            user.role === 'PRO' ? 'bg-purple-100 text-purple-700' :
+                                                user.role === 'BASIC' ? 'bg-blue-100 text-blue-700' :
+                                                    'bg-gray-100 text-gray-700'
                                             }`}>
                                             {user.role}
                                         </span>

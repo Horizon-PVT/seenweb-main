@@ -22,7 +22,7 @@ async function main() {
 
     const paymentInfo = {
         plan: planDesc,
-        role: 'VIP',
+        role: 'PRO',
         amount: amount,
         note: 'Simulated Slot Upgrade',
         timestamp: new Date().toISOString()
@@ -35,7 +35,7 @@ async function main() {
             email: email,
             amount: amount,
             orderCode: orderCode,
-            role: 'VIP',
+            role: 'PRO',
             status: 'PENDING_PAYOS',
             paymentInfo: JSON.stringify(paymentInfo)
         }

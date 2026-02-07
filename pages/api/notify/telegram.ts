@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 
 // Import fetch để gọi Telegram API (hoặc sử dụng axios)
-import axios from 'axios'; 
+import axios from 'axios';
 
 // Lấy biến môi trường (Environment Variables)
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -17,32 +17,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Dữ liệu phải được gửi từ dịch vụ quét chuyển khoản
-    const { 
-        email, 
-        role = 'CREATIVE', // Role mặc định
-        amount, 
-        orderCode, 
+    const {
+        email,
+        role = 'BASIC', // Role mặc định
+        amount,
+        orderCode,
         plan, // Tên gói (ví dụ: SÁNG TẠO)
-        note = '' 
-    } = req.body; 
+        note = ''
+    } = req.body;
 
     try {
         // Kiểm tra các trường bắt buộc
         if (!orderCode || !amount || !email || !plan) {
             return res.status(400).json({ success: false, error: 'Missing required fields: orderCode, amount, email, or plan.' });
         }
-        
+
         // 1. CHUẨN BỊ VÀ LƯU ĐƠN HÀNG VÀO DATABASE (TRẠNG THÁI CHỜ KÍCH HOẠT)
         const paymentInfoObject = { plan, role, amount, note, timestamp: new Date().toISOString() };
         const paymentInfoString = JSON.stringify(paymentInfoObject);
 
         const newPayment = await prisma.paymentRequest.create({
             data: {
-                email: email, 
+                email: email,
                 amount: amount,
                 orderCode: orderCode,
-                role: role, 
-                status: 'PENDING_MANUAL', 
+                role: role,
+                status: 'PENDING_MANUAL',
                 paymentInfo: paymentInfoString,
             }
         });
@@ -50,10 +50,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 2. GỬI THÔNG BÁO TELEGRAM CHO ANH (Sau khi đã lưu vào DB)
         if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
             console.error("Thiếu cấu hình Telegram trong .env.local");
-             // Vẫn trả về 200 vì đã lưu DB thành công, chỉ lỗi ở thông báo
+            // Vẫn trả về 200 vì đã lưu DB thành công, chỉ lỗi ở thông báo
             return res.status(200).json({ success: true, message: 'Payment request saved, but Telegram notification failed (config error).' });
         }
-        
+
         const telegramMessage = `
 🔔 CÓ ĐƠN HÀNG MỚI!
 ------------------------------------
@@ -65,9 +65,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 ------------------------------------
 Sếp check App Ngân hàng và kích hoạt ngay nhé!
 `;
-        
+
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-        
+
         await axios.post(url, {
             chat_id: TELEGRAM_CHAT_ID,
             text: telegramMessage,
@@ -76,8 +76,8 @@ Sếp check App Ngân hàng và kích hoạt ngay nhé!
 
 
         // 3. Trả về thành công
-        return res.status(200).json({ 
-            success: true, 
+        return res.status(200).json({
+            success: true,
             message: 'Payment request saved and Telegram notified.',
             data: newPayment
         });

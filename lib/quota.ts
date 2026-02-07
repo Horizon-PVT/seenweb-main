@@ -1,14 +1,14 @@
 // File: lib/quota.ts
 import { prisma } from './prisma';
-import { ROLES, ROLE_LIMITS, FREE_ALLOWED_TOOLS, CREATIVE_ALLOWED_TOOLS, Role } from './roles';
+import { ROLES, ROLE_LIMITS, FREE_ALLOWED_TOOLS, BASIC_ALLOWED_TOOLS, Role } from './roles';
 
 const EVENT_NAME = 'TOOL_USAGE';
 
 /**
  * STRICT QUOTA CHECK (Per Tool)
  * - FREE: 1 lifetime use per allowed tool.
- * - CREATIVE/BASIC: 20 uses per day per allowed tool.
- * - SUPER/PRO: 50 uses per day per tool (ALL TOOLS).
+ * - BASIC: 20 uses per day per allowed tool.
+ * - PRO: 50 uses per day per tool (ALL TOOLS).
  */
 export async function checkUserQuota(userId: string, toolId?: string): Promise<void> {
     const user = await prisma.user.findUnique({
@@ -21,7 +21,7 @@ export async function checkUserQuota(userId: string, toolId?: string): Promise<v
     const role = (user.role || 'FREE') as Role;
     const limit = ROLE_LIMITS[role];
 
-    // 0. VIP/ADMIN Bypass
+    // 0. ADMIN Bypass
     if (limit.count >= 9999) return;
 
     if (!toolId) {
@@ -36,14 +36,14 @@ export async function checkUserQuota(userId: string, toolId?: string): Promise<v
         }
     }
 
-    // 2. Check Allowed Tools for CREATIVE/BASIC
-    if (role === 'CREATIVE') {
-        if (!CREATIVE_ALLOWED_TOOLS.includes(toolId)) {
+    // 2. Check Allowed Tools for BASIC
+    if (role === 'BASIC') {
+        if (!BASIC_ALLOWED_TOOLS.includes(toolId)) {
             throw new Error('PLAN_LOCKED'); // Show Upgrade Popup - need PRO plan
         }
     }
 
-    // 2. Count Usage (Event Based)
+    // 3. Count Usage (Event Based)
     let usageCount = 0;
 
     if (limit.type === 'LIFETIME') {
@@ -72,13 +72,13 @@ export async function checkUserQuota(userId: string, toolId?: string): Promise<v
         });
     }
 
-    // 3. Throw Error if Limit Reached
+    // 4. Throw Error if Limit Reached
     if (usageCount >= limit.count) {
         if (role === 'FREE') {
             throw new Error('FREE_QUOTA_EXCEEDED'); // "Bạn đã dùng hết 1 lần miễn phí"
         }
 
-        throw new Error(`Bạn đã đạt giới hạn ${limit.count} lần/ngày cho công cụ này. Vui lòng nâng cấp gói!`);
+        throw new Error('DAILY_QUOTA_EXCEEDED');
     }
 }
 
@@ -94,7 +94,6 @@ export async function incrementUserUsage(userId: string, toolId?: string): Promi
             name: EVENT_NAME,
             userId: userId,
             path: toolId,
-            // properties: { timestamp: new Date() } 
         }
     });
 }

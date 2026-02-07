@@ -12,7 +12,7 @@ import { NICHE_LIBRARY, Niche } from '@/data/niche-library';
 // PRO (SUPER/VIP/ADMIN): All niches
 const isNicheLocked = (nicheIndex: number, userRole: string) => {
     // PRO+ users get all niches
-    if (['ADMIN', 'SUPER', 'VIP'].includes(userRole)) return false;
+    if (['ADMIN', 'PRO'].includes(userRole)) return false;
     // All users (FREE, CREATIVE) get first 5 niches (index 0-4)
     return nicheIndex > 4; // Lock from 6th item (index 5)
 };

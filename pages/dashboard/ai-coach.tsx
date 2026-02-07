@@ -557,7 +557,7 @@ export default function AICoachPage() {
                     {/* User */}
                     <div className="p-3 border-t border-white/5">
                         <div className="flex items-center gap-3 px-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${userRole === 'VIP' ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-gray-700'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${userRole === 'PRO' ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-gray-700'}`}>
                                 {userRole.charAt(0)}
                             </div>
                             {!sidebarCollapsed && (

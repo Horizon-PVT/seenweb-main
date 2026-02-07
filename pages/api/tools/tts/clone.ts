@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const isPro = (process.env.NODE_ENV === 'development')
             ? true
-            : (user && ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(user.role));
+            : (user && ['BASIC', 'PRO', 'ADMIN'].includes(user.role));
 
         if (!isPro) {
             return res.status(403).json({

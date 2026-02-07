@@ -132,7 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const accessContext = `
 [THÔNG TIN USER]
-- Gói: ${userRole === 'FREE' ? 'Miễn phí' : userRole === 'CREATIVE' ? 'Basic' : 'Pro'}
+- Gói: ${userRole === 'FREE' ? 'Miễn phí' : userRole === 'BASIC' ? 'Basic' : 'Pro'}
 - Còn ${quota.remaining} lượt chat
 ${personalizationContext}
 [QUY TẮC QUAN TRỌNG]

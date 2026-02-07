@@ -228,8 +228,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       if (user) {
         userRole = user.role;
-        // VIP users bypass the 500k limit
-        if (user.role !== 'VIP' && user.role !== 'ADMIN') {
+        // PRO users bypass the 500k limit
+        if (user.role !== 'PRO' && user.role !== 'ADMIN') {
           if (user.ttsUsageChars >= TTS_OPENAI_CHAR_LIMIT) {
             // Silently switch to Edge TTS (free) - no notification to user
             forceEdgeTts = true;

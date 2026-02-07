@@ -61,7 +61,7 @@ export default function DailyIdeasCard({ role, channelId, channelTitle }: DailyI
         return new Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(val);
     };
 
-    const isVIP = ['VIP', 'SUPER', 'ADMIN'].includes(role);
+    const isVIP = ['PRO', 'ADMIN'].includes(role);
 
     const handleExecute = (idea: DailyIdea) => {
         router.push({

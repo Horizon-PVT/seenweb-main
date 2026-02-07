@@ -132,7 +132,7 @@ const Widget = () => {
             // 2. Try Chrome Storage (cross-context)
             if (typeof chrome !== 'undefined' && chrome.storage) {
                 return new Promise((resolve) => {
-                    chrome.storage.local.get(['seenyt_email'], (result) => {
+                    chrome.storage.local.get(['seenyt_email'], (result: Record<string, any>) => {
                         resolve(result.seenyt_email || null);
                     });
                 });
@@ -187,7 +187,7 @@ const Widget = () => {
                     chrome.runtime.sendMessage({
                         type: 'SEENYT_BG_FETCH',
                         url: `${API_BASE}/api/extension/auth-check?email=${encodeURIComponent(email)}&_t=${Date.now()}`
-                    }, (res) => {
+                    }, (res: any) => {
                         if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
                         else resolve(res);
                     });

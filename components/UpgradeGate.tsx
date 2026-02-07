@@ -14,22 +14,19 @@ interface UpgradeGateProps {
 
 const TIER_HIERARCHY: Record<string, number> = {
     'FREE': 0,
-    'CREATIVE': 1, // STARTER
-    'SUPER': 2,    // PRO
-    'VIP': 3,
+    'BASIC': 1,
+    'PRO': 2,
     'ADMIN': 999,
 };
 
 const TIER_PRICES: Record<string, string> = {
-    'CREATIVE': '149.000đ',
-    'SUPER': '399.000đ',
-    'VIP': '549.000đ',
+    'BASIC': '149.000đ',
+    'PRO': '399.000đ',
 };
 
 const TIER_FEATURES: Record<string, string[]> = {
-    'CREATIVE': ['Không giới hạn công cụ cơ bản', 'Làm video đều đặn hàng ngày', 'Phù hợp người mới bắt đầu'],
-    'SUPER': ['TOÀN BỘ công cụ', 'Phân tích nâng cao & chiến lược', 'Narrative Studio (Storytelling)'],
-    'VIP': ['AI Dubbing - Lồng tiếng tự động', 'Tạo Video AI (Velocity)', 'Support 1-1 qua Zalo'],
+    'BASIC': ['Không giới hạn công cụ cơ bản', 'Làm video đều đặn hàng ngày', 'Phù hợp người mới bắt đầu'],
+    'PRO': ['TOÀN BỘ công cụ', 'Phân tích nâng cao & chiến lược', 'AI Dubbing + Tạo Video AI'],
 };
 
 // Check if user has used share option before
@@ -73,9 +70,9 @@ export default function UpgradeGate({
 
     const currentTierLevel = TIER_HIERARCHY[userTier] || 0;
     const requiredTierLevel = TIER_HIERARCHY[requiredTier] || 1;
-    const nextTier = Object.entries(TIER_HIERARCHY).find(([_, level]) => level > currentTierLevel)?.[0] || 'CREATIVE';
+    const nextTier = Object.entries(TIER_HIERARCHY).find(([_, level]) => level > currentTierLevel)?.[0] || 'BASIC';
     const price = TIER_PRICES[requiredTier] || TIER_PRICES[nextTier] || '149.000đ';
-    const features = TIER_FEATURES[requiredTier] || TIER_FEATURES[nextTier] || TIER_FEATURES['CREATIVE'];
+    const features = TIER_FEATURES[requiredTier] || TIER_FEATURES[nextTier] || TIER_FEATURES['BASIC'];
 
     return (
         <>

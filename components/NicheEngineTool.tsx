@@ -3,6 +3,8 @@ import { useSession } from 'next-auth/react';
 import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, Lock, Play, FileText, CheckCircle, Loader2 } from 'lucide-react';
 import { NICHE_LIBRARY, Niche } from '@/data/niche-library';
+import UpgradeModal from '@/components/UpgradeModal';
+import { AnimatePresence } from 'framer-motion';
 
 interface NicheEngineToolProps {
     onBack: () => void;
@@ -10,7 +12,7 @@ interface NicheEngineToolProps {
 
 // --- ACCESS CONTROL LOGIC ---
 const isNicheLocked = (nicheIndex: number, userRole: string) => {
-    if (['ADMIN', 'SUPER', 'VIP'].includes(userRole)) return false;
+    if (['ADMIN', 'PRO'].includes(userRole)) return false;
     return nicheIndex > 4; // Lock from 6th item (index 5)
 };
 
@@ -26,11 +28,12 @@ const NicheEngineTool: React.FC<NicheEngineToolProps> = ({ onBack }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [analysisResult, setAnalysisResult] = useState('');
     const [scriptResult, setScriptResult] = useState('');
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
     // HANDLERS
     const handleSelectNiche = (niche: Niche, index: number) => {
         if (isNicheLocked(index, userRole)) {
-            alert("Vui lòng nâng cấp lên gói PRO để mở khóa toàn bộ 20 ngách!");
+            setShowUpgrade(true);
             return;
         }
         setSelectedNiche(niche);
@@ -51,11 +54,19 @@ const NicheEngineTool: React.FC<NicheEngineToolProps> = ({ onBack }) => {
                 })
             });
             const data = await res.json();
+            if (!res.ok) {
+                const errStr = String(data?.error || '').toUpperCase();
+                if (res.status === 403 && (errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(data?.error || 'Lỗi phân tích ngách');
+            }
             setAnalysisResult(data.content);
             setCurrentStep(2);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Lỗi kết nối AI. Vui lòng thử lại.");
+            alert(e.message || "Lỗi kết nối AI. Vui lòng thử lại.");
         } finally {
             setIsLoading(false);
         }
@@ -79,11 +90,19 @@ const NicheEngineTool: React.FC<NicheEngineToolProps> = ({ onBack }) => {
                 })
             });
             const data = await res.json();
+            if (!res.ok) {
+                const errStr = String(data?.error || '').toUpperCase();
+                if (res.status === 403 && (errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(data?.error || 'Lỗi sinh kịch bản');
+            }
             setScriptResult(data.content);
             setCurrentStep(3);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Lỗi khi sinh kịch bản.");
+            alert(e.message || "Lỗi khi sinh kịch bản.");
         } finally {
             setIsLoading(false);
         }
@@ -308,6 +327,11 @@ const NicheEngineTool: React.FC<NicheEngineToolProps> = ({ onBack }) => {
                 )}
             </div>
             {/* CUSTOM SCROLLBAR STYLES (Scoped logic handled by class) */}
+
+            {/* Upgrade Modal */}
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 };

@@ -57,9 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 // Determine credits
                 let dubbingCreditsToAdd = 0;
-                if (paymentRequest.role === 'CREATIVE') dubbingCreditsToAdd = 10;
-                else if (paymentRequest.role === 'SUPER') dubbingCreditsToAdd = 30;
-                else if (paymentRequest.role === 'VIP') dubbingCreditsToAdd = 100;
+                if (paymentRequest.role === 'BASIC') dubbingCreditsToAdd = 10;
+                else if (paymentRequest.role === 'PRO') dubbingCreditsToAdd = 30;
 
                 // Create or Update User
                 if (!user) {

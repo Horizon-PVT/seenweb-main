@@ -30,7 +30,7 @@ export interface ToolConfig {
     icon: any;
     status: 'active' | 'beta' | 'maintenance' | 'construction' | 'new';
     componentName?: string; // For dynamic imports
-    minRole: 'FREE' | 'USER' | 'CREATIVE' | 'SUPER' | 'VIP' | 'ADMIN';
+    minRole: 'FREE' | 'USER' | 'BASIC' | 'PRO' | 'ADMIN';
     color?: string; // ADDED
     group?: 'startup' | 'breakthrough' | 'research' | 'learning' | 'dev'; // ADDED
 }

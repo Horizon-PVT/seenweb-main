@@ -7,9 +7,8 @@ import { Role } from './roles';
 export const AI_COACH_LIMITS: Record<string, number> = {
     FREE: 5,
     USER: 5,
-    CREATIVE: 50,
-    SUPER: 200,
-    VIP: 500,
+    BASIC: 20,
+    PRO: 50,
     ADMIN: 9999,
 };
 
@@ -25,13 +24,13 @@ export const AI_COACH_TOOLS = {
     'channel_audit': {
         name: 'Phân tích kênh',
         description: 'Phân tích chi tiết kênh YouTube',
-        minRole: 'CREATIVE',
+        minRole: 'BASIC',
         apiEndpoint: '/api/channel-audit',
     },
     'keyword_research': {
         name: 'Nghiên cứu từ khóa',
         description: 'Tìm từ khóa SEO YouTube',
-        minRole: 'CREATIVE',
+        minRole: 'BASIC',
         apiEndpoint: '/api/seo-tool',
     },
     'script_writer': {
@@ -43,13 +42,13 @@ export const AI_COACH_TOOLS = {
     'rival_scanner': {
         name: 'Phân tích đối thủ',
         description: 'So sánh với kênh đối thủ',
-        minRole: 'CREATIVE',
+        minRole: 'BASIC',
         apiEndpoint: '/api/rival-scanner',
     },
     'thumbnail_generator': {
         name: 'Tạo thumbnail',
         description: 'Tạo ảnh bìa video AI',
-        minRole: 'CREATIVE',
+        minRole: 'BASIC',
         apiEndpoint: '/api/image-forge',
     },
 };
@@ -58,9 +57,8 @@ export const AI_COACH_TOOLS = {
 const ROLE_HIERARCHY: Record<string, number> = {
     FREE: 0,
     USER: 0,
-    CREATIVE: 1,
-    SUPER: 2,
-    VIP: 3,
+    BASIC: 1,
+    PRO: 2,
     ADMIN: 4,
 };
 
@@ -82,9 +80,8 @@ export function getUpgradeMessage(toolId: string, userRole: string): string {
 
     const planNames: Record<string, string> = {
         FREE: 'Miễn phí',
-        CREATIVE: 'Basic',
-        SUPER: 'Pro',
-        VIP: 'VIP',
+        BASIC: 'Basic',
+        PRO: 'Pro',
     };
 
     return `Để sử dụng tính năng "${tool.name}", bạn cần nâng cấp lên gói ${planNames[tool.minRole] || 'Pro'}.`;

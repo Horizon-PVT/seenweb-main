@@ -102,9 +102,9 @@ export default function CheckoutModal({
             // We need to map the channel count to a role or plan logic
             // Assuming Upgrade logic stores extra slots
 
-            let targetPlanRole = 'CREATIVE'; // Default
-            if (channelCount === 2) targetPlanRole = 'SUPER'; // Pro
-            if (channelCount > 2) targetPlanRole = 'VIP'; // Pro + Slots
+            let targetPlanRole = 'BASIC'; // Default
+            if (channelCount === 2) targetPlanRole = 'PRO'; // Pro
+            if (channelCount > 2) targetPlanRole = 'PRO'; // Pro + Slots
 
             // Construct Description
             const planDescription = isUpgrade

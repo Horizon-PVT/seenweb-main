@@ -22,23 +22,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         if (action === 'grant-all') {
             // Grant credits to all users based on their role
-            // CREATIVE (Starter) = 10, SUPER (Pro) = 30, VIP = 100
+            // BASIC = 10, PRO = 30
 
             const result = await prisma.$transaction([
-                // Grant CREATIVE users 10 credits
+                // Grant BASIC users 10 credits
                 prisma.user.updateMany({
-                    where: { role: 'CREATIVE', dubbingCredits: 0 },
+                    where: { role: 'BASIC', dubbingCredits: 0 },
                     data: { dubbingCredits: 10 }
                 }),
-                // Grant SUPER users 30 credits
+                // Grant PRO users 30 credits
                 prisma.user.updateMany({
-                    where: { role: 'SUPER', dubbingCredits: 0 },
+                    where: { role: 'PRO', dubbingCredits: 0 },
                     data: { dubbingCredits: 30 }
-                }),
-                // Grant VIP users 100 credits
-                prisma.user.updateMany({
-                    where: { role: 'VIP', dubbingCredits: 0 },
-                    data: { dubbingCredits: 100 }
                 }),
                 // Grant ADMIN users 999 credits (unlimited testing)
                 prisma.user.updateMany({

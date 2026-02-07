@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { AnimatePresence } from 'framer-motion';
+import UpgradeModal from '@/components/UpgradeModal';
 
 // --- TYPES ---
 interface Topic {
@@ -74,6 +76,7 @@ const FutureEyeTool: React.FC = () => {
     const [loadingVisual, setLoadingVisual] = useState(false);
     const [loadingTranslate, setLoadingTranslate] = useState(false);
     const [error, setError] = useState('');
+    const [showUpgrade, setShowUpgrade] = useState(false);
 
     // --- ACTIONS ---
 
@@ -101,7 +104,13 @@ const FutureEyeTool: React.FC = () => {
                 body: JSON.stringify({ action: 'generate_topics', location, year }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to generate topics");
+            if (!res.ok) {
+                if (res.status === 403 || (data.error && (data.error === 'PLAN_LOCKED' || data.error === 'FREE_QUOTA_EXCEEDED' || data.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(data.error || "Failed to generate topics");
+            }
             setTopics(data.topics || []);
         } catch (err: any) {
             setError(err.message);
@@ -128,7 +137,13 @@ const FutureEyeTool: React.FC = () => {
                 }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to generate script");
+            if (!res.ok) {
+                if (res.status === 403 || (data.error && (data.error === 'PLAN_LOCKED' || data.error === 'FREE_QUOTA_EXCEEDED' || data.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(data.error || "Failed to generate script");
+            }
             setScriptData(data);
         } catch (err: any) {
             setError(err.message);
@@ -154,7 +169,13 @@ const FutureEyeTool: React.FC = () => {
                 }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to generate visuals");
+            if (!res.ok) {
+                if (res.status === 403 || (data.error && (data.error === 'PLAN_LOCKED' || data.error === 'FREE_QUOTA_EXCEEDED' || data.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(data.error || "Failed to generate visuals");
+            }
 
             setScriptData(prev => prev ? { ...prev, visualSync: data.visualSync } : null);
         } catch (err: any) {
@@ -187,7 +208,13 @@ const FutureEyeTool: React.FC = () => {
                 }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Translation failed");
+            if (!res.ok) {
+                if (res.status === 403 || (data.error && (data.error === 'PLAN_LOCKED' || data.error === 'FREE_QUOTA_EXCEEDED' || data.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(data.error || "Translation failed");
+            }
 
             // Update Script Data
             const translatedTexts = data.translatedSegments || [];
@@ -402,6 +429,9 @@ const FutureEyeTool: React.FC = () => {
                     </div>
                 )}
             </div>
+            <AnimatePresence>
+                {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+            </AnimatePresence>
         </div>
     );
 };

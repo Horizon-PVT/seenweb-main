@@ -338,7 +338,7 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
                                             </button>
                                         ))}
                                         {/* Premium voices - only for VIP */}
-                                        {['VIP', 'ADMIN'].includes((session?.user as any)?.role) ? (
+                                        {['PRO', 'ADMIN'].includes((session?.user as any)?.role) ? (
                                             FPT_VOICES.map((voice) => (
                                                 <button
                                                     key={voice.id}
@@ -409,7 +409,7 @@ export default function DubbingTool({ onBack }: DubbingToolProps) {
                                                                     <option key={v.id} value={v.id}>{v.shortName}</option>
                                                                 ))}
                                                             </optgroup>
-                                                            {['VIP', 'ADMIN'].includes((session?.user as any)?.role) && (
+                                                            {['PRO', 'ADMIN'].includes((session?.user as any)?.role) && (
                                                                 <optgroup label="👑 Premium">
                                                                     {FPT_VOICES.map(v => (
                                                                         <option key={v.id} value={v.id}>👑 {v.shortName}</option>

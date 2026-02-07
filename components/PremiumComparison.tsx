@@ -22,7 +22,7 @@ export default function PremiumComparison({ toolType, onUpgrade }: PremiumCompar
                 ]
             },
             premium: {
-                label: "Gói CREATIVE / SUPER",
+                label: "Gói BASIC / PRO",
                 features: [
                     "Cấu trúc Viral 3 bước",
                     "Hook 3 giây đầu cực mạnh",
@@ -43,7 +43,7 @@ export default function PremiumComparison({ toolType, onUpgrade }: PremiumCompar
                 ]
             },
             premium: {
-                label: "Gói SUPER",
+                label: "Gói PRO",
                 features: [
                     "Từ khóa độ khó thấp, Vol cao",
                     "Bộ Tags chuẩn thuật toán 2026",
@@ -64,7 +64,7 @@ export default function PremiumComparison({ toolType, onUpgrade }: PremiumCompar
                 ]
             },
             premium: {
-                label: "Gói SUPER",
+                label: "Gói PRO",
                 features: [
                     "Phân tích CTR màu sắc",
                     "Ghép mặt Face Lock chuẩn",

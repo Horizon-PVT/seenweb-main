@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email,
         amount,
         plan,
-        role = 'CREATIVE',
+        role = 'BASIC',
         note = '',
         referralCode = null
     } = req.body;

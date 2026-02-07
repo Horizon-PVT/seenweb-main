@@ -46,8 +46,8 @@ export default function DubbingTool() {
             setTimeout(() => setStep(2), 1000);
         } catch (e: any) {
             console.error(e);
-            const errStr = String(e.message || '').toUpperCase();
-            if (errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA') || errStr.includes('403')) {
+            const errMsg = String(e.message || '');
+            if (errMsg.includes('PLAN_LOCKED') || errMsg.includes('FREE_QUOTA_EXCEEDED') || errMsg.includes('DAILY_QUOTA_EXCEEDED') || errMsg.includes('upgradeRequired')) {
                 setShowUpgrade(true);
             } else {
                 addLog(`❌ LOG LỖI KỸ THUẬT: ${e.message}`);
@@ -95,8 +95,8 @@ export default function DubbingTool() {
             setTimeout(() => setStep(3), 1000);
 
         } catch (e: any) {
-            const errStr = String(e.message || '').toUpperCase();
-            if (errStr.includes('PLAN_LOCKED') || errStr.includes('QUOTA') || errStr.includes('403')) {
+            const errMsg = String(e.message || '');
+            if (errMsg.includes('PLAN_LOCKED') || errMsg.includes('FREE_QUOTA_EXCEEDED') || errMsg.includes('DAILY_QUOTA_EXCEEDED') || errMsg.includes('upgradeRequired')) {
                 setShowUpgrade(true);
             } else {
                 addLog(`Lỗi: ${e.message}`);

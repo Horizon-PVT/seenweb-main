@@ -46,7 +46,6 @@ const TypewriterText: React.FC<{ text: string }> = ({ text }) => {
 export default function ScriptwriterPage() {
     const { data: session } = useSession();
     const router = useRouter();
-    const userRole = (session?.user as any)?.role || 'FREE';
 
     // --- STATE (Strictly Replicated) ---
     // --- Auto-Save Hook Logic (Hydration Safe) ---
@@ -197,7 +196,7 @@ export default function ScriptwriterPage() {
                     // Not JSON
                 }
 
-                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED'))) {
+                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
                     setShowUpgrade(true);
                     return; // Stop here
                 }
@@ -246,7 +245,7 @@ export default function ScriptwriterPage() {
                     // Not JSON
                 }
 
-                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED'))) {
+                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
                     setShowUpgrade(true);
                     return; // Stop here
                 }
@@ -290,7 +289,7 @@ export default function ScriptwriterPage() {
                     // Not JSON
                 }
 
-                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED'))) {
+                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
                     setShowUpgrade(true);
                     return; // Stop here
                 }

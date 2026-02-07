@@ -136,7 +136,7 @@ ${combinedDocs.map((doc, i) => `${i + 1}. ${doc}`).join('\n\n')}
         // Build context about user's access level
         const accessContext = `
 [THÔNG TIN USER]
-- Gói hiện tại: ${userRole === 'FREE' ? 'Miễn phí' : userRole === 'CREATIVE' ? 'Basic' : userRole === 'SUPER' ? 'Pro' : userRole}
+- Gói hiện tại: ${userRole === 'FREE' ? 'Miễn phí' : userRole === 'BASIC' ? 'Basic' : userRole === 'PRO' ? 'Pro' : userRole}
 - Còn ${quota.remaining} lượt chat hôm nay
 
 [QUY TẮC GỌI CÔNG CỤ]
@@ -145,11 +145,11 @@ ${userRole === 'FREE' || userRole === 'USER' ? `
 - Khi user hỏi phân tích kênh, phân tích video, phân tích đối thủ: 
   Hãy giải thích tính năng premium này và gợi ý nâng cấp gói Basic/Pro
   Vẫn cho lời khuyên chung hữu ích dựa trên kiến thức
-` : userRole === 'CREATIVE' ? `
+` : userRole === 'BASIC' ? `
 - User Basic được dùng: Tất cả tools cơ bản + Phân tích kênh, Tạo thumbnail
 - Có thể gợi ý các tính năng nâng cao của gói Pro
 ` : `
-- User Pro/VIP có quyền truy cập đầy đủ mọi tính năng
+- User Pro có quyền truy cập đầy đủ mọi tính năng
 `}
 ${knowledgeContext}`;
 

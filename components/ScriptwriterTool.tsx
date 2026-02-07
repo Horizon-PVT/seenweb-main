@@ -176,7 +176,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
         e.preventDefault();
 
         // --- FREEMIUM GATE (GATED FOR FREE/USER) ---
-        // Minimum Role: CREATIVE (Basic Paid) or SUPER
+        // Minimum Role: BASIC (Basic Paid) or PRO
         if (['FREE', 'USER'].includes(userRole) && userRole !== 'ADMIN') {
             setShowUpgrade(true);
             return;
@@ -217,8 +217,8 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
     const handleRefine = async (type: 'refine' | 'consistency' | 'translate', lang: string = 'en') => {
         if (!outputScript) return;
 
-        if (['FREE', 'CREATIVE', 'USER'].includes(userRole) && type !== 'translate') {
-            alert(t('scriptwriter_tool.pro_vip_feature'));
+        if (['FREE', 'BASIC', 'USER'].includes(userRole) && type !== 'translate') {
+            setShowUpgrade(true);
             return;
         }
 

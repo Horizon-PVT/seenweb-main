@@ -10,12 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 1. KHAI BÁO CÁC BIẾN CẦN THIẾT
-    const { 
-        email, 
-        amount, 
-        orderCode, 
+    const {
+        email,
+        amount,
+        orderCode,
         plan, // Tên gói (ví dụ: SÁNG TẠO, VƯỢT TRỘI)
-        role = 'CREATIVE', // Role tương ứng (ví dụ: 'CREATIVE', 'ULTIMATE')
+        role = 'BASIC', // Role tương ứng (ví dụ: 'BASIC', 'PRO')
         note = '' // Ghi chú thêm (nếu có)
     } = req.body;
 
@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!orderCode || !amount || !email || !plan) {
             return res.status(400).json({ success: false, error: 'Missing required fields: orderCode, amount, email, or plan.' });
         }
-        
+
         // 2. CHUẨN BỊ DỮ LIỆU paymentInfo (CHUỖI JSON HỢP LỆ)
         const paymentInfoObject = {
             plan: plan,
@@ -39,10 +39,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 3. LƯU ĐƠN HÀNG VÀO DATABASE
         const newPayment = await prisma.paymentRequest.create({
             data: {
-                email: email, 
+                email: email,
                 amount: amount,
                 orderCode: orderCode,
-                role: role, 
+                role: role,
                 status: 'PENDING_MANUAL', // TRẠNG THÁI MÀ ADMIN DASHBOARD CẦN LỌC
                 paymentInfo: paymentInfoString, // LƯU CHUỖI JSON HỢP LỆ
             }
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 ------------------------------------
 Sếp check App Ngân hàng và kích hoạt ngay nhé!
 `;
-        
+
         // Gọi API Telegram nội bộ
         await axios.post('http://localhost:3000/api/notify/telegram', {
             message: telegramMessage
@@ -68,15 +68,15 @@ Sếp check App Ngân hàng và kích hoạt ngay nhé!
 
 
         // 5. Trả về kết quả thành công
-        return res.status(200).json({ 
-            success: true, 
+        return res.status(200).json({
+            success: true,
             message: 'Payment request saved and Telegram notified.',
             data: newPayment
         });
 
     } catch (error: any) {
         console.error("Lỗi tạo đơn hàng thủ công:", error);
-        
+
         return res.status(500).json({ success: false, error: 'Internal Server Error: ' + error.message });
     }
 }

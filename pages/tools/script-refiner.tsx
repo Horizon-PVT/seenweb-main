@@ -125,7 +125,13 @@ export default function ScriptRefinerPage() {
 
             const result: any = await response.json();
 
-            if (!response.ok) throw new Error(result.error || `Error ${response.status}`);
+            if (!response.ok) {
+                if (response.status === 403 || (result && (result.error === 'PLAN_LOCKED' || result.error === 'FREE_QUOTA_EXCEEDED' || result.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                    setShowUpgrade(true);
+                    return;
+                }
+                throw new Error(result.error || `Error ${response.status}`);
+            }
             if (!result.refinedScript || !result.diffScript || !result.metrics) {
                 throw new Error("Invalid API response structure.");
             }
@@ -164,7 +170,14 @@ export default function ScriptRefinerPage() {
 
             if (!response.ok) {
                 let errorMessage = `Error ${response.status}: ${editedScriptText}`;
-                try { errorMessage = JSON.parse(editedScriptText).error || errorMessage; } catch (e) { }
+                try {
+                    const errorJson = JSON.parse(editedScriptText);
+                    errorMessage = errorJson.error || errorMessage;
+                    if (response.status === 403 || (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED')) {
+                        setShowUpgrade(true);
+                        return;
+                    }
+                } catch (e) { }
                 throw new Error(errorMessage);
             }
 

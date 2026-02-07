@@ -128,8 +128,7 @@ export default function KeywordResearchTool({ onBack }: KeywordResearchToolProps
     const [showGuide, setShowGuide] = useState(false);
     const [showUpgrade, setShowUpgrade] = useState(false); // NEW STATE
 
-    // Determine User Plan
-    const isPro = session?.user?.role === 'ADMIN' || session?.user?.role === 'PRO' || session?.user?.role === 'VIP';
+    // Role is now checked server-side — no frontend bypass possible
 
     // --- API CALL ---
     const handleSearch = async (e: React.FormEvent) => {
@@ -149,7 +148,6 @@ export default function KeywordResearchTool({ onBack }: KeywordResearchToolProps
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         keyword: searchTerm,
-                        isPro: isPro // Pass actual user status
                     }),
                 }),
                 new Promise(resolve => setTimeout(resolve, 1500))
@@ -158,6 +156,14 @@ export default function KeywordResearchTool({ onBack }: KeywordResearchToolProps
             const data = await res.json();
 
             if (!res.ok) {
+                const errRaw = data?.error || '';
+                const errStr = String(errRaw).toUpperCase();
+                const isPlanError = errStr.includes('PLAN_LOCKED') || errStr.includes('FREE_QUOTA_EXCEEDED') || errStr.includes('DAILY_QUOTA_EXCEEDED');
+                if (res.status === 403 && isPlanError) {
+                    setShowUpgrade(true);
+                    setIsSearching(false);
+                    return;
+                }
                 throw new Error(data.error || 'Failed to analyze keyword');
             }
 
@@ -384,7 +390,7 @@ export default function KeywordResearchTool({ onBack }: KeywordResearchToolProps
                                     </table>
 
                                     {/* --- INLINE UPSELL OVERLAY --- */}
-                                    {!isPro && result.related.some((i: any) => i.isLocked) && (
+                                    {result.related.some((i: any) => i.isLocked) && (
                                         <div className="absolute inset-0 top-[120px] bg-gradient-to-b from-transparent via-[#020408]/90 to-[#020408] z-10 flex flex-col items-center justify-start pt-20 backdrop-blur-[2px]">
                                             <div className="bg-[#0f0f0f]/90 border border-[#CDAD5A] p-8 rounded-2xl shadow-[0_0_50px_rgba(205,173,90,0.15)] max-w-md text-center backdrop-blur-md transform hover:scale-[1.02] transition-transform duration-300">
                                                 <div className="w-12 h-12 bg-[#CDAD5A]/20 rounded-full flex items-center justify-center text-[#CDAD5A] mx-auto mb-4 ring-1 ring-[#CDAD5A]/50">

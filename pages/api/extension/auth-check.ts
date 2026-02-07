@@ -112,8 +112,8 @@ export default async function handler(
         // Nếu hết hạn và role không phải FREE/ADMIN → đã hết membership
         const effectiveRole = (!isAdmin && user.role !== 'FREE' && isExpired) ? 'FREE' : user.role;
 
-        // Xác định có phải Pro không (CREATIVE, SUPER, VIP, ADMIN)
-        const isPro = ['CREATIVE', 'SUPER', 'VIP', 'ADMIN'].includes(effectiveRole);
+        // Xác định có phải Pro không (BASIC, PRO, ADMIN)
+        const isPro = ['BASIC', 'PRO', 'ADMIN'].includes(effectiveRole);
 
         return res.status(200).json({
             authenticated: true,

@@ -69,7 +69,7 @@ function runAuthSync() {
         const email = localStorage.getItem('seenyt_email');
         if (email) {
             if (typeof chrome !== 'undefined' && chrome.storage) {
-                chrome.storage.local.get(['seenyt_email'], (result) => {
+                chrome.storage.local.get(['seenyt_email'], (result: Record<string, any>) => {
                     if (result.seenyt_email !== email) {
                         chrome.storage.local.set({ seenyt_email: email }, () => {
                             console.log('[SeenYT] Synced new email to extension:', email);

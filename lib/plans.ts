@@ -5,10 +5,8 @@
 export const PLAN_LIMITS = {
     FREE: 0,
     USER: 0,
-    CREATIVE: 1,   // Basic Plan
-    SUPER: 2,      // Professional Plan
-    PRO: 2,        // Alias for Pro
-    VIP: 2,        // VIP (Limited to 2 for upsell)
+    BASIC: 1,      // Basic Plan
+    PRO: 2,        // Professional Plan
     ADMIN: 999
 };
 

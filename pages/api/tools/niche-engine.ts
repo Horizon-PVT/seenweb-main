@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { withCache, CACHE_PREFIXES } from '@/lib/cache';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -19,6 +20,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // 2. Quota Check — niche-engine is PRO-only
+    const userId = (session.user as any)?.id;
+    if (!userId) {
+        return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
+    }
+
+    try {
+        await checkUserQuota(userId, 'niche-engine');
+    } catch (error: any) {
+        if (error.message === 'PLAN_LOCKED') {
+            return res.status(403).json({ error: 'PLAN_LOCKED', message: 'Tính năng này chỉ dành cho gói PRO. Vui lòng nâng cấp!' });
+        }
+        if (error.message === 'FREE_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'FREE_QUOTA_EXCEEDED', message: 'Bạn đã hết lượt dùng thử miễn phí.' });
+        }
+        if (error.message === 'DAILY_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'DAILY_QUOTA_EXCEEDED', message: 'Bạn đã hết lượt sử dụng hôm nay.' });
+        }
+        return res.status(500).json({ error: 'Lỗi kiểm tra quyền truy cập.' });
     }
 
     const { action, nicheSlug, nicheTitle, context } = req.body;
@@ -107,6 +129,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
             NICHE_CACHE_TTL
         );
+
+        // Track usage
+        await incrementUserUsage(userId, 'niche-engine');
 
         console.log(`[NicheEngine] Returning content for ${action}:${nicheSlug}`);
         return res.status(200).json({ content });

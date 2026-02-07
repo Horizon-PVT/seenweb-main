@@ -41,10 +41,8 @@ export default function Tab3Automation({ onOpenTool }: Tab3Props) {
         } else {
             // Show upsell based on required tier
             const tool = TAB3_TOOLS[toolId as keyof typeof TAB3_TOOLS];
-            if (tool.minRole === 'VIP') {
-                setModalMessage('Tạo Video AI và MC Ảo là tính năng VIP. Nâng cấp để sử dụng.');
-            } else if (tool.minRole === 'SUPER') {
-                setModalMessage('Text-to-Speech là tính năng PRO. Nâng cấp để sử dụng.');
+            if (tool.minRole === 'PRO') {
+                setModalMessage('Tính năng này dành cho gói PRO. Nâng cấp để sử dụng.');
             } else {
                 setModalMessage('Nâng cấp để mở khóa tính năng này.');
             }
@@ -120,13 +118,13 @@ export default function Tab3Automation({ onOpenTool }: Tab3Props) {
             {/* Tier indicators */}
             <div className="flex flex-wrap gap-3 justify-center">
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
-                    🎤 Dubbing: STARTER+
+                    🎤 Dubbing: BASIC+
                 </span>
                 <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
                     🎙️ TTS: PRO+
                 </span>
                 <span className="px-3 py-1 bg-pink-500/20 text-pink-300 text-xs rounded-full">
-                    🎬 Video & MC: VIP
+                    🎬 Video & MC: PRO
                 </span>
             </div>
 

@@ -1,5 +1,8 @@
 // File: pages/api/script-refiner-iterative.ts (Backend chỉnh sửa nhanh)
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 import { GoogleGenAI } from "@google/genai";
 
 interface ErrorResponse { error: string; }
@@ -14,6 +17,29 @@ export default async function handler(
   }
 
   try {
+    // Auth check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session || !session.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const userId = (session.user as any).id;
+
+    // Quota check (PRO-only tool)
+    try {
+      await checkUserQuota(userId, 'script-refiner');
+    } catch (error: any) {
+      if (error.message === 'PLAN_LOCKED') {
+        return res.status(403).json({ error: 'PLAN_LOCKED' });
+      }
+      if (error.message === 'FREE_QUOTA_EXCEEDED') {
+        return res.status(403).json({ error: 'FREE_QUOTA_EXCEEDED' });
+      }
+      if (error.message === 'DAILY_QUOTA_EXCEEDED') {
+        return res.status(403).json({ error: 'DAILY_QUOTA_EXCEEDED' });
+      }
+      throw error;
+    }
+
     const { currentScript, iterativeChatRequest } = req.body;
 
     if (!currentScript || !iterativeChatRequest) {
@@ -48,6 +74,7 @@ export default async function handler(
 
     const editedScriptText = response.text?.trim() || "";
 
+    await incrementUserUsage(userId, 'script-refiner');
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.status(200).send(editedScriptText);
 

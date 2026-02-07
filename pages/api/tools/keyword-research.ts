@@ -1,5 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 // Initialize YouTube API Client
 const youtube = google.youtube('v3');
@@ -55,7 +58,34 @@ export default async function handler(
 ) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-    const { keyword, isPro } = req.body;
+    // 🔐 Authentication check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session?.user?.email || !(session.user as any).id) {
+        return res.status(401).json({ error: 'Vui lòng đăng nhập để sử dụng tính năng này.' });
+    }
+
+    const userId = (session.user as any).id;
+    const userRole = (session.user as any).role || 'FREE';
+
+    // 🛡️ Quota check — keyword-research is PRO-only (not in BASIC_ALLOWED_TOOLS)
+    try {
+        await checkUserQuota(userId, 'keyword-research');
+    } catch (err: any) {
+        if (err.message === 'PLAN_LOCKED') {
+            return res.status(403).json({ error: 'PLAN_LOCKED' });
+        }
+        if (err.message === 'FREE_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'FREE_QUOTA_EXCEEDED' });
+        }
+        if (err.message === 'DAILY_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'DAILY_QUOTA_EXCEEDED' });
+        }
+        return res.status(403).json({ error: err.message });
+    }
+
+    const { keyword } = req.body;
+    // Derive isPro from server-side role — NEVER trust frontend
+    const isPro = ['PRO', 'ADMIN'].includes(userRole);
 
     if (!keyword) return res.status(400).json({ error: 'Missing keyword' });
 
@@ -169,6 +199,9 @@ export default async function handler(
             trendData: trendData.slice(0, 12).map(v => Math.floor(v / 1000)), // Normalize for sparkline
             related: processedRelated
         };
+
+        // 📊 Track usage
+        await incrementUserUsage(userId, 'keyword-research');
 
         return res.status(200).json(result);
 

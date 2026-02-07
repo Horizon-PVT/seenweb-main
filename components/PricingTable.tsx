@@ -9,9 +9,8 @@ interface PricingTableProps {
 }
 
 const planToRole: Record<string, string> = {
-  "STARTER": "CREATIVE",
-  "PRO": "SUPER",
-  "VIP": "VIP",
+  "STARTER": "BASIC",
+  "PRO": "PRO",
 };
 
 const PricingCard = ({
@@ -81,7 +80,7 @@ const PricingCard = ({
 
     const baseAmount = isYearly ? priceYearly : priceMonthly;
     const amount = promoApplied ? promoApplied.finalAmount : baseAmount;
-    const role = planToRole[plan] || "CREATIVE";
+    const role = planToRole[plan] || "BASIC";
 
     onUpgrade(plan, amount, role, isYearly);
   };
@@ -208,7 +207,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
   // Helper to get price dynamically
   const getPlanPrice = (plan: string, yearly: boolean) => {
     if (plan === "BASIC" || plan === "STARTER") return yearly ? 1390000 : 169000;
-    if (plan === "PROFESSIONAL" || plan === "VIP") return yearly ? 4190000 : 499000;
+    if (plan === "PROFESSIONAL" || plan === "PRO") return yearly ? 4190000 : 499000;
     return 0;
   };
 
@@ -317,7 +316,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             color="#CDAD5A"
             glow="0 0 30px rgba(205,173,90,0.3)"
             isYearly={isYearly}
-            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("STARTER", amount, "CREATIVE", yearly)}
+            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("STARTER", amount, "BASIC", yearly)}
             t={t}
           />
 
@@ -346,7 +345,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             isVip
             isFeatured
             isYearly={isYearly}
-            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("PRO", amount, "SUPER", yearly)}
+            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("PRO", amount, "PRO", yearly)}
             t={t}
           />
         </div>

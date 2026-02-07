@@ -66,7 +66,7 @@ export default async function handler(
         const effectiveRole = (user.role !== 'FREE' && isExpired) ? 'FREE' : user.role;
 
         // Nếu là Pro → không giới hạn
-        const isPro = ['CREATIVE', 'SUPER', 'VIP'].includes(effectiveRole);
+        const isPro = ['BASIC', 'PRO', 'ADMIN'].includes(effectiveRole);
         if (isPro) {
             return res.status(200).json({
                 success: true,

@@ -59,6 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (error.message === 'FREE_QUOTA_EXCEEDED') {
       return res.status(403).json({ error: 'FREE_QUOTA_EXCEEDED', message: 'Bạn đã hết lượt dùng thử miễn phí.' });
     }
+    if (error.message === 'DAILY_QUOTA_EXCEEDED') {
+      return res.status(403).json({ error: 'DAILY_QUOTA_EXCEEDED', message: 'Bạn đã hết lượt sử dụng hôm nay. Vui lòng nâng cấp gói!' });
+    }
     return res.status(403).json({ error: error.message });
   }
 

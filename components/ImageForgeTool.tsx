@@ -264,7 +264,7 @@ const ImageForgeTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     // --- FREEMIUM GATE CHECK ---
     const userRole = ((session?.user as any)?.role || "FREE");
-    const allowed = ['SUPER', 'VIP', 'ADMIN'].includes(userRole);
+    const allowed = ['BASIC', 'PRO', 'ADMIN'].includes(userRole);
     if (!allowed) {
       setShowUpgrade(true);
       return;

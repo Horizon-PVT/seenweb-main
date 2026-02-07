@@ -411,7 +411,7 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
                 onClose={() => setShowCheckout(false)}
                 currentPlan={userRole}
                 currentChannelCount={channels.length}
-                requiredPlan="SUPER"
+                requiredPlan="PRO"
                 userEmail={userEmail}
             />
 

@@ -1,8 +1,7 @@
 export const ROLES = {
   FREE: 'FREE',
-  CREATIVE: 'CREATIVE', // Basic
-  SUPER: 'SUPER',       // Pro
-  VIP: 'VIP',
+  BASIC: 'BASIC',     // Previously CREATIVE/Starter
+  PRO: 'PRO',         // Previously SUPER/VIP
   ADMIN: 'ADMIN',
 } as const;
 
@@ -11,22 +10,22 @@ export type Role = keyof typeof ROLES;
 // DEFINITIVE LIMITS (Per Tool)
 export const ROLE_LIMITS: Record<Role, { type: 'LIFETIME' | 'DAILY', count: number }> = {
   FREE: { type: 'LIFETIME', count: 1 },      // 1 use lifetime PER TOOL
-  CREATIVE: { type: 'DAILY', count: 20 },    // 20 uses daily PER TOOL
-  SUPER: { type: 'DAILY', count: 50 },       // 50 uses daily PER TOOL (Hidden limit)
-  VIP: { type: 'DAILY', count: 9999 },       // Unlimited
+  BASIC: { type: 'DAILY', count: 20 },       // 20 uses daily PER TOOL
+  PRO: { type: 'DAILY', count: 50 },         // 50 uses daily PER TOOL
   ADMIN: { type: 'DAILY', count: 9999 },     // Unlimited
 };
 
 // Tools allowed for Free plan
 export const FREE_ALLOWED_TOOLS = [
-  'micro-niche-miner',
-  'scriptwriter',
-  'seo-tool', // seo-tool, seo alias handled in code
-  'seo'
+  'micro-niche-miner',   // Đào Ngách CPM
+  'scriptwriter',        // Viết Kịch Bản
+  'seo-tool',            // SEO YouTube
+  'seo'                  // SEO alias
 ];
 
-// Tools allowed for CREATIVE/BASIC plan (includes all FREE tools + more)
-export const CREATIVE_ALLOWED_TOOLS = [
+// Tools allowed for BASIC plan (includes all FREE tools + more)
+// BASIC = scriptwriter, seo-tool, rival-scanner, thay-youtube, image-forge, dubbing
+export const BASIC_ALLOWED_TOOLS = [
   // All FREE tools
   'micro-niche-miner',
   'scriptwriter',
@@ -36,7 +35,9 @@ export const CREATIVE_ALLOWED_TOOLS = [
   'rival-scanner',        // Phân Tích Kênh Đối Thủ
   'thay-youtube',         // Thầy YouTube (Day 6-20)
   'dubbing',              // 10 credits AI Dubbing
-  'image-forge',          // Tạo Ảnh - Thumbnail (NEW)
+  'image-forge',          // Tạo Ảnh - Thumbnail AI
+  // NOTE: niche-engine, narrative-studio, veocity, text-to-speech,
+  // keyword-research, script-refiner, hidden-channel-finder, virtual-mc = PRO ONLY
 ];
 
 export const TOOLS = [
@@ -62,9 +63,8 @@ export const TTS_OPENAI_CHAR_LIMIT = 500000;
 // MAX_DAILY_USAGE - for activate.ts and admin functions
 export const MAX_DAILY_USAGE: Record<string, number> = {
   FREE: 1,
-  CREATIVE: 20,
-  SUPER: 50,
-  VIP: 9999,
+  BASIC: 20,
+  PRO: 50,
   ADMIN: 9999,
 };
 
