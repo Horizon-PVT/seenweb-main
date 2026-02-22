@@ -1,16 +1,17 @@
-// components/WelcomePopupManager.tsx - Manages welcome popups after login
+// components/WelcomePopupManager.tsx - Manages Khai Xuân popup after login
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import WelcomeSlotMachine from './WelcomeSlotMachine';
+import KhaiXuanPopup from './KhaiXuanPopup';
 import SharePromoPopup from './SharePromoPopup';
 import { useRouter } from 'next/router';
 
-const WELCOME_SHOWN_KEY = 'seenyt_welcome_shown_v2'; // Changed key to reset for testing
+const WELCOME_SHOWN_KEY = 'seenyt_khaixuan_2026'; // New key for Khai Xuân
 const WELCOME_SHOWN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+const KHAI_XUAN_END = new Date('2026-03-15T23:59:59+07:00').getTime(); // Kết thúc 15/3/2026
 
 export default function WelcomePopupManager() {
     const { data: session, status } = useSession();
-    const [showSlotMachine, setShowSlotMachine] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
     const [showSharePopup, setShowSharePopup] = useState(false);
 
     const router = useRouter();
@@ -25,23 +26,25 @@ export default function WelcomePopupManager() {
             return;
         }
 
+        // Check if Khai Xuân has ended
+        if (Date.now() > KHAI_XUAN_END && !isTest) {
+            console.log('WelcomePopupManager: Khai Xuân 2026 has ended.');
+            return;
+        }
+
         // Force show if testing
         if (isTest) {
             console.log('WelcomePopupManager: Test mode active. Showing popup.');
-            setShowSlotMachine(true);
+            setShowPopup(true);
             return;
         }
 
         // Only show for logged-in users
         if (status !== 'authenticated' || !session?.user) return;
 
-        // Check if user is FREE tier (most likely to convert)
+        // Show for ALL tiers (FREE, BASIC, PRO, ADMIN)
         const userRole = (session.user as any)?.role;
-        // ENABLE FOR TESTING: Allow ADMIN to see it too
-        if (userRole && userRole !== 'FREE' && userRole !== 'ADMIN') {
-            console.log('WelcomePopupManager: User is not FREE/ADMIN. Skip.');
-            return;
-        }
+        console.log('WelcomePopupManager: User role:', userRole);
 
         // Check if already shown in last 24h
         const lastShown = localStorage.getItem(WELCOME_SHOWN_KEY);
@@ -53,22 +56,22 @@ export default function WelcomePopupManager() {
             }
         }
 
-        // Show slot machine after a short delay (let page load first)
+        // Show popup after a short delay (let page load first)
         const timer = setTimeout(() => {
-            console.log('WelcomePopupManager: Showing popup!');
-            setShowSlotMachine(true);
+            console.log('WelcomePopupManager: Showing Khai Xuân popup!');
+            setShowPopup(true);
             localStorage.setItem(WELCOME_SHOWN_KEY, Date.now().toString());
         }, 1500);
 
         return () => clearTimeout(timer);
     }, [session, status, router.query]);
 
-    const handleSlotMachineClose = () => {
-        setShowSlotMachine(false);
+    const handlePopupClose = () => {
+        setShowPopup(false);
     };
 
     const handleShowSharePopup = () => {
-        setShowSlotMachine(false);
+        setShowPopup(false);
         setTimeout(() => setShowSharePopup(true), 300);
     };
 
@@ -76,13 +79,16 @@ export default function WelcomePopupManager() {
         setShowSharePopup(false);
     };
 
+    const userRole = (session?.user as any)?.role || 'FREE';
+
     return (
         <>
-            <WelcomeSlotMachine
-                isOpen={showSlotMachine}
-                onClose={handleSlotMachineClose}
+            <KhaiXuanPopup
+                isOpen={showPopup}
+                onClose={handlePopupClose}
                 onShowSharePopup={handleShowSharePopup}
                 userEmail={session?.user?.email || undefined}
+                userRole={userRole}
             />
             <SharePromoPopup
                 isOpen={showSharePopup}

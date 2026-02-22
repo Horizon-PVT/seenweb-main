@@ -158,7 +158,11 @@ export const getServerSideProps: GetServerSideProps = async () => {
   const promotions = await prisma.promotion.findMany({
     where: {
       status: 'ACTIVE',
-      // Optional: Filter by startDate/endDate if needed, but currently simplified
+      // Exclude auto-generated welcome/khai xuan codes
+      NOT: [
+        { description: { startsWith: 'Welcome Gift' } },
+        { description: { startsWith: 'Khai Xuân' } },
+      ],
     },
     orderBy: {
       createdAt: 'desc',

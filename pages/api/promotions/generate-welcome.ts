@@ -24,20 +24,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const { type, value } = req.body; // type: 'PERCENT' | 'BONUS_DAYS', value: number
+        const { type, value, userRole, target, prizeId } = req.body;
 
         if (!type || !value) {
             return res.status(400).json({ error: 'Missing type or value' });
         }
 
-        // 1. Kiểm tra xem user đã từng nhận mã welcome chưa (dựa vào email hoặc device fingerprint nếu có - ở đây dùng email check history db nếu cần, nhưng để đơn giản ta cứ tạo mới vì logic frontend đã chặn hiển thị popup rồi)
+        // Check chương trình Khai Xuân còn hiệu lực không (hết hạn 15/3/2026)
+        const khaiXuanEnd = new Date('2026-03-15T23:59:59+07:00');
+        if (new Date() > khaiXuanEnd) {
+            return res.status(400).json({ error: 'Chương trình Khai Xuân 2026 đã kết thúc.' });
+        }
 
-        // Tuy nhiên để tránh spam, ta có thể check xem user này đã tạo bao nhiêu mã WELCOME hôm nay.
-        // Tạm thời bỏ qua check spam phức tạp, tin tưởng frontend logic.
-
-        // 2. Tạo mã code độc nhất
-        let prefix = type === 'PERCENT' ? 'SAFE20' : 'GIFT3'; // SAFE20 (Giảm 20%), GIFT3 (Tặng 3 ngày)
-        let newCode = generateRandomCode(prefix);
+        // Tạo mã code với prefix XUAN26
+        let newCode = generateRandomCode('XUAN26');
 
         // Đảm bảo code unique
         let isUnique = false;
@@ -46,20 +46,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!existing) {
                 isUnique = true;
             } else {
-                newCode = generateRandomCode(prefix);
+                newCode = generateRandomCode('XUAN26');
             }
         }
 
-        // 3. Lưu vào DB
+        // Build description with tier info
+        const role = userRole || 'FREE';
+        const prizeLabel = prizeId || 'unknown';
+        const description = `Khai Xuân 2026 - ${session.user.email} - ${role} - ${prizeLabel}`;
+
+        // Determine promotion type based on prize
+        let promoType: string;
+        if (type === 'CREDITS') {
+            promoType = 'BONUS_DAYS'; // Re-use BONUS_DAYS type for credits (value = credits count)
+        } else {
+            promoType = type; // PERCENT or BONUS_DAYS
+        }
+
+        // Lưu vào DB
         const promotion = await prisma.promotion.create({
             data: {
                 code: newCode,
-                type: type, // 'PERCENT' hoặc 'BONUS_DAYS'
+                type: promoType,
                 value: Number(value),
-                promotionType: 'CODE', // Mã code cá nhân
+                promotionType: 'CODE',
                 status: 'ACTIVE',
-                usageLimit: 1, // Chỉ dùng 1 lần
-                description: `Welcome Gift for ${session.user.email} - ${type === 'PERCENT' ? 'Giảm giá' : 'Tặng ngày'}`,
+                usageLimit: 1,
+                description: description,
                 startDate: new Date(),
                 // Hết hạn sau 24h
                 endDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -69,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ code: promotion.code, expiry: promotion.endDate });
 
     } catch (error) {
-        console.error('Error generating welcome promo:', error);
+        console.error('Error generating Khai Xuan promo:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 }
