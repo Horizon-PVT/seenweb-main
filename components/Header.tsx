@@ -72,7 +72,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/55 backdrop-blur-md border-b border-white/5">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/30 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
       <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
         <Link href="/#bang-cong-cu-seenyt" className="flex items-center gap-2 sm:gap-3 group select-none flex-shrink-0">
           <Image
@@ -121,18 +121,18 @@ const Header: React.FC = () => {
               Tính năng
               <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
-            <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b] border border-white/10 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
+            <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
               <a
                 href="#bang-cong-cu-seenyt"
                 onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
-                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-[#CDAD5A] transition-colors"
+                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors"
               >
                 Bảng công cụ
               </a>
               <a
                 href="#pricing"
                 onClick={(e) => handleNavClick(e, "#pricing")}
-                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-[#CDAD5A] transition-colors"
+                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors"
               >
                 Bảng giá
               </a>
@@ -145,23 +145,23 @@ const Header: React.FC = () => {
               Khám phá
               <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
-            <div className="absolute top-full left-0 mt-0 w-56 bg-[#18181b] border border-white/10 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
+            <div className="absolute top-full left-0 mt-0 w-56 bg-[#18181b]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
               <Link
                 href="/affiliate"
-                className="block px-4 py-3 text-sm text-[#00a3a3] hover:bg-white/5 hover:text-[#4ddcdc] transition-colors uppercase font-semibold"
+                className="block px-4 py-3 text-sm text-[#00a3a3] hover:bg-white/10 hover:text-[#4ddcdc] transition-colors uppercase font-semibold"
               >
                 Trở thành đối tác
               </Link>
               <Link
                 href="/tuyendung"
-                className="block px-4 py-3 text-sm text-cyan-400 hover:bg-white/5 hover:text-cyan-300 transition-colors font-bold tracking-wide"
+                className="block px-4 py-3 text-sm text-cyan-400 hover:bg-white/10 hover:text-cyan-300 transition-colors font-bold tracking-wide"
               >
                 TUYỂN DỤNG
               </Link>
               {/* New Promotion Link */}
               <Link
                 href="/promotions"
-                className="block px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors font-bold tracking-wide flex items-center gap-2"
+                className="block px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors font-bold tracking-wide flex items-center gap-2"
               >
                 <span className="text-yellow-400">🎁</span> KHUYẾN MẠI
               </Link>
@@ -174,12 +174,12 @@ const Header: React.FC = () => {
               Hỗ trợ
               <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
-            <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b] border border-white/10 rounded-md shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
+            <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
               <a
                 href="https://zalo.me/g/lhxazc331"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block px-4 py-3 text-sm text-blue-400 hover:bg-white/5 hover:text-blue-300 transition-colors flex items-center gap-2"
+                className="block px-4 py-3 text-sm text-blue-400 hover:bg-white/10 hover:text-blue-300 transition-colors flex items-center gap-2"
               >
                 💬 Zalo Hỗ Trợ
               </a>
@@ -187,7 +187,7 @@ const Header: React.FC = () => {
                 href="https://www.facebook.com/profile.php?id=61585796132941"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block px-4 py-3 text-sm text-blue-600 hover:bg-white/5 hover:text-blue-500 transition-colors flex items-center gap-2"
+                className="block px-4 py-3 text-sm text-blue-600 hover:bg-white/10 hover:text-blue-500 transition-colors flex items-center gap-2"
               >
                 📘 Facebook
               </a>
@@ -195,12 +195,12 @@ const Header: React.FC = () => {
                 href="https://t.me/AdSeenYT"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block px-4 py-3 text-sm text-sky-400 hover:bg-white/5 hover:text-sky-300 transition-colors flex items-center gap-2"
+                className="block px-4 py-3 text-sm text-sky-400 hover:bg-white/10 hover:text-sky-300 transition-colors flex items-center gap-2"
               >
                 ✈️ Telegram
               </a>
               <Link href="/guides">
-                <span className="block px-4 py-3 text-sm text-[#CDAD5A] hover:bg-white/5 hover:text-yellow-300 transition-colors flex items-center gap-2 cursor-pointer">
+                <span className="block px-4 py-3 text-sm text-[#CDAD5A] hover:bg-white/10 hover:text-yellow-300 transition-colors flex items-center gap-2 cursor-pointer">
                   📚 Hướng dẫn sử dụng
                 </span>
               </Link>
@@ -222,7 +222,7 @@ const Header: React.FC = () => {
               </span>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 px-3 sm:px-4 py-1.5 sm:py-2 rounded-sm text-white text-xs sm:text-sm hover:bg-red-600 transition-all whitespace-nowrap"
+                className="bg-red-500/20 border border-red-500/50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-red-500 text-xs sm:text-sm hover:bg-red-500 hover:text-white transition-all whitespace-nowrap"
               >
                 ĐĂNG XUẤT
               </button>
@@ -231,13 +231,13 @@ const Header: React.FC = () => {
             <>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="text-gray-300 hover:text-white transition-colors text-xs sm:text-sm hidden sm:inline"
+                className="text-gray-300 hover:text-white transition-colors text-xs sm:text-sm hidden sm:inline font-bold"
               >
                 ĐĂNG NHẬP
               </button>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-[#008080] text-white font-bold py-1.5 sm:py-2 px-3 sm:px-5 border border-[#008080] rounded-sm transition-all duration-300 hover:bg-transparent hover:text-[#008080] hover:shadow-[0_0_15px_#008080] text-xs sm:text-sm"
+                className="bg-purple-600 text-white font-bold py-1.5 sm:py-2 px-3 sm:px-5 border border-purple-500 rounded-lg transition-all duration-300 hover:bg-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] text-xs sm:text-sm"
               >
                 ĐĂNG KÍ
               </button>
@@ -262,9 +262,9 @@ const Header: React.FC = () => {
       {isMobileMenuOpen && (
         <>
           {/* Backdrop */}
-          <div className="md:hidden fixed inset-0 bg-black/60 z-[9998]" onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]" onClick={() => setIsMobileMenuOpen(false)}></div>
           {/* Menu */}
-          <div ref={mobileMenuRef} className="md:hidden fixed top-[52px] sm:top-[60px] left-0 right-0 bg-[#0a0f1e] border-b border-white/10 shadow-2xl max-h-[80vh] overflow-y-auto z-[9999]">
+          <div ref={mobileMenuRef} className="md:hidden fixed top-[52px] sm:top-[60px] left-0 right-0 bg-[#0a0f1e]/95 backdrop-blur-2xl border-b border-white/10 shadow-2xl max-h-[80vh] overflow-y-auto z-[9999]">
             <nav className="px-6 py-4 space-y-1">
               {/* User email on mobile */}
               {isLoggedIn && user && (
@@ -275,7 +275,7 @@ const Header: React.FC = () => {
 
               <Link
                 href="/new-youtuber"
-                className="flex items-center gap-2 px-3 py-3 text-[#00ffb4] hover:bg-white/5 rounded-lg font-bold text-sm transition-colors"
+                className="flex items-center gap-2 px-3 py-3 text-[#00ffb4] hover:bg-white/5 rounded-xl font-bold text-sm transition-colors"
               >
                 YouTube Mới
                 <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">HOT</span>
@@ -283,14 +283,14 @@ const Header: React.FC = () => {
 
               <Link
                 href="/coaching"
-                className="block px-3 py-3 text-white/80 hover:bg-white/5 hover:text-[#CDAD5A] rounded-lg font-semibold text-sm transition-colors"
+                className="block px-3 py-3 text-white/80 hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl font-semibold text-sm transition-colors"
               >
                 Huấn luyện
               </Link>
 
               <Link
                 href="/dashboard"
-                className="block px-3 py-3 text-white/80 hover:bg-white/5 hover:text-[#CDAD5A] rounded-lg font-semibold text-sm transition-colors"
+                className="block px-3 py-3 text-white/80 hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl font-semibold text-sm transition-colors"
               >
                 Cá nhân
               </Link>
@@ -301,14 +301,14 @@ const Header: React.FC = () => {
                 <a
                   href="#bang-cong-cu-seenyt"
                   onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
-                  className="block px-3 py-3 text-white/70 hover:bg-white/5 hover:text-[#CDAD5A] rounded-lg text-sm transition-colors pl-6"
+                  className="block px-3 py-3 text-white/70 hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl text-sm transition-colors pl-6"
                 >
                   Bảng công cụ
                 </a>
                 <a
                   href="#pricing"
                   onClick={(e) => handleNavClick(e, "#pricing")}
-                  className="block px-3 py-3 text-white/70 hover:bg-white/5 hover:text-[#CDAD5A] rounded-lg text-sm transition-colors pl-6"
+                  className="block px-3 py-3 text-white/70 hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl text-sm transition-colors pl-6"
                 >
                   Bảng giá
                 </a>
@@ -319,19 +319,19 @@ const Header: React.FC = () => {
                 <span className="block px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Khám phá</span>
                 <Link
                   href="/affiliate"
-                  className="block px-3 py-3 text-[#00a3a3] hover:bg-white/5 hover:text-[#4ddcdc] rounded-lg text-sm font-semibold transition-colors pl-6"
+                  className="block px-3 py-3 text-[#00a3a3] hover:bg-white/5 hover:text-[#4ddcdc] rounded-xl text-sm font-semibold transition-colors pl-6"
                 >
                   Trở thành đối tác
                 </Link>
                 <Link
                   href="/tuyendung"
-                  className="block px-3 py-3 text-cyan-400 hover:bg-white/5 hover:text-cyan-300 rounded-lg text-sm font-bold transition-colors pl-6"
+                  className="block px-3 py-3 text-cyan-400 hover:bg-white/5 hover:text-cyan-300 rounded-xl text-sm font-bold transition-colors pl-6"
                 >
                   TUYỂN DỤNG
                 </Link>
                 <Link
                   href="/promotions"
-                  className="block px-3 py-3 text-red-400 hover:bg-white/5 hover:text-red-300 rounded-lg text-sm font-bold transition-colors pl-6"
+                  className="block px-3 py-3 text-red-400 hover:bg-white/5 hover:text-red-300 rounded-xl text-sm font-bold transition-colors pl-6"
                 >
                   🎁 KHUYẾN MẠI
                 </Link>
@@ -344,7 +344,7 @@ const Header: React.FC = () => {
                   href="https://zalo.me/g/lhxazc331"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-3 py-3 text-blue-400 hover:bg-white/5 hover:text-blue-300 rounded-lg text-sm transition-colors pl-6"
+                  className="block px-3 py-3 text-blue-400 hover:bg-white/5 hover:text-blue-300 rounded-xl text-sm transition-colors pl-6"
                 >
                   💬 Zalo Hỗ Trợ
                 </a>
@@ -352,7 +352,7 @@ const Header: React.FC = () => {
                   href="https://www.facebook.com/profile.php?id=61585796132941"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-3 py-3 text-blue-600 hover:bg-white/5 hover:text-blue-500 rounded-lg text-sm transition-colors pl-6"
+                  className="block px-3 py-3 text-blue-600 hover:bg-white/5 hover:text-blue-500 rounded-xl text-sm transition-colors pl-6"
                 >
                   📘 Facebook
                 </a>
@@ -360,12 +360,12 @@ const Header: React.FC = () => {
                   href="https://t.me/AdSeenYT"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-3 py-3 text-sky-400 hover:bg-white/5 hover:text-sky-300 rounded-lg text-sm transition-colors pl-6"
+                  className="block px-3 py-3 text-sky-400 hover:bg-white/5 hover:text-sky-300 rounded-xl text-sm transition-colors pl-6"
                 >
                   ✈️ Telegram
                 </a>
                 <Link href="/guides">
-                  <span className="block px-3 py-3 text-[#CDAD5A] hover:bg-white/5 hover:text-yellow-300 rounded-lg text-sm transition-colors pl-6 cursor-pointer">
+                  <span className="block px-3 py-3 text-[#CDAD5A] hover:bg-white/5 hover:text-yellow-300 rounded-xl text-sm transition-colors pl-6 cursor-pointer">
                     📚 Hướng dẫn sử dụng
                   </span>
                 </Link>
@@ -376,13 +376,13 @@ const Header: React.FC = () => {
                 <div className="border-t border-white/5 pt-4 mt-3 flex gap-3">
                   <button
                     onClick={() => { setIsModalOpen(true); setIsMobileMenuOpen(false); }}
-                    className="flex-1 text-gray-300 border border-gray-600 py-2.5 rounded text-sm font-semibold hover:bg-white/5 transition-colors"
+                    className="flex-1 text-gray-300 border border-gray-600 py-2.5 rounded-xl text-sm font-semibold hover:bg-white/5 transition-colors"
                   >
                     ĐĂNG NHẬP
                   </button>
                   <button
                     onClick={() => { setIsModalOpen(true); setIsMobileMenuOpen(false); }}
-                    className="flex-1 bg-[#008080] text-white font-bold py-2.5 rounded text-sm hover:bg-[#006666] transition-colors"
+                    className="flex-1 bg-purple-600 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-purple-500 transition-colors"
                   >
                     ĐĂNG KÍ
                   </button>
@@ -399,3 +399,4 @@ const Header: React.FC = () => {
 };
 
 export default Header;
+

@@ -126,6 +126,11 @@ export const authOptions: NextAuthOptions = {
     // QUAN TRỌNG: KHÔNG return baseUrl cứng kiểu "return baseUrl" cho mọi case.
     // Nếu anh ép vậy thì callbackUrl "/welcome" sẽ không bao giờ chạy đúng.
     async redirect({ url, baseUrl }) {
+      // Cho phép redirect ngang hàng trên Localhost Subdomains
+      if (url.includes(".localhost") || url.includes("localhost:3000")) return url;
+      // Cho phép redirect ngang hàng trên Production Subdomains
+      if (url.includes(".seenyt.net") || url === "https://seenyt.net") return url;
+
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (url.startsWith(baseUrl)) return url;
       return baseUrl;
@@ -149,6 +154,7 @@ export const authOptions: NextAuthOptions = {
               role: true,
               membershipExpiry: true,
               maxDailyUsage: true,
+              hasMasterclass: true,
             },
           });
 
@@ -162,6 +168,7 @@ export const authOptions: NextAuthOptions = {
             token.role = dbUser.role;
             token.membershipExpiry = dbUser.membershipExpiry;
             token.maxDailyUsage = dbUser.maxDailyUsage;
+            token.hasMasterclass = dbUser.hasMasterclass;
           }
         } catch (e) {
           console.error("jwt callback error:", e);
@@ -174,11 +181,27 @@ export const authOptions: NextAuthOptions = {
       // tuỳ type dự án anh, nếu TS báo lỗi session.user.id thì anh đã có custom type ở next-auth.d.ts
       (session.user as any).id = token.id;
       (session.user as any).role = token.role;
+      (session.user as any).hasMasterclass = token.hasMasterclass;
       return session;
     },
   },
 
   session: { strategy: "jwt" },
+
+  // Enable Cross-Domain Session for NextAuth in Production Only
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        // This is the Magic: allow subdomains to access the cookie. Only valid in production.
+        ...(process.env.NODE_ENV === "production" ? { domain: ".seenyt.net" } : {}),
+      },
+    },
+  },
 };
 
 export default NextAuth(authOptions);

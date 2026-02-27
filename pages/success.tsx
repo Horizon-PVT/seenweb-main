@@ -51,6 +51,30 @@ export default function SuccessPage() {
             // Adjust logic if user was already VIP extendng - verifying specific role match might be harder without passing it back, 
             // but usually 'FREE' -> 'PRO' is the case.
             if (updatedRole !== 'FREE') {
+              // Determine redirect URL
+              const redirectUrl = (updatedRole === 'MASTERCLASS' || (newSession?.user as any)?.hasMasterclass) ? '/academy' : '/dashboard';
+
+              // 3. Final Success
+              setStatus('success');
+
+              // GTM Event
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const w: any = window;
+              w.dataLayer = w.dataLayer || [];
+              w.dataLayer.push({
+                event: 'purchase_success',
+                transaction_id: String(orderCode),
+                order_code: String(orderCode),
+                description: String(desc || ''),
+                value: data.amount || 0, // It would be good if API returned amount
+                currency: 'VND'
+              });
+
+              // Redirect after short delay
+              setTimeout(() => {
+                window.location.href = redirectUrl;
+              }, 3000);
+
               break;
             }
 
@@ -59,27 +83,14 @@ export default function SuccessPage() {
             attempt++;
           }
 
-          // 3. Final Success
-          setStatus('success');
-
-          // GTM Event
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const w: any = window;
-          w.dataLayer = w.dataLayer || [];
-          w.dataLayer.push({
-            event: 'purchase_success',
-            transaction_id: String(orderCode),
-            order_code: String(orderCode),
-            description: String(desc || ''),
-            value: data.amount || 0, // It would be good if API returned amount
-            currency: 'VND'
-          });
-
-          // Redirect after short delay
-          setTimeout(() => {
-            // Hard reload to ensure all state is fresh if needed, or simple router push
-            window.location.href = '/dashboard';
-          }, 3000);
+          // If loop finishes without success state
+          if (status !== 'success') {
+            setStatus('success');
+            // Fallback redirect
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 3000);
+          }
 
         } else {
           // PayOS says not paid yet/failed
@@ -121,6 +132,8 @@ export default function SuccessPage() {
     );
   }
 
+  const userHasMasterclass = (session?.user as any)?.hasMasterclass || (session?.user as any)?.role === 'MASTERCLASS';
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 animate-fade-in-up">
@@ -137,7 +150,7 @@ export default function SuccessPage() {
 
             <div className="space-y-3">
               <button
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => window.location.href = userHasMasterclass ? '/academy' : '/dashboard'}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition transform hover:scale-[1.02]"
               >
                 🚀 Vào Dashboard ngay

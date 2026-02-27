@@ -1,57 +1,13 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
-
-type CountUpProps = {
-  to: number;
-  durationMs?: number;
-  suffix?: string;
-  formatter?: (v: number) => string;
-  start?: number;
-};
-
-const CountUp: React.FC<CountUpProps> = ({
-  to,
-  durationMs = 1800,
-  suffix = '',
-  formatter,
-  start = 0,
-}) => {
-  const [value, setValue] = React.useState(start);
-  const rafRef = React.useRef<number | null>(null);
-  const startTimeRef = React.useRef<number | null>(null);
-
-  React.useEffect(() => {
-    const step = (ts: number) => {
-      if (startTimeRef.current === null) startTimeRef.current = ts;
-      const elapsed = ts - startTimeRef.current;
-
-      const t = Math.min(1, elapsed / durationMs);
-      const eased = 1 - Math.pow(1 - t, 3);
-
-      const next = Math.round(start + (to - start) * eased);
-      setValue(next);
-
-      if (t < 1) rafRef.current = requestAnimationFrame(step);
-    };
-
-    rafRef.current = requestAnimationFrame(step);
-
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [to, durationMs, start]);
-
-  const text = formatter ? formatter(value) : String(value);
-  return <span>{text}{suffix}</span>;
-};
+import { Rocket, Play } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
-  const viNumber = useMemo(() => new Intl.NumberFormat('vi-VN'), []);
   const [isMuted, setIsMuted] = useState(true);
   const router = useRouter();
   const { t } = useTranslation('common');
@@ -60,7 +16,8 @@ const HeroSection: React.FC = () => {
   const { status } = useSession();
   const isLoggedIn = status === 'authenticated';
 
-  const handleTryFreeClick = () => {
+  const handleTryFreeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (isLoggedIn) {
       router.push('/dashboard');
     } else {
@@ -71,7 +28,7 @@ const HeroSection: React.FC = () => {
   return (
     <section
       id="hero"
-      className="min-h-screen flex flex-col justify-center items-center text-center pt-24 pb-12 relative overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-center items-center text-center pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden px-4"
     >
       {/* Video background 18s */}
       <video
@@ -79,91 +36,75 @@ const HeroSection: React.FC = () => {
         muted={isMuted}
         loop
         playsInline
-        className="absolute inset-0 w-full h-full object-cover -z-10"
+        className="absolute inset-0 w-full h-full object-cover -z-20"
       >
         <source src="/videos/hero-background.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
-      {/* Overlay tối */}
-      <div className="absolute inset-0 bg-black/50 -z-9" />
+      {/* Overlay tối và Ambient Glows */}
+      <div className="absolute inset-0 bg-black/70 -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-purple-600/30 blur-[150px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-pink-600/20 blur-[120px] rounded-full pointer-events-none -z-10" />
 
       {/* Nội dung chính */}
-      {/* Nội dung chính */}
-      <div className="relative z-10 p-6 w-full max-w-5xl mx-auto flex flex-col items-center">
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-playfair font-black text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] mb-6">
-          {t('hero.title', 'Giúp bạn tìm đúng ngách và')} <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A855F7] to-cyan-400">
-            {t('hero.title_highlight', 'làm video lên top view')}
+      <div className="max-w-7xl mx-auto relative z-10 text-center flex flex-col items-center">
+
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium mb-8 backdrop-blur-md animate-fade-in-up">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+          </span>
+          SeenYT Ecosystem v2026 Đã Ra Mắt
+        </div>
+
+        {/* Headline */}
+        <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight animate-fade-in-up text-white" style={{ animationDelay: '0.1s' }}>
+          Quy Trình Triệu View <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400">
+            Tự Động Hóa Bằng AI
           </span>
         </h1>
 
-        <h2 className="text-lg md:text-2xl text-gray-300 font-medium max-w-3xl leading-relaxed mb-8">
-          {t('hero.subtitle', 'Không cần kinh nghiệm, chỉ cần làm theo từng bước.')}
-        </h2>
+        {/* Subtitle */}
+        <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed font-light animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          Đừng làm YouTube bằng sức lực, hãy làm bằng AI. Hệ sinh thái SeenYT cung cấp bộ công cụ thông minh nhất và giải pháp trọn gói giúp bạn tăng trưởng kênh nhàn hơn, nhanh hơn.
+        </p>
 
-        {/* Value Bullets */}
-        <div id="hero-bullets" className="flex flex-col md:flex-row gap-4 md:gap-8 text-left text-gray-200 mb-10 text-sm md:text-base bg-black/40 p-4 rounded-xl backdrop-blur-sm border border-white/5">
-          <div className="flex items-center gap-2">
-            <span className="text-green-400 text-xl">✓</span>
-            <span>{t('hero.bullet1_q', 'Không biết làm gì?')} → <strong>{t('hero.bullet1_a', 'Chỉ cho bạn video nên làm')}</strong></span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-green-400 text-xl">✓</span>
-            <span>{t('hero.bullet2_q', 'Không biết viết?')} → <strong>{t('hero.bullet2_a', 'Có sẵn kịch bản')}</strong></span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-green-400 text-xl">✓</span>
-            <span>{t('hero.bullet3_q', 'Không rành SEO?')} → <strong>{t('hero.bullet3_a', 'Hướng dẫn đăng đúng cách')}</strong></span>
-          </div>
-        </div>
-
-        {/* 2 NÚT CTA song song */}
-        {/* 2 NÚT CTA song song */}
-        <div className="flex flex-col items-center gap-4 w-full">
-          <div id="hero-cta-row" className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
-            {/* Nút Dùng thử miễn phí */}
-            <button
-              onClick={handleTryFreeClick}
-              id="hero-cta-free"
-              className="w-full sm:w-auto min-w-[200px] bg-[#A855F7] text-white font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] active:scale-95"
-            >
-              {t('hero.cta_free', 'Dùng thử miễn phí')}
-            </button>
-
-            {/* Nút Lộ trình cho người mới */}
-            <button
-              onClick={() => router.push('/new-youtuber')}
-              id="hero-cta-roadmap"
-              className="w-full sm:w-auto min-w-[200px] bg-gradient-to-r from-[#00ffb4] to-cyan-400 text-black font-bold py-4 px-8 text-lg rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_25px_rgba(0,255,180,0.6)] active:scale-95 flex items-center justify-center gap-2"
-            >
-              <span>🗺️</span> {t('hero.cta_roadmap', 'Lộ trình cho người mới')}
-            </button>
-          </div>
-
-          {/* Nút Cộng Đồng (Xuống dòng) */}
+        {/* CTAs */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full md:w-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <button
-            onClick={() => router.push('/community')}
-            id="hero-cta-community"
-            className="w-full sm:w-auto min-w-[240px] bg-transparent border border-red-600/50 text-red-500 font-bold py-3 px-8 text-base rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+            onClick={handleTryFreeClick}
+            className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg transition-all shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:shadow-[0_0_60px_rgba(168,85,247,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2"
           >
-            {t('hero.cta_community', '🚀 GIA NHẬP CỘNG ĐỒNG')}
+            Trải nghiệm Tool AI Miễn Phí <Rocket className="w-5 h-5" />
           </button>
+
+          <Link href="/new-youtuber" className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/10 border border-white/20 hover:bg-white/15 text-white font-bold text-lg transition-all backdrop-blur-md flex items-center justify-center gap-2">
+            <Play className="w-5 h-5 text-purple-400" /> Xem Hành Trình Cho Người Mới
+          </Link>
         </div>
 
-        {/* Trust Line */}
-        <div className="mt-8 flex items-center gap-2 text-gray-400 text-sm md:text-base">
-          <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-          {t('hero.trust_line', 'Phù hợp YouTuber mới • Không cần kinh nghiệm • Có gói miễn phí')}
+        {/* Social Proof Bar */}
+        <div className="mt-16 pt-8 border-t border-white/10 w-full max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <p className="text-sm text-gray-400 font-medium uppercase tracking-widest mb-6">Được tin dùng bởi hơn 10,000+ Creators trên đa nền tảng</p>
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+            <div className="font-black text-2xl flex items-center gap-2 text-white">
+              <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center"><Play fill="white" className="w-4 h-4" /></div> YouTube
+            </div>
+            <div className="font-black text-2xl flex items-center gap-2 text-white">
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white">T</div> TikTok
+            </div>
+            <div className="font-black text-2xl tracking-tighter text-white" style={{ fontFamily: 'serif' }}>CreatorCamp</div>
+          </div>
         </div>
       </div>
 
-      {/* Social Icons Stack REMOVED - Moved to Header */}
-
-      {/* Nút toggle sound - Moved slightly left to avoid overlap if needed, or keep as is but check layer */}
+      {/* Nút toggle sound */}
       <button
         onClick={() => setIsMuted(!isMuted)}
-        className="absolute bottom-8 right-32 z-20 bg-black/60 backdrop-blur-sm p-4 rounded-full hover:bg-black/80 transition text-white text-2xl shadow-lg"
+        className="absolute bottom-8 right-6 md:right-12 z-20 bg-black/60 backdrop-blur-sm p-4 rounded-full hover:bg-black/80 transition text-white text-2xl shadow-lg border border-white/10"
         aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
       >
         {isMuted ? '🔇' : '🔊'}

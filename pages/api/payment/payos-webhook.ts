@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import { USAGE_LIMITS } from '@/lib/roles';
+import { sendMasterclassWelcomeEmail } from '@/lib/email';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Allow GET for PayOS verification check
@@ -107,6 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let dubbingCreditsToAdd = 0;
         if (paymentRequest.role === 'BASIC') dubbingCreditsToAdd = 10;
         else if (paymentRequest.role === 'PRO') dubbingCreditsToAdd = 30;
+        // MASTERCLASS does not currently add dubbing credits. Wait, it doesn't matter.
 
         // ... (User find/create logic above)
 
@@ -121,16 +123,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // 2. Logic to update User
         if (!user) {
-            // New User Creation (Unlikely for slot upgrade but safe to have)
+            // New User Creation
+            const initialRole = isSlotUpgrade ? 'PRO' : (paymentRequest.role === 'MASTERCLASS' ? 'FREE' : paymentRequest.role);
             user = await prisma.user.create({
                 data: {
                     email: normalizedEmail, // Use normalized lowercase email
-                    role: isSlotUpgrade ? 'PRO' : paymentRequest.role, // If slot upgrade, ensure at least PRO
-                    // Safe default: If buying slots, they are likely already PRO.
+                    role: initialRole,
+                    hasMasterclass: paymentRequest.role === 'MASTERCLASS',
                     extraChannelSlots: isSlotUpgrade ? extraSlotsToAdd : 0,
-                    membershipExpiry: new Date(Date.now() + membershipDays * 24 * 60 * 60 * 1000),
+                    membershipExpiry: paymentRequest.role === 'MASTERCLASS' ? null : new Date(Date.now() + membershipDays * 24 * 60 * 60 * 1000),
                     dubbingCredits: 10, // Default starter
-                    maxDailyUsage: USAGE_LIMITS[(isSlotUpgrade ? 'PRO' : paymentRequest.role) as keyof typeof USAGE_LIMITS] || 3,
+                    maxDailyUsage: USAGE_LIMITS[initialRole as keyof typeof USAGE_LIMITS] || 3,
                 }
             });
         } else {
@@ -145,9 +148,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // If it's a Slot Upgrade, increment slots, DO NOT change role
             if (isSlotUpgrade) {
                 updateData.extraChannelSlots = { increment: extraSlotsToAdd };
-                // Ensure they are at least PRO/SUPER if they buy slots?
-                // Logic: If they are BASIC, buying slots might be weird but allowed.
-                // Let's keep role as is.
+                // Keep role as is.
+            } else if (paymentRequest.role === 'MASTERCLASS') {
+                // Masterclass course purchase - Lifetime access with no tool tier change
+                updateData.hasMasterclass = true;
+                // DO NOT update membershipExpiry since Masterclass doesn't extend Tool usage
+                delete updateData.membershipExpiry;
             } else {
                 // Normal Plan Upgrade
                 updateData.role = paymentRequest.role;
@@ -205,6 +211,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             } catch (err) {
                 console.error('Error processing commission:', err);
+            }
+        }
+
+        // Send Welcome Email if this is a Masterclass purchase
+        if (paymentRequest.role === 'MASTERCLASS') {
+            try {
+                const userName = user.name || user.email.split('@')[0];
+                await sendMasterclassWelcomeEmail(user.email, userName);
+                console.log(`Sent automated Welcome Email to Masterclass student: ${user.email}`);
+            } catch (emailErr) {
+                console.error('Failed to send Masterclass welcome email:', emailErr);
             }
         }
 

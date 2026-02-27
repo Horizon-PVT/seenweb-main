@@ -62,22 +62,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (payment.role === 'BASIC') dubbingCreditsToAdd = 10;
         else if (payment.role === 'PRO') dubbingCreditsToAdd = 30;
 
-        await prisma.user.upsert({
-            where: { email: userEmail },
-            update: {
+        const isMasterclass = payment.role === 'MASTERCLASS';
+
+        let updateData: any = {};
+        let createData: any = {
+            email: userEmail,
+            role: isMasterclass ? 'FREE' : payment.role,
+            maxDailyUsage: isMasterclass ? MAX_DAILY_USAGE['FREE'] : maxUsage,
+            membershipExpiry: isMasterclass ? null : newExpiryDate,
+            dubbingCredits: dubbingCreditsToAdd,
+            hasMasterclass: isMasterclass
+        };
+
+        if (isMasterclass) {
+            updateData = { hasMasterclass: true };
+        } else {
+            updateData = {
                 role: payment.role, // Cập nhật role
                 membershipExpiry: newExpiryDate, // Cập nhật hạn dùng
                 maxDailyUsage: maxUsage, // Cập nhật giới hạn dùng theo role
                 dubbingCredits: { increment: dubbingCreditsToAdd } // Add dubbing credits
-            },
-            create: {
-                email: userEmail,
-                role: payment.role,
-                maxDailyUsage: maxUsage,
-                membershipExpiry: newExpiryDate,
-                dubbingCredits: dubbingCreditsToAdd,
-                // Các trường khác của User (tên, passwordHash,...) nếu bắt buộc thì phải thêm ở đây
-            }
+            };
+        }
+
+        await prisma.user.upsert({
+            where: { email: userEmail },
+            update: updateData,
+            create: createData
         });
 
         // 4. Cập nhật trạng thái đơn hàng (sang COMPLETED)

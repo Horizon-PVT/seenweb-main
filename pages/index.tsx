@@ -3,6 +3,8 @@ import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { GetServerSideProps } from "next";
+import Link from 'next/link';
+import { Wrench, GraduationCap, ShieldCheck, ArrowRight, Target, PenTool, Video, UploadCloud, DollarSign, LineChart, Database, FileText, Search, Map, Users, Star } from "lucide-react";
 
 // Hardcoded Series Data (Moved from Component)
 const VIDEO_SERIES_2026 = [
@@ -206,27 +208,290 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
         <HeroSection />
         <CreatorMeritSection />
 
-        <Testimonials />
+        {/* --- BƯỚC 2: THE BIG 3 ECOSYSTEM --- */}
+        <section className="py-24 relative overflow-hidden bg-[#050505]">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-900/10 blur-[150px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none" />
 
-        {/* ✅ Anchor để nút "Quay lại menu" cuộn về đúng vị trí */}
-        <section id="bang-cong-cu-seenyt">
-          <ToolsGrid />
+          <div className="max-w-7xl mx-auto px-4 relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">Hệ Sinh Thái Toàn Diện</h2>
+              <p className="text-gray-400 text-lg">3 trụ cột giúp bạn xây kênh bền vững, không đi đường vòng.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Card 1 */}
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm hover:-translate-y-2 transition-transform duration-300 group">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Wrench className="w-8 h-8 text-purple-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">1. AI Tools (Công cụ)</h3>
+                <p className="text-gray-400 leading-relaxed mb-6">"Tự làm cực nhanh". Dành cho người đã biết làm, cần công cụ tối ưu thời gian.</p>
+                <Link href="/dashboard" className="inline-block">
+                  <div className="text-purple-400 font-semibold group-hover:text-purple-300 flex items-center gap-2 cursor-pointer transition-colors">
+                    Khám phá Tools <ArrowRight className="w-4 h-4" />
+                  </div>
+                </Link>
+              </div>
+
+              {/* Card 2 */}
+              <div className="bg-[#18181b] border border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_30px_rgba(0,255,180,0.1)] hover:-translate-y-2 transition-transform duration-300 group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform relative z-10">
+                  <GraduationCap className="w-8 h-8 text-cyan-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4 relative z-10">2. Academy (Đào tạo)</h3>
+                <p className="text-gray-400 leading-relaxed mb-6 relative z-10">"Học để tự làm chủ". Dành cho người mới muốn học bài bản từ A-Z.</p>
+                <Link href="/new-youtuber" className="inline-block">
+                  <div className="text-cyan-400 font-semibold group-hover:text-cyan-300 flex items-center gap-2 cursor-pointer relative z-10 transition-colors">
+                    Vào Học Viện <ArrowRight className="w-4 h-4" />
+                  </div>
+                </Link>
+              </div>
+
+              {/* Card 3 */}
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm hover:-translate-y-2 transition-transform duration-300 group">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="w-8 h-8 text-orange-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">3. Solutions (Dịch vụ)</h3>
+                <p className="text-gray-400 leading-relaxed mb-6">"Để chúng tôi làm thay bạn". Dành cho chủ doanh nghiệp/người bận rộn muốn thuê setup, edit trọn gói.</p>
+                <Link href="/coaching" className="inline-block">
+                  <div className="text-orange-400 font-semibold group-hover:text-orange-300 flex items-center gap-2 cursor-pointer transition-colors">
+                    Trở thành VIP <ArrowRight className="w-4 h-4" />
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
         </section>
 
-        {/* Course Series (Hardcoded or DB) */}
-        <VideoTipsSection
-          tag={t('home.series_section.tag')}
-          title={<>{t('home.series_section.title_1')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">{t('home.series_section.title_2')}</span></>}
-          subtitle={t('home.series_section.subtitle')}
-          hint={t('home.series_section.hint')}
-          videos={VIDEO_SERIES_2026}
-        />
+        {/* --- BƯỚC 3: TIMELINE 5 BƯỚC THÀNH CÔNG --- */}
+        <section className="py-24 relative bg-black border-y border-white/5 bg-gradient-to-b from-[#050505] to-black">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-20">
+              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">
+                5 Bước Triệu View
+              </h2>
+              <p className="text-gray-400 text-lg">Đã kiểm chứng bởi hàng nghìn Creators tại SeenYT.</p>
+            </div>
+
+            {/* Horizontal Zigzag Timeline Container */}
+            <div className="relative pt-12">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
+
+                {/* Step 1 */}
+                <div className="flex flex-col items-center text-center group md:-translate-y-6">
+                  <div className="w-12 h-12 rounded-full bg-black border-2 border-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-purple-900 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                    <Target className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div className="text-purple-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 1</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">Tìm Ngách</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">Phân tích từ khóa, đối thủ và độ lớn thị trường bằng tool AI.</p>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex flex-col items-center text-center group md:translate-y-12">
+                  <div className="w-12 h-12 rounded-full bg-black border-2 border-pink-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-pink-900 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.4)]">
+                    <PenTool className="w-5 h-5 text-pink-400" />
+                  </div>
+                  <div className="text-pink-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 2</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">Kịch Bản AI</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">Remix video triệu view thành phong cách riêng đảm bảo giữ chân.</p>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex flex-col items-center text-center group md:-translate-y-6">
+                  <div className="w-12 h-12 rounded-full bg-black border-2 border-cyan-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-cyan-900 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                    <Video className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <div className="text-cyan-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 3</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">Sản Xuất</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">Ghép giọng đọc AI, dùng video chuẩn làm video tự động hàng loạt.</p>
+                </div>
+
+                {/* Step 4 */}
+                <div className="flex flex-col items-center text-center group md:translate-y-12">
+                  <div className="w-12 h-12 rounded-full bg-black border-2 border-orange-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-orange-900 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                    <UploadCloud className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <div className="text-orange-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 4</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">Đăng SEO</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">Tối ưu Title, Tags, Desc và Thumbnail thu hút views nhanh chóng.</p>
+                </div>
+
+                {/* Step 5 */}
+                <div className="flex flex-col items-center text-center group hover:-translate-y-1 transition-transform md:-translate-y-6">
+                  <div className="w-12 h-12 rounded-full bg-green-900/50 border-2 border-green-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(34,197,94,0.2)] md:shadow-[0_0_20px_rgba(34,197,94,0.4)] relative z-10 group-hover:bg-green-900">
+                    <DollarSign className="w-5 h-5 text-green-400 font-bold" />
+                  </div>
+                  <div className="text-green-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 5</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">Kiếm Tiền</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">Thu nhập Adsense, Affiliate. Dần tự động hóa toàn bộ quỹ thời gian.</p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- KHU VỰC 4: KEY TOOLS NỔI BẬT --- */}
+        <section className="py-24 relative overflow-hidden bg-[#050505] border-y border-white/5">
+          <div className="max-w-7xl mx-auto px-4 relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">Vũ Khí Sáng Tạo Nội Dung</h2>
+              <p className="text-gray-400 text-lg">Những "bảo bối" mạnh mẽ nhất trong hệ sinh thái SeenYT giúp bạn đi tắt đón đầu.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Tool 1 */}
+              <div className="bg-[#18181b] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
+                <div className="h-40 w-full relative overflow-hidden">
+                  <img src="/images/tool-niche-miner.jpg" alt="Đào Ngách CPM Cao" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">HOT</span>
+                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">VIP</span>
+                  </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="text-xl font-bold text-white mb-2">Đào Ngách CPM Cao</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Phân tích dữ liệu thời gian thực để săn lùng ngách ngầm siêu lợi nhuận tại thị trường Âu/Mỹ.</p>
+                  <div className="flex items-center gap-1.5 text-cyan-500 text-xs font-black tracking-widest uppercase group-hover:text-cyan-400 transition-colors mt-auto">
+                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tool 2 */}
+              <div className="bg-[#18181b] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
+                <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
+                  <img src="/images/tool-niche-engine.jpg" alt="Thư Viện Ngách Thắng 100%" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">HOT</span>
+                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">VIP</span>
+                  </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="text-xl font-bold text-white mb-2">Thư viện ngách thắng 100%</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Kho tàng ngách trắng cộng đồng kiểm chứng. Chọn ngách & Sinh kịch bản Long Video.</p>
+                  <div className="flex items-center gap-1.5 text-gray-500 text-xs font-black tracking-widest uppercase group-hover:text-white transition-colors mt-auto">
+                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tool 3 */}
+              <div className="bg-[#111111] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
+                <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
+                  <img src="/images/tool-scriptwriter.jpg" alt="Viết Kịch Bản Viral" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="text-xl font-bold text-white mb-2">Viết Kịch Bản Viral</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Viết kịch bản chuẩn cấu trúc viral, xào nấu video triệu view tăng % giữ chân tốt nhất.</p>
+                  <div className="flex items-center gap-1.5 text-cyan-600 text-xs font-black tracking-widest uppercase group-hover:text-cyan-500 transition-colors mt-auto">
+                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tool 4 */}
+              <div className="bg-[#111111] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
+                <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
+                  <img src="/images/tool-seo.jpg" alt="Tối Ưu SEO & Từ Khóa" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">HOT</span>
+                  </div>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="text-xl font-bold text-cyan-400 mb-2">Tối Ưu SEO & Từ Khóa</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Tối ưu từ khóa chuẩn thuật toán YouTube 2026. Tự động bung Title, Tags, Description.</p>
+                  <div className="flex items-center gap-1.5 text-cyan-600 text-xs font-black tracking-widest uppercase group-hover:text-cyan-500 transition-colors mt-auto">
+                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-12 text-center">
+              <Link href="/dashboard" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-full font-bold transition-colors shadow">
+                Khám phá toàn bộ danh mục Công Cụ <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* --- KHU VỰC 5: COACHING 1-1 COPYWRITING --- */}
+        <section className="py-24 relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-black to-black">
+
+          <div className="max-w-4xl mx-auto px-4 relative z-10">
+            <div className="space-y-10">
+              {/* Headline */}
+              <div className="text-center relative">
+                <h2 className="text-3xl md:text-5xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-400 leading-tight">
+                  Bạn đã có vũ khí tốt (AI Tools),<br />nhưng bạn đã có "Bản đồ kho báu" chưa?
+                </h2>
+              </div>
+
+              {/* Copywriting blocks */}
+              <div className="bg-[#111] border border-orange-500/10 rounded-3xl p-8 md:p-12 shadow-[0_0_50px_rgba(234,88,12,0.05)] space-y-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 blur-[100px] rounded-full" />
+
+                <div className="flex gap-4 relative z-10">
+                  <div className="mt-1 bg-red-500/10 p-2 rounded-xl w-fit h-fit border border-red-500/20 shrink-0">
+                    <Target className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-red-400 font-bold text-lg mb-2">Vấn đề của bạn:</h4>
+                    <p className="text-gray-300 text-lg leading-relaxed">Công cụ thì rất mạnh, nhưng nếu không có tư duy chọn ngách và chiến lược vận hành bài bản, bạn vẫn sẽ loay hoay giữa hàng ngàn tính năng mà không cắn được đề xuất hay tạo ra doanh thu tốt.</p>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-white/5 relative z-10" />
+
+                <div className="flex gap-4 relative z-10">
+                  <div className="mt-1 bg-cyan-500/10 p-2 rounded-xl w-fit h-fit border border-cyan-500/20 shrink-0">
+                    <Map className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-cyan-400 font-bold text-lg mb-2">Giải pháp Coaching 1-1:</h4>
+                    <p className="text-gray-300 text-lg leading-relaxed">Tôi không chỉ cấp quyền cho bạn dùng phần mềm, tôi <strong>trực tiếp tham gia</strong> xây dựng kênh chung với bạn. Đồng hành Coaching 1:1 cầm tay chỉ việc từ số âm đến khi kịch trần doanh thu, bao nuôi tài khoản gỡ gậy bản quyền triệt để.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 relative z-10">
+                  <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-orange-500/30 transition-colors">
+                    <Star className="w-8 h-8 text-yellow-500 mb-3" />
+                    <h4 className="text-white font-bold mb-2 text-lg">Đặc Quyền "Ngách Xanh"</h4>
+                    <p className="text-gray-400 text-sm leading-relaxed">Chỉ ưu tiên truyền thụ lại những "ngách xanh" ngầm nước ngoài CPM siêu béo mà tôi chưa bao giờ công bố lên YouTube.</p>
+                  </div>
+                  <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-orange-500/30 transition-colors">
+                    <Users className="w-8 h-8 text-purple-400 mb-3" />
+                    <h4 className="text-white font-bold mb-2 text-lg">Sửa Lỗi Tận Cùng</h4>
+                    <p className="text-gray-400 text-sm leading-relaxed">Kênh chết do đâu? Bị giam đề xuất? Tôi Review và "phẫu thuật" lại Kênh, Thumbnail và Kịch bản mỗi tuần 1 lần.</p>
+                  </div>
+                </div>
+
+                <div className="pt-8 text-center relative z-10 group">
+                  <Link href="/coaching" className="relative inline-block hover:scale-105 transition-transform duration-300">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-yellow-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-300"></div>
+                    <div className="relative bg-black px-8 md:px-12 py-5 rounded-full border border-orange-500/50">
+                      <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
+                        Đăng Ký Khám Kênh 1:1 Cùng Mr. Seen
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <Testimonials />
 
         <section id="pricing" className="scroll-mt-20">
           <PricingTable />
         </section>
-
-        <KnowledgeSection featuredVideo={featuredStrategyVideo} articles={articles} />
 
         <ExploreSection />
         <FAQ />
