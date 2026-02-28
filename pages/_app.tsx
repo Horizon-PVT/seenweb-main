@@ -8,29 +8,9 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import AttributionTracker from "@/components/AttributionTracker";
 import WelcomePopupManager from "@/components/WelcomePopupManager";
 
-// Fonts setup using next/font
-import { Montserrat, Playfair_Display, Bangers } from 'next/font/google';
+// Removed next/font/google to prevent ENOTFOUND build errors
+// Configuration is now handled via standard <link> tags in <Head> and CSS variables in styles/globals.css
 
-const montserrat = Montserrat({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-montserrat',
-  display: 'swap',
-});
-
-const playfair = Playfair_Display({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
-
-const bangers = Bangers({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-bangers',
-  display: 'swap',
-});
 
 // THÊM DÒNG NÀY ĐỂ DÙNG GTM CHÍNH THỨC
 import { GoogleTagManager } from '@next/third-parties/google';
@@ -105,10 +85,15 @@ function App({
             }),
           }}
         />
+
+        {/* GOOGLE FONTS (Standard Links to avoid build-time fetch errors) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </Head>
 
       <ErrorBoundary>
-        <main className={`${montserrat.variable} ${playfair.variable} ${bangers.variable} font-sans`}>
+        <main className="font-sans">
           <Component {...pageProps} />
         </main>
         <AttributionTracker />

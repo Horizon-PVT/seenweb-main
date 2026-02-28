@@ -8,6 +8,9 @@
   --brand-red: #C1121F;
   --brand-ink: #0A0F1E;
   --brand-white: #FFFFFF;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
+  --font-bangers: 'Bangers', cursive;
 }
 
 html,
