@@ -4,7 +4,8 @@ import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Plus, ChevronDown, ChevronRight, Paperclip, Sparkles, Clock, ArrowRight, Trash2, Home, Settings, ExternalLink, Zap, LayoutTemplate, Mic, Download, X, Crown, Check } from 'lucide-react';
+import Link from 'next/link';
+import { MessageSquare, Plus, ChevronDown, ChevronRight, Paperclip, Sparkles, Clock, ArrowRight, Trash2, Home, Settings, ExternalLink, Zap, LayoutTemplate, Mic, Download, X, Crown, Check, ShoppingCart, CreditCard, PlayCircle } from 'lucide-react';
 import { TOOLS } from '@/lib/tool-config';
 import { PROMPT_TEMPLATES } from '@/lib/ai-coach-templates';
 import ReactMarkdown from 'react-markdown';
@@ -56,6 +57,7 @@ export default function AICoachPage() {
     const [isRecording, setIsRecording] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [showEcosystem, setShowEcosystem] = useState(false);
     const [aiSettings, setAISettings] = useState<{
         nickname?: string;
         channelInfo?: string;
@@ -504,27 +506,60 @@ export default function AICoachPage() {
                             {!sidebarCollapsed && <span className="text-sm">Cá nhân hóa</span>}
                         </button>
 
-                        {/* ALL Tools Section - Scrollable */}
+                        {/* CÔNG CỤ CỦA TÔI section removed as requested */}
+
+                        {/* HỆ SINH THÁI SEENYT */}
                         {!sidebarCollapsed && (
                             <>
-                                <div className="pt-4 pb-2 border-t border-white/5 mt-3">
-                                    <span className="px-3 text-[10px] font-bold text-gray-600 uppercase tracking-wider">Công cụ của tôi</span>
+                                <div className="flex flex-col mt-4">
+                                    <div
+                                        onClick={() => setShowEcosystem(!showEcosystem)}
+                                        className={`flex items-center justify-between px-3 py-2 cursor-pointer rounded-lg hover:bg-white/5 transition-colors ${showEcosystem ? 'text-blue-400' : 'text-gray-400'}`}
+                                    >
+                                        <span className="text-[12px] font-semibold tracking-wide text-blue-400">HỆ SINH THÁI SEENYT</span>
+                                        <ChevronDown size={14} className={`transition-transform duration-300 ${showEcosystem ? 'rotate-180 text-blue-400' : 'text-gray-500'}`} />
+                                    </div>
+
+                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showEcosystem ? 'max-h-[300px] opacity-100 mt-1 mb-2' : 'max-h-0 opacity-0'}`}>
+                                        <div className="flex flex-col gap-0.5 border-l border-blue-900/50 ml-4 pl-2">
+                                            <Link href="/academy" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
+                                                <span className="text-[13px] font-normal truncate flex-1">Academy</span>
+                                            </Link>
+                                            <Link href="/affiliate" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
+                                                <span className="text-[13px] font-normal truncate flex-1">Affiliate</span>
+                                            </Link>
+                                            <Link href="/coaching" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
+                                                <span className="text-[13px] font-normal truncate flex-1">Huấn luyện</span>
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="max-h-[280px] overflow-y-auto space-y-0.5 pr-1 custom-scrollbar">
-                                    {TOOLS.filter(t => t.status !== 'construction').map(tool => {
-                                        const Icon = tool.icon;
-                                        return (
-                                            <button
-                                                key={tool.id}
-                                                onClick={() => router.push(`/dashboard?tool=${tool.id}`)}
-                                                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all text-sm"
-                                            >
-                                                <Icon size={16} className={tool.color || 'text-gray-400'} />
-                                                <span className="truncate">{tool.label}</span>
-                                            </button>
-                                        );
-                                    })}
+
+                                {/* Bottom Utility Links */}
+                                <div className="h-px bg-white/5 my-2 mx-3"></div>
+
+                                <div
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group mb-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                                >
+                                    <ShoppingCart size={18} />
+                                    <span className="text-sm font-medium">Mua thêm kênh</span>
                                 </div>
+
+                                <Link
+                                    href="/pricing"
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group mb-1 text-gray-400 hover:text-white hover:bg-white/5"
+                                >
+                                    <CreditCard size={18} className="group-hover:text-emerald-400 transition-colors" />
+                                    <span className="text-sm font-medium">Bảng giá</span>
+                                </Link>
+
+                                <Link
+                                    href="/guides"
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group mb-1 text-gray-400 hover:text-white hover:bg-white/5"
+                                >
+                                    <PlayCircle size={18} className="group-hover:text-red-400 transition-colors" />
+                                    <span className="text-sm font-medium">Hướng dẫn sử dụng tools</span>
+                                </Link>
                             </>
                         )}
 

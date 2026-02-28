@@ -118,7 +118,7 @@ export default function DailyIdeasCard({ role, channelId, channelTitle }: DailyI
     );
 
     return (
-        <div className="bg-[#18181b] border border-gray-800 rounded-2xl p-6 relative overflow-hidden">
+        <div className="relative overflow-hidden">
             <div className="mb-6">
                 <div className="flex items-center gap-3 mb-1">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function DailyIdeasCard({ role, channelId, channelTitle }: DailyI
                     return (
                         <div key={index} className={`relative group ${isLocked ? 'pointer-events-none select-none' : ''}`}>
                             <div className={`
-                                bg-[#27272a] rounded-xl p-5 border border-gray-700/50 hover:border-yellow-500/30 transition-all
+                                bg-white/[0.02] hover:bg-white/[0.04] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-all
                                 ${isLocked ? 'opacity-30 blur-sm scale-95' : 'opacity-100'}
                             `}>
                                 {/* Header: Title & Score */}
@@ -161,7 +161,7 @@ export default function DailyIdeasCard({ role, channelId, channelTitle }: DailyI
                                 {/* Data Proof Section (Simplified) */}
                                 {idea.dataProof && (
                                     <div className="flex items-center gap-4 text-xs text-gray-400 bg-black/20 p-2 rounded-lg mb-4">
-                                        <div className="flex items-center gap-1.5 min-w-0 flex-1 border-r border-white/5 pr-4">
+                                        <div className="flex items-center gap-1.5 min-w-0 flex-1 border-r border-gray-700/50 pr-4">
                                             <BarChart2 size={12} className="text-blue-400 shrink-0" />
                                             <span className="truncate">Nguồn: <span className="text-gray-300">{idea.dataProof.realVideoTitle || 'N/A'}</span></span>
                                         </div>

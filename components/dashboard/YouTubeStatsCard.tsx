@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { PLAN_LIMITS } from '@/lib/plans';
 import CheckoutModal from './CheckoutModal';
-import { Trash2, Check, Plus, Target } from 'lucide-react';
+import { Trash2, Check, Plus, Target, Sparkles, TrendingUp } from 'lucide-react';
 import HealthCheckCard from './HealthCheckCard';
 import RecentVideosList from './RecentVideosList';
 import ChannelAuditModal from './ChannelAuditModal';
@@ -280,17 +280,18 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
 
                         {/* Top Actions (Right Side) */}
                         <div className="flex items-center gap-3">
-                            <div className="px-3 py-1 bg-gray-800/50 rounded-lg text-xs font-mono text-gray-500 border border-gray-800 flex items-center gap-2">
-                                <span>{selectedChannel?.lastSync ? new Date(selectedChannel.lastSync).toLocaleString('vi-VN') : 'Chưa sync'}</span>
-                                <button
-                                    onClick={handleSync}
-                                    disabled={isSyncing}
-                                    className={`hover:text-white transition-transform ${isSyncing ? 'animate-spin' : 'hover:rotate-180'}`}
-                                    title="Đồng bộ dữ liệu"
-                                >
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleSync}
+                                disabled={isSyncing}
+                                className={`px-4 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg text-xs font-bold shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all flex items-center gap-2 ${isSyncing ? 'opacity-75 cursor-wait' : 'hover:scale-105'}`}
+                                title="Đồng bộ dữ liệu mới nhất từ YouTube"
+                            >
+                                <svg className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                {isSyncing ? 'Đang đồng bộ...' : 'Đồng bộ dữ liệu'}
+                            </button>
+                            <span className="text-[10px] text-gray-500 font-mono flex-shrink-0">
+                                (Lần cuối: {selectedChannel?.lastSync ? new Date(selectedChannel.lastSync).toLocaleString('vi-VN') : 'Chưa rõ'})
+                            </span>
 
                             {/* NEW: Audit Channel Button */}
                             <button
@@ -314,75 +315,113 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
 
                     {/* MAIN SELECTED CHANNEL CARD */}
                     {selectedChannel && (
-                        <div className="bg-gradient-to-br from-[#1a1a20] to-[#0D0D10] p-1 rounded-2xl border border-gray-800 shadow-2xl relative overflow-hidden">
+                        <div className="relative">
                             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
 
-                            <div className="bg-[#13161c] rounded-xl p-6 relative z-10">
-                                <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
-                                    {/* Big Avatar */}
-                                    <div className="relative group">
-                                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-75 blur transition duration-200 group-hover:opacity-100"></div>
-                                        <img
-                                            src={selectedChannel.thumbnail}
-                                            alt={selectedChannel.title}
-                                            className="relative w-24 h-24 rounded-full border-4 border-[#13161c] shadow-2xl object-cover"
-                                        />
-                                        <div className="absolute bottom-1 right-1 bg-[#13161c] p-1 rounded-full">
-                                            <div className="bg-green-500 w-4 h-4 rounded-full border-2 border-[#13161c] animate-pulse"></div>
+                            <div className="py-4 relative z-10">
+                                <div className="flex flex-col gap-6">
+                                    {/* Top Section: Avatar, Name & Connected, PLUS Stats Grid */}
+                                    <div className="flex flex-col xl:flex-row items-start xl:items-center gap-6 xl:gap-14">
+                                        <div className="flex items-center gap-6">
+                                            {/* Avatar with Halo Aura */}
+                                            <div className="relative group">
+                                                {/* Animated multi-layered glow */}
+                                                <div className="absolute inset-0 bg-blue-500/30 rounded-full blur-[20px] group-hover:blur-[30px] group-hover:bg-blue-400/40 transition-all duration-500"></div>
+                                                <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 rounded-full opacity-40 blur-[15px] animate-pulse"></div>
+                                                <div className="absolute inset-0 border border-white/20 rounded-full z-10"></div>
+
+                                                <img
+                                                    src={selectedChannel.thumbnail}
+                                                    alt={selectedChannel.title}
+                                                    className="relative w-20 h-20 rounded-full object-cover"
+                                                />
+                                            </div>
+
+                                            {/* Info & Badges */}
+                                            <div className="flex-1">
+                                                <h2 className="text-2xl font-medium text-white mb-2 tracking-wide">{selectedChannel.title}</h2>
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                    <span className="text-blue-400/80 text-[10px] font-medium uppercase tracking-widest">OFFICIAL CREATOR</span>
+                                                    <span className="text-green-400/80 text-[10px] font-medium uppercase tracking-widest flex items-center gap-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></span> Đã kết nối
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Stats Grid moved up here */}
+                                        <div className="flex items-center gap-10 xl:ml-auto">
+                                            <div className="group cursor-default relative">
+                                                <div className="absolute -inset-4 bg-emerald-500/0 group-hover:bg-emerald-500/5 blur-xl rounded-full transition-colors"></div>
+                                                <div className="relative">
+                                                    <div className="text-[10px] text-white/40 mb-1.5 uppercase tracking-widest font-light flex items-center gap-1.5">
+                                                        Subscribers
+                                                        <TrendingUp size={12} className="text-emerald-300/60" />
+                                                    </div>
+                                                    <div className="text-3xl font-light text-white group-hover:text-emerald-100 transition-colors tracking-widest">
+                                                        {parseInt(selectedChannel.subCount).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="group cursor-default relative">
+                                                <div className="absolute -inset-4 bg-purple-500/0 group-hover:bg-purple-500/5 blur-xl rounded-full transition-colors"></div>
+                                                <div className="relative">
+                                                    <div className="text-[10px] text-white/40 mb-1.5 uppercase tracking-widest font-light flex items-center gap-1.5">
+                                                        Total Views
+                                                        <TrendingUp size={12} className="text-purple-300/60" />
+                                                    </div>
+                                                    <div className="text-3xl font-light text-white group-hover:text-purple-100 transition-colors tracking-widest">
+                                                        {parseInt(selectedChannel.viewCount || '0').toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="group cursor-default relative">
+                                                <div className="relative">
+                                                    <div className="text-[10px] text-white/40 mb-1.5 uppercase tracking-widest font-light flex items-center gap-1.5">
+                                                        Total Videos
+                                                    </div>
+                                                    <div className="text-3xl font-light text-white transition-colors tracking-widest">
+                                                        {parseInt(selectedChannel.videoCount || '0').toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Info & Stats */}
-                                    <div className="flex-1 w-full">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-                                            <div>
-                                                <h2 className="text-3xl font-black text-white mb-2">{selectedChannel.title}</h2>
-                                                <div className="flex items-center gap-3 text-sm text-gray-400">
-                                                    <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded textxs font-bold border border-blue-500/20">OFFICIAL CREATOR</span>
-                                                    <span>•</span>
-                                                    <span>ID: {selectedChannel.channelId}</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Quick Health Status (Dynamic) */}
-                                            <div className={`mt-4 md:mt-0 px-4 py-2 ${healthBg}/10 border ${healthBorder}/20 rounded-lg flex items-center gap-3`}>
-                                                <div className="text-right">
-                                                    <div className={`text-[10px] uppercase ${healthColor} font-bold tracking-wider`}>Health Score</div>
-                                                    <div className="text-xl font-black text-white">{healthScore}/100</div>
-                                                </div>
-                                                <div className={`h-8 w-8 rounded-full border-[3px] ${healthBorder} flex items-center justify-center text-[10px] font-bold ${healthColor}`}>
-                                                    {healthGrade}
-                                                </div>
-                                            </div>
+                                    {/* Middle Section: AI Coach Insight (Borderless Glassmorphism & Overlap) */}
+                                    <div className="relative mt-4 mb-2">
+                                        {/* Avatar overlapping */}
+                                        <div className="absolute -left-6 bottom-0 w-24 h-24 z-20 pointer-events-none">
+                                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-6 bg-purple-500/40 blur-xl rounded-full"></div>
+                                            <img src="/images/ai-coach.png" alt="AI Coach" className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" />
                                         </div>
 
-                                        {/* Big Stats Grid */}
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div className="bg-[#0D0D10] p-4 rounded-xl border border-gray-800/50 hover:border-gray-700 transition group">
-                                                <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-bold">Subscribers</div>
-                                                <div className="text-2xl font-black text-white group-hover:text-blue-400 transition-colors">
-                                                    {parseInt(selectedChannel.subCount).toLocaleString()}
+                                        {/* Insight Bubble */}
+                                        <div className="ml-10 pl-12 pr-6 py-5 bg-white/[0.03] backdrop-blur-md rounded-2xl relative z-10">
+                                            <div className="flex items-start gap-4">
+                                                <div className="flex-1">
+                                                    <div className="text-[10px] font-medium text-cyan-400/80 mb-1.5 uppercase tracking-widest flex items-center gap-1.5">
+                                                        <Sparkles size={12} /> AI Coach Insight
+                                                    </div>
+                                                    <p className="text-[13px] text-white/70 font-light leading-relaxed tracking-wide">
+                                                        {ratio > 500
+                                                            ? "Chào Tùng, kênh của bạn đang cắn đề xuất ở thị trường hiển tại. Đây là thời điểm vàng để dùng Tool 'Tạo Video AI' nhân bản thêm 3 video cùng chủ đề này."
+                                                            : "Dữ liệu cho thấy tỷ lệ giữ chân người xem đang giảm ở phút thứ 2. Có lẽ kịch bản cần kịch tính hơn. Bạn có muốn dùng Tool 'Viết Kịch Bản Viral' để sửa lại đoạn Intro không?"}
+                                                    </p>
                                                 </div>
-                                            </div>
-                                            <div className="bg-[#0D0D10] p-4 rounded-xl border border-gray-800/50 hover:border-gray-700 transition group">
-                                                <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-bold">Total Views</div>
-                                                <div className="text-2xl font-black text-white group-hover:text-purple-400 transition-colors">
-                                                    {parseInt(selectedChannel.viewCount || '0').toLocaleString()}
-                                                </div>
-                                            </div>
-                                            <div className="bg-[#0D0D10] p-4 rounded-xl border border-gray-800/50 hover:border-gray-700 transition group">
-                                                <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-bold">Total Videos</div>
-                                                <div className="text-2xl font-black text-white group-hover:text-yellow-400 transition-colors">
-                                                    {parseInt(selectedChannel.videoCount || '0').toLocaleString()}
-                                                </div>
+                                                <button className="mt-2 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors flex-shrink-0 cursor-pointer">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Bottom Section removed because we moved it up */}
                                 </div>
                             </div>
 
                             {/* DAILY IDEAS (NEW) */}
-                            <div className="mt-6 px-6">
+                            <div className="mt-8 border-t border-gray-800/50 pt-8">
                                 {selectedChannel && (
                                     <DailyIdeasCard
                                         role={userRole}
@@ -393,7 +432,7 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
                             </div>
 
                             {/* BOTTOM CONTENT: Health & Videos */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 px-6 pb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pb-6">
                                 <HealthCheckCard channel={selectedChannel} />
                                 <RecentVideosList
                                     videos={selectedChannel?.recentVideos || []}

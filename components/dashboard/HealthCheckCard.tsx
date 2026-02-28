@@ -32,7 +32,7 @@ export default function HealthCheckCard({ channel }: HealthCheckCardProps) {
     }
 
     return (
-        <div className="bg-[#1a1a20] border border-gray-800 rounded-2xl p-6">
+        <div className="p-2">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <Activity size={20} className="text-blue-500" />
                 Sức khỏe kênh

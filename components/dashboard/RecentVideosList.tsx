@@ -10,7 +10,7 @@ export default function RecentVideosList({ videos = [], onOptimize }: RecentVide
     // If no videos passed, show skeleton or empty state
     if (!videos || videos.length === 0) {
         return (
-            <div className="bg-[#1a1a20] border border-gray-800 rounded-2xl p-6 min-h-[300px] flex flex-col items-center justify-center text-center">
+            <div className="p-2 min-h-[300px] flex flex-col items-center justify-center text-center">
                 <div className="text-gray-600 mb-2">Chưa có dữ liệu video</div>
                 <div className="text-sm text-gray-500">Hệ thống đang đồng bộ video từ kênh của bạn...</div>
             </div>
@@ -18,7 +18,7 @@ export default function RecentVideosList({ videos = [], onOptimize }: RecentVide
     }
 
     return (
-        <div className="bg-[#1a1a20] border border-gray-800 rounded-2xl p-6">
+        <div className="p-2">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <Play size={20} className="text-red-500" fill="currentColor" />
@@ -29,7 +29,7 @@ export default function RecentVideosList({ videos = [], onOptimize }: RecentVide
 
             <div className="space-y-4">
                 {videos.map((video) => (
-                    <div key={video.id} className="group flex items-start gap-4 p-3 bg-gray-900/30 hover:bg-gray-800/50 border border-gray-800 hover:border-gray-700 rounded-xl transition-all cursor-pointer">
+                    <div key={video.id} className="group flex items-start gap-4 p-3 bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 hover:border-white/10 rounded-2xl transition-all cursor-pointer">
                         {/* Thumbnail */}
                         <div className="relative w-32 aspect-video rounded-lg overflow-hidden flex-shrink-0">
                             <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />

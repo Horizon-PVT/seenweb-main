@@ -46,7 +46,7 @@ const ChatbotWidget: React.FC = () => {
           {/* Header + nút X luôn hiện (z-index cao) */}
           <div className="relative flex justify-between items-center p-4 bg-gradient-to-r from-[#008080]/70 to-[#008080]/30 border-b border-[#008080]">
             <h3 className="text-white font-bold text-lg">SeenYT Assistant</h3>
-            <button 
+            <button
               onClick={() => setIsOpen(false)}
               className="absolute top-3 right-3 w-9 h-9 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-2xl font-bold transition z-10"
             >
@@ -87,10 +87,16 @@ const ChatbotWidget: React.FC = () => {
 
       {/* Bubble */}
       {!isOpen && (
-        <button onClick={() => setIsOpen(true)} className="w-16 h-16 bg-black border-4 border-[#008080] rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition animate-pulse">
-          <svg className="w-9 h-9 text-[#00ffc8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-16 h-16 rounded-full overflow-hidden border-2 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.7)] hover:scale-110 hover:border-purple-400 p-0.5 transition-all duration-300 group"
+          title="Chat với AI Coach"
+        >
+          <img
+            src="/images/ai-coach.png"
+            alt="AI Coach"
+            className="w-full h-full object-cover rounded-full"
+          />
         </button>
       )}
     </div>
