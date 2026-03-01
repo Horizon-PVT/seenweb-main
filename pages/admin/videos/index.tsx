@@ -18,7 +18,8 @@ export default function AdminVideos({ session }: any) {
         setLoading(true);
         try {
             const res = await fetch('/api/admin/videos');
-            setVideos(await res.json());
+            const data = await res.json();
+            setVideos(Array.isArray(data) ? data : []);
         } finally {
             setLoading(false);
         }
@@ -95,11 +96,12 @@ export default function AdminVideos({ session }: any) {
                                             <td className="px-6 py-4 text-sm font-medium text-white">{item.title}</td>
                                             <td className="px-6 py-4 text-xs text-gray-400 font-mono">{item.youtubeId}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 text-xs font-bold rounded border ${item.type === 'STRATEGY' ? 'border-purple-500 text-purple-400' : item.type === 'TRENDING' ? 'border-pink-500 text-pink-400' : 'border-blue-500 text-blue-400'}`}>
+                                                <span className={`px-2 py-1 text-xs font-bold rounded border ${item.type === 'STRATEGY' ? 'border-purple-500 text-purple-400' : item.type === 'TRENDING' ? 'border-pink-500 text-pink-400' : item.type === 'PORTFOLIO' ? 'border-amber-500 text-amber-400' : 'border-blue-500 text-blue-400'}`}>
                                                     {item.type === 'STRATEGY' ? 'Chiến Lược' :
                                                         item.type === 'TESTIMONIAL' ? 'Feedback' :
                                                             item.type === 'TRENDING' ? 'Xu Hướng' :
-                                                                'Hướng Dẫn'}
+                                                                item.type === 'PORTFOLIO' ? 'Sản phẩm DV' :
+                                                                    'Hướng Dẫn'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4"><span className={`px-2 py-1 text-xs font-medium rounded-full ${item.status === 'PUBLISHED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{item.status === 'PUBLISHED' ? 'Đã xuất bản' : 'Bản nháp'}</span></td>
@@ -138,6 +140,7 @@ export default function AdminVideos({ session }: any) {
                                     <option value="STRATEGY">Chiến Lược (Academy)</option>
                                     <option value="TESTIMONIAL">Feedback/Cảm nhận</option>
                                     <option value="TRENDING">Xu Hướng (Trends)</option>
+                                    <option value="PORTFOLIO">Sản phẩm dịch vụ</option>
                                 </select>
                             </div>
                             <div><label className="block text-sm font-medium text-gray-300 mb-2">Trạng thái</label><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"><option value="DRAFT">Bản nháp</option><option value="PUBLISHED">Xuất bản</option></select></div>

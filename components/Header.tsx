@@ -98,22 +98,45 @@ const Header: React.FC = () => {
             YouTube Mới
             <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded-full animate-pulse">HOT</span>
           </Link>
-
-          {/* 1. Huấn luyện */}
-          <Link
-            href="/coaching"
-            className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm whitespace-nowrap"
-          >
-            Huấn luyện
-          </Link>
-
-          {/* 2. Cá nhân */}
-          <Link
-            href="/dashboard"
-            className="text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm whitespace-nowrap"
-          >
-            Cá nhân
-          </Link>
+          {/* 1. Hệ sinh thái Dropdown */}
+          <div className="relative group">
+            <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm py-2 whitespace-nowrap">
+              Hệ sinh thái
+              <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div className="absolute top-full left-0 mt-0 w-56 bg-[#18181b]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
+              <Link
+                href="/academy"
+                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors flex items-center gap-2"
+              >
+                <span>🎓</span> Academy
+              </Link>
+              <Link
+                href="/coaching"
+                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors flex items-center gap-2"
+              >
+                <span>🧑‍🏫</span> Huấn luyện 1-1
+              </Link>
+              <Link
+                href="/services"
+                className="block px-4 py-3 text-sm text-[#CDAD5A] hover:bg-white/10 hover:text-yellow-300 transition-colors font-bold flex items-center gap-2"
+              >
+                <span>🚀</span> Dịch vụ
+              </Link>
+              <Link
+                href="/dashboard"
+                className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors flex items-center gap-2"
+              >
+                <span>👤</span> Cá nhân
+              </Link>
+              <Link
+                href="/affiliate"
+                className="block px-4 py-3 text-sm text-[#00a3a3] hover:bg-white/10 hover:text-[#4ddcdc] transition-colors font-semibold flex items-center gap-2"
+              >
+                <span>🤝</span> Affiliate
+              </Link>
+            </div>
+          </div>
 
           {/* 3. Tính năng Dropdown */}
           <div className="relative group">
@@ -147,18 +170,11 @@ const Header: React.FC = () => {
             </button>
             <div className="absolute top-full left-0 mt-0 w-56 bg-[#18181b]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
               <Link
-                href="/affiliate"
-                className="block px-4 py-3 text-sm text-[#00a3a3] hover:bg-white/10 hover:text-[#4ddcdc] transition-colors uppercase font-semibold"
-              >
-                Trở thành đối tác
-              </Link>
-              <Link
                 href="/tuyendung"
                 className="block px-4 py-3 text-sm text-cyan-400 hover:bg-white/10 hover:text-cyan-300 transition-colors font-bold tracking-wide"
               >
                 TUYỂN DỤNG
               </Link>
-              {/* New Promotion Link */}
               <Link
                 href="/promotions"
                 className="block px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors font-bold tracking-wide flex items-center gap-2"
@@ -295,6 +311,41 @@ const Header: React.FC = () => {
                 Cá nhân
               </Link>
 
+              {/* Hệ sinh thái section */}
+              <div className="border-t border-white/5 pt-2 mt-2">
+                <span className="block px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Hệ sinh thái</span>
+                <Link
+                  href="/academy"
+                  className="block px-3 py-3 text-white/70 hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl text-sm transition-colors pl-6"
+                >
+                  🎓 Academy
+                </Link>
+                <Link
+                  href="/coaching"
+                  className="block px-3 py-3 text-white/70 hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl text-sm transition-colors pl-6"
+                >
+                  🧑‍🏫 Huấn luyện 1-1
+                </Link>
+                <Link
+                  href="/services"
+                  className="block px-3 py-3 text-[#CDAD5A] hover:bg-white/5 hover:text-yellow-300 rounded-xl text-sm font-bold transition-colors pl-6"
+                >
+                  🚀 Dịch vụ
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="block px-3 py-3 text-white/70 hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl text-sm transition-colors pl-6"
+                >
+                  👤 Cá nhân
+                </Link>
+                <Link
+                  href="/affiliate"
+                  className="block px-3 py-3 text-[#00a3a3] hover:bg-white/5 hover:text-[#4ddcdc] rounded-xl text-sm font-semibold transition-colors pl-6"
+                >
+                  🤝 Affiliate
+                </Link>
+              </div>
+
               {/* Tính năng section */}
               <div className="border-t border-white/5 pt-2 mt-2">
                 <span className="block px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tính năng</span>
@@ -317,12 +368,6 @@ const Header: React.FC = () => {
               {/* Khám phá section */}
               <div className="border-t border-white/5 pt-2 mt-2">
                 <span className="block px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Khám phá</span>
-                <Link
-                  href="/affiliate"
-                  className="block px-3 py-3 text-[#00a3a3] hover:bg-white/5 hover:text-[#4ddcdc] rounded-xl text-sm font-semibold transition-colors pl-6"
-                >
-                  Trở thành đối tác
-                </Link>
                 <Link
                   href="/tuyendung"
                   className="block px-3 py-3 text-cyan-400 hover:bg-white/5 hover:text-cyan-300 rounded-xl text-sm font-bold transition-colors pl-6"

@@ -88,7 +88,7 @@ export default function AdminBlog({ session }: Props) {
 
             const res = await fetch(`/api/admin/blog?${params}`);
             const data = await res.json();
-            setPosts(data);
+            setPosts(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching posts:', error);
         } finally {
@@ -100,7 +100,7 @@ export default function AdminBlog({ session }: Props) {
         try {
             const res = await fetch('/api/admin/blog-categories');
             const data = await res.json();
-            setCategories(data);
+            setCategories(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching categories:', error);
         }

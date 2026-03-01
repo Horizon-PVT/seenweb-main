@@ -15,10 +15,12 @@ export async function requireAdminAuth(context: GetServerSidePropsContext) {
         };
     }
 
-    if (
-        session.user?.email !== 'phamanhtung.jp@gmail.com' ||
-        (session.user as any)?.role !== 'ADMIN'
-    ) {
+    // Allow admin if email matches OR if role is ADMIN
+    const isAdmin =
+        session.user?.email === 'phamanhtung.jp@gmail.com' ||
+        (session.user as any)?.role === 'ADMIN';
+
+    if (!isAdmin) {
         return {
             redirect: {
                 destination: '/?error=forbidden',

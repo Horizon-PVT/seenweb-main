@@ -71,6 +71,13 @@ export const MAX_DAILY_USAGE: Record<string, number> = {
 // Alias for payos-webhook.ts compatibility  
 export const USAGE_LIMITS = MAX_DAILY_USAGE;
 
+// Valid tool roles - MASTERCLASS is NOT a tool role, it's an Academy flag
+export const VALID_TOOL_ROLES = ['FREE', 'BASIC', 'PRO', 'ADMIN'] as const;
+
+export function isValidToolRole(role: string): boolean {
+  return VALID_TOOL_ROLES.includes(role as any);
+}
+
 export function canAccessTool(toolId: string, userRole: Role) {
   return true; // UI always accessible
 }

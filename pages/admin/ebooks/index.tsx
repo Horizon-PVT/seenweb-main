@@ -20,7 +20,8 @@ export default function AdminEbooks({ session }: any) {
         setLoading(true);
         try {
             const res = await fetch('/api/admin/ebooks');
-            setEbooks(await res.json());
+            const data = await res.json();
+            setEbooks(Array.isArray(data) ? data : []);
         } finally {
             setLoading(false);
         }

@@ -33,7 +33,8 @@ export default function AdminPromotions({ session }: any) {
         setLoading(true);
         try {
             const res = await fetch(`/api/admin/promotions?promotionType=${activeTab}`);
-            setItems(await res.json());
+            const data = await res.json();
+            setItems(Array.isArray(data) ? data : []);
         } finally {
             setLoading(false);
         }

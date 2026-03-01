@@ -11,7 +11,7 @@ function extractYouTubeId(url: string): string | null {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions);
-    if (!session || session.user?.email !== 'phamanhtung.jp@gmail.com' || (session.user as any)?.role !== 'ADMIN') {
+    if (!session || (session.user?.email !== 'phamanhtung.jp@gmail.com' && (session.user as any)?.role !== 'ADMIN')) {
         return res.status(403).json({ error: 'Forbidden' });
     }
 

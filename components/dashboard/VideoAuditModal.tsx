@@ -48,8 +48,8 @@ export default function VideoAuditModal({ isOpen, onClose, video }: VideoAuditMo
 
         // Construct a "Core Idea" that represents the existing video for auditing
         const inputContext = `
-        VIDEO TITLE: ${video.title}
-        VIDEO DESCRIPTION: ${video.description || 'N/A'}
+        VIDEO TITLE: ${video?.title || 'Unknown'}
+        VIDEO DESCRIPTION: ${video?.description || 'N/A'}
         
         TASK: Audit this video and suggest improvements.
         `;
@@ -67,13 +67,19 @@ export default function VideoAuditModal({ isOpen, onClose, video }: VideoAuditMo
             const data = await response.json();
 
             if (response.ok) {
-                setOutput(data as StrategyOutput);
+                // Validate the response structure before setting
+                if (data?.strategy?.hook && data?.audit && data?.content?.titles) {
+                    setOutput(data as StrategyOutput);
+                } else {
+                    alert('Phản hồi từ AI không đúng định dạng. Vui lòng thử lại.');
+                    onClose();
+                }
             } else {
-                alert('Lỗi phân tích: ' + data.error);
+                alert('Lỗi phân tích: ' + (data?.error || 'Không rõ lỗi'));
                 onClose();
             }
         } catch (error: any) {
-            alert('Lỗi: ' + error.message);
+            alert('Lỗi phân tích: ' + (error?.message || 'Không thể kết nối API'));
             onClose();
         } finally {
             setIsLoading(false);

@@ -520,16 +520,27 @@ export default function AICoachPage() {
                                         <ChevronDown size={14} className={`transition-transform duration-300 ${showEcosystem ? 'rotate-180 text-blue-400' : 'text-gray-500'}`} />
                                     </div>
 
-                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showEcosystem ? 'max-h-[300px] opacity-100 mt-1 mb-2' : 'max-h-0 opacity-0'}`}>
+                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showEcosystem ? 'max-h-[400px] opacity-100 mt-1 mb-2' : 'max-h-0 opacity-0'}`}>
                                         <div className="flex flex-col gap-0.5 border-l border-blue-900/50 ml-4 pl-2">
                                             <Link href="/academy" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
+                                                <span className="text-sm">🎓</span>
                                                 <span className="text-[13px] font-normal truncate flex-1">Academy</span>
                                             </Link>
-                                            <Link href="/affiliate" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
-                                                <span className="text-[13px] font-normal truncate flex-1">Affiliate</span>
-                                            </Link>
                                             <Link href="/coaching" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
-                                                <span className="text-[13px] font-normal truncate flex-1">Huấn luyện</span>
+                                                <span className="text-sm">🧑‍🏫</span>
+                                                <span className="text-[13px] font-normal truncate flex-1">Huấn luyện 1-1</span>
+                                            </Link>
+                                            <Link href="/services" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-[#CDAD5A] hover:text-yellow-300 hover:bg-yellow-500/10 font-medium">
+                                                <span className="text-sm">🚀</span>
+                                                <span className="text-[13px] font-medium truncate flex-1">Dịch vụ</span>
+                                            </Link>
+                                            <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
+                                                <span className="text-sm">👤</span>
+                                                <span className="text-[13px] font-normal truncate flex-1">Cá nhân</span>
+                                            </Link>
+                                            <Link href="/affiliate" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-[#00a3a3] hover:text-[#4ddcdc] hover:bg-teal-500/10">
+                                                <span className="text-sm">🤝</span>
+                                                <span className="text-[13px] font-normal truncate flex-1">Affiliate</span>
                                             </Link>
                                         </div>
                                     </div>

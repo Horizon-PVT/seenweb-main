@@ -51,8 +51,8 @@ export default function SuccessPage() {
             // Adjust logic if user was already VIP extendng - verifying specific role match might be harder without passing it back, 
             // but usually 'FREE' -> 'PRO' is the case.
             if (updatedRole !== 'FREE') {
-              // Determine redirect URL
-              const redirectUrl = (updatedRole === 'MASTERCLASS' || (newSession?.user as any)?.hasMasterclass) ? '/academy' : '/dashboard';
+              // Determine redirect URL — Academy access is determined by hasMasterclass flag, NOT role
+              const redirectUrl = (newSession?.user as any)?.hasMasterclass ? '/academy' : '/dashboard';
 
               // 3. Final Success
               setStatus('success');
@@ -132,7 +132,7 @@ export default function SuccessPage() {
     );
   }
 
-  const userHasMasterclass = (session?.user as any)?.hasMasterclass || (session?.user as any)?.role === 'MASTERCLASS';
+  const userHasMasterclass = (session?.user as any)?.hasMasterclass === true;
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
