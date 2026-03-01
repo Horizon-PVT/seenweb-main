@@ -4,6 +4,7 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
@@ -13,6 +14,12 @@ module.exports = {
         bangers: ['var(--font-bangers)', 'cursive'],
       },
       colors: {
+        "primary": "#f2cc0d",
+        "accent-cyan": "#00f2ff",
+        "background-light": "#f8f8f5",
+        "background-dark": "#0a0c14",
+        "surface-dark": "#161b2a",
+        "border-dark": "#1e293b",
         // Brand tokens (gold / red / white)
         brand: {
           gold: "#CDAD5A",

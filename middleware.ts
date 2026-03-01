@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 // Các đường dẫn cần bảo vệ auth
-const protectedPaths = ['/dashboard', '/admin', '/affiliate'];
+const protectedPaths = ['/dashboard', '/admin', '/affiliate/dashboard'];
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
