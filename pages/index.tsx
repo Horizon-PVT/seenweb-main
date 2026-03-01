@@ -242,7 +242,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4 relative z-10">2. Academy (Đào tạo)</h3>
                 <p className="text-gray-400 leading-relaxed mb-6 relative z-10">"Học để tự làm chủ". Dành cho người mới muốn học bài bản từ A-Z.</p>
-                <Link href="/new-youtuber" className="inline-block">
+                <Link href="/academy" className="inline-block">
                   <div className="text-cyan-400 font-semibold group-hover:text-cyan-300 flex items-center gap-2 cursor-pointer relative z-10 transition-colors">
                     Vào Học Viện <ArrowRight className="w-4 h-4" />
                   </div>
@@ -256,9 +256,9 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">3. Solutions (Dịch vụ)</h3>
                 <p className="text-gray-400 leading-relaxed mb-6">"Để chúng tôi làm thay bạn". Dành cho chủ doanh nghiệp/người bận rộn muốn thuê setup, edit trọn gói.</p>
-                <Link href="/coaching" className="inline-block">
+                <Link href="/services" className="inline-block">
                   <div className="text-orange-400 font-semibold group-hover:text-orange-300 flex items-center gap-2 cursor-pointer transition-colors">
-                    Trở thành VIP <ArrowRight className="w-4 h-4" />
+                    Khám phá dịch vụ <ArrowRight className="w-4 h-4" />
                   </div>
                 </Link>
               </div>
