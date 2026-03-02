@@ -30,7 +30,7 @@ const DEFAULT_TOOL_VIDEOS = [
 ];
 
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { useTranslation } from 'next-i18next';
+import { useTranslation, Trans } from 'next-i18next';
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
 import CreatorMeritSection from "../components/CreatorMeritSection";
@@ -215,8 +215,8 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
 
           <div className="max-w-7xl mx-auto px-4 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">Hệ Sinh Thái Toàn Diện</h2>
-              <p className="text-gray-400 text-lg">3 trụ cột giúp bạn xây kênh bền vững, không đi đường vòng.</p>
+              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">{t('ecosystem.title')}</h2>
+              <p className="text-gray-400 text-lg">{t('ecosystem.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -225,11 +225,11 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <Wrench className="w-8 h-8 text-purple-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">1. AI Tools (Công cụ)</h3>
-                <p className="text-gray-400 leading-relaxed mb-6">"Tự làm cực nhanh". Dành cho người đã biết làm, cần công cụ tối ưu thời gian.</p>
+                <h3 className="text-2xl font-bold text-white mb-4">{t('ecosystem.card1_title')}</h3>
+                <p className="text-gray-400 leading-relaxed mb-6">{t('ecosystem.card1_desc')}</p>
                 <Link href="/dashboard" className="inline-block">
                   <div className="text-purple-400 font-semibold group-hover:text-purple-300 flex items-center gap-2 cursor-pointer transition-colors">
-                    Khám phá Tools <ArrowRight className="w-4 h-4" />
+                    {t('ecosystem.card1_cta')} <ArrowRight className="w-4 h-4" />
                   </div>
                 </Link>
               </div>
@@ -240,11 +240,11 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform relative z-10">
                   <GraduationCap className="w-8 h-8 text-cyan-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4 relative z-10">2. Academy (Đào tạo)</h3>
-                <p className="text-gray-400 leading-relaxed mb-6 relative z-10">"Học để tự làm chủ". Dành cho người mới muốn học bài bản từ A-Z.</p>
+                <h3 className="text-2xl font-bold text-white mb-4 relative z-10">{t('ecosystem.card2_title')}</h3>
+                <p className="text-gray-400 leading-relaxed mb-6 relative z-10">{t('ecosystem.card2_desc')}</p>
                 <Link href="/academy" className="inline-block">
                   <div className="text-cyan-400 font-semibold group-hover:text-cyan-300 flex items-center gap-2 cursor-pointer relative z-10 transition-colors">
-                    Vào Học Viện <ArrowRight className="w-4 h-4" />
+                    {t('ecosystem.card2_cta')} <ArrowRight className="w-4 h-4" />
                   </div>
                 </Link>
               </div>
@@ -254,11 +254,11 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <ShieldCheck className="w-8 h-8 text-orange-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">3. Solutions (Dịch vụ)</h3>
-                <p className="text-gray-400 leading-relaxed mb-6">"Để chúng tôi làm thay bạn". Dành cho chủ doanh nghiệp/người bận rộn muốn thuê setup, edit trọn gói.</p>
+                <h3 className="text-2xl font-bold text-white mb-4">{t('ecosystem.card3_title')}</h3>
+                <p className="text-gray-400 leading-relaxed mb-6">{t('ecosystem.card3_desc')}</p>
                 <Link href="/services" className="inline-block">
                   <div className="text-orange-400 font-semibold group-hover:text-orange-300 flex items-center gap-2 cursor-pointer transition-colors">
-                    Khám phá dịch vụ <ArrowRight className="w-4 h-4" />
+                    {t('ecosystem.card3_cta')} <ArrowRight className="w-4 h-4" />
                   </div>
                 </Link>
               </div>
@@ -271,9 +271,9 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-20">
               <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">
-                5 Bước Triệu View
+                {t('home_timeline.title')}
               </h2>
-              <p className="text-gray-400 text-lg">Đã kiểm chứng bởi hàng nghìn Creators tại SeenYT.</p>
+              <p className="text-gray-400 text-lg">{t('home_timeline.subtitle')}</p>
             </div>
 
             {/* Horizontal Zigzag Timeline Container */}
@@ -285,9 +285,9 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                   <div className="w-12 h-12 rounded-full bg-black border-2 border-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-purple-900 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]">
                     <Target className="w-5 h-5 text-purple-400" />
                   </div>
-                  <div className="text-purple-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 1</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">Tìm Ngách</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">Phân tích từ khóa, đối thủ và độ lớn thị trường bằng tool AI.</p>
+                  <div className="text-purple-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step1_label')}</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step1_title')}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step1_desc')}</p>
                 </div>
 
                 {/* Step 2 */}
@@ -295,9 +295,9 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                   <div className="w-12 h-12 rounded-full bg-black border-2 border-pink-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-pink-900 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.4)]">
                     <PenTool className="w-5 h-5 text-pink-400" />
                   </div>
-                  <div className="text-pink-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 2</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">Kịch Bản AI</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">Remix video triệu view thành phong cách riêng đảm bảo giữ chân.</p>
+                  <div className="text-pink-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step2_label')}</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step2_title')}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step2_desc')}</p>
                 </div>
 
                 {/* Step 3 */}
@@ -305,9 +305,9 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                   <div className="w-12 h-12 rounded-full bg-black border-2 border-cyan-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-cyan-900 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]">
                     <Video className="w-5 h-5 text-cyan-400" />
                   </div>
-                  <div className="text-cyan-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 3</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">Sản Xuất</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">Ghép giọng đọc AI, dùng video chuẩn làm video tự động hàng loạt.</p>
+                  <div className="text-cyan-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step3_label')}</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step3_title')}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step3_desc')}</p>
                 </div>
 
                 {/* Step 4 */}
@@ -315,9 +315,9 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                   <div className="w-12 h-12 rounded-full bg-black border-2 border-orange-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-orange-900 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]">
                     <UploadCloud className="w-5 h-5 text-orange-400" />
                   </div>
-                  <div className="text-orange-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 4</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">Đăng SEO</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">Tối ưu Title, Tags, Desc và Thumbnail thu hút views nhanh chóng.</p>
+                  <div className="text-orange-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step4_label')}</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step4_title')}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step4_desc')}</p>
                 </div>
 
                 {/* Step 5 */}
@@ -325,9 +325,9 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                   <div className="w-12 h-12 rounded-full bg-green-900/50 border-2 border-green-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(34,197,94,0.2)] md:shadow-[0_0_20px_rgba(34,197,94,0.4)] relative z-10 group-hover:bg-green-900">
                     <DollarSign className="w-5 h-5 text-green-400 font-bold" />
                   </div>
-                  <div className="text-green-400 font-bold mb-1 uppercase tracking-wide text-xs">Bước 5</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">Kiếm Tiền</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">Thu nhập Adsense, Affiliate. Dần tự động hóa toàn bộ quỹ thời gian.</p>
+                  <div className="text-green-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step5_label')}</div>
+                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step5_title')}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step5_desc')}</p>
                 </div>
 
               </div>
@@ -339,8 +339,8 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
         <section className="py-24 relative overflow-hidden bg-[#050505] border-y border-white/5">
           <div className="max-w-7xl mx-auto px-4 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">Vũ Khí Sáng Tạo Nội Dung</h2>
-              <p className="text-gray-400 text-lg">Những "bảo bối" mạnh mẽ nhất trong hệ sinh thái SeenYT giúp bạn đi tắt đón đầu.</p>
+              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">{t('home_tools.title')}</h2>
+              <p className="text-gray-400 text-lg">{t('home_tools.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -349,15 +349,15 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 <div className="h-40 w-full relative overflow-hidden">
                   <img src="/images/tool-niche-miner.jpg" alt="Đào Ngách CPM Cao" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">HOT</span>
-                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">VIP</span>
+                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">{t('home_tools.badge_hot')}</span>
+                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">{t('home_tools.badge_vip')}</span>
                   </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-white mb-2">Đào Ngách CPM Cao</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Phân tích dữ liệu thời gian thực để săn lùng ngách ngầm siêu lợi nhuận tại thị trường Âu/Mỹ.</p>
+                  <h3 className="text-xl font-bold text-white mb-2">{t('home_tools.tool1_title')}</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool1_desc')}</p>
                   <div className="flex items-center gap-1.5 text-cyan-500 text-xs font-black tracking-widest uppercase group-hover:text-cyan-400 transition-colors mt-auto">
-                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </div>
@@ -367,15 +367,15 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
                   <img src="/images/tool-niche-engine.jpg" alt="Thư Viện Ngách Thắng 100%" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
                   <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">HOT</span>
-                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">VIP</span>
+                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">{t('home_tools.badge_hot')}</span>
+                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">{t('home_tools.badge_vip')}</span>
                   </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-white mb-2">Thư viện ngách thắng 100%</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Kho tàng ngách trắng cộng đồng kiểm chứng. Chọn ngách & Sinh kịch bản Long Video.</p>
+                  <h3 className="text-xl font-bold text-white mb-2">{t('home_tools.tool2_title')}</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool2_desc')}</p>
                   <div className="flex items-center gap-1.5 text-gray-500 text-xs font-black tracking-widest uppercase group-hover:text-white transition-colors mt-auto">
-                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </div>
@@ -386,10 +386,10 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                   <img src="/images/tool-scriptwriter.jpg" alt="Viết Kịch Bản Viral" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-white mb-2">Viết Kịch Bản Viral</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Viết kịch bản chuẩn cấu trúc viral, xào nấu video triệu view tăng % giữ chân tốt nhất.</p>
+                  <h3 className="text-xl font-bold text-white mb-2">{t('home_tools.tool3_title')}</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool3_desc')}</p>
                   <div className="flex items-center gap-1.5 text-cyan-600 text-xs font-black tracking-widest uppercase group-hover:text-cyan-500 transition-colors mt-auto">
-                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </div>
@@ -399,14 +399,14 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
                   <img src="/images/tool-seo.jpg" alt="Tối Ưu SEO & Từ Khóa" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
                   <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">HOT</span>
+                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">{t('home_tools.badge_hot')}</span>
                   </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-cyan-400 mb-2">Tối Ưu SEO & Từ Khóa</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">Tối ưu từ khóa chuẩn thuật toán YouTube 2026. Tự động bung Title, Tags, Description.</p>
+                  <h3 className="text-xl font-bold text-cyan-400 mb-2">{t('home_tools.tool4_title')}</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool4_desc')}</p>
                   <div className="flex items-center gap-1.5 text-cyan-600 text-xs font-black tracking-widest uppercase group-hover:text-cyan-500 transition-colors mt-auto">
-                    LAUNCH <ArrowRight className="w-3.5 h-3.5" />
+                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </div>
@@ -414,7 +414,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
 
             <div className="mt-12 text-center">
               <Link href="/dashboard" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-full font-bold transition-colors shadow">
-                Khám phá toàn bộ danh mục Công Cụ <ArrowRight className="w-5 h-5" />
+                {t('home_tools.cta')} <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
           </div>
@@ -428,7 +428,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
               {/* Headline */}
               <div className="text-center relative">
                 <h2 className="text-3xl md:text-5xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-400 leading-tight">
-                  Bạn đã có vũ khí tốt (AI Tools),<br />nhưng bạn đã có "Bản đồ kho báu" chưa?
+                  {t('home_coaching.headline_1')}<br />{t('home_coaching.headline_2')}
                 </h2>
               </div>
 
@@ -441,8 +441,8 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                     <Target className="w-6 h-6 text-red-400" />
                   </div>
                   <div>
-                    <h4 className="text-red-400 font-bold text-lg mb-2">Vấn đề của bạn:</h4>
-                    <p className="text-gray-300 text-lg leading-relaxed">Công cụ thì rất mạnh, nhưng nếu không có tư duy chọn ngách và chiến lược vận hành bài bản, bạn vẫn sẽ loay hoay giữa hàng ngàn tính năng mà không cắn được đề xuất hay tạo ra doanh thu tốt.</p>
+                    <h4 className="text-red-400 font-bold text-lg mb-2">{t('home_coaching.problem_title')}</h4>
+                    <p className="text-gray-300 text-lg leading-relaxed">{t('home_coaching.problem_desc')}</p>
                   </div>
                 </div>
 
@@ -453,21 +453,26 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                     <Map className="w-6 h-6 text-cyan-400" />
                   </div>
                   <div>
-                    <h4 className="text-cyan-400 font-bold text-lg mb-2">Giải pháp Coaching 1-1:</h4>
-                    <p className="text-gray-300 text-lg leading-relaxed">Tôi không chỉ cấp quyền cho bạn dùng phần mềm, tôi <strong>trực tiếp tham gia</strong> xây dựng kênh chung với bạn. Đồng hành Coaching 1:1 cầm tay chỉ việc từ số âm đến khi kịch trần doanh thu, bao nuôi tài khoản gỡ gậy bản quyền triệt để.</p>
+                    <h4 className="text-cyan-400 font-bold text-lg mb-2">{t('home_coaching.solution_title')}</h4>
+                    <p className="text-gray-300 text-lg leading-relaxed">
+                      <Trans
+                        i18nKey="home_coaching.solution_desc"
+                        components={{ 1: <strong /> }}
+                      />
+                    </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 relative z-10">
                   <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-orange-500/30 transition-colors">
                     <Star className="w-8 h-8 text-yellow-500 mb-3" />
-                    <h4 className="text-white font-bold mb-2 text-lg">Đặc Quyền "Ngách Xanh"</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">Chỉ ưu tiên truyền thụ lại những "ngách xanh" ngầm nước ngoài CPM siêu béo mà tôi chưa bao giờ công bố lên YouTube.</p>
+                    <h4 className="text-white font-bold mb-2 text-lg">{t('home_coaching.perk1_title')}</h4>
+                    <p className="text-gray-400 text-sm leading-relaxed">{t('home_coaching.perk1_desc')}</p>
                   </div>
                   <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-orange-500/30 transition-colors">
                     <Users className="w-8 h-8 text-purple-400 mb-3" />
-                    <h4 className="text-white font-bold mb-2 text-lg">Sửa Lỗi Tận Cùng</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">Kênh chết do đâu? Bị giam đề xuất? Tôi Review và "phẫu thuật" lại Kênh, Thumbnail và Kịch bản mỗi tuần 1 lần.</p>
+                    <h4 className="text-white font-bold mb-2 text-lg">{t('home_coaching.perk2_title')}</h4>
+                    <p className="text-gray-400 text-sm leading-relaxed">{t('home_coaching.perk2_desc')}</p>
                   </div>
                 </div>
 
@@ -476,7 +481,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                     <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-yellow-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-300"></div>
                     <div className="relative bg-black px-8 md:px-12 py-5 rounded-full border border-orange-500/50">
                       <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
-                        Đăng Ký Khám Kênh 1:1 Cùng Mr. Seen
+                        {t('home_coaching.cta')}
                       </span>
                     </div>
                   </Link>

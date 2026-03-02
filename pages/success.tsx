@@ -71,9 +71,11 @@ export default function SuccessPage() {
               });
 
               // Redirect after short delay
-              setTimeout(() => {
-                window.location.href = redirectUrl;
-              }, 3000);
+              if (!(newSession?.user as any)?.hasMasterclass) {
+                setTimeout(() => {
+                  window.location.href = redirectUrl;
+                }, 3000);
+              }
 
               break;
             }
@@ -149,15 +151,26 @@ export default function SuccessPage() {
             <p className="text-gray-500 mb-6">Tài khoản của bạn đã được nâng cấp.</p>
 
             <div className="space-y-3">
+              {userHasMasterclass && (
+                <a
+                  href="/ebooks/10-bi-mat-youtube-2026.pdf"
+                  download="10-Bi-Mat-YouTube-2026-SeenYT.pdf"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2 mb-3"
+                >
+                  🎁 TẢI NGAY EBOOK VIP 10 BÍ MẬT 2026
+                </a>
+              )}
               <button
                 onClick={() => window.location.href = userHasMasterclass ? '/academy' : '/dashboard'}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition transform hover:scale-[1.02]"
               >
-                🚀 Vào Dashboard ngay
+                🚀 Vào {userHasMasterclass ? 'Academy' : 'Dashboard'} ngay
               </button>
             </div>
 
-            <p className="text-xs text-gray-400 mt-4">Tự động chuyển sau 3 giây...</p>
+            {!userHasMasterclass && (
+              <p className="text-xs text-gray-400 mt-4">Tự động chuyển sau 3 giây...</p>
+            )}
           </>
         ) : (
           <>

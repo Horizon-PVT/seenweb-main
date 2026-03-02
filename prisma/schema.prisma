@@ -456,3 +456,13 @@ model YouTubeChannel {
   
   @@map("youtube_channels")
 }
+
+model ZoomRegistration {
+  id        String   @id @default(cuid())
+  name      String
+  zalo      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("zoom_registrations")
+}

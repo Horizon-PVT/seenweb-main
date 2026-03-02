@@ -134,8 +134,17 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
 
       <div className="bg-[#050505] min-h-screen font-sans text-gray-200">
 
+        {/* --- ANNOUNCEMENT BAR --- */}
+        <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-center py-2.5 px-4 text-sm font-bold relative z-50 shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+          <span className="animate-pulse mr-2">🚨</span>
+          Sắp diễn ra: 3 Ngày Master YouTube AI 2026 cho Newbie - Miễn phí 100%.{' '}
+          <button onClick={() => router.push('/academy/zoom-3-days')} className="underline underline-offset-2 hover:text-yellow-300 ml-1 transition-colors">
+            [Đăng ký ngay]
+          </button>
+        </div>
+
         {/* --- HERO SECTION --- */}
-        <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+        <section className="relative pt-24 pb-20 px-4 overflow-hidden">
           {/* Subtle glowing orbs */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-red-600/20 blur-[120px] rounded-full pointer-events-none" />
 
@@ -168,20 +177,35 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
                   <span>Xem Lộ Trình Ngay</span>
                   <ArrowRight className="w-5 h-5" />
                 </button>
+                <button
+                  onClick={() => router.push('/academy/zoom-3-days')}
+                  className="px-8 py-4 rounded-xl border-2 border-red-500 bg-red-500/10 text-red-500 font-bold hover:bg-red-500 hover:text-white transition-all shadow-[0_0_30px_rgba(220,38,38,0.5)] flex items-center space-x-2 animate-pulse hover:animate-none"
+                >
+                  <span className="relative flex h-3 w-3 mr-1">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  Tham gia Zoom 3 ngày (Free)
+                </button>
               </div>
             </div>
 
-            {/* Video Placeholder (Glassmorphism) */}
+            {/* Social Proof Image (Dashboard/Results) */}
             <div className="relative group perspective">
-              <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-purple-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition duration-1000 group-hover:duration-200" />
-              <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl aspect-video flex flex-col items-center justify-center overflow-hidden transform transition-all duration-500">
-                {/* Simulated Thumbnail */}
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay"></div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition duration-1000 group-hover:duration-200" />
+              <div className="relative bg-[#111] backdrop-blur-xl border border-green-500/30 rounded-2xl aspect-[4/3] flex flex-col items-center justify-center overflow-hidden transform transition-all duration-500 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                {/* Simulated Chart/Analytics Dashboard Thumbnail */}
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-80"></div>
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black to-transparent" />
 
-                <button className="w-20 h-20 bg-red-600/90 rounded-full flex items-center justify-center backdrop-blur-md shadow-[0_0_30px_rgba(220,38,38,0.6)] hover:scale-110 transition-transform relative z-10 pl-2">
-                  <Play className="w-8 h-8 text-white fill-white" />
-                </button>
-                <p className="mt-4 font-medium text-white/90 relative z-10">Tầm nhìn & Kết quả học viên</p>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="inline-block px-3 py-1 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 font-bold text-sm mb-2">
+                    +2,540,000 Views / 28 Ngày
+                  </div>
+                  <h3 className="text-xl font-bold text-white leading-tight">
+                    Kết quả thực tế từ Hệ thống SeenYT
+                  </h3>
+                </div>
               </div>
             </div>
           </div>

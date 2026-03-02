@@ -122,14 +122,14 @@ const ExploreSection: React.FC = () => {
                                 onClick={handleJoinAffiliate}
                                 className="absolute top-4 right-4 bg-gradient-to-r from-red-600 to-yellow-500 text-white text-xs font-bold px-4 py-2 rounded-full hover:scale-105 transition-transform shadow-lg"
                             >
-                                🔥 THAM GIA NGAY
+                                {t('explore.join_now', '🔥 THAM GIA NGAY')}
                             </button>
                         </div>
 
                         {/* Content */}
                         <div className="p-6">
                             <h3 className="text-xl font-bold text-white mb-2">
-                                {t('affiliate.shortTitle', 'Affiliate')} <span className="text-cyan-400">30% Hoa Hồng Trọn Đời</span>
+                                {t('affiliate.shortTitle', 'Affiliate')} <span className="text-cyan-400">{t('explore.affiliateHighlight', '30% Hoa Hồng Trọn Đời')}</span>
                             </h3>
                             <p className="text-gray-400 text-sm mb-4 line-clamp-2">
                                 {t('explore.affiliateDesc', 'Giới thiệu SeenYT và nhận hoa hồng trọn đời. Không giới hạn thu nhập!')}

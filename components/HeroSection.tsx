@@ -56,20 +56,20 @@ const HeroSection: React.FC = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
           </span>
-          SeenYT Ecosystem v2026 Đã Ra Mắt
+          {t('hero.badge', 'SeenYT Ecosystem v2026 Đã Ra Mắt')}
         </div>
 
         {/* Headline */}
         <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight leading-tight animate-fade-in-up text-white max-w-5xl" style={{ animationDelay: '0.1s' }}>
-          Làm YouTube không khó, <br className="hidden md:block" />
+          {t('hero.headline_main')} <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400">
-            vì đã có AI và SeenYT lo từ A-Z!
+            {t('hero.headline_sub')}
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto mb-10 leading-relaxed font-light animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          Bạn chỉ cần làm đúng theo quy trình: Mọi khâu từ ý tưởng, kịch bản, giọng đọc đến hình ảnh, video đã có công nghệ AI của SeenYT xử lý. Bắt đầu ngay lúc này để sở hữu kênh YouTube triệu view mà không cần lộ mặt!
+          {t('hero.subtitle_desc')}
         </p>
 
         {/* CTAs */}
@@ -78,26 +78,26 @@ const HeroSection: React.FC = () => {
             onClick={handleTryFreeClick}
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg transition-all shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:shadow-[0_0_60px_rgba(168,85,247,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2"
           >
-            Trải nghiệm Tool AI Miễn Phí <Rocket className="w-5 h-5" />
+            {t('hero.cta_try_free')} <Rocket className="w-5 h-5" />
           </button>
 
           <div className="flex flex-col items-center gap-3 w-full sm:w-auto">
             <Link href="/coaching" className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-400 hover:to-yellow-400 text-white font-bold text-lg transition-all shadow-[0_0_40px_rgba(249,115,22,0.4)] hover:shadow-[0_0_60px_rgba(249,115,22,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2">
-              NHẬN TƯ VẤN LỘ TRÌNH 1-1
+              {t('hero.cta_coaching')}
             </Link>
             <span className="text-orange-400 text-[11px] sm:text-xs md:text-sm font-bold flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full border border-orange-500/30 backdrop-blur-sm">
-              <span className="animate-pulse text-yellow-500">🔥</span> Chỉ còn <span className="text-yellow-400 text-sm md:text-base">03</span> suất tháng này
+              <span className="animate-pulse text-yellow-500">🔥</span> {t('hero.urgency_badge')}
             </span>
           </div>
 
           <Link href="/new-youtuber" className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/10 border border-white/20 hover:bg-white/15 text-white font-bold text-lg transition-all backdrop-blur-md flex items-center justify-center gap-2">
-            <Play className="w-5 h-5 text-purple-400" /> Xem Hành Trình Cho Người Mới
+            <Play className="w-5 h-5 text-purple-400" /> {t('hero.cta_roadmap')}
           </Link>
         </div>
 
         {/* Social Proof Bar */}
         <div className="mt-16 pt-8 border-t border-white/10 w-full max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-          <p className="text-sm text-gray-400 font-medium uppercase tracking-widest mb-6">Được tin dùng bởi hơn 10,000+ Creators trên đa nền tảng</p>
+          <p className="text-sm text-gray-400 font-medium uppercase tracking-widest mb-6">{t('hero.social_proof')}</p>
           <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
             <div className="font-black text-2xl flex items-center gap-2 text-white">
               <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center"><Play fill="white" className="w-4 h-4" /></div> YouTube

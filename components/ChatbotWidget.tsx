@@ -1,5 +1,6 @@
-// File: components/ChatbotWidget.tsx (CHỈ SỬA 3 DÒNG – HOÀN HẢO)
+// File: components/ChatbotWidget.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'next-i18next';
 
 interface Message {
   sender: 'user' | 'bot';
@@ -7,6 +8,7 @@ interface Message {
 }
 
 const ChatbotWidget: React.FC = () => {
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -29,9 +31,9 @@ const ChatbotWidget: React.FC = () => {
     try {
       const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: userMsg }) });
       const data = await res.json();
-      setMessages(prev => [...prev, { sender: 'bot', text: data.text || 'Em đang bận, thử lại sau nhé!' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: data.text || t('chat.busy', 'Em đang bận, thử lại sau nhé!') }]);
     } catch {
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Xin lỗi anh, kết nối lỗi. Em thử lại sau 10s nhé!' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: t('chat.error', 'Xin lỗi anh, kết nối lỗi. Em thử lại sau 10s nhé!') }]);
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +56,9 @@ const ChatbotWidget: React.FC = () => {
             </button>
           </div>
 
-          {/* Tin nhắn – CÓ THANH CUỘN + KHÔNG BAO GIỜ CHE NÚT X */}
+          {/* Tin nhắn */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-[#008080] scrollbar-track-black/50">
-            {messages.length === 0 && <p className="text-gray-400 text-center italic">Chào anh! Em là SeenYT Assistant, sẵn sàng hỗ trợ ạ! 😊</p>}
+            {messages.length === 0 && <p className="text-gray-400 text-center italic">{t('chat.welcome', 'Chào anh! Em là SeenYT Assistant, sẵn sàng hỗ trợ ạ! 😊')}</p>}
             {messages.map((msg, i) => (
               <div key={i} className={msg.sender === 'user' ? 'text-right' : 'text-left'}>
                 <div className={`inline-block max-w-xs px-4 py-3 rounded-2xl shadow-md ${msg.sender === 'user' ? 'bg-[#008080] text-white' : 'bg-gray-800 text-gray-100'}`}>
@@ -64,7 +66,7 @@ const ChatbotWidget: React.FC = () => {
                 </div>
               </div>
             ))}
-            {isLoading && <p className="text-center text-cyan-400 animate-pulse">SeenYT đang suy nghĩ...</p>}
+            {isLoading && <p className="text-center text-cyan-400 animate-pulse">{t('chat.thinking', 'SeenYT đang suy nghĩ...')}</p>}
             <div ref={messagesEndRef} />
           </div>
 
@@ -74,12 +76,12 @@ const ChatbotWidget: React.FC = () => {
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Hỏi về SeenYT..."
+              placeholder={t('chat.placeholder', 'Hỏi về SeenYT...')}
               className="flex-1 bg-gray-900 text-white px-4 py-3 rounded-l-lg border border-[#008080] focus:outline-none focus:border-cyan-400 transition"
               disabled={isLoading}
             />
             <button type="submit" disabled={isLoading} className="bg-[#008080] hover:bg-cyan-500 text-white px-6 py-3 rounded-r-lg font-bold transition disabled:opacity-50">
-              Gửi
+              {t('chat.send', 'Gửi')}
             </button>
           </form>
         </div>
@@ -90,7 +92,7 @@ const ChatbotWidget: React.FC = () => {
         <button
           onClick={() => setIsOpen(true)}
           className="w-16 h-16 rounded-full overflow-hidden border-2 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.7)] hover:scale-110 hover:border-purple-400 p-0.5 transition-all duration-300 group"
-          title="Chat với AI Coach"
+          title={t('chat.tooltip', 'Chat với AI Coach')}
         >
           <img
             src="/images/ai-coach.png"

@@ -172,7 +172,7 @@ const PricingCard = ({
         onClick={handleClick}
         className="mt-6 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg py-4 rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-xl hover:shadow-cyan-500/20"
       >
-        {isFree ? t('pricing.useFree', 'DÙNG FREE') : isVip ? "NÂNG CẤP CHUYÊN NGHIỆP" : "BẮT ĐẦU VỚI CƠ BẢN"}
+        {isFree ? t('pricing.useFree', 'DÙNG FREE') : isVip ? t('pricing.upgradePro', 'NÂNG CẤP CHUYÊN NGHIỆP') : t('pricing.startBasic', 'BẮT ĐẦU VỚI CƠ BẢN')}
       </button>
     </div>
   );
@@ -301,7 +301,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
           {/* GÓI CƠ BẢN (STARTER) */}
           <PricingCard
             plan="BASIC"
-            title="CƠ BẢN"
+            title={t('pricing.starterTitle', 'CƠ BẢN')}
             priceMonthly={169000}
             priceYearly={1390000} // ~30% OFF (Original 1.69m)
             features={[
@@ -323,7 +323,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
           {/* GÓI CHUYÊN NGHIỆP (VIP) */}
           <PricingCard
             plan="PROFESSIONAL"
-            title="CHUYÊN NGHIỆP"
+            title={t('pricing.proTitle', 'CHUYÊN NGHIỆP')}
             priceMonthly={499000}
             priceYearly={4190000} // ~30% OFF (Original 4.99m)
             features={[
@@ -358,7 +358,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             {t('pricing.wantTrial', 'Bạn muốn trải nghiệm thử trước? Bắt đầu với gói FREE (Có giới hạn)')}
           </button>
           <p className="mt-4 text-gray-600 text-xs text-center border-t border-gray-800 pt-6 max-w-2xl mx-auto">
-            * Giá đã bao gồm VAT. Bạn có thể hủy gia hạn bất cứ lúc nào. Thanh toán an toàn qua Cổng thanh toán nội địa.
+            {t('pricing.footerNote', '* Giá đã bao gồm VAT. Bạn có thể hủy gia hạn bất cứ lúc nào. Thanh toán an toàn qua Cổng thanh toán nội địa.')}
           </p>
         </div>
 

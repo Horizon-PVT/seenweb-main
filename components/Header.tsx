@@ -77,9 +77,9 @@ const Header: React.FC = () => {
       <div className="w-full bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 py-1.5 px-4 text-center text-white text-[11px] sm:text-xs md:text-sm font-bold shadow-md shadow-red-900/20 relative z-[61]">
         <span className="inline-flex items-center gap-1.5 flex-wrap justify-center">
           <span className="animate-pulse text-yellow-300">🔥</span>
-          <span>Ưu đãi gói Setup chỉ dành cho <span className="text-yellow-300 text-base md:text-lg">10</span> người đăng ký sớm nhất tuần này!</span>
+          <span>{t('header.announcement_1', 'Ưu đãi gói Setup chỉ dành cho')} <span className="text-yellow-300 text-base md:text-lg">10</span> {t('header.announcement_2', 'người đăng ký sớm nhất tuần này!')}</span>
           <Link href="/services" className="underline text-yellow-100 hover:text-white transition-colors ml-2 bg-white/20 px-2 py-0.5 rounded-full border border-white/30 truncate max-w-full">
-            Khám phá ngay
+            {t('header.announcement_cta', 'Khám phá ngay')}
           </Link>
         </span>
       </div>
@@ -107,13 +107,13 @@ const Header: React.FC = () => {
               href="/new-youtuber"
               className="text-[#00ffb4] hover:text-[#CDAD5A] transition-colors duration-300 font-bold text-xs lg:text-sm flex items-center gap-1 whitespace-nowrap"
             >
-              YouTube Mới
+              {t('header.youtube_new', 'YouTube Mới')}
               <span className="bg-red-600 text-white text-[9px] px-1.5 py-0.5 rounded-full animate-pulse">HOT</span>
             </Link>
             {/* 1. Hệ sinh thái Dropdown */}
             <div className="relative group">
               <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm py-2 whitespace-nowrap">
-                Hệ sinh thái
+                {t('header.ecosystem', 'Hệ sinh thái')}
                 <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
               <div className="absolute top-full left-0 mt-0 w-56 bg-[#18181b]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
@@ -153,7 +153,7 @@ const Header: React.FC = () => {
             {/* 3. Tính năng Dropdown */}
             <div className="relative group">
               <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm py-2 whitespace-nowrap">
-                Tính năng
+                {t('header.features', 'Tính năng')}
                 <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
               <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
@@ -162,14 +162,14 @@ const Header: React.FC = () => {
                   onClick={(e) => handleNavClick(e, "#bang-cong-cu-seenyt")}
                   className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors"
                 >
-                  Bảng công cụ
+                  {t('header.tools_board', 'Bảng công cụ')}
                 </a>
                 <a
                   href="#pricing"
                   onClick={(e) => handleNavClick(e, "#pricing")}
                   className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors"
                 >
-                  Bảng giá
+                  {t('header.pricing', 'Bảng giá')}
                 </a>
               </div>
             </div>
@@ -177,7 +177,7 @@ const Header: React.FC = () => {
             {/* 4. Khám phá Dropdown */}
             <div className="relative group">
               <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm py-2 whitespace-nowrap">
-                Khám phá
+                {t('header.explore', 'Khám phá')}
                 <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
               <div className="absolute top-full left-0 mt-0 w-56 bg-[#18181b]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
@@ -185,13 +185,13 @@ const Header: React.FC = () => {
                   href="/tuyendung"
                   className="block px-4 py-3 text-sm text-cyan-400 hover:bg-white/10 hover:text-cyan-300 transition-colors font-bold tracking-wide"
                 >
-                  TUYỂN DỤNG
+                  {t('header.hiring', 'TUYỂN DỤNG')}
                 </Link>
                 <Link
                   href="/promotions"
                   className="block px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors font-bold tracking-wide flex items-center gap-2"
                 >
-                  <span className="text-yellow-400">🎁</span> KHUYẾN MẠI
+                  <span className="text-yellow-400">🎁</span> {t('header.promotions', 'KHUYẾN MẠI')}
                 </Link>
               </div>
             </div>
@@ -199,7 +199,7 @@ const Header: React.FC = () => {
             {/* 5. Hỗ trợ (Support) Dropdown */}
             <div className="relative group">
               <button className="flex items-center gap-1 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm py-2 whitespace-nowrap">
-                Hỗ trợ
+                {t('header.support', 'Hỗ trợ')}
                 <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
               <div className="absolute top-full left-0 mt-0 w-48 bg-[#18181b]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left translate-y-2 group-hover:translate-y-0 overflow-hidden">
@@ -234,6 +234,29 @@ const Header: React.FC = () => {
                 </Link>
               </div>
             </div>
+
+            {/* LANGUAGE SWITCHER MOVED HERE */}
+            <div className="relative group">
+              <button className="flex items-center gap-1.5 text-white/70 hover:text-[#CDAD5A] transition-colors duration-300 font-semibold text-xs lg:text-sm py-2 whitespace-nowrap border-l border-white/10 pl-4 ml-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
+                <span>{router.locale === 'en' ? 'EN' : 'VI'}</span>
+                <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              <div className="absolute top-full right-0 mt-0 w-36 bg-[#18181b]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right translate-y-2 group-hover:translate-y-0 overflow-hidden">
+                <button
+                  onClick={() => changeLanguage('vi')}
+                  className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors ${router.locale === 'vi' ? 'bg-white/15 text-white font-bold' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <img src="https://flagcdn.com/w40/vn.png" alt="VN" className="w-5 h-auto rounded-sm border border-white/10" /> Tiếng Việt
+                </button>
+                <button
+                  onClick={() => changeLanguage('en')}
+                  className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-colors ${router.locale === 'en' ? 'bg-white/15 text-white font-bold' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <img src="https://flagcdn.com/w40/us.png" alt="US" className="w-5 h-auto rounded-sm border border-white/10" /> English
+                </button>
+              </div>
+            </div>
           </nav>
 
           {/* RIGHT SIDE */}
@@ -259,15 +282,15 @@ const Header: React.FC = () => {
               <>
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="text-gray-300 hover:text-white transition-colors text-xs sm:text-sm hidden sm:inline font-bold"
+                  className="text-gray-300 hover:text-white transition-colors text-xs sm:text-sm hidden sm:inline font-bold uppercase"
                 >
-                  ĐĂNG NHẬP
+                  {t('menu.login', 'ĐĂNG NHẬP')}
                 </button>
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-purple-600 text-white font-bold py-1.5 sm:py-2 px-3 sm:px-5 border border-purple-500 rounded-lg transition-all duration-300 hover:bg-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] text-xs sm:text-sm"
+                  className="bg-purple-600 text-white font-bold py-1.5 sm:py-2 px-3 sm:px-5 border border-purple-500 rounded-lg transition-all duration-300 hover:bg-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] text-xs sm:text-sm uppercase"
                 >
-                  ĐĂNG KÍ
+                  {t('header.register', 'ĐĂNG KÍ')}
                 </button>
               </>
             )}
@@ -300,6 +323,15 @@ const Header: React.FC = () => {
                     👋 {user.email}
                   </div>
                 )}
+
+                {/* Mobile Language Switcher */}
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-white/10 mb-2">
+                  <span className="text-gray-400 text-sm font-semibold mr-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe inline-block mr-1"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg> Ngôn ngữ
+                  </span>
+                  <button onClick={() => changeLanguage('vi')} className={`flex items-center gap-1 px-3 py-1 rounded text-xs transition-colors ${router.locale === 'vi' ? 'bg-[#CDAD5A] text-black font-bold' : 'bg-gray-800 text-white'}`}>VN</button>
+                  <button onClick={() => changeLanguage('en')} className={`flex items-center gap-1 px-3 py-1 rounded text-xs transition-colors ${router.locale === 'en' ? 'bg-[#CDAD5A] text-black font-bold' : 'bg-gray-800 text-white'}`}>EN</button>
+                </div>
 
                 <Link
                   href="/new-youtuber"

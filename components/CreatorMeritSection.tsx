@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Play } from 'lucide-react';
+import { useTranslation } from 'next-i18next';
 
 const CreatorMeritSection: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
+    const { t } = useTranslation('common');
 
     // Placeholder video ID - User needs to update this
     const YOUTUBE_VIDEO_ID = "6XMI4XJ_014"; // Replace with actual video ID
@@ -20,18 +22,18 @@ const CreatorMeritSection: React.FC = () => {
                     {/* Left: Text Content */}
                     <div className="flex-1 text-center md:text-left">
                         <div className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-[#CDAD5A]/20 to-transparent border border-[#CDAD5A]/30 text-[#CDAD5A] font-bold text-xs uppercase tracking-widest mb-6 animate-pulse">
-                            Lời nhắn từ Founder
+                            {t('creator_merit.badge')}
                         </div>
 
                         <h2 className="text-4xl md:text-5xl font-playfair font-black text-white leading-tight mb-6">
-                            Cảm ơn bạn đã tin tưởng <br />
+                            {t('creator_merit.headline_1')} <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CDAD5A] to-yellow-200">
-                                SeenYT
+                                {t('creator_merit.headline_2')}
                             </span>
                         </h2>
 
                         <p className="text-lg text-gray-400 leading-relaxed mb-8">
-                            "Hành trình làm YouTube không hề dễ dàng, nhưng bạn không đơn độc. SeenYT được tạo ra không chỉ là một công cụ, mà là người bạn đồng hành giúp bạn đi nhanh hơn, xa hơn và kiếm tiền bền vững hơn."
+                            {t('creator_merit.message')}
                         </p>
 
                         <div className="flex flex-col md:flex-row items-center gap-6 justify-center md:justify-start">
@@ -40,13 +42,13 @@ const CreatorMeritSection: React.FC = () => {
                                 <div className="w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-[#CDAD5A] to-purple-600">
                                     <img
                                         src="/images/logo-seen-chat.png"
-                                        alt="Tung Pham"
+                                        alt={t('creator_merit.founder_name')}
                                         className="w-full h-full object-cover rounded-full bg-black"
                                     />
                                 </div>
                                 <div className="text-left">
-                                    <h4 className="text-white font-bold text-lg">Tùng Phạm</h4>
-                                    <p className="text-[#CDAD5A] text-sm font-medium">Founder SeenYT</p>
+                                    <h4 className="text-white font-bold text-lg">{t('creator_merit.founder_name')}</h4>
+                                    <p className="text-[#CDAD5A] text-sm font-medium">{t('creator_merit.founder_title')}</p>
                                 </div>
                             </div>
 
@@ -81,7 +83,7 @@ const CreatorMeritSection: React.FC = () => {
                                         <div className="w-20 h-20 bg-[#CDAD5A] rounded-full flex items-center justify-center pl-2 shadow-[0_0_30px_rgba(205,173,90,0.5)] group-hover:scale-110 transition-transform duration-300">
                                             <Play fill="white" className="text-white w-8 h-8" />
                                         </div>
-                                        <p className="mt-6 text-white font-bold tracking-wider text-sm drop-shadow-lg">XEM VIDEO CHÀO MỪNG</p>
+                                        <p className="mt-6 text-white font-bold tracking-wider text-sm drop-shadow-lg">{t('creator_merit.watch_video')}</p>
                                     </div>
                                 </div>
                             ) : (

@@ -18,8 +18,8 @@ const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, arti
 
     // Placeholder Data (Fallback)
     const DEFAULT_VIDEO = {
-        title: "Lộ Trình Làm YouTube 2026: Bắt Đầu Từ Đâu?",
-        desc: "Video mở đầu cho series hướng dẫn chi tiết cách xây dựng kênh YouTube thành công trong năm 2026.",
+        title: t('academy.default_video.title', { defaultValue: "Lộ Trình Làm YouTube 2026: Bắt Đầu Từ Đâu?" }),
+        desc: t('academy.default_video.desc', { defaultValue: "Video mở đầu cho series hướng dẫn chi tiết cách xây dựng kênh YouTube thành công trong năm 2026." }),
         videoId: "yvUouUjwZKw", // Updated real ID
         thumb: "/images/thumbnail-strategy.png"
     };
@@ -29,26 +29,26 @@ const KnowledgeSection: React.FC<KnowledgeSectionProps> = ({ featuredVideo, arti
     const DEFAULT_ARTICLES = [
         {
             id: 1,
-            tag: "AI & Tools",
-            title: "Top 5 Công cụ AI giúp tăng hiệu suất làm video lên 300%",
-            desc: "Khám phá các tool tự động hóa đang thay đổi cách creator làm việc...",
-            date: "20 Tháng 1, 2026",
+            tag: t('academy.default_articles.1.tag', { defaultValue: "AI & Tools" }),
+            title: t('academy.default_articles.1.title', { defaultValue: "Top 5 Công cụ AI giúp tăng hiệu suất làm video lên 300%" }),
+            desc: t('academy.default_articles.1.desc', { defaultValue: "Khám phá các tool tự động hóa đang thay đổi cách creator làm việc..." }),
+            date: t('academy.default_articles.1.date', { defaultValue: "20 Tháng 1, 2026" }),
             image: "/images/academy/article-1.jpg"
         },
         {
             id: 2,
-            tag: "Thuật Toán",
-            title: "Giải mã thuật toán đề xuất YouTube 2026: Điều gì đã thay đổi?",
-            desc: "Phân tích cập nhật mới nhất từ YouTube và cách thích nghi...",
-            date: "18 Tháng 1, 2026",
+            tag: t('academy.default_articles.2.tag', { defaultValue: "Thuật Toán" }),
+            title: t('academy.default_articles.2.title', { defaultValue: "Giải mã thuật toán đề xuất YouTube 2026: Điều gì đã thay đổi?" }),
+            desc: t('academy.default_articles.2.desc', { defaultValue: "Phân tích cập nhật mới nhất từ YouTube và cách thích nghi..." }),
+            date: t('academy.default_articles.2.date', { defaultValue: "18 Tháng 1, 2026" }),
             image: "/images/academy/article-2.jpg"
         },
         {
             id: 3,
-            tag: "Kiếm Tiền",
-            title: "Đa dạng hóa nguồn thu nhập: Không chỉ phụ thuộc vào AdSense",
-            desc: "Chiến lược affiliate, booking và bán sản phẩm số hiện quả...",
-            date: "15 Tháng 1, 2026",
+            tag: t('academy.default_articles.3.tag', { defaultValue: "Kiếm Tiền" }),
+            title: t('academy.default_articles.3.title', { defaultValue: "Đa dạng hóa nguồn thu nhập: Không chỉ phụ thuộc vào AdSense" }),
+            desc: t('academy.default_articles.3.desc', { defaultValue: "Chiến lược affiliate, booking và bán sản phẩm số hiện quả..." }),
+            date: t('academy.default_articles.3.date', { defaultValue: "15 Tháng 1, 2026" }),
             image: "/images/academy/article-3.jpg"
         }
     ];

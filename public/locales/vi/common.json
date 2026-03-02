@@ -1,4 +1,21 @@
 {
+    "header": {
+        "youtube_new": "YouTube Mới",
+        "ecosystem": "Hệ sinh thái",
+        "features": "Tính năng",
+        "explore": "Khám phá",
+        "support": "Hỗ trợ",
+        "tools_board": "Bảng công cụ",
+        "pricing": "Bảng giá",
+        "hiring": "TUYỂN DỤNG",
+        "promotions": "KHUYẾN MẠI",
+        "checking": "Đang kiểm tra...",
+        "login": "ĐĂNG NHẬP",
+        "register": "ĐĂNG KÍ",
+        "announcement_1": "Ưu đãi gói Setup chỉ dành cho",
+        "announcement_2": "người đăng ký sớm nhất tuần này!",
+        "announcement_cta": "Khám phá ngay"
+    },
     "menu": {
         "home": "Trang chủ",
         "tools": "Bảng công cụ",
@@ -209,19 +226,23 @@
         "subtitle": "Khơi nguồn sáng tạo với bộ công cụ AI tối thượng. Thiết kế tinh tế, hiệu năng vượt trội."
     },
     "hero": {
-        "title": "SeenYT - Giúp bạn tìm đúng ngách và",
-        "title_highlight": "làm video lên top view",
-        "subtitle": "Không cần kinh nghiệm, chỉ cần làm theo từng bước.",
-        "cta_free": "Dùng thử miễn phí",
-        "cta_roadmap": "Lộ trình cho người mới",
-        "cta_community": "GIA NHẬP CỘNG ĐỒNG",
-        "bullet1_q": "Không biết làm gì?",
-        "bullet1_a": "Chỉ cho bạn video nên làm",
-        "bullet2_q": "Không biết viết?",
-        "bullet2_a": "Có sẵn kịch bản",
-        "bullet3_q": "Không rành SEO?",
-        "bullet3_a": "Hướng dẫn đăng đúng cách",
-        "trust_line": "Phù hợp YouTuber mới • Không cần kinh nghiệm • Có gói miễn phí"
+        "headline_main": "Làm YouTube không khó,",
+        "headline_sub": "vì đã có AI và SeenYT lo từ A-Z!",
+        "subtitle_desc": "Bạn chỉ cần làm đúng theo quy trình : Mọi khâu từ ý tưởng , kịch bản, giọng đọc đến hình ảnh,video đã có công nghệ AI của SeenYT xử lý. Bắt đầu ngay lúc này để sở hữu kênh YouTube triệu view mà không cần lộ mặt!",
+        "cta_try_free": "Dùng Thử Miễn Phí",
+        "cta_coaching": "NHẬN TƯ VẤN LỘ TRÌNH 1-1",
+        "urgency_badge": "Hỗ trợ riêng 1-1 cho 10 suất đăng ký sớm",
+        "cta_roadmap": "Mới làm YouTube? Xem Lộ Trình",
+        "social_proof": "HƠN 500+ CREATORS ĐANG SỬ DỤNG SEENYT ĐỂ XÂY KÊNH MỖI NGÀY"
+    },
+    "creator_merit": {
+        "badge": "Lời nhắn từ Founder",
+        "headline_1": "Cảm ơn bạn đã tin tưởng",
+        "headline_2": "SeenYT",
+        "message": "\"Hành trình làm YouTube không hề dễ dàng, nhưng bạn không đơn độc. SeenYT được tạo ra không chỉ là một công cụ, mà là người bạn đồng hành giúp bạn đi nhanh hơn, xa hơn và kiếm tiền bền vững hơn.\"",
+        "founder_name": "Tùng Phạm",
+        "founder_title": "Founder SeenYT",
+        "watch_video": "XEM VIDEO CHÀO MỪNG"
     },
     "badges": {
         "hot": "HOT",
@@ -276,6 +297,14 @@
             "quote": "Giọng đọc AI quá tự nhiên, không ai nhận ra là máy đọc luôn."
         }
     },
+    "explore": {
+        "title": "Khám Phá Thêm",
+        "subtitle": "Nâng tầm kênh YouTube với Coaching 1-1 hoặc tạo thêm nguồn thu nhập thụ động với Affiliate.",
+        "coachingDesc": "Được chính Mr. Seen định hướng, kèm cặp riêng biệt để xây kênh bền vững, tối ưu doanh thu.",
+        "affiliateDesc": "Giới thiệu SeenYT và nhận hoa hồng trọn đời. Không giới hạn thu nhập!",
+        "affiliateHighlight": "30% Hoa Hồng Trọn Đời",
+        "join_now": "🔥 THAM GIA NGAY"
+    },
     "coaching": {
         "badge": "Dịch Vụ Cao Cấp",
         "title": "Coaching 1-1",
@@ -292,7 +321,11 @@
         "ctaButtonLine2": "AFFILIATE",
         "earningsTitle": "Affiliate Đã Kiếm Được",
         "realtimeNote": "Hoa hồng realtime • Bạn có thể là người tiếp theo!",
-        "videoNotSupported": "Trình duyệt không hỗ trợ video."
+        "videoNotSupported": "Trình duyệt không hỗ trợ video.",
+        "shortTitle": "Affiliate",
+        "topEarner": "Top Affiliate",
+        "ctaJoin": "Tham gia ngay",
+        "ctaLearn": "Chi tiết"
     },
     "promotions": {
         "title": "Chương Trình Khuyến Mãi & Affiliate Hot",
@@ -319,6 +352,7 @@
     },
     "finalCTA": {
         "title": "HÃY BƯỚC VÀO TRẬN CHIẾN, ĐỪNG CHỈ LÀ KHÁN GIẢ.",
+        "subtitle": "Bắt đầu hành trình xây kênh YouTube bền vững ngay hôm nay.",
         "choosePlan": "Xem Bảng Giá",
         "joinCommunity": "Đăng ký CỘNG ĐỒNG SEENYT"
     },
@@ -484,22 +518,32 @@
         }
     },
     "footer": {
-        "copyright": "© 2025 SeenYT. Bảo lưu mọi quyền.",
-        "tagline": "Sứ mệnh của SeenYT là trao quyền cho mọi creator Việt Nam – đặc biệt là những bạn mới bắt đầu, không cần kinh nghiệm, không cần vốn lớn – có thể tạo nội dung chất lượng, tìm được ngách kiếm tiền cao, tối ưu SEO, thumbnail, kịch bản… để biến đam mê YouTube thành nguồn thu nhập thực sự và bền vững.\nChúng tôi tin rằng: Ai cũng xứng đáng có cơ hội tỏa sáng trên YouTube, không phân biệt xuất phát điểm. Và SeenYT sẽ luôn đồng hành cùng các bạn trên hành trình đó.",
-        "affiliate_program": "Affiliate Program",
+        "mission": "Sứ mệnh của SeenYT là trao quyền cho mọi creator Việt Nam – đặc biệt là những bạn mới bắt đầu, không cần kinh nghiệm, không cần vốn lớn – có thể tạo nội dung chất lượng, tìm được ngách kiếm tiền cao, tối ưu SEO, thumbnail, kịch bản… để biến đam mê YouTube thành nguồn thu nhập thực sự và bền vững.\nChúng tôi tin rằng: Ai cũng xứng đáng có cơ hội tỏa sáng trên YouTube, không phân biệt xuất phát điểm. Và SeenYT sẽ luôn đồng hành cùng các bạn trên hành trình đó.",
+        "become_partner": "Trở thành đối tác",
         "company": "Sản phẩm của Công Ty CP Dịch Vụ Quốc Tế NTC",
         "navigation": "Điều Hướng",
         "info": "Thông Tin",
         "tools_board": "Bảng Công Cụ",
         "pricing_link": "Bảng Giá",
-        "coaching": "Coaching 1-1",
+        "coaching": "Huấn luyện 1-1",
+        "services": "Dịch vụ Solutions",
         "legal": "Pháp Lý",
         "legal_info": "Thông Tin Pháp Lý",
         "terms": "Điều Khoản Dịch Vụ",
         "privacy": "Chính Sách Bảo Mật",
         "disclaimer": "Tuyên Bố Miễn Trừ",
         "aup": "Chính Sách Sử Dụng Hợp Lệ",
-        "contact": "Liên Hệ"
+        "contact": "Liên Hệ",
+        "copyright": "© 2025 SeenYT. Bảo lưu mọi quyền."
+    },
+    "chat": {
+        "busy": "Em đang bận, thử lại sau nhé!",
+        "error": "Xin lỗi anh, kết nối lỗi. Em thử lại sau 10s nhé!",
+        "welcome": "Chào anh! Em là SeenYT Assistant, sẵn sàng hỗ trợ ạ! 😊",
+        "thinking": "SeenYT đang suy nghĩ...",
+        "placeholder": "Hỏi về SeenYT...",
+        "send": "Gửi",
+        "tooltip": "Chat với AI Coach"
     },
     "common": {
         "loading": "Đang tải...",
@@ -622,11 +666,6 @@
             "master_prompt_ph": "Mô tả ngoại hình nhân vật chính để giữ nhất quán...",
             "visual_prompt_ph": "Ví dụ: Ánh sáng tối tâm trạng..."
         }
-    },
-    "header": {
-        "checking": "Đang kiểm tra...",
-        "login": "ĐĂNG NHẬP",
-        "register": "ĐĂNG KÍ"
     },
     "slot_machine": {
         "title": "Vòng Quay May Mắn",
@@ -887,5 +926,66 @@
         "copied": "Đã sao chép!",
         "download": "Tải xuống",
         "export": "Xuất file"
+    },
+    "ecosystem": {
+        "title": "HỆ SINH THÁI SEENYT",
+        "subtitle": "KHÔNG CHỈ LÀ TOOL. ĐÂY LÀ NHÀ MÁY SẢN XUẤT TRIỆU VIEW.",
+        "card1_title": "Bộ Công Cụ AI Siêu Tốc",
+        "card1_desc": "15+ công cụ AI chuyên biệt từ nghiên cứu ngách, viết kịch bản, đến tạo video tự động. Tiết kiệm 80% thời gian sản xuất.",
+        "card1_cta": "Mở Workspace",
+        "card2_title": "Học Viện Creator Thực Chiến",
+        "card2_desc": "Kho tàng hàng trăm video bài giảng, case study bóc tách kỹ thuật làm clip triệu view được update hàng tuần.",
+        "card2_cta": "Truy cập khóa học",
+        "card3_title": "Coaching 1-1 Bứt Phá",
+        "card3_desc": "Được trực tiếp cố vấn định hướng chiến lược, sửa kịch bản, review kênh hàng tuần để đảm bảo kết quả.",
+        "card3_cta": "Nhận tư vấn"
+    },
+    "home_timeline": {
+        "title": "Quy Trình 5 Bước Cơ Bản",
+        "subtitle": "Con đường từ số 0 đến video triệu view",
+        "step1_label": "Bước 1",
+        "step1_title": "Nghiên cứu thị trường & Đào ngách",
+        "step1_desc": "Sử dụng Tool Đào Ngách CPM Cao và Tìm Ngách Xanh để xác định chủ đề dễ win.",
+        "step2_label": "Bước 2",
+        "step2_title": "Lên Kịch Bản Kể Chuyện Hút Đảo",
+        "step2_desc": "Dùng Kể Chuyện Lịch Sử và Viết Kịch Bản Viral để AI tạo ra dàn bài hấp dẫn.",
+        "step3_label": "Bước 3",
+        "step3_title": "Sản Xuất Nội Dung Thần Tốc",
+        "step3_desc": "AI Voice Dubbing và Virtual MC sẽ biến script thành video sống động trong tích tắc.",
+        "step4_label": "Bước 4",
+        "step4_title": "Tối Ưu Hoá 100% Điểm SEO",
+        "step4_desc": "Title mồi, Thumbnail AI và công cụ SEO giúp video chễm chệ trên top tìm kiếm.",
+        "step5_label": "Bước 5",
+        "step5_title": "Phân Phối & Nhân Bản (Scale)",
+        "step5_desc": "Tận dụng AI Video Generator để sản xuất hàng loạt và chiếm lĩnh các ngách tương tự."
+    },
+    "home_tools": {
+        "title": "Vũ Khí Sáng Tạo Nội Dung",
+        "subtitle": "Những 'bảo bối' mạnh mẽ nhất trong hệ sinh thái SeenYT giúp bạn đi tắt đón đầu.",
+        "badge_hot": "HOT",
+        "badge_vip": "VIP",
+        "tool1_title": "Trạm Đào Ngách CPM Cao",
+        "tool1_desc": "Quét dữ liệu real-time để tìm ra những ngách đang có lợi nhuận quảng cáo cực cao nhưng lại ít người làm.",
+        "tool2_title": "Thư Viện Ngách Thắng 100%",
+        "tool2_desc": "Cập nhật liên tục những chủ đề đã được kiểm chứng tỷ lệ thành công, giúp newbie hạn chế tối đa rủi ro chọn sai ngách.",
+        "tool3_title": "Bậc Thầy Kịch Bản Viral",
+        "tool3_desc": "AI học theo các pattern kịch bản hàng chục triệu view từ chuyên gia, tự động viết ra script giữ chân người xem đến giây cuối cùng.",
+        "tool4_title": "Chuyên Gia Tối Ưu Tầm Nhìn",
+        "tool4_desc": "Không đoán mò! AI đưa ra bộ Keywords, Title rực rỡ và mô tả chuẩn SEO giúp video nhanh chóng được YouTube đề xuất.",
+        "launch": "Khởi động",
+        "cta": "Khám phá toàn bộ 15+ Công Cụ AI"
+    },
+    "home_coaching": {
+        "headline_1": "Bạn đã có vũ khí tốt (AI Tools),",
+        "headline_2": "nhưng bạn đã có \"Bản đồ kho báu\" chưa?",
+        "problem_title": "Vấn đề của bạn:",
+        "problem_desc": "Tool thì rất mạnh, nhưng nếu không có tư duy chọn ngách và chiến lược vận hành bài bản, bạn vẫn sẽ loay hoay giữa hàng ngàn tính năng mà không cắn đề xuất, không ra tiền.",
+        "solution_title": "Giải pháp Coaching 1-1:",
+        "solution_desc": "Mình không chỉ cấp tool cho bạn dùng, mình sẽ <1>tham gia trực tiếp</1> vào việc xây kênh cùng bạn. Cầm tay chỉ việc 1-1 từ con số 0 đến khi max doanh thu, bao nuôi tài khoản và gỡ gậy bản quyền triệt để.",
+        "perk1_title": "Đặc quyền \"Ngách Xanh\"",
+        "perk1_desc": "Truyền lại duy nhất cho bạn các \"ngách xanh\" nước ngoài siêu lợi nhuận ngầm mà mình chưa từng công bố trên YouTube.",
+        "perk2_title": "Bắt Bệnh Bắt Tận Gốc",
+        "perk2_desc": "Vì sao kênh chết? Vì sao bị bóp tương tác? Hàng tuần mình sẽ trực tiếp \"mổ xẻ\" Kênh, Thumbnail và Kịch bản của bạn.",
+        "cta": "Đăng ký Khám Kênh 1-1 cùng Mr. Seen"
     }
 }
