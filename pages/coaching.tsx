@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import SocialProofGallery, { defaultSocialProofItems } from '@/components/SocialProofGallery';
 import { Download, CheckCircle, Star, Target, Zap, TrendingUp, Users, ShieldCheck, Gift } from 'lucide-react';
 
 export default function CoachingPage() {
@@ -232,6 +233,29 @@ export default function CoachingPage() {
                             </div>
                         </div>
 
+                    </div>
+                </section>
+
+                {/* --- SOCIAL PROOF / TESTIMONIALS --- */}
+                <section id="social-proof" className="py-20 px-4 bg-[#0b0b0f] relative border-t border-white/5">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#e11d48]/10 blur-[100px] rounded-full pointer-events-none" />
+
+                    <div className="max-w-6xl mx-auto relative z-10">
+                        <div className="text-center mb-12">
+                            <div className="inline-flex items-center space-x-2 bg-white/5 border border-[#e11d48]/20 rounded-full px-4 py-2 mb-4">
+                                <Star className="w-4 h-4 text-[#e11d48] fill-[#e11d48]" />
+                                <span className="text-sm font-medium tracking-wide uppercase text-white">
+                                    Kết Quả Thực Tế Học Viên
+                                </span>
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-bold text-white font-playfair mb-4">
+                                Bằng Chứng Thép Từ <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e11d48] to-[#fb7185]">Chương Trình Coaching</span>
+                            </h2>
+                            <p className="text-gray-400 text-lg max-w-2xl mx-auto">Kết quả nói thay mọi lời quảng cáo. Đây là những kênh thực tế đã áp dụng thành công bộ công cụ và chiến lược của SeenYT.</p>
+                        </div>
+
+                        {/* Dynamic Mixed-Media Masonry Gallery */}
+                        <SocialProofGallery items={defaultSocialProofItems} />
                     </div>
                 </section>
 

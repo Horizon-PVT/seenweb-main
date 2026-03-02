@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import AcademyLayout from '@/components/layout/AcademyLayout';
-import { Play, Cpu, Crown, CheckCircle2, Search, ArrowRight, BookOpen, Star, Zap } from 'lucide-react';
+import { Play, Cpu, Crown, CheckCircle2, Search, ArrowRight, BookOpen, Star, Zap, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
@@ -10,6 +10,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useSession } from 'next-auth/react';
 import VideoTipsSection from '@/components/VideoTipsSection';
 import KnowledgeSection from '@/components/KnowledgeSection';
+import SocialProofGallery, { defaultSocialProofItems } from '@/components/SocialProofGallery';
 import { prisma } from '@/lib/prisma'; // Make sure this path is correct
 
 // Fetch articles and basic videos for the relocated sections
@@ -61,6 +62,8 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [selectedShort, setSelectedShort] = useState<string | null>(null);
+  const [isHovering, setIsHovering] = useState(false);
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [loadingCheckout, setLoadingCheckout] = useState(false);
 
@@ -190,23 +193,82 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
               </div>
             </div>
 
-            {/* Social Proof Image (Dashboard/Results) */}
-            <div className="relative group perspective">
-              <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition duration-1000 group-hover:duration-200" />
-              <div className="relative bg-[#111] backdrop-blur-xl border border-green-500/30 rounded-2xl aspect-[4/3] flex flex-col items-center justify-center overflow-hidden transform transition-all duration-500 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                {/* Simulated Chart/Analytics Dashboard Thumbnail */}
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay opacity-80"></div>
-                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black to-transparent" />
+            {/* YouTube Short Video Presenter */}
+            <div
+              className="relative group mx-auto w-full max-w-[320px] md:max-w-[360px] lg:mr-0 z-20"
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-[2rem] blur-xl opacity-50 group-hover:opacity-80 transition duration-1000 group-hover:duration-200" />
+              <div
+                className="relative bg-black border-[4px] border-gray-800 rounded-[2rem] aspect-[9/16] flex flex-col items-center justify-center overflow-hidden transform transition-all duration-500 cursor-pointer shadow-[0_0_40px_rgba(220,38,38,0.3)] group-hover:scale-[1.02]"
+                onClick={() => {
+                  setSelectedShort('vSsa6FDBRSc');
+                  setIsHovering(false); // Reset hover state when opening modal
+                }}
+              >
+                {/* Visuals - either Image or Autoplaying Iframe based on Hover */}
+                {!isHovering ? (
+                  <div className="absolute inset-0 bg-[url('https://i.ytimg.com/vi/vSsa6FDBRSc/hqdefault.jpg')] bg-cover bg-center"></div>
+                ) : (
+                  <iframe
+                    src="https://www.youtube.com/embed/vSsa6FDBRSc?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=vSsa6FDBRSc&playsinline=1"
+                    className="absolute inset-0 w-full h-full object-cover scale-[1.3] pointer-events-none"
+                    title="Hover Preview"
+                    frameBorder="0"
+                    allow="autoplay; encrypted-media"
+                  />
+                )}
 
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="inline-block px-3 py-1 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 font-bold text-sm mb-2">
-                    +2,540,000 Views / 28 Ngày
+                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
+
+                {/* Play Button - Redesigned to be thinner and less overwhelming */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-500 border-2 border-white/40 ${isHovering ? 'bg-white/10 scale-90 opacity-0' : 'bg-red-600/60 shadow-[0_0_20px_rgba(220,38,38,0.5)] group-hover:scale-110'}`}>
+                    <Play className="w-6 h-6 text-white ml-1 opacity-90" fill="transparent" strokeWidth={2.5} />
                   </div>
-                  <h3 className="text-xl font-bold text-white leading-tight">
-                    Kết quả thực tế từ Hệ thống SeenYT
-                  </h3>
+                </div>
+
+                <div className="absolute bottom-6 left-6 right-6 text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-600/90 backdrop-blur-md rounded-full text-white font-bold text-sm mb-3 shadow-lg border border-white/20">
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    Xem Ngay Lộ Trình Triệu View 2026
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SOCIAL PROOF / TESTIMONIALS --- */}
+        <section id="social-proof" className="py-20 px-4 bg-[#050505] relative border-y border-white/5">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-red-600/10 blur-[100px] rounded-full pointer-events-none" />
+
+          <div className="max-w-6xl mx-auto relative z-10">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 mb-4">
+                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                <span className="text-sm font-medium tracking-wide uppercase text-white">
+                  Kết Quả Thực Tế
+                </span>
+              </div>
+              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">
+                Học Viên Của Chúng Tôi <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">Đạt Được Gì?</span>
+              </h2>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">Hàng ngàn học viên đã áp dụng thành công bộ công cụ AI tự động để tạo ra Cỗ Máy Thu Nhập Thụ Động.</p>
+            </div>
+
+            {/* Dynamic Mixed-Media Masonry Gallery */}
+            <SocialProofGallery items={defaultSocialProofItems} />
+
+            <div className="mt-14 text-center pb-4">
+              <button
+                onClick={() => router.push('/academy/zoom-3-days')}
+                className="px-8 py-3 rounded-xl border border-red-500/50 text-red-400 font-bold hover:bg-red-500/10 hover:text-red-300 transition-colors inline-flex items-center gap-2"
+              >
+                <Users className="w-5 h-5" /> Tham Gia Cùng 10.000+ Học Viên Khác
+              </button>
             </div>
           </div>
         </section>
@@ -537,6 +599,29 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
               <iframe
                 src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&rel=0`}
                 title="Video Player"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- SHORTS PLAYER MODAL --- */}
+      {selectedShort && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[100] p-4 font-sans animate-fade-in" onClick={() => setSelectedShort(null)}>
+          <div className="relative w-full max-w-[400px] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedShort(null)}
+              className="absolute top-4 right-4 text-white hover:text-red-500 bg-black/50 hover:bg-black/80 p-2 w-10 h-10 flex items-center justify-center rounded-full z-10 transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+            <div className="aspect-[9/16] w-full">
+              <iframe
+                src={`https://www.youtube.com/embed/${selectedShort}?autoplay=1&rel=0&playsinline=1`}
+                title="YouTube Short"
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
