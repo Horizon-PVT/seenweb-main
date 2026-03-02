@@ -82,7 +82,7 @@ export default function VipUpgradeLanding() {
                                 </div>
 
                                 <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 leading-tight">
-                                    Kích Hoạt Đặc Quyền VIP Để Về Đích <span className="text-amber-500">Nhanh Gấp 10 Lần</span>
+                                    KÍCH HOẠT ĐẶC QUYỀN VIP - SỞ HỮU TRỌN BỘ <span className="text-[#FFD700]">BẢO BỐI THỰC CHIẾN</span>
                                 </h2>
 
                                 <p className="text-gray-300 font-medium mb-8 leading-relaxed">
@@ -174,9 +174,9 @@ export default function VipUpgradeLanding() {
                                     <button
                                         onClick={handleCheckoutVip}
                                         disabled={loadingCheckout}
-                                        className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-yellow-500 text-black font-black text-lg py-5 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_50px_rgba(245,158,11,0.6)] transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-wide"
+                                        className="w-full bg-gradient-to-r from-[#FFD700] to-[#FF8C00] hover:from-[#FFC125] hover:to-[#FF7F00] text-black font-black text-lg py-5 rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.6)] hover:shadow-[0_0_60px_rgba(255,215,0,0.8)] transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-widest border border-yellow-200/50"
                                     >
-                                        {loadingCheckout ? 'Đang Xử Lý...' : 'Nâng Cấp VIP Ngay (499k)'}
+                                        {loadingCheckout ? 'Đang Xử Lý...' : 'KÍCH HOẠT VIP NGAY (499K)'}
                                     </button>
                                 </div>
 
