@@ -272,6 +272,16 @@ export default function ZoomLandingPage() {
                         </div>
                     )}
 
+                    {/* --- EVENT BANNER --- */}
+                    <div className="max-w-5xl mx-auto mb-24 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.2)] border border-white/10 relative group bg-black transition-transform hover:scale-[1.02] duration-500">
+                        <Image src="/images/promotion/banner-zoom.jpg" alt="Làm Chủ YouTube AI 2026" width={1920} height={1080} className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-red-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-8">
+                            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="bg-red-600 text-white font-bold py-3 px-8 rounded-full flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl shadow-red-900/50 hover:bg-red-500">
+                                Giữ Chỗ Ngay <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+
                     {/* --- NEW SECTION 2: AUTHORITY (CHUYÊN GIA) --- */}
                     <div className="mb-24 max-w-5xl mx-auto bg-gradient-to-r from-gray-900 to-black border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
                         <div className="grid md:grid-cols-2">

@@ -4,6 +4,7 @@ import { GetServerSideProps } from 'next';
 import AcademyLayout from '@/components/layout/AcademyLayout';
 import { Play, Cpu, Crown, CheckCircle2, Search, ArrowRight, BookOpen, Star, Zap, Users } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -238,6 +239,20 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* --- EVENT BANNER SECTION --- */}
+        <section className="py-12 px-4 bg-black relative z-10 border-b border-white/5">
+          <div className="max-w-5xl mx-auto">
+            <Link href="/academy/zoom-3-days" className="block relative rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.3)] border border-red-500/30 hover:border-red-500/80 transition-all hover:shadow-[0_0_60px_rgba(220,38,38,0.5)] group">
+              <Image src="/images/promotion/banner-zoom.jpg" alt="Zoom 3 Ngày Tham Gia Miễn Phí" width={1920} height={1080} className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-[1.02]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-red-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col items-center justify-end pb-8">
+                <span className="bg-red-600 text-white font-bold py-3 px-8 rounded-full flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl">
+                  Đăng Ký Tham Gia Ngay <ArrowRight className="w-5 h-5" />
+                </span>
+              </div>
+            </Link>
           </div>
         </section>
 
@@ -583,172 +598,180 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
           </div>
         </section>
 
-      </div>
+      </div >
 
       {/* --- VIDEO PLAYER MODAL --- */}
-      {selectedVideo && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-[100] p-4 font-sans animate-fade-in">
-          <div className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-            <button
-              onClick={() => setSelectedVideo(null)}
-              className="absolute top-4 right-4 text-white hover:text-red-500 bg-black/50 p-2 rounded-full z-10 transition-colors"
-            >
-              ✕
-            </button>
-            <div className="aspect-video w-full">
-              <iframe
-                src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&rel=0`}
-                title="Video Player"
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
+      {
+        selectedVideo && (
+          <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-[100] p-4 font-sans animate-fade-in">
+            <div className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="absolute top-4 right-4 text-white hover:text-red-500 bg-black/50 p-2 rounded-full z-10 transition-colors"
+              >
+                ✕
+              </button>
+              <div className="aspect-video w-full">
+                <iframe
+                  src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&rel=0`}
+                  title="Video Player"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* --- SHORTS PLAYER MODAL --- */}
-      {selectedShort && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[100] p-4 font-sans animate-fade-in" onClick={() => setSelectedShort(null)}>
-          <div className="relative w-full max-w-[400px] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
-            <button
-              onClick={() => setSelectedShort(null)}
-              className="absolute top-4 right-4 text-white hover:text-red-500 bg-black/50 hover:bg-black/80 p-2 w-10 h-10 flex items-center justify-center rounded-full z-10 transition-colors cursor-pointer"
-            >
-              ✕
-            </button>
-            <div className="aspect-[9/16] w-full">
-              <iframe
-                src={`https://www.youtube.com/embed/${selectedShort}?autoplay=1&rel=0&playsinline=1`}
-                title="YouTube Short"
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
+      {
+        selectedShort && (
+          <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[100] p-4 font-sans animate-fade-in" onClick={() => setSelectedShort(null)}>
+            <div className="relative w-full max-w-[400px] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
+              <button
+                onClick={() => setSelectedShort(null)}
+                className="absolute top-4 right-4 text-white hover:text-red-500 bg-black/50 hover:bg-black/80 p-2 w-10 h-10 flex items-center justify-center rounded-full z-10 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+              <div className="aspect-[9/16] w-full">
+                <iframe
+                  src={`https://www.youtube.com/embed/${selectedShort}?autoplay=1&rel=0&playsinline=1`}
+                  title="YouTube Short"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* --- UPSELL POPUP MODAL --- */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4 font-sans animate-fade-in">
-          <div className="bg-[#111] max-w-lg w-full rounded-3xl border border-red-500/30 overflow-hidden shadow-[0_0_80px_rgba(220,38,38,0.2)] text-center relative border-t-2 border-t-red-500">
-            <button onClick={() => setShowUpgradeModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white w-8 h-8 rounded-full bg-gray-800/50 flex items-center justify-center">✕</button>
-            <div className="p-10">
-              <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-red-900 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-red-500/30 border border-red-400/50">
-                <Crown className="w-12 h-12 text-white fill-white/20" />
-              </div>
-              <h2 className="text-3xl font-black text-white mb-4">Bạn Chưa Đăng Ký</h2>
-              <p className="text-gray-400 text-xl md:text-[1.1rem] leading-relaxed mb-10 max-w-sm mx-auto">
-                Vui lòng nâng cấp lên gói <strong className="text-white">Creator Masterclass</strong> để học và cập nhật toàn bộ kiến thức YouTube mới nhất!
-              </p>
+      {
+        showUpgradeModal && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4 font-sans animate-fade-in">
+            <div className="bg-[#111] max-w-lg w-full rounded-3xl border border-red-500/30 overflow-hidden shadow-[0_0_80px_rgba(220,38,38,0.2)] text-center relative border-t-2 border-t-red-500">
+              <button onClick={() => setShowUpgradeModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white w-8 h-8 rounded-full bg-gray-800/50 flex items-center justify-center">✕</button>
+              <div className="p-10">
+                <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-red-900 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-red-500/30 border border-red-400/50">
+                  <Crown className="w-12 h-12 text-white fill-white/20" />
+                </div>
+                <h2 className="text-3xl font-black text-white mb-4">Bạn Chưa Đăng Ký</h2>
+                <p className="text-gray-400 text-xl md:text-[1.1rem] leading-relaxed mb-10 max-w-sm mx-auto">
+                  Vui lòng nâng cấp lên gói <strong className="text-white">Creator Masterclass</strong> để học và cập nhật toàn bộ kiến thức YouTube mới nhất!
+                </p>
 
-              <div className="flex flex-col gap-4">
-                <button
-                  onClick={() => { setShowUpgradeModal(false); setShowCheckoutModal(true); }}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white font-black text-lg py-5 rounded-2xl hover:scale-105 transition-transform shadow-xl shadow-red-600/20"
-                >
-                  Nâng Cấp Masterclass Ngay
-                </button>
-                <button
-                  onClick={() => setShowUpgradeModal(false)}
-                  className="w-full py-4 text-gray-500 font-bold hover:text-white transition-colors"
-                >
-                  Để sau vậy
-                </button>
+                <div className="flex flex-col gap-4">
+                  <button
+                    onClick={() => { setShowUpgradeModal(false); setShowCheckoutModal(true); }}
+                    className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white font-black text-lg py-5 rounded-2xl hover:scale-105 transition-transform shadow-xl shadow-red-600/20"
+                  >
+                    Nâng Cấp Masterclass Ngay
+                  </button>
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="w-full py-4 text-gray-500 font-bold hover:text-white transition-colors"
+                  >
+                    Để sau vậy
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* --- CHECKOUT MODAL --- */}
-      {showCheckoutModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4 font-sans animate-fade-in">
-          <div className="bg-[#0D0D10] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-800">
+      {
+        showCheckoutModal && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4 font-sans animate-fade-in">
+            <div className="bg-[#0D0D10] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-800">
 
-            {/* Left Column - Image Hero */}
-            <div className="hidden md:flex w-1/2 relative bg-black flex-col p-8">
-              <div className="absolute inset-0 z-0">
-                <img
-                  src="/images/academy_masterclass_checkout.png"
-                  alt="Giảng dạy YouTube"
-                  className="w-full h-full object-cover object-center opacity-40 mix-blend-luminosity"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D10] via-black/80 to-black/30"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0D0D10]"></div>
-              </div>
-
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="mb-8">
-                  <div className="inline-flex bg-[#CDAD5A] text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg items-center gap-2">
-                    <Star className="w-4 h-4" /> Dịch Vụ Cao Cấp
-                  </div>
-                </div>
-
-                <div className="mt-auto mb-10 w-full px-4 text-center">
-                  <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group mb-6 aspect-video max-h-56 mx-auto">
-                    <img
-                      src="/images/academy_masterclass_checkout.png"
-                      alt="Lớp học Masterclass"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  </div>
-                  <h3 className="text-2xl font-black text-white mb-2 leading-tight">Creator Masterclass</h3>
-                  <p className="text-gray-300 text-sm leading-relaxed max-w-sm mx-auto">Sở hữu vĩnh viễn khóa học thực chiến và tham gia cộng đồng VIP đồng hành cùng Mr. Seen.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Payment Form */}
-            <div className="w-full md:w-1/2 p-10 relative bg-[#0D0D10]">
-              <button onClick={() => setShowCheckoutModal(false)} className="absolute top-6 right-6 text-gray-500 hover:text-white w-8 h-8 rounded-full bg-gray-800/50 flex items-center justify-center transition-colors">✕</button>
-
-              <h2 className="text-2xl font-black text-white mb-2">Thanh Toán An Toàn</h2>
-              <p className="text-gray-500 text-sm mb-8">Kích hoạt tài khoản Masterclass tự động bằng PayOS mã QR.</p>
-
-              <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 mb-8 transform transition-all hover:border-red-500/30 hover:bg-gray-900/80">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-gray-300 font-bold tracking-wide uppercase text-sm">Gói Trọn Đời (Lifetime)</span>
-                  <span className="text-white font-black text-2xl">849.000 đ</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500 line-through decoration-gray-600 decoration-2">Giá gốc: 2.999.000 đ</span>
-                  <span className="text-red-400 font-bold bg-red-500/10 px-2.5 py-1 rounded">Tiết kiệm siêu khủng</span>
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <label className="text-xs text-gray-400 font-bold mb-3 block tracking-wide uppercase">Email nhận khoá học</label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    placeholder="Nhập địa chỉ email của bạn..."
-                    value={checkoutEmail}
-                    onChange={(e) => setCheckoutEmail(e.target.value)}
-                    className="w-full bg-black border-2 border-gray-800 text-white font-medium rounded-xl px-4 py-4 focus:border-red-500 outline-none transition-colors"
+              {/* Left Column - Image Hero */}
+              <div className="hidden md:flex w-1/2 relative bg-black flex-col p-8">
+                <div className="absolute inset-0 z-0">
+                  <img
+                    src="/images/academy_masterclass_checkout.png"
+                    alt="Giảng dạy YouTube"
+                    className="w-full h-full object-cover object-center opacity-40 mix-blend-luminosity"
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 text-sm">Bắt buộc</div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D10] via-black/80 to-black/30"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0D0D10]"></div>
+                </div>
+
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="mb-8">
+                    <div className="inline-flex bg-[#CDAD5A] text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg items-center gap-2">
+                      <Star className="w-4 h-4" /> Dịch Vụ Cao Cấp
+                    </div>
+                  </div>
+
+                  <div className="mt-auto mb-10 w-full px-4 text-center">
+                    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group mb-6 aspect-video max-h-56 mx-auto">
+                      <img
+                        src="/images/academy_masterclass_checkout.png"
+                        alt="Lớp học Masterclass"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-2 leading-tight">Creator Masterclass</h3>
+                    <p className="text-gray-300 text-sm leading-relaxed max-w-sm mx-auto">Sở hữu vĩnh viễn khóa học thực chiến và tham gia cộng đồng VIP đồng hành cùng Mr. Seen.</p>
+                  </div>
                 </div>
               </div>
 
-              <button
-                onClick={handleCheckoutCourse}
-                disabled={loadingCheckout}
-                className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-black text-lg py-5 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 shadow-xl shadow-red-900/20 hover:-translate-y-1"
-              >
-                {loadingCheckout ? 'Đang xử lý kết nối...' : 'Tiến Hành Mua Qua PayOS'}
-                {!loadingCheckout && <ArrowRight className="w-5 h-5" />}
-              </button>
+              {/* Right Column - Payment Form */}
+              <div className="w-full md:w-1/2 p-10 relative bg-[#0D0D10]">
+                <button onClick={() => setShowCheckoutModal(false)} className="absolute top-6 right-6 text-gray-500 hover:text-white w-8 h-8 rounded-full bg-gray-800/50 flex items-center justify-center transition-colors">✕</button>
 
-              <p className="text-center text-xs text-gray-600 mt-6 font-medium">🔒 Giao dịch mã hóa an toàn • Auto-kích hoạt sau 1 phút</p>
+                <h2 className="text-2xl font-black text-white mb-2">Thanh Toán An Toàn</h2>
+                <p className="text-gray-500 text-sm mb-8">Kích hoạt tài khoản Masterclass tự động bằng PayOS mã QR.</p>
+
+                <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 mb-8 transform transition-all hover:border-red-500/30 hover:bg-gray-900/80">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-gray-300 font-bold tracking-wide uppercase text-sm">Gói Trọn Đời (Lifetime)</span>
+                    <span className="text-white font-black text-2xl">849.000 đ</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 line-through decoration-gray-600 decoration-2">Giá gốc: 2.999.000 đ</span>
+                    <span className="text-red-400 font-bold bg-red-500/10 px-2.5 py-1 rounded">Tiết kiệm siêu khủng</span>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <label className="text-xs text-gray-400 font-bold mb-3 block tracking-wide uppercase">Email nhận khoá học</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      placeholder="Nhập địa chỉ email của bạn..."
+                      value={checkoutEmail}
+                      onChange={(e) => setCheckoutEmail(e.target.value)}
+                      className="w-full bg-black border-2 border-gray-800 text-white font-medium rounded-xl px-4 py-4 focus:border-red-500 outline-none transition-colors"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 text-sm">Bắt buộc</div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckoutCourse}
+                  disabled={loadingCheckout}
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-black text-lg py-5 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 shadow-xl shadow-red-900/20 hover:-translate-y-1"
+                >
+                  {loadingCheckout ? 'Đang xử lý kết nối...' : 'Tiến Hành Mua Qua PayOS'}
+                  {!loadingCheckout && <ArrowRight className="w-5 h-5" />}
+                </button>
+
+                <p className="text-center text-xs text-gray-600 mt-6 font-medium">🔒 Giao dịch mã hóa an toàn • Auto-kích hoạt sau 1 phút</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-    </AcademyLayout>
+    </AcademyLayout >
   );
 }
