@@ -1,9 +1,42 @@
 # *
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api
 
-# *
-User-agent: *
+# AI Search Engines & Bots - Explicitly Allow for GEO (Generative Engine Optimization)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+User-agent: Omgilibot
+Allow: /
+Disallow: /admin
+Disallow: /api
+
+User-agent: FacebookBot
+Allow: /
 Disallow: /admin
 Disallow: /api
 

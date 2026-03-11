@@ -1,0 +1,20 @@
+# Welcome to SeenYT
+
+> SeenYT is a comprehensive ecosystem designed to empower YouTube creators through automation, AI-driven tools, and proven strategies to dominate niches and build sustainable income streams.
+
+## Core Purpose
+We help YouTube creators discover high-CPM niches, automate content creation, optimize for algorithms (SEO), and accelerate their monetization.
+
+## Key Features & Tools
+* **Niche Miner:** A specialized tool to dig out high-CPM (Cost Per Mille) YouTube niches.
+* **Niche Engine:** A curated library containing 100% winning niches with high potential.
+* **Viral Scriptwriter:** AI-powered assistance to create engaging, viral-ready video scripts.
+* **SEO Optimizer:** Advanced tools to optimize keywords, titles, and descriptions for maximum search visibility on YouTube.
+* **Creator Academy (Mastery 2026):** Step-by-step training from choosing a niche to full channel automation and monetization.
+* **1-on-1 Coaching System:** Personalized guidance to solve deep issues in channel strategy and copywriting.
+
+## Target Audience
+YouTube creators, automation experts, digital marketers, and individuals seeking to generate automated online income through YouTube channels.
+
+## Mission
+To provide data-driven insights and AI automation that replace guesswork with certainty for YouTube creators of all levels.
