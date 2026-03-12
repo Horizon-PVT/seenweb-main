@@ -15,7 +15,7 @@ function useFomoPopup() {
             const isVip = Math.random() > 0.5;
             const name = DUMMY_NAMES[Math.floor(Math.random() * DUMMY_NAMES.length)];
             const message = isVip
-                ? `⚡ Chỉ còn ${Math.floor(Math.random() * 3) + 1} suất VIP cuối cùng giá 499k!`
+                ? `⚡ Chỉ còn ${Math.floor(Math.random() * 3) + 1} vé Zoom cuối cùng giá 499k!`
                 : `🎉 ${name} vừa đăng ký thành công vé Zoom!`;
 
             setPopup({ id: Date.now(), message });
@@ -60,9 +60,9 @@ export default function ZoomLandingPage() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Set the target date: Thursday, March 5, 2026 at 20:00 (8:00 PM)
+    // Set the target date: Tuesday, March 17, 2026 at 20:00 (8:00 PM)
     useEffect(() => {
-        const targetDate = new Date('2026-03-05T20:00:00+07:00');
+        const targetDate = new Date('2026-03-17T20:00:00+07:00');
 
         const interval = setInterval(() => {
             const now = new Date();
@@ -98,7 +98,7 @@ export default function ZoomLandingPage() {
 
             if (res.ok) {
                 // Redirect to VIP upgrade page
-                router.push('/academy/zoom-3-days/vip-upgrade');
+                router.push('/academy/zoom/vip-upgrade');
             } else {
                 const data = await res.json();
                 alert(data.message || 'Có lỗi xảy ra, vui lòng thử lại.');
@@ -115,7 +115,7 @@ export default function ZoomLandingPage() {
         <>
             <Head>
                 <title>[FREE ZOOM] Làm chủ YouTube AI 2026 - SeenYT</title>
-                <meta name="description" content="Sự kiện Zoom 3 ngày MIỄN PHÍ 100% hướng dẫn xây kênh YouTube AI." />
+                <meta name="description" content="Sự kiện Zoom 5 buổi: 10 suất MIỄN PHÍ hướng dẫn xây kênh YouTube AI." />
                 <meta name="robots" content="index, follow" />
             </Head>
 
@@ -145,7 +145,7 @@ export default function ZoomLandingPage() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                             </span>
-                            [FREE ZOOM] 100 Vé Độc Quyền
+                            [FREE ZOOM] 10 SUẤT MIỄN PHÍ / TỔNG 50 SUẤT
                         </div>
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-2">
                             Làm Chủ YouTube AI 2026
@@ -154,7 +154,7 @@ export default function ZoomLandingPage() {
                             Làm Ít Hơn, Kiếm Nhiều Hơn Nhờ Tự Động Hóa
                         </h2>
                         <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mb-10">
-                            Chương trình Zoom 3 ngày trị giá <span className="line-through decoration-red-500">2.990.000đ</span> nay hoàn toàn <strong className="text-green-400">MIỄN PHÍ 100%</strong> cho Newbie muốn xây kênh tự động hóa không cần lộ mặt.
+                            Chương trình Zoom 5 buổi trị giá <span className="line-through decoration-red-500">2.990.000đ</span> nay chỉ có <strong className="text-green-400">10 SUẤT MIỄN PHÍ</strong> trong tổng số 50 suất cho Newbie muốn xây kênh tự động hóa không cần lộ mặt.
                         </p>
                     </div>
 
@@ -178,7 +178,7 @@ export default function ZoomLandingPage() {
                                     playsInline
                                     className="w-full h-full object-cover opacity-90 scale-105 group-hover:scale-100 transition-transform duration-1000"
                                     src="/images/shorts-preview.mp4" // Ideally a silent 3s snippet
-                                    poster="https://i.ytimg.com/vi/I-YfmS04HKM/maxresdefault.jpg" // Fallback thumbnail
+                                    poster="https://i.ytimg.com/vi/EpZi_k26EYY/maxresdefault.jpg" // Fallback thumbnail
                                 />
 
                                 {/* Overlay Gradient */}
@@ -204,10 +204,10 @@ export default function ZoomLandingPage() {
                         {/* Right Column: Hook (Nỗi Đau) */}
                         <div className="text-left mt-8 md:mt-0 px-4 md:px-0">
                             <h2 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
-                                Tại sao bạn vẫn chưa có thu nhập từ YouTube?
+                                ĐỪNG ĐỔ MỒ HÔI ĐỂ ĐỔI LẤY... <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600">CÁT!</span>
                             </h2>
                             <p className="text-lg text-gray-400 font-semibold mb-8">
-                                Bạn có đang loay hoay như 90% Newbie khác?
+                                Bạn đang làm YouTube kiểu gì thế này?
                             </p>
 
                             <div className="space-y-6">
@@ -216,8 +216,8 @@ export default function ZoomLandingPage() {
                                         <Frown className="w-6 h-6 text-red-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-white mb-1">Bỏ Hàng Giờ Edit...</h3>
-                                        <p className="text-gray-400 text-sm">Cắt ghép video cả đêm nhưng đăng lên view vẫn lẹt đẹt.</p>
+                                        <h3 className="text-lg font-bold text-white mb-1">0 View – 0 Doanh thu</h3>
+                                        <p className="text-gray-400 text-sm">Thức đêm edit, đầu tư máy móc tiền triệu, vắt kiệt sức lực... nhưng kết quả vẫn bằng không.</p>
                                     </div>
                                 </div>
 
@@ -226,8 +226,8 @@ export default function ZoomLandingPage() {
                                         <ShieldAlert className="w-6 h-6 text-amber-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-white mb-1">Không Biết Chọn Ngách</h3>
-                                        <p className="text-gray-400 text-sm">Làm chủ đề quá rộng thì khó cạnh tranh, làm ngách nhỏ thì nghèo.</p>
+                                        <h3 className="text-lg font-bold text-white mb-1">Sự thật phũ phàng</h3>
+                                        <p className="text-gray-400 text-sm">LÀM SAI NGÁCH THÌ CÀNG CỐ CÀNG KIỆT SỨC. Năm 2026, YouTube không dành cho những tay mơ đi diễn.</p>
                                     </div>
                                 </div>
 
@@ -236,15 +236,22 @@ export default function ZoomLandingPage() {
                                         <XOctagon className="w-6 h-6 text-orange-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-white mb-1">Sợ Kỹ Thuật Phức Tạp</h3>
-                                        <p className="text-gray-400 text-sm">Ngại lộ mặt, tiếng Anh kém, và sợ hãi trước phần mềm rắc rối.</p>
+                                        <h3 className="text-lg font-bold text-white mb-1">Thời Đại AI Lên Ngôi</h3>
+                                        <p className="text-gray-400 text-sm">Nó dành cho những người biết dùng AI để cộng lực và Tư duy để hái ra tiền.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-8 inline-block px-6 py-2.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-sm animate-fade-in-up">
-                                Đã đến lúc để Hệ Thống AI làm thay bạn!
-                            </div>
+                            <button 
+                                onClick={() => document.getElementById('register-form')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="mt-8 w-full md:w-auto px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 text-white font-black text-lg md:text-xl rounded-2xl shadow-[0_0_30px_rgba(220,38,38,0.5)] transform hover:-translate-y-1 transition-all flex items-center justify-center gap-3 animate-pulse hover:animate-none border border-red-400/50"
+                            >
+                                <span className="relative flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                                </span>
+                                GIỮ CHỖ NGAY TRƯỚC KHI HẾT VÉ <ChevronRight className="w-6 h-6" />
+                            </button>
                         </div>
                     </div>
 
@@ -260,7 +267,7 @@ export default function ZoomLandingPage() {
 
                             <div className="w-full max-w-sm aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(220,38,38,0.4)] border border-white/10 relative">
                                 <iframe
-                                    src="https://www.youtube.com/embed/I-YfmS04HKM?autoplay=1&mute=0&controls=1&loop=1&playlist=I-YfmS04HKM"
+                                    src="https://www.youtube.com/embed/EpZi_k26EYY?autoplay=1&mute=0&controls=1&loop=1&playlist=EpZi_k26EYY"
                                     title="YouTube video player"
                                     frameBorder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -276,7 +283,7 @@ export default function ZoomLandingPage() {
                     <div className="max-w-5xl mx-auto mb-24 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.2)] border border-white/10 relative group bg-black transition-transform hover:scale-[1.02] duration-500">
                         <Image src="/images/promotion/banner-zoom.jpg" alt="Làm Chủ YouTube AI 2026" width={1920} height={1080} className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-0 bg-gradient-to-t from-red-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-8">
-                            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="bg-red-600 text-white font-bold py-3 px-8 rounded-full flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl shadow-red-900/50 hover:bg-red-500">
+                            <button onClick={() => document.getElementById('register-form')?.scrollIntoView({ behavior: 'smooth' })} className="bg-red-600 text-white font-bold py-3 px-8 rounded-full flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl shadow-red-900/50 hover:bg-red-500">
                                 Giữ Chỗ Ngay <ChevronRight className="w-5 h-5" />
                             </button>
                         </div>
@@ -437,57 +444,97 @@ export default function ZoomLandingPage() {
                             <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 blur-[80px] rounded-full group-hover:bg-red-500/10 transition-colors duration-700" />
 
                             <div className="relative z-10">
-                                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                                    <Video className="w-8 h-8 text-red-500" />
-                                    Lộ Trình Đột Phá 3 Ngày
+                                <h2 className="text-2xl font-bold text-white mb-2 flex flex-col gap-2">
+                                    <div className="flex items-center gap-3">
+                                        <Video className="w-8 h-8 text-red-500" />
+                                        <span>LỘ TRÌNH 5 BUỔI:</span>
+                                    </div>
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-500">XÂY DỰNG HỆ THỐNG YOUTUBE AI 2026</span>
                                 </h2>
+                                <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                                    Tôi sẽ không dạy bạn cách quay phim. Tôi dạy bạn cách điều khiển một Hệ thống AI đa tầng để tạo ra dòng tiền bền vững.
+                                    <br /><strong className="text-amber-500 mt-2 inline-block">Thời gian: Thứ 4 ngày 17/03/2026 - Chủ nhật ngày 21/03/2026 (20:00 - 22:30 mỗi tối)</strong>
+                                </p>
 
                                 <div className="space-y-4">
                                     {/* Day 1 */}
                                     <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 border border-red-500/30 font-black text-red-500 text-xl shadow-[0_0_15px_rgba(220,38,38,0.2)]">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 border border-red-500/30 font-black text-red-500 text-xl shadow-[0_0_15px_rgba(220,38,38,0.2)]">
                                             1
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white mb-1">Cách chọn ngách Global "in tiền" USD</h3>
-                                            <p className="text-gray-400 text-sm leading-relaxed mb-3">
-                                                <strong className="text-red-400">Không cần lộ mặt</strong> - Khám phá tư duy chọn ngách thông minh để làm ít hơn, kiếm nhiều hơn nhờ hệ thống tự động hóa hoàn toàn.
-                                            </p>
-                                            <div className="inline-flex py-1 px-3 bg-red-500/10 border border-red-500/30 rounded-md text-xs font-bold text-red-400">
-                                                🎁 Quà tặng: List 50 ngách "Vàng" dành riêng cho Newbie
-                                            </div>
+                                            <h3 className="text-lg md:text-xl font-bold text-white mb-1">NỀN TẢNG & TƯ DUY ĐÚNG</h3>
+                                            <ul className="text-gray-400 text-sm leading-relaxed mb-3 list-disc pl-4 space-y-1">
+                                                <li>Thống trị Algorithm 2026: Ưu tiên nội dung AI chất lượng cao.</li>
+                                                <li>Chọn Niche ra tiền: 10 ngách có CPM cao nhất cho kênh AI.</li>
+                                                <li>Setup chuẩn SEO: Tối ưu kênh ngay từ ngày đầu bằng sức mạnh AI.</li>
+                                            </ul>
                                         </div>
                                     </div>
 
                                     {/* Day 2 */}
                                     <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 border border-orange-500/30 font-black text-orange-400 text-xl shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 border border-orange-500/30 font-black text-orange-400 text-xl shadow-[0_0_15px_rgba(249,115,22,0.2)]">
                                             2
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white mb-1">Quy trình dùng AI tạo 10 video/ngày</h3>
-                                            <p className="text-gray-400 text-sm leading-relaxed mb-3">
-                                                <strong className="text-orange-400">Demo thực tế công cụ SeenYT:</strong> Từ viết kịch bản, lồng tiếng cảm xúc đến edit hoàn chỉnh, sản xuất nội dung công nghiệp trong nháy mắt.
-                                            </p>
-                                            <div className="inline-flex py-1 px-3 bg-orange-500/10 border border-orange-500/30 rounded-md text-xs font-bold text-orange-400">
-                                                🎁 Quà tặng: Bộ Prompt AI "Thần chú" SeenYT độc quyền
-                                            </div>
+                                            <h3 className="text-lg md:text-xl font-bold text-white mb-1">CHIẾN LƯỢC NỘI DUNG & GIỮ CHÂN KHÁN GIẢ</h3>
+                                            <ul className="text-gray-400 text-sm leading-relaxed mb-3 list-disc pl-4 space-y-1">
+                                                <li>Hook AI: 20 giây đầu tiên khiến người xem "đứng hình" bằng hình ảnh mạnh mẽ.</li>
+                                                <li>Bối cảnh nhanh: Công thức "neo não" khán giả vào câu chuyện của nhân vật AI.</li>
+                                                <li>Content Pillar: Lên kế hoạch 30 video đầu tiên hoàn toàn bằng AI Brainstorm.</li>
+                                            </ul>
                                         </div>
                                     </div>
 
                                     {/* Day 3 */}
                                     <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 border border-green-500/30 font-black text-green-400 text-xl shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 border border-yellow-500/30 font-black text-yellow-400 text-xl shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                                             3
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white mb-1">Công thức biến View thành tiền</h3>
-                                            <p className="text-gray-400 text-sm leading-relaxed mb-3">
-                                                <strong className="text-green-400">Lộ trình 1.000$ đầu tiên:</strong> Tối ưu đa dạng nguồn thu nhập từ YouTube Adsense, Affiliate thương mại điện tử quốc tế đến việc nhận Booking quảng cáo.
-                                            </p>
-                                            <div className="inline-flex py-1 px-3 bg-green-500/10 border border-green-500/30 rounded-md text-xs font-bold text-green-400">
-                                                🔥 Offer: Cơ hội đồng hành 1-1 cùng đội ngũ SeenYT để về đích nhanh nhất
-                                            </div>
+                                            <h3 className="text-lg md:text-xl font-bold text-white mb-1">SẢN XUẤT 10X VỚI AI WORKFLOW</h3>
+                                            <ul className="text-gray-400 text-sm leading-relaxed mb-3 list-disc pl-4 space-y-1">
+                                                <li>Hệ thống AI: Kết hợp những AI mạnh nhất (Script - Voice - Video) để đạt hiệu quả tối ưu.</li>
+                                                <li>Human Touch: Cách xử lý để video không bị quét nội dung lặp lại, giữ trọn hồn cho tác phẩm.</li>
+                                                <li>Demo trực tiếp: Render 1 video chuyên nghiệp trong 30 phút ngay tại lớp.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    {/* Day 4 */}
+                                    <div className="flex gap-4">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 border border-green-500/30 font-black text-green-400 text-xl shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                                            4
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg md:text-xl font-bold text-white mb-1">SEO YOUTUBE 2026 & CHIẾM LĨNH TOP VIEW</h3>
+                                            <ul className="text-gray-400 text-sm leading-relaxed mb-3 list-disc pl-4 space-y-1">
+                                                <li>Siêu SEO: Dùng AI nghiên cứu từ khóa và viết Title có CTR (tỷ lệ nhấp) cực cao.</li>
+                                                <li>Thumbnail AI Viral: 7 nguyên tắc tạo ảnh bìa gây tò mò bằng AI.</li>
+                                                <li>Analytics: Đọc chỉ số để tối ưu hóa và tự động hóa hệ thống.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    {/* Day 5 */}
+                                    <div className="flex gap-4">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 border border-blue-500/30 font-black text-blue-400 text-xl shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                                            5
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg md:text-xl font-bold text-white mb-1">MONETIZATION — CỖ MÁY IN TIỀN TỰ ĐỘNG</h3>
+                                            <ul className="text-gray-400 text-sm leading-relaxed mb-3 list-disc pl-4 space-y-1">
+                                                <li>Ads & Affiliate: Biến lượt xem thành tiền mặt bền vững.</li>
+                                                <li>Scaling: Bí quyết nhân bản 10-20 kênh AI mà không tốn thêm công sức.</li>
+                                                <li>Lộ trình 1000 Subs: Chiến lược về đích nhanh nhất cho người mới.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="text-center mt-4">
+                                        <div className="inline-flex py-2 px-4 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-bold text-red-400">
+                                            🎯 KHÔNG CÒN LÀ MƠ MỘNG, ĐÂY LÀ KẾ HOẠCH TÀI CHÍNH.
                                         </div>
                                     </div>
                                 </div>
@@ -528,7 +575,7 @@ export default function ZoomLandingPage() {
                         </div>
 
                         {/* Right Column: Countdown + Form */}
-                        <div className="bg-gradient-to-br from-gray-900 to-black border border-red-500/40 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(220,38,38,0.15)] relative overflow-hidden flex flex-col justify-center">
+                        <div id="register-form" className="bg-gradient-to-br from-gray-900 to-black border border-red-500/40 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(220,38,38,0.15)] relative overflow-hidden flex flex-col justify-center scroll-mt-24">
 
                             {/* Countdown Timer */}
                             <div className="mb-8 text-center">
@@ -636,7 +683,7 @@ export default function ZoomLandingPage() {
                                 </button>
 
                                 <p className="text-center text-xs text-gray-500 mt-3 flex items-center justify-center gap-2">
-                                    <Clock className="w-4 h-4" /> Số lượng có hạn, ưu tiên 100 người đăng ký đầu tiên.
+                                    <Clock className="w-4 h-4" /> Số lượng có hạn, chỉ tặng 10 vé Miễn phí đầu tiên (Tổng cộng 50 vé).
                                 </p>
                             </form>
                         </div>
@@ -745,7 +792,7 @@ export default function ZoomLandingPage() {
                                         </li>
                                         <li className="flex items-start gap-2 text-sm text-gray-300">
                                             <CheckCircle2 className="w-4 h-4 text-green-400 mt-1 shrink-0" />
-                                            <span><strong>[VIP]</strong> Video Record trọn đời 3 buổi Zoom.</span>
+                                            <span><strong>[VIP]</strong> Video Record trọn đời 5 buổi Zoom.</span>
                                         </li>
                                         <li className="flex items-start gap-2 text-sm text-gray-300">
                                             <CheckCircle2 className="w-4 h-4 text-green-400 mt-1 shrink-0" />

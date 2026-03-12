@@ -8,6 +8,7 @@ export default function VipUpgradeLanding() {
     const { data: session } = useSession();
     const [checkoutEmail, setCheckoutEmail] = useState('');
     const [loadingCheckout, setLoadingCheckout] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState<'VIP' | 'COMBO'>('COMBO'); // Default to combined offering
 
     React.useEffect(() => {
         if (session?.user?.email && !checkoutEmail) {
@@ -21,16 +22,22 @@ export default function VipUpgradeLanding() {
             return;
         }
         setLoadingCheckout(true);
+        
+        const amount = selectedPlan === 'COMBO' ? 849000 : 499000;
+        const planCode = selectedPlan === 'COMBO' ? "ZOOM_VIP_COMBO" : "ZOOM_VIP_TICKET";
+        const roleStr = selectedPlan === 'COMBO' ? "VIP_COMBO" : "VIP_ZOOM";
+        const noteStr = selectedPlan === 'COMBO' ? "Mua Vé VIP Zoom 5 Buổi + 2 Tháng Tool AI" : "Mua Vé VIP Zoom 5 Buổi";
+
         try {
             const res = await fetch("/api/payment/create-payos-link", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: checkoutEmail,
-                    amount: 499000,
-                    plan: "ZOOM_VIP_TICKET",
-                    role: "VIP_ZOOM",
-                    note: "Mua Vé VIP Zoom 3 Ngày",
+                    amount: amount,
+                    plan: planCode,
+                    role: roleStr,
+                    note: noteStr,
                 }),
             });
             const data = await res.json();
@@ -67,9 +74,7 @@ export default function VipUpgradeLanding() {
                         <h1 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
                             Tuyệt Vời! Bạn Đã Giữ Chỗ <span className="text-red-500">Thành Công</span>.
                         </h1>
-                        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                            Nhưng chờ đã... Trước khi rời đi, hãy xem qua ưu đãi ĐỘC QUYỀN chỉ xuất hiện 1 lần duy nhất này!
-                        </p>
+                            Nhưng khoan đã... 10 suất Miễn Phí đã được đăng ký hết cách đây ít phút. Tuy nhiên, vì bạn đã tham gia điền form, chúng tôi dành tặng bạn 1 trong 40 suất còn lại với mức giá ưu đãi cực sốc!
                     </div>
 
                     <div className="bg-[#111] border border-red-500/40 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(220,38,38,0.15)] relative animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -96,7 +101,7 @@ export default function VipUpgradeLanding() {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-white mb-1">Record Buổi Học (Trọn Đời)</h3>
-                                            <p className="text-sm text-gray-400">Xem lại bất cứ lúc nào trọn vẹn 3 ngày học. <span className="text-gray-500 line-through text-xs ml-1">Trị giá 990k</span></p>
+                                            <p className="text-sm text-gray-400">Xem lại bất cứ lúc nào trọn vẹn 5 buổi học. <span className="text-gray-500 line-through text-xs ml-1">Trị giá 990k</span></p>
                                         </div>
                                     </div>
 
@@ -142,23 +147,73 @@ export default function VipUpgradeLanding() {
                                             <p className="text-sm text-gray-400">Được đội ngũ của Mr. Seen trực tiếp soi lỗi và định hướng <span className="text-red-400 font-bold">(Số lượng giới hạn)</span>.</p>
                                         </div>
                                     </div>
+                                    
+                                    {/* Bonus cho gói 849k */}
+                                    <div className="flex gap-4 items-start hover:translate-x-1 transition-transform mt-8 p-4 bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/30 rounded-2xl relative">
+                                        <div className="absolute top-0 right-0 px-2 py-0.5 bg-yellow-500 text-black text-[10px] font-black uppercase rounded-bl-lg rounded-tr-lg">Đặc quyền gọi COMBO</div>
+                                        <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-1 border border-yellow-500/40">
+                                            <Crown className="w-5 h-5 text-yellow-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-yellow-500 mb-1">+ 2 Tháng Đặc Quyền SeenYT Tool Full Tính Năng</h3>
+                                            <p className="text-sm text-gray-300">Tự động hóa kịch bản, âm thanh và hệ thống phân tích AI mạnh mẽ nhất 2026. <span className="text-gray-500 line-through text-xs ml-1">Trị giá 2tr</span></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Right Side: Checkout / Zalo CTA */}
                             <div className="p-8 md:p-12 relative z-10 flex flex-col justify-center bg-black/40">
                                 <div className="mb-8">
-                                    <div className="flex justify-between items-end mb-2">
-                                        <span className="text-gray-400 font-medium">Giá Gói VIP</span>
-                                        <div className="text-right">
-                                            <span className="text-red-500 text-sm font-bold line-through mr-2">1.500.000đ</span>
-                                            <span className="text-4xl font-black text-white">499k</span>
+                                    <h3 className="text-lg font-bold text-white mb-4 uppercase tracking-wider">Chọn gói Nâng Cấp:</h3>
+                                    
+                                    <div className="space-y-4">
+                                        {/* Option 1: 499k */}
+                                        <div 
+                                            onClick={() => setSelectedPlan('VIP')}
+                                            className={`relative cursor-pointer rounded-2xl p-4 border-2 transition-all ${selectedPlan === 'VIP' ? 'bg-red-900/20 border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.2)]' : 'bg-black/50 border-gray-800 hover:border-gray-600'}`}
+                                        >
+                                            <div className="flex justify-between items-center mb-1">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedPlan === 'VIP' ? 'border-red-500' : 'border-gray-600'}`}>
+                                                        {selectedPlan === 'VIP' && <div className="w-2 h-2 rounded-full bg-red-500" />}
+                                                    </div>
+                                                    <span className={`font-bold ${selectedPlan === 'VIP' ? 'text-white' : 'text-gray-400'}`}>Gói Cơ Bản</span>
+                                                </div>
+                                                <div className="text-right flex items-center gap-2">
+                                                    <span className="text-gray-500 text-xs font-medium line-through">1.500.000đ</span>
+                                                    <span className={`font-black text-xl ${selectedPlan === 'VIP' ? 'text-red-500' : 'text-gray-500'}`}>499k</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-gray-500 pl-6">Nhận toàn bộ Quà tặng đặc quyền VIP ở trên.</p>
+                                        </div>
+
+                                        {/* Option 2: 849k */}
+                                        <div 
+                                            onClick={() => setSelectedPlan('COMBO')}
+                                            className={`relative cursor-pointer rounded-2xl p-4 border-2 transition-all overflow-hidden ${selectedPlan === 'COMBO' ? 'bg-gradient-to-br from-yellow-900/30 to-black border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.2)]' : 'bg-black/50 border-gray-800 hover:border-gray-600'}`}
+                                        >
+                                            {selectedPlan === 'COMBO' && <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-bl-lg">KHUYÊN DÙNG</div>}
+                                            <div className="flex justify-between items-center mb-1">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedPlan === 'COMBO' ? 'border-yellow-500' : 'border-gray-600'}`}>
+                                                        {selectedPlan === 'COMBO' && <div className="w-2 h-2 rounded-full bg-yellow-500" />}
+                                                    </div>
+                                                    <span className={`font-bold ${selectedPlan === 'COMBO' ? 'text-yellow-400' : 'text-gray-400'}`}>Gói COMBO Chuyên Gia</span>
+                                                </div>
+                                                <div className="text-right flex items-center gap-2">
+                                                    <span className="text-gray-500 text-xs font-medium line-through">3.500.000đ</span>
+                                                    <span className={`font-black text-2xl ${selectedPlan === 'COMBO' ? 'text-yellow-500' : 'text-gray-500'}`}>849k</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-gray-400 pl-6"><strong className="text-yellow-500">Gói 499k + 2 Tháng xài Tool AI Pro</strong> (Trị giá 2 triệu)</p>
                                         </div>
                                     </div>
-                                    <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                                        <div className="w-[85%] h-full bg-gradient-to-r from-red-600 to-red-400 rounded-full animate-pulse" />
+
+                                    <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden mt-8">
+                                        <div className="w-[60%] h-full bg-gradient-to-r from-red-600 to-red-400 rounded-full animate-pulse" />
                                     </div>
-                                    <p className="text-[15px] text-red-600 font-black uppercase tracking-widest mt-4 text-right animate-pulse drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]">Chỉ còn 15/100 suất VIP cuối cùng</p>
+                                    <p className="text-[15px] text-red-600 font-black uppercase tracking-widest mt-4 text-right animate-pulse drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]">Chỉ còn 12/40 suất ƯU ĐÃI cuối cùng</p>
                                 </div>
 
                                 <div className="space-y-4 mb-8">
@@ -174,9 +229,9 @@ export default function VipUpgradeLanding() {
                                     <button
                                         onClick={handleCheckoutVip}
                                         disabled={loadingCheckout}
-                                        className="w-full bg-gradient-to-r from-[#FFD700] to-[#FF8C00] hover:from-[#FFC125] hover:to-[#FF7F00] text-black font-black text-lg py-5 rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.6)] hover:shadow-[0_0_60px_rgba(255,215,0,0.8)] transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-widest border border-yellow-200/50"
+                                        className={`w-full text-black font-black text-lg py-5 rounded-2xl transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-widest border ${selectedPlan === 'COMBO' ? 'bg-gradient-to-r from-[#FFD700] to-[#FF8C00] hover:from-[#FFC125] hover:to-[#FF7F00] shadow-[0_0_40px_rgba(255,215,0,0.6)] hover:shadow-[0_0_60px_rgba(255,215,0,0.8)] border-yellow-200/50' : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 text-white shadow-[0_0_40px_rgba(220,38,38,0.6)] border-red-400/50'}`}
                                     >
-                                        {loadingCheckout ? 'Đang Xử Lý...' : 'KÍCH HOẠT VIP NGAY (499K)'}
+                                        {loadingCheckout ? 'Đang Xử Lý...' : `KÍCH HOẠT NGAY (${selectedPlan === 'COMBO' ? '849K' : '499K'})`}
                                     </button>
                                 </div>
 
@@ -187,13 +242,13 @@ export default function VipUpgradeLanding() {
                                 </div>
 
                                 <div className="text-center">
-                                    <p className="text-gray-400 text-sm mb-4">Tham gia nhóm Zalo miễn phí để nhận thông báo lịch học.</p>
+                                    <p className="text-gray-400 text-sm mb-4">Liên hệ với Admin để được cho vào nhóm Zalo và nhận tài liệu đặc quyền dành cho gói VIP.</p>
                                     <Link
-                                        href="https://zalo.me/g/kqshmg192"
+                                        href="https://zalo.me/0789284078"
                                         target="_blank"
                                         className="w-full bg-[#0068FF]/10 text-[#0068FF] hover:bg-[#0068FF]/20 border border-[#0068FF]/30 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
                                     >
-                                        <Users className="w-5 h-5" /> Vào Nhóm Zalo Nhận Tài Liệu
+                                        <Users className="w-5 h-5" /> Liên Hệ Admin Vào Nhóm Zalo
                                     </Link>
                                 </div>
 

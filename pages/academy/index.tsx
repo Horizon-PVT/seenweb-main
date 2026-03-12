@@ -141,8 +141,8 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
         {/* --- ANNOUNCEMENT BAR --- */}
         <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-center py-2.5 px-4 text-sm font-bold relative z-50 shadow-[0_0_15px_rgba(220,38,38,0.5)]">
           <span className="animate-pulse mr-2">🚨</span>
-          Sắp diễn ra: 3 Ngày Master YouTube AI 2026 cho Newbie - Miễn phí 100%.{' '}
-          <button onClick={() => router.push('/academy/zoom-3-days')} className="underline underline-offset-2 hover:text-yellow-300 ml-1 transition-colors">
+          Sắp diễn ra: 5 Buổi Master YouTube AI 2026 cho Newbie - Miễn phí 100%.{' '}
+          <button onClick={() => router.push('/academy/zoom')} className="underline underline-offset-2 hover:text-yellow-300 ml-1 transition-colors">
             [Đăng ký ngay]
           </button>
         </div>
@@ -162,15 +162,19 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
                 </span>
               </div>
 
-              <h1 className="text-5xl md:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-                Học Viện SeenYT <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">
-                  Lộ Trình Triệu View
+              <h1 className="text-5xl md:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-4">
+                ĐỪNG ĐỔ MỒ HÔI ĐỂ ĐỔI LẤY... <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600">
+                  CÁT!
                 </span>
               </h1>
 
+              <p className="text-lg md:text-xl text-gray-400 leading-relaxed max-w-xl mb-4">
+                Bạn đang làm YouTube kiểu gì thế này? Thức đêm edit, đầu tư máy móc tiền triệu, vắt kiệt sức lực... nhưng kết quả vẫn là: <strong className="text-red-500">0 View – 0 Doanh thu.</strong>
+              </p>
+              
               <p className="text-lg md:text-xl text-gray-400 leading-relaxed max-w-xl">
-                Không chỉ dạy cách dùng công cụ, chúng tôi dạy bạn <strong className="text-white">tư duy chiến lược</strong> để thành công bền vững trên YouTube 2026.
+                Sự thật phũ phàng: <strong className="text-white">LÀM SAI NGÁCH THÌ CÀNG CỐ CÀNG KIỆT SỨC.</strong> Năm 2026, YouTube dành cho những người biết dùng AI để cộng lực và Tư duy để hái ra tiền.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
@@ -182,14 +186,14 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
                   <ArrowRight className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => router.push('/academy/zoom-3-days')}
+                  onClick={() => router.push('/academy/zoom')}
                   className="px-8 py-4 rounded-xl border-2 border-red-500 bg-red-500/10 text-red-500 font-bold hover:bg-red-500 hover:text-white transition-all shadow-[0_0_30px_rgba(220,38,38,0.5)] flex items-center space-x-2 animate-pulse hover:animate-none"
                 >
                   <span className="relative flex h-3 w-3 mr-1">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                   </span>
-                  Tham gia Zoom 3 ngày (Free)
+                  Tham gia Zoom 5 buổi (Free)
                 </button>
               </div>
             </div>
@@ -204,16 +208,16 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
               <div
                 className="relative bg-black border-[4px] border-gray-800 rounded-[2rem] aspect-[9/16] flex flex-col items-center justify-center overflow-hidden transform transition-all duration-500 cursor-pointer shadow-[0_0_40px_rgba(220,38,38,0.3)] group-hover:scale-[1.02]"
                 onClick={() => {
-                  setSelectedShort('vSsa6FDBRSc');
+                  setSelectedShort('EpZi_k26EYY');
                   setIsHovering(false); // Reset hover state when opening modal
                 }}
               >
                 {/* Visuals - either Image or Autoplaying Iframe based on Hover */}
                 {!isHovering ? (
-                  <div className="absolute inset-0 bg-[url('https://i.ytimg.com/vi/vSsa6FDBRSc/hqdefault.jpg')] bg-cover bg-center"></div>
+                  <div className="absolute inset-0 bg-[url('https://i.ytimg.com/vi/EpZi_k26EYY/hqdefault.jpg')] bg-cover bg-center"></div>
                 ) : (
                   <iframe
-                    src="https://www.youtube.com/embed/vSsa6FDBRSc?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=vSsa6FDBRSc&playsinline=1"
+                    src="https://www.youtube.com/embed/EpZi_k26EYY?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=EpZi_k26EYY&playsinline=1"
                     className="absolute inset-0 w-full h-full object-cover scale-[1.3] pointer-events-none"
                     title="Hover Preview"
                     frameBorder="0"
@@ -245,8 +249,8 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
         {/* --- EVENT BANNER SECTION --- */}
         <section className="py-12 px-4 bg-black relative z-10 border-b border-white/5">
           <div className="max-w-5xl mx-auto">
-            <Link href="/academy/zoom-3-days" className="block relative rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.3)] border border-red-500/30 hover:border-red-500/80 transition-all hover:shadow-[0_0_60px_rgba(220,38,38,0.5)] group">
-              <Image src="/images/promotion/banner-zoom.jpg" alt="Zoom 3 Ngày Tham Gia Miễn Phí" width={1920} height={1080} className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-[1.02]" />
+            <Link href="/academy/zoom" className="block relative rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.3)] border border-red-500/30 hover:border-red-500/80 transition-all hover:shadow-[0_0_60px_rgba(220,38,38,0.5)] group">
+              <Image src="/images/promotion/banner-zoom.jpg" alt="Zoom 5 Buổi Tham Gia Miễn Phí" width={1920} height={1080} className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-[1.02]" />
               <div className="absolute inset-0 bg-gradient-to-t from-red-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col items-center justify-end pb-8">
                 <span className="bg-red-600 text-white font-bold py-3 px-8 rounded-full flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl">
                   Đăng Ký Tham Gia Ngay <ArrowRight className="w-5 h-5" />

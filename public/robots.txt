@@ -1,47 +1,15 @@
 # *
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /api
 
-# AI Search Engines & Bots - Explicitly Allow for GEO (Generative Engine Optimization)
-User-agent: GPTBot
-Allow: /
+# *
+User-agent: *
 Disallow: /admin
-Disallow: /api
-
-User-agent: ChatGPT-User
-Allow: /
-Disallow: /admin
-Disallow: /api
-
-User-agent: ClaudeBot
-Allow: /
-Disallow: /admin
-Disallow: /api
-
-User-agent: PerplexityBot
-Allow: /
-Disallow: /admin
-Disallow: /api
-
-User-agent: Google-Extended
-Allow: /
-Disallow: /admin
-Disallow: /api
-
-User-agent: Omgilibot
-Allow: /
-Disallow: /admin
-Disallow: /api
-
-User-agent: FacebookBot
-Allow: /
-Disallow: /admin
+Disallow: /dashboard
 Disallow: /api
 
 # Host
-Host: https://seenweb-main.vercel.app
+Host: https://seenyt.net
 
 # Sitemaps
-Sitemap: https://seenweb-main.vercel.app/sitemap.xml
+Sitemap: https://seenyt.net/sitemap.xml
