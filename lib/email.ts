@@ -65,3 +65,48 @@ export const sendMasterclassWelcomeEmail = async (toEmail: string, userName?: st
         return false;
     }
 };
+
+export const sendRenewalReminderEmail = async (toEmail: string, userName: string | undefined, daysLeft: number) => {
+    const nameToUse = userName || 'bạn';
+
+    const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
+      <h2 style="color: #d32f2f; font-size: 24px; margin-bottom: 20px;">Gói dịch vụ của bạn sắp hết hạn! ⚠️</h2>
+      
+      <p>Chào ${nameToUse},</p>
+      
+      <p>Hệ thống SeenYT thông báo: Gói dịch vụ của bạn sẽ hết hạn trong <strong>${daysLeft} ngày</strong> nữa.</p>
+      
+      <p>Để không bị gián đoạn công việc và trải nghiệm các tính năng tuyệt vời, bạn hãy trực tiếp liên hệ đội ngũ SeenYT hoặc lên trang web để gia hạn ngay hôm nay nhé!</p>
+      
+      <div style="background-color: #f9f9f9; padding: 20px; border-left: 4px solid #d32f2f; margin: 25px 0;">
+        <p style="margin-top: 0;"><strong>Gia hạn ngay để tiếp tục sử dụng</strong></p>
+        <a href="https://seenyt.net/pricing" style="display: inline-block; background-color: #d32f2f; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; margin-top: 10px;">Gia hạn Gói Dịch Vụ</a>
+      </div>
+      
+      <p>Nếu bạn cần hỗ trợ thêm, đừng ngần ngại liên hệ với bên mình.</p>
+      
+      <p style="margin-top: 40px; font-size: 14px; color: #666; border-top: 1px solid #eee; padding-top: 20px;">
+        Trân trọng,<br/>
+        <strong>Đội ngũ SeenYT</strong><br/>
+        <a href="https://seenyt.net" style="color: #666; text-decoration: none;">seenyt.net</a>
+      </p>
+    </div>
+  `;
+
+    const mailOptions = {
+        from: process.env.EMAIL_FROM || '"SeenYT" <noreply@seenyt.net>',
+        to: toEmail,
+        subject: `[SeenYT] Gói dịch vụ của bạn sẽ hết hạn trong ${daysLeft} ngày nữa!`,
+        html: htmlContent,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Renewal reminder email sent successfully to ${toEmail}`);
+        return true;
+    } catch (error) {
+        console.error(`Error sending renewal email to ${toEmail}:`, error);
+        return false;
+    }
+};

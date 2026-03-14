@@ -27,12 +27,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Backup oldRole trước khi update
   const oldRole = paymentRequest.user.role;
 
-  // Update user role + membershipExpiry (ví dụ +30 ngày, anh adjust nếu cần)
+  // Phân tích paymentInfo để lấy số ngày (tuỳ chọn)
+  const paymentInfo = paymentRequest.paymentInfo ? JSON.parse(paymentRequest.paymentInfo) : {};
+  const billingCycle = (paymentInfo.billingCycle || 'MONTHLY').toString().toUpperCase();
+  const membershipDays = billingCycle === 'YEARLY' ? 365 : 30;
+
+  // Tính toán ngày hết hạn mới dựa trên ngày hết hạn cũ
+  const currentExpiry = paymentRequest.user.membershipExpiry || new Date();
+  const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+  const newExpiry = new Date(baseDate.getTime() + membershipDays * 24 * 60 * 60 * 1000);
+
+  // Update user role + membershipExpiry
   await prisma.user.update({
     where: { id: paymentRequest.user.id },
     data: {
       role: newRole,
-      membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 ngày
+      membershipExpiry: newExpiry,
     },
   });
 
