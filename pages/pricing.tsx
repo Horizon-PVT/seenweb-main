@@ -1,6 +1,8 @@
 // pages/pricing.tsx (Bản Đã Sửa)
 import Head from "next/head";
-import React from "react"; // Loại bỏ useState
+import React from "react"; 
+import { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import PricingTable from "@/components/PricingTable";
 // Loại bỏ import PaymentModal
 
@@ -43,3 +45,11 @@ export default function PricingPage() {
         </div>
     );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+    return {
+        props: {
+            ...(await serverSideTranslations(locale ?? 'vi', ['common'])),
+        },
+    };
+};

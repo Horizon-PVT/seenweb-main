@@ -138,7 +138,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
         <div className="flex items-center gap-4">
           {onBack && (
             <button onClick={onBack} className="flex items-center gap-2 text-cyan-600 hover:text-cyan-400 transition-colors">
-              <ArrowLeft size={18} /> <span className="text-xs font-bold tracking-widest uppercase">{t('hiddenChannel.return')}</span>
+              <ArrowLeft size={18} /> <span className="text-xs font-bold tracking-widest uppercase">{t('toolUI.hiddenChannel.return')}</span>
             </button>
           )}
           <div className="h-6 w-px bg-cyan-900/50"></div>
@@ -146,7 +146,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
             <div className="p-1.5 bg-cyan-950 rounded-full border border-cyan-800">
               <Anchor size={14} className="text-cyan-400" />
             </div>
-            <h1 className="text-sm font-black tracking-[0.2em] text-white">{t('hiddenChannel.title')}</h1>
+            <h1 className="text-sm font-black tracking-[0.2em] text-white">{t('toolUI.hiddenChannel.title')}</h1>
           </div>
         </div>
       </header>
@@ -157,17 +157,17 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
         {/* HERO SEARCH */}
         <div className="max-w-4xl mx-auto mb-16 text-center">
           <h2 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-100 to-cyan-800 mb-6 uppercase tracking-tighter drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-            {t('hiddenChannel.hero_title')}
+            {t('toolUI.hiddenChannel.hero_title')}
           </h2>
           <p className="text-cyan-600/60 text-lg mb-8 max-w-2xl mx-auto">
-            {t('hiddenChannel.hero_desc')}
+            {t('toolUI.hiddenChannel.hero_desc')}
           </p>
 
           <form onSubmit={handleSubmit} className="relative z-20 bg-[#0f172a]/80 border border-cyan-900 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-grow">
                 <label className="block text-left text-xs font-bold text-cyan-600 mb-2 ml-1 uppercase tracking-wider">
-                  {t('hiddenChannel.target_label')}
+                  {t('toolUI.hiddenChannel.target_label')}
                 </label>
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-700" size={20} />
@@ -183,7 +183,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
 
               <div className="md:w-48">
                 <label className="block text-left text-xs font-bold text-cyan-600 mb-2 ml-1 uppercase tracking-wider">
-                  {t('hiddenChannel.language_label')}
+                  {t('toolUI.hiddenChannel.language_label')}
                 </label>
                 <div className="relative">
                   <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-700" size={20} />
@@ -204,7 +204,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
               disabled={isLoading}
               className="w-full mt-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all disabled:opacity-50 disabled:grayscale tracking-widest flex items-center justify-center gap-2"
             >
-              {isLoading ? t('hiddenChannel.scanning') : t('hiddenChannel.scan_btn')} <Radar size={20} />
+              {isLoading ? t('toolUI.hiddenChannel.scanning') : t('toolUI.hiddenChannel.scan_btn')} <Radar size={20} />
             </button>
 
             {error && (
@@ -224,7 +224,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
             {/* SECTION 1: RISING TREASURES */}
             <div>
               <h3 className="flex items-center gap-3 text-2xl font-black text-cyan-400 mb-8 uppercase tracking-widest border-b border-cyan-900/50 pb-4">
-                <Map size={24} /> {t('hiddenChannel.risingChannels')} ({output.risingChannels.length})
+                <Map size={24} /> {t('toolUI.hiddenChannel.risingChannels')} ({output.risingChannels.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {output.risingChannels.map((channel, i) => (
@@ -246,14 +246,14 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
                       </div>
 
                       <div className="mb-4">
-                        <div className="text-[10px] font-bold text-cyan-700 uppercase mb-1">{t('hiddenChannel.growth_metric')}</div>
+                        <div className="text-[10px] font-bold text-cyan-700 uppercase mb-1">{t('toolUI.hiddenChannel.growth_metric')}</div>
                         <div className="text-emerald-400 font-bold font-mono text-sm bg-emerald-950/20 py-1 px-2 rounded inline-block border border-emerald-900/30">
                           {channel.growthMetric}
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <div className="text-[10px] font-bold text-cyan-700 uppercase">{t('hiddenChannel.core_strengths')}</div>
+                        <div className="text-[10px] font-bold text-cyan-700 uppercase">{t('toolUI.hiddenChannel.core_strengths')}</div>
                         <div className="flex flex-wrap gap-2">
                           {channel.coreStrengths.map((s, idx) => (
                             <span key={idx} className="bg-cyan-950 text-cyan-300 text-xs px-2 py-1 rounded border border-cyan-900/50">
@@ -272,7 +272,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
             {/* SECTION 2: VIRAL SIGNALS */}
             <div>
               <h3 className="flex items-center gap-3 text-2xl font-black text-rose-400 mb-8 uppercase tracking-widest border-b border-rose-900/50 pb-4">
-                <Activity size={24} /> {t('hiddenChannel.trendingVideos')} ({output.trendingVideos.length})
+                <Activity size={24} /> {t('toolUI.hiddenChannel.trendingVideos')} ({output.trendingVideos.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {output.trendingVideos.map((video, i) => (
@@ -293,7 +293,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
                         </div>
                       </div>
                       <div className="mt-3">
-                        <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">{t('hiddenChannel.viral_factor')}</div>
+                        <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">{t('toolUI.hiddenChannel.viral_factor')}</div>
                         <div className="flex flex-wrap gap-1">
                           {video.viralStructure.slice(0, 3).map((v, idx) => (
                             <span key={idx} className="text-[10px] text-gray-400 border border-gray-800 px-1.5 py-0.5 rounded">
@@ -313,7 +313,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
 
               <h3 className="flex items-center gap-3 text-2xl font-black text-emerald-400 mb-6 uppercase tracking-widest relative z-10">
-                <TrendingUp size={24} /> {t('hiddenChannel.upcomingTrends')}
+                <TrendingUp size={24} /> {t('toolUI.hiddenChannel.upcomingTrends')}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">

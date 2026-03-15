@@ -606,6 +606,17 @@
             "consistency": "ĐỒNG NHẤT NHÂN VẬT",
             "connect": "KẾT NỐI HỢP THÀNH"
         },
+        "scriptwriter_tool": {
+            "login_to_save": "Vui lòng đăng nhập để lưu kịch bản!",
+            "project_name_prompt": "Nhập tên kịch bản:",
+            "saved_success": "✅ Đã lưu kịch bản!",
+            "save_failed": "❌ Lưu thất bại:",
+            "enter_idea": "Vui lòng nhập ý tưởng kịch bản.",
+            "create_new_confirm": "Tạo kịch bản mới? Các thay đổi chưa lưu sẽ tự động bị mất.",
+            "no_projects": "Bạn chưa có kịch bản nào được lưu.",
+            "save_hint": "Hãy bấm Lưu để lưu lại kịch bản.",
+            "delete_project_confirm": "Bạn có chắc chắn muốn xóa kịch bản này?"
+        },
         "seo": {
             "title": "TỐI ƯU SEO & TỪ KHÓA",
             "videoTitle": "TIÊU ĐỀ VIDEO",
