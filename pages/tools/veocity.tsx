@@ -93,7 +93,8 @@ export default function VeocityPage() {
             const result: any = await response.json();
             if (!response.ok) {
                 const errStr = String(result.error || '').toUpperCase();
-                if (errStr.includes('PLAN_LOCKED') || errMsg.includes('REQUIRE_UPGRADE') || errStr.includes('FREE_QUOTA_EXCEEDED') || errStr.includes('DAILY_QUOTA_EXCEEDED')) {
+                const isPlanError = errStr.includes('PLAN_LOCKED') || errStr.includes('REQUIRE_UPGRADE') || errStr.includes('FREE_QUOTA_EXCEEDED') || errStr.includes('DAILY_QUOTA_EXCEEDED');
+                if (isPlanError) {
                     setShowUpgrade(true);
                     setIsLoading(false);
                     return;

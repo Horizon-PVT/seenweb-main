@@ -165,7 +165,7 @@ export default function KeywordResearchPage() {
             if (!res.ok) {
                 const errRaw = data?.error || '';
                 const errStr = String(errRaw).toUpperCase();
-                const isPlanError = errStr.includes('PLAN_LOCKED') || errMsg.includes('REQUIRE_UPGRADE') || errStr.includes('FREE_QUOTA_EXCEEDED') || errStr.includes('DAILY_QUOTA_EXCEEDED');
+                const isPlanError = errStr.includes('PLAN_LOCKED') || errStr.includes('REQUIRE_UPGRADE') || errStr.includes('FREE_QUOTA_EXCEEDED') || errStr.includes('DAILY_QUOTA_EXCEEDED');
                 if (res.status === 403 && isPlanError) {
                     setShowUpgrade(true);
                     setIsSearching(false);
