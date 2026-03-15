@@ -13,12 +13,21 @@ const EVENT_NAME = 'TOOL_USAGE';
 export async function checkUserQuota(userId: string, toolId?: string): Promise<void> {
     const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { role: true },
+        select: { role: true, membershipExpiry: true },
     });
 
     if (!user) throw new Error('User not found');
 
-    const role = (user.role || 'FREE') as Role;
+    let role = (user.role || 'FREE') as Role;
+    
+    // ENFORCE MEMBERSHIP EXPIRATION
+    const now = new Date();
+    const isAdmin = role === 'ADMIN';
+    if (!isAdmin && user.membershipExpiry && new Date(user.membershipExpiry) < now) {
+        // Expired! Force Role back to FREE for quota purposes
+        role = 'FREE';
+    }
+
     const limit = ROLE_LIMITS[role];
 
     // 0. ADMIN Bypass

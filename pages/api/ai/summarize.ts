@@ -1,5 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -11,7 +14,18 @@ export default async function handler(
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // 🔐 Authentication check
+    const session = await getServerSession(req, res, authOptions);
+    if (!session || !session.user) {
+        return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
+    }
+
+    const userId = (session.user as any)?.id;
+
     try {
+        // Enforce quota limits for summary tool
+        await checkUserQuota(userId, 'script-writer'); // Use script-writer or similar tool limit
+
         const { transcript } = req.body;
 
         if (!transcript || transcript.trim().length === 0) {
@@ -45,6 +59,9 @@ TÓM TẮT:`;
         const result = await model.generateContent(prompt);
         const summary = result.response.text();
 
+        // Increment usage after success
+        await incrementUserUsage(userId, 'script-writer');
+
         return res.status(200).json({
             success: true,
             summary: summary.trim(),
@@ -54,6 +71,11 @@ TÓM TẮT:`;
 
     } catch (error: any) {
         console.error('[API Summary Error]:', error);
+        
+        if (error.message === 'PLAN_LOCKED' || error.message === 'FREE_QUOTA_EXCEEDED' || error.message === 'DAILY_QUOTA_EXCEEDED') {
+             return res.status(403).json({ error: 'REQUIRE_UPGRADE', message: 'Vui lòng nâng cấp gói dịch vụ để dùng tiếp!' });
+        }
+        
         return res.status(500).json({
             error: 'Failed to generate summary',
             details: error.message

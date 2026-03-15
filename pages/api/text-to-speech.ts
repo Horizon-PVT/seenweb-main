@@ -1,4 +1,3 @@
-// File: pages/api/text-to-speech.ts (Multi-provider TTS: OpenAI, Edge TTS, FPT.AI)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import { getServerSession } from "next-auth/next";
@@ -10,6 +9,7 @@ import ffmpeg from '@/lib/ffmpeg';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 interface TtsResponse {
   audioBase64: string;
@@ -210,9 +210,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
   const session = await getServerSession(req, res, authOptions);
+  if (!session || !session.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userId = (session.user as any)?.id;
 
   try {
     const { mode, scriptText, srtSegments, selectedVoiceApiName, voiceProvider = 'openai', speed = 1.0 } = req.body;
+
+    // Check quota for TTS to block FREE users if they don't have basic access
+    try {
+        await checkUserQuota(userId, 'dubbing'); // Using dubbing as the umbrella tool name for TTS/Dubbing
+    } catch (error: any) {
+        if (error.message === 'PLAN_LOCKED' || error.message === 'FREE_QUOTA_EXCEEDED' || error.message === 'DAILY_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'REQUIRE_UPGRADE' } as any);
+        }
+        return res.status(403).json({ error: error.message });
+    }
 
     // Hidden TTS character limit (500k) - auto-switch to Edge TTS when exceeded
     const TTS_OPENAI_CHAR_LIMIT = 500000;

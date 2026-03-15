@@ -5,6 +5,7 @@ import { google } from 'googleapis';
 import { prisma } from "@/lib/prisma";
 import { getCached, setCache, CACHE_PREFIXES } from '@/lib/cache';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 // Initialize AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -17,6 +18,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await getServerSession(req, res, authOptions);
     if (!session || !session.user?.email) {
         return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const userId = (session.user as any)?.id;
+
+    try {
+        await checkUserQuota(userId, 'scriptwriter'); // 1 free use, then upgrade
+    } catch (error: any) {
+        if (error.message === 'PLAN_LOCKED' || error.message === 'FREE_QUOTA_EXCEEDED' || error.message === 'DAILY_QUOTA_EXCEEDED') {
+            return res.status(403).json({ error: 'REQUIRE_UPGRADE', message: 'Vui lòng nâng cấp gói để tiếp tục nhận ý tưởng mỗi ngày!' });
+        }
+        return res.status(403).json({ error: error.message });
     }
 
     const { channelId } = req.query;
@@ -189,6 +201,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const ideas = JSON.parse(cleanedJson);
+
+        // Increment usage
+        await incrementUserUsage(userId, 'scriptwriter');
 
         // 6. Cache & Return
         // Cache for 24 hours (86400s)

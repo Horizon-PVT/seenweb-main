@@ -42,14 +42,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         for (const user of expiringUsers) {
             if (user.membershipExpiry) {
                 // Determine exactly how many days are left
-                // For instance if the expiry is tomorrow, we get 1.
-                // differenceInDays rounds down to the integer difference
                 const baseDiff = differenceInDays(startOfDay(new Date(user.membershipExpiry)), startOfDay(today));
-                // If it's expiring today later, differenceInDays of startOfDay is 0
                 const daysLeft = baseDiff >= 0 ? baseDiff : 0;
                 
-                // Only send if <= 5 days (just double check)
-                if (daysLeft <= 5) {
+                // Only send on exact milestones: 5 days, 1 day, and 0 days (today)
+                if (daysLeft === 5 || daysLeft === 1 || daysLeft === 0) {
                     const sent = await sendRenewalReminderEmail(user.email, user.name || undefined, daysLeft);
                     
                     results.push({

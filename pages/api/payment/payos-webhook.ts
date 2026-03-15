@@ -3,6 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
+import crypto from 'crypto';
 import { USAGE_LIMITS } from '@/lib/roles';
 import { sendMasterclassWelcomeEmail } from '@/lib/email';
 
@@ -31,7 +32,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
         }
 
-        const { code, desc, data } = webhookData;
+        const { code, desc, data, signature } = webhookData;
+
+        // Verify PayOS Signature to prevent spoofing
+        if (data && signature) {
+            const sortedKeys = Object.keys(data).sort();
+            const signData = sortedKeys.map(key => `${key}=${data[key]}`).join('&');
+            const calculatedSignature = crypto.createHmac('sha256', process.env.PAYOS_CHECKSUM_KEY!).update(signData).digest('hex');
+            
+            if (calculatedSignature !== signature) {
+                console.error('🚨 CRITICAL: PayOS Webhook invalid signature. Possible spoofing attack!');
+                return res.status(200).json({ success: false, message: 'Invalid signature' });
+            }
+        }
 
         // Log incoming webhook
         console.log('PayOS Webhook received:', JSON.stringify(webhookData));

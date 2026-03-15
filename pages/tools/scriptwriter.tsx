@@ -196,7 +196,7 @@ export default function ScriptwriterPage() {
                     // Not JSON
                 }
 
-                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                if (response.status === 403 || (errorJson && (errorJson.code === 'REQUIRE_UPGRADE' || errorJson.upgradeRequired === true || errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
                     setShowUpgrade(true);
                     return; // Stop here
                 }
@@ -245,7 +245,7 @@ export default function ScriptwriterPage() {
                     // Not JSON
                 }
 
-                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                if (response.status === 403 || (errorJson && (errorJson.code === 'REQUIRE_UPGRADE' || errorJson.upgradeRequired === true || errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
                     setShowUpgrade(true);
                     return; // Stop here
                 }
@@ -289,7 +289,7 @@ export default function ScriptwriterPage() {
                     // Not JSON
                 }
 
-                if (response.status === 403 || (errorJson && (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
+                if (response.status === 403 || (errorJson && (errorJson.code === 'REQUIRE_UPGRADE' || errorJson.upgradeRequired === true || errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED'))) {
                     setShowUpgrade(true);
                     return; // Stop here
                 }

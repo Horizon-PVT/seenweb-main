@@ -1,8 +1,8 @@
-// File: pages/api/chat.ts (API ROUTE – GEMINI 2.5 FLASH)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
+import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -72,16 +72,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // 🔐 Authentication check
   const session = await getServerSession(req, res, authOptions);
-  if (!session) {
+  if (!session || !session.user) {
     return res.status(401).json({ error: 'Bạn cần đăng nhập để sử dụng tính năng này.' });
   }
 
-  const { message } = req.body;
-  if (!message) {
-    return res.status(400).json({ error: 'Cần có tin nhắn' });
-  }
+  const userId = (session.user as any)?.id;
 
   try {
+    // 🛡️ Quota Check for chatbot (allows us to upsell users who ask too many questions on free)
+    await checkUserQuota(userId, 'script-chat'); // reuse an allowed tool name for quota
+
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'Cần có tin nhắn' });
+    }
+
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       systemInstruction
@@ -90,9 +95,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await model.generateContent(message);
     const text = result.response.text();
 
+    await incrementUserUsage(userId, 'script-chat');
+
     res.status(200).json({ text });
   } catch (error: any) {
     console.error('Lỗi Gemini Chat:', error);
+    
+    // Check for quota exceptions to enforce upsells effectively
+    if (error.message === 'PLAN_LOCKED' || error.message === 'FREE_QUOTA_EXCEEDED' || error.message === 'DAILY_QUOTA_EXCEEDED') {
+      return res.status(403).json({ error: 'REQUIRE_UPGRADE', text: 'Bạn đã hết lượt trò chuyện miễn phí. Vui lòng nâng cấp gói để tiếp tục tư vấn nhé!' });
+    }
+
     res.status(500).json({ error: 'Assistant đang bận, thử lại sau nhé!' });
   }
 }

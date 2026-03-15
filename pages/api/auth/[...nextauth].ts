@@ -159,15 +159,26 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (dbUser) {
+            // Check if membership is expired (and not ADMIN)
+            let effectiveRole = dbUser.role;
+            const now = new Date();
+            const isAdmin = dbUser.role === 'ADMIN';
+
+            if (!isAdmin && dbUser.membershipExpiry && new Date(dbUser.membershipExpiry) < now) {
+                // EXPIRED! Demote to FREE in this session.
+                effectiveRole = 'FREE';
+            }
+
             // Log role change if needed, or just current role
-            if (token.role !== dbUser.role) {
-              console.log(`[NextAuth] Role refreshed for ${token.email}: ${token.role} -> ${dbUser.role}`);
+            if (token.role !== effectiveRole) {
+              console.log(`[NextAuth] Role refreshed for ${token.email}: ${token.role} -> ${effectiveRole}`);
             }
 
             token.id = dbUser.id;
-            token.role = dbUser.role;
+            token.role = effectiveRole;
             token.membershipExpiry = dbUser.membershipExpiry;
-            token.maxDailyUsage = dbUser.maxDailyUsage;
+            // Also clamp usage if expired
+            token.maxDailyUsage = effectiveRole === 'FREE' ? 3 : dbUser.maxDailyUsage;
             token.hasMasterclass = dbUser.hasMasterclass;
           }
         } catch (e) {

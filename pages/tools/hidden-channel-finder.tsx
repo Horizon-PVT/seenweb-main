@@ -99,7 +99,7 @@ export default function HiddenChannelFinderPage() {
                 const errStr = String(errRaw).toUpperCase();
 
                 // ONLY show upgrade for SPECIFIC plan errors, NOT system errors
-                const isPlanError = errStr.includes('PLAN_LOCKED') || errStr.includes('FREE_QUOTA_EXCEEDED') || errStr.includes('DAILY_QUOTA_EXCEEDED');
+                const isPlanError = errStr.includes('PLAN_LOCKED') || errMsg.includes('REQUIRE_UPGRADE') || errStr.includes('FREE_QUOTA_EXCEEDED') || errStr.includes('DAILY_QUOTA_EXCEEDED');
                 if (res.status === 403 && isPlanError) {
                     setShowUpgrade(true);
                     setIsLoading(false);

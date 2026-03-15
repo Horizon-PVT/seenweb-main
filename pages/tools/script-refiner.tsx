@@ -183,7 +183,7 @@ export default function ScriptRefinerPage() {
                 try {
                     const errorJson = JSON.parse(editedScriptText);
                     errorMessage = errorJson.error || errorMessage;
-                    if (response.status === 403 || (errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED')) {
+                    if (response.status === 403 || (errorJson.code === 'REQUIRE_UPGRADE' || errorJson.upgradeRequired === true || errorJson.error === 'PLAN_LOCKED' || errorJson.error === 'FREE_QUOTA_EXCEEDED' || errorJson.error === 'DAILY_QUOTA_EXCEEDED')) {
                         setShowUpgrade(true);
                         return;
                     }

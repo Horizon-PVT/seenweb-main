@@ -39,7 +39,7 @@ const PricingCard = ({
   isVip?: boolean;
   isFree?: boolean;
   isYearly: boolean;
-  onUpgrade: (plan: string, amount: number, role: string, yearly: boolean) => void;
+  onUpgrade: (plan: string, amount: number, role: string, yearly: boolean, promoCode?: string) => void;
   t: any;
 }) => {
   const [promoCode, setPromoCode] = useState('');
@@ -82,21 +82,27 @@ const PricingCard = ({
     const amount = promoApplied ? promoApplied.finalAmount : baseAmount;
     const role = planToRole[plan] || "BASIC";
 
-    onUpgrade(plan, amount, role, isYearly);
+    onUpgrade(plan, amount, role, isYearly, promoApplied?.code);
   };
 
   // Logic hiển thị giá theo phong cách VidIQ
-  // Nếu chọn năm: Hiển thị giá chia đều cho 12 tháng
-  const displayPrice = isYearly ? Math.round(priceYearly / 12) : priceMonthly;
+  const currentBasePrice = promoApplied ? promoApplied.finalAmount : (isYearly ? priceYearly : priceMonthly);
+  const displayPrice = isYearly ? Math.round(currentBasePrice / 12) : currentBasePrice;
+  
   const billedNote = isYearly
-    ? `${t('pricing.billedYearly', 'Thanh toán')} ${(promoApplied ? promoApplied.finalAmount : priceYearly).toLocaleString('vi-VN')} đ/${t('pricing.year', 'năm')}`
+    ? `${t('pricing.billedYearly', 'Thanh toán')} ${(currentBasePrice).toLocaleString('vi-VN')} đ/${t('pricing.year', 'năm')}`
     : t('pricing.billedMonthly', 'Thanh toán hàng tháng');
+
+  const activeColor = promoApplied ? "#22c55e" : color; // Green if promo applied
 
   return (
     <div
-      className="relative rounded-2xl bg-black/90 border border-gray-800 p-6 flex flex-col text-center transition-all hover:scale-105 shadow-2xl group"
-      style={{ boxShadow: glow }}
+      className={`relative rounded-2xl bg-black/90 border ${promoApplied ? 'border-[#22c55e] border-2 transiton-all' : 'border-gray-800'} p-6 flex flex-col text-center transition-all hover:scale-105 shadow-2xl group`}
+      style={{ boxShadow: promoApplied ? "0 0 40px rgba(34, 197, 94, 0.5)" : glow }}
     >
+      {promoApplied && (
+         <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-transparent via-[#22c55e] to-transparent animate-pulse" />
+      )}
       {isFeatured && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-600 text-black font-black text-sm px-6 py-2 rounded-full shadow-xl z-10 whitespace-nowrap">
           {t('pricing.mostPopular', 'PHỔ BIẾN NHẤT')}
@@ -106,12 +112,16 @@ const PricingCard = ({
 
       <div className="mb-6">
         <div className="flex items-baseline justify-center gap-1">
-          {isYearly && (
+          {promoApplied ? (
+            <span className="text-gray-400 line-through text-2xl font-bold mr-2 decoration-gray-500 decoration-2 opacity-100">
+              {isYearly ? Math.round(priceYearly / 12 / 1000) + 'k' : (priceMonthly / 1000) + 'k'}
+            </span>
+          ) : isYearly && (
             <span className="text-gray-400 line-through text-2xl font-bold mr-2 decoration-gray-500 decoration-2 opacity-100">
               {priceMonthly >= 1000 ? (priceMonthly / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + 'k' : priceMonthly.toLocaleString('vi-VN')}
             </span>
           )}
-          <h2 className="text-5xl font-light tracking-tighter" style={{ color }}>
+          <h2 className={`text-5xl font-black tracking-tighter ${promoApplied ? 'animate-bounce' : ''}`} style={{ color: activeColor }}>
             {displayPrice >= 1000 ? (displayPrice / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + 'k' : displayPrice.toLocaleString('vi-VN') + ' đ'}
           </h2>
           <span className="text-gray-400 font-normal text-lg">/{t('pricing.monthly')}</span>
@@ -130,8 +140,16 @@ const PricingCard = ({
         )}
 
         {promoApplied && (
-          <div className="mt-2 text-sm text-yellow-500 font-bold animate-pulse">
-            🎉 {t('pricing.codeApplied')} {promoApplied.code}: {t('pricing.discountSaved')} {(promoApplied.finalAmount).toLocaleString('vi-VN')} đ
+          <div className="mt-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg animate-in zoom-in">
+            <div className="text-sm text-green-400 font-black tracking-wider uppercase">
+              🎉 GIẢM GIÁ THÀNH CÔNG
+            </div>
+            <div className="text-xs text-green-300 mt-1">
+              Đã xác nhận mã <span className="text-white bg-green-600 px-1 rounded">{promoApplied.code}</span>
+            </div>
+            <div className="text-[10px] text-green-200 mt-1 uppercase font-bold">
+               Cơ hội chốt giá cuối tiết kiệm nhất.
+            </div>
           </div>
         )}
       </div>
@@ -153,18 +171,18 @@ const PricingCard = ({
               placeholder={t('pricing.promoPlaceholder', 'Mã giảm giá...')}
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-              className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
+              className={`flex-1 px-3 py-2 bg-gray-800 border ${promoApplied ? 'border-green-500 ring-1 ring-green-500' : 'border-gray-600'} rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]`}
+              disabled={!!promoApplied}
             />
             <button
               onClick={handleApplyPromo}
-              disabled={applyingPromo || !promoCode.trim()}
-              className="px-4 py-2 bg-[#CDAD5A] text-black font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
+              disabled={applyingPromo || !promoCode.trim() || !!promoApplied}
+              className={`px-4 py-2 ${promoApplied ? 'bg-green-600 text-white cursor-not-allowed' : 'bg-[#CDAD5A] text-black hover:opacity-90'} font-bold rounded-lg transition-all disabled:opacity-50 text-sm shadow-md flex gap-2 items-center`}
             >
-              {applyingPromo ? '...' : t('pricing.apply')}
+              {applyingPromo ? '...' : promoApplied ? '✓' : t('pricing.apply')}
             </button>
           </div>
-          {promoError && <p className="text-red-400 text-xs text-left">{promoError}</p>}
-          {promoApplied && <p className="text-green-400 text-xs text-left">✓ {t('pricing.codeApplied')} "{promoApplied.code}" {t('pricing.applied')}!</p>}
+          {promoError && <p className="text-red-400 text-xs text-left animate-shake">{promoError}</p>}
         </div>
       )}
 
@@ -191,6 +209,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
   const [selectedRole, setSelectedRole] = useState("");
   const [isSelectedYearly, setIsSelectedYearly] = useState(false);
   const [checkoutYearly, setCheckoutYearly] = useState(false);
+  const [selectedPromo, setSelectedPromo] = useState<string | null>(null);
 
   const loggedInEmail = session?.user?.email || userEmail || "";
   const [customerEmail, setCustomerEmail] = useState(loggedInEmail);
@@ -213,12 +232,13 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
 
   const currentCheckoutPrice = selectedAmount > 0 ? selectedAmount : getPlanPrice(selectedPlan === "STARTER" || selectedPlan === "BASIC" ? "BASIC" : "PROFESSIONAL", checkoutYearly);
 
-  const handleUpgrade = (plan: string, amount: number, role: string, yearly: boolean) => {
+  const handleUpgrade = (plan: string, amount: number, role: string, yearly: boolean, promoCode?: string) => {
     setSelectedPlan(plan);
     setSelectedAmount(amount);
     setSelectedRole(role);
     setIsSelectedYearly(yearly);
     setCheckoutYearly(yearly);
+    setSelectedPromo(promoCode || null);
     setCustomerEmail(loggedInEmail || customerEmail);
     setShowQR(true);
   };
@@ -316,7 +336,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             color="#CDAD5A"
             glow="0 0 30px rgba(205,173,90,0.3)"
             isYearly={isYearly}
-            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("STARTER", amount, "BASIC", yearly)}
+            onUpgrade={(plan, amount, role, yearly, promoCode) => handleUpgrade("STARTER", amount, "BASIC", yearly, promoCode)}
             t={t}
           />
 
@@ -345,7 +365,7 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
             isVip
             isFeatured
             isYearly={isYearly}
-            onUpgrade={(plan, amount, role, yearly) => handleUpgrade("PRO", amount, "PRO", yearly)}
+            onUpgrade={(plan, amount, role, yearly, promoCode) => handleUpgrade("PRO", amount, "PRO", yearly, promoCode)}
             t={t}
           />
         </div>
@@ -460,10 +480,16 @@ export default function PricingTable({ userEmail }: PricingTableProps) {
                 <div className="mt-auto border-t border-gray-800 pt-6">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-white font-bold text-lg">{selectedPlan === "STARTER" || selectedPlan === "BASIC" ? "Basic Plan" : "Professional Plan"}</span>
-                    <span className="text-white font-bold text-lg">{currentCheckoutPrice.toLocaleString('vi-VN')} đ</span>
+                    <span className="text-[#CDAD5A] font-bold text-lg">{currentCheckoutPrice.toLocaleString('vi-VN')} đ</span>
                   </div>
+                  {selectedPromo && (
+                    <div className="text-green-400 text-[11px] font-bold mb-3 border border-green-500/20 bg-green-500/10 p-2 rounded flex items-center justify-between">
+                      <span className="flex items-center gap-1">✓ VOUCHER KÍCH HOẠT: </span>
+                      <span className="bg-green-600 text-white px-2 rounded font-black tracking-widest">{selectedPromo}</span>
+                    </div>
+                  )}
 
-                  <p className="text-xs text-gray-500 mb-6">
+                  <p className="text-xs text-gray-500 mb-6 font-medium">
                     {checkoutYearly
                       ? `Thanh toán ${currentCheckoutPrice.toLocaleString('vi-VN')} đ mỗi năm. Hủy bất cứ lúc nào.`
                       : `Thanh toán ${currentCheckoutPrice.toLocaleString('vi-VN')} đ mỗi tháng.`}

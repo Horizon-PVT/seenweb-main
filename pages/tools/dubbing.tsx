@@ -47,7 +47,7 @@ export default function DubbingTool() {
         } catch (e: any) {
             console.error(e);
             const errMsg = String(e.message || '');
-            if (errMsg.includes('PLAN_LOCKED') || errMsg.includes('FREE_QUOTA_EXCEEDED') || errMsg.includes('DAILY_QUOTA_EXCEEDED') || errMsg.includes('upgradeRequired')) {
+            if (errMsg.includes('PLAN_LOCKED') || errMsg.includes('REQUIRE_UPGRADE') || errMsg.includes('FREE_QUOTA_EXCEEDED') || errMsg.includes('DAILY_QUOTA_EXCEEDED') || errMsg.includes('upgradeRequired')) {
                 setShowUpgrade(true);
             } else {
                 addLog(`❌ LOG LỖI KỸ THUẬT: ${e.message}`);
@@ -96,7 +96,7 @@ export default function DubbingTool() {
 
         } catch (e: any) {
             const errMsg = String(e.message || '');
-            if (errMsg.includes('PLAN_LOCKED') || errMsg.includes('FREE_QUOTA_EXCEEDED') || errMsg.includes('DAILY_QUOTA_EXCEEDED') || errMsg.includes('upgradeRequired')) {
+            if (errMsg.includes('PLAN_LOCKED') || errMsg.includes('REQUIRE_UPGRADE') || errMsg.includes('FREE_QUOTA_EXCEEDED') || errMsg.includes('DAILY_QUOTA_EXCEEDED') || errMsg.includes('upgradeRequired')) {
                 setShowUpgrade(true);
             } else {
                 addLog(`Lỗi: ${e.message}`);
