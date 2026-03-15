@@ -83,7 +83,7 @@ async function runTest() {
         // Create Valid Signature
         const sortedKeys = Object.keys(webhookDataObj).sort();
         const signData = sortedKeys.map(key => `${key}=${(webhookDataObj as any)[key]}`).join('&');
-        const signature = crypto.createHmac('sha256', PAYOS_CHECKSUM_KEY).update(signData).digest('hex');
+        const signature = crypto.createHmac('sha256', PAYOS_CHECKSUM_KEY as string).update(signData).digest('hex');
 
         const webhookPayload = {
             code: "00", // Payment success
