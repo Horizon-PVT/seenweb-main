@@ -282,39 +282,34 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
   };
 
   return (
-    <div className="h-full bg-[#050505] text-[#CDAD5A] font-sans selection:bg-[#CDAD5A] selection:text-black flex flex-col overflow-hidden">
-      {/* <Head> <title>GOLD MINER | NICHE INTELLIGENCE</title> </Head> */}
+    <div className="h-full bg-[#0A0A0B] text-slate-200 font-sans selection:bg-[#CDAD5A]/30 flex flex-col overflow-hidden relative">
 
       {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#0a0a0a]/90 backdrop-blur border-b border-[#CDAD5A]/20 flex items-center justify-between px-6 z-50 shrink-0 absolute w-full">
-        <div className="flex items-center gap-4">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md h-16 flex items-center justify-between px-6">
+        <div className="flex items-center gap-3">
           {onBack && (
-            <button onClick={onBack} className="flex items-center gap-2 text-[#CDAD5A]/60 hover:text-[#CDAD5A] transition-colors">
-              <ArrowLeft size={18} /> <span className="text-xs font-bold tracking-widest uppercase">HQ_RETURN</span>
+            <button onClick={onBack} className="text-xs font-medium text-slate-400 hover:text-white transition-colors border-r border-white/10 pr-6 mr-2 flex items-center gap-2">
+              <ArrowLeft size={16} /> <span className="hidden sm:inline">HQ RETURN</span>
             </button>
           )}
-          <div className="h-6 w-px bg-[#CDAD5A]/20"></div>
-          <div className="flex items-center gap-2">
-            <div className="p-1 bg-[#CDAD5A]/10 rounded border border-[#CDAD5A]/30">
-              <Compass size={16} />
-            </div>
-            <h1 className="text-sm font-black tracking-[0.2em] text-white">NICHE_MINER_PRO</h1>
+          <div className="relative">
+            <Compass className="text-[#CDAD5A] animate-pulse" size={24} />
+            <div className="absolute -inset-1 bg-[#CDAD5A]/20 blur-sm rounded-full"></div>
           </div>
+          <span className="text-xl font-bold tracking-tighter text-white hidden sm:block">NICHE<span className="text-[#CDAD5A]">_MINER_PRO</span></span>
         </div>
 
         {/* Market Toggle */}
-        <div className="flex bg-black/60 rounded border border-[#CDAD5A]/20 p-1">
+        <div className="flex items-center gap-2 p-1 bg-white/5 border border-white/10 rounded-lg">
           {MARKET_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setMarket(opt.value)}
-              className={`
-                                flex items-center gap-2 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all
-                                ${market === opt.value
-                  ? 'bg-[#CDAD5A] text-black shadow-[0_0_10px_rgba(205,173,90,0.4)]'
-                  : 'text-gray-500 hover:text-[#CDAD5A]'
-                }
-                            `}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all
+                  ${market === opt.value
+                  ? 'bg-[#CDAD5A] text-[#0A0A0B] shadow-[0_0_10px_rgba(205,173,90,0.4)]'
+                  : 'text-slate-400 hover:text-white'
+                }`}
             >
               <span className="text-base leading-none">{opt.flag}</span>
               <span className="hidden sm:inline">{opt.label}</span>
@@ -324,37 +319,41 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
       </header>
 
       {/* MAIN */}
-      <main className="pt-24 px-6 pb-20 max-w-7xl mx-auto w-full overflow-y-auto h-full">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter uppercase">
-            <span className="text-[#CDAD5A]">DIGITAL GOLD</span> MINE
-          </h2>
-          <p className="text-gray-500 text-sm max-w-xl mx-auto font-mono">
+      <main className="pt-32 px-6 pb-20 max-w-7xl mx-auto w-full overflow-y-auto h-full relative z-10 scrollbar-thin scrollbar-thumb-white/10 flex flex-col items-center">
+        <div className="text-center mb-12 w-full">
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+          `}} />
+          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-black mb-6 uppercase tracking-tight" style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #d97706 50%, #fbbf24 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'shimmer 3s infinite linear' }}>
+            DIGITAL GOLD MINE
+          </h1>
+          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light tracking-wide">
             {isVN
-              ? 'Hệ thống khai thác dữ liệu thị trường ngách tầng sâu. Tìm kiếm cơ hội CPM cao.'
-              : 'Deep layer niche market data mining system. Discover high CPM opportunities.'}
+              ? 'Hệ thống khai thác dữ liệu thị trường ngách tầng sâu.'
+              : 'Deep layer niche market data mining system.'} <br />
+            <span className="text-[#00F5FF]/80">{isVN ? 'Tìm kiếm cơ hội CPM cao từ dữ liệu thời gian thực.' : 'Discover high CPM opportunities in real-time.'}</span>
           </p>
         </div>
 
         {/* SEARCH INPUT */}
-        <div className="max-w-2xl mx-auto mb-16 relative z-10">
+        <div className="w-full max-w-3xl relative mb-20 group z-20">
           <form onSubmit={handleSubmit} className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#CDAD5A] to-[#008080] rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
-            <div className="relative bg-[#0a0a0a] border border-[#CDAD5A]/30 rounded-lg p-1.5 flex shadow-2xl">
-              <div className="pl-4 flex items-center justify-center text-[#CDAD5A]/50">
-                <Search size={20} />
+            <div className="absolute -inset-1 bg-[#CDAD5A]/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative bg-[#121214] border border-white/10 rounded-xl p-2 flex items-center gap-2 shadow-2xl" style={{ background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(12px)' }}>
+              <div className="pl-4 text-[#CDAD5A] animate-pulse">
+                <Search size={22} />
               </div>
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder={isVN ? "Nhập chủ đề lớn (VD: Tài chính, AI, Sức khỏe...)" : "Enter macro niche (e.g., Finance, AI, Health...)"}
-                className="flex-grow bg-transparent border-none outline-none text-white px-4 py-3 font-medium placeholder-gray-600"
+                className="flex-grow bg-transparent border-none outline-none text-white focus:ring-0 placeholder:text-slate-600 text-lg font-medium py-4 px-2"
               />
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-[#CDAD5A] hover:bg-[#E5C565] text-black font-black uppercase text-xs tracking-widest px-8 py-3 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#CDAD5A] hover:bg-[#B6964A] text-[#0A0A0B] font-black uppercase text-xs tracking-widest px-8 py-4 rounded-lg flex items-center gap-2 transition-all active:scale-95 hover:shadow-[0_0_15px_rgba(205,173,90,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'MINING...' : (isVN ? 'KHAI THÁC' : 'MINE DATA')}
               </button>
@@ -377,27 +376,64 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
           </div>
         )}
 
-        {/* Empty State Decor */}
+        {/* Empty State Decor - Skeletons */}
         {!isLoading && !output && (
-          <div className="flex flex-col items-center justify-center opacity-20 py-20 pointer-events-none">
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="w-20 h-32 border border-[#CDAD5A] rounded"></div>
-              <div className="w-20 h-32 border border-[#CDAD5A] rounded translate-y-4"></div>
-              <div className="w-20 h-32 border border-[#CDAD5A] rounded"></div>
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative max-w-5xl mx-auto mt-10">
+            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+              <div className="text-center">
+                <div className="text-[10px] tracking-[0.5em] text-[#CDAD5A]/40 mb-2">SYSTEM STATUS</div>
+                <div className="text-2xl font-bold text-white tracking-widest animate-[pulse_2s_infinite] opacity-80">READY TO MINE...</div>
+              </div>
             </div>
-            <p className="text-[#CDAD5A] font-black text-6xl tracking-widest opacity-20">NO DATA</p>
+            {[
+              { label: 'Volume Score' },
+              { label: 'Competition Level' },
+              { label: 'Estimated CPM' },
+              { label: 'Potential Score' }
+            ].map((skeleton, i) => (
+              <div key={i} className="h-48 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between opacity-40 group hover:opacity-100 transition-opacity border border-white/5 bg-white/[0.03]">
+                <div className="absolute top-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#00F5FF] to-transparent opacity-0 group-hover:opacity-100 transition-opacity animate-[pulse_4s_infinite]"></div>
+                <div className="flex justify-between items-start">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{skeleton.label}</span>
+                  <div className="w-4 h-4 rounded-full border border-white/20"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-8 w-2/3 bg-white/5 rounded overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent flex"></div>
+                  </div>
+                  <div className="h-2 w-full bg-white/5 rounded"></div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </main>
 
-      {/* Background Grid */}
+      {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-10"
         style={{
           backgroundImage: 'linear-gradient(#CDAD5A .5px, transparent .5px), linear-gradient(90deg, #CDAD5A .5px, transparent .5px)',
           backgroundSize: '40px 40px'
         }}
       ></div>
-      <div className="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none z-0"></div>
+      <div className="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0A0A0B] to-transparent pointer-events-none z-10"></div>
+
+      {/* FOOTER STATUS */}
+      <footer className="fixed bottom-0 left-0 right-0 border-t border-white/5 bg-[#0A0A0B]/80 backdrop-blur-sm h-10 flex items-center px-6 z-20">
+        <div className="w-full flex justify-between items-center text-[10px] font-mono tracking-widest text-slate-600 uppercase">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_green]"></div>
+              SERVER: OPTIMIZED
+            </div>
+            <div className="hidden sm:block">DB_NODES: {isVN ? '412' : '1,244'} CONNECTED</div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block">COORDINATES: 21.0285° N, 105.8542° E</div>
+            <div className="text-[#CDAD5A]/60">© 2026 NICHE_MINER_V3.0.1_STABLE</div>
+          </div>
+        </div>
+      </footer>
 
       {/* Upgrade Modal */}
       <AnimatePresence>

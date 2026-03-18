@@ -112,7 +112,7 @@ export default function AICoachChat() {
                         onClick={() => setIsVisible(true)}
                         style={{
                             position: 'fixed',
-                            bottom: 24,
+                            bottom: 80,
                             right: 24,
                             zIndex: 9999,
                             width: 48,

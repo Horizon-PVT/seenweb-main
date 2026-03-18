@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NICHE_MINER_PRO | Digital Gold Mine</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'gold-accent': '#CDAD5A',
+            'luxury-dark': '#0A0A0B',
+            'data-cyan': '#00F5FF',
+          },
+          fontFamily: {
+            'sans': ['Inter', 'sans-serif'],
+            'serif': ['Playfair Display', 'serif'],
+          },
+          animation: {
+            'shimmer': 'shimmer 3s infinite linear',
+            'pulse-glow': 'pulse-glow 2s infinite ease-in-out',
+            'sweep': 'sweep 2.5s infinite linear',
+          },
+          keyframes: {
+            shimmer: {
+              '0%': { backgroundPosition: '-200% center' },
+              '100%': { backgroundPosition: '200% center' },
+            },
+            'pulse-glow': {
+              '0%, 100%': { opacity: 0.6, boxShadow: '0 0 15px #CDAD5A' },
+              '50%': { opacity: 1, boxShadow: '0 0 30px #CDAD5A' },
+            },
+            sweep: {
+              '0%': { transform: 'translateX(-100%)' },
+              '100%': { transform: 'translateX(100%)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-animations">
+    .glass-morphism {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .gold-gradient-text {
+      background: linear-gradient(90deg, #fbbf24 0%, #d97706 50%, #fbbf24 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .scanner-line {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00F5FF, transparent);
+      width: 100%;
+      position: absolute;
+      top: 0;
+      animation: scan 4s linear infinite;
+    }
+    @keyframes scan {
+      0% { top: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+  </style>
+</head>
+<body class="bg-[#0A0A0B] text-slate-200 font-sans min-h-screen selection:bg-gold-accent/30 overflow-x-hidden">
+<!-- BEGIN: MainHeader -->
+<header class="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md" data-purpose="navigation">
+<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+<!-- Logo and Brand -->
+<div class="flex items-center gap-3">
+<div class="relative">
+<svg class="animate-pulse" fill="none" height="24" stroke="#CDAD5A" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10"></path><path d="M12 12L19 19"></path></svg>
+<div class="absolute -inset-1 bg-gold-accent/20 blur-sm rounded-full"></div>
+</div>
+<span class="text-xl font-bold tracking-tighter text-white">NICHE<span class="text-gold-accent">_MINER_PRO</span></span>
+</div>
+<!-- Utility Navigation -->
+<nav class="flex items-center gap-6">
+<button class="text-xs font-medium text-slate-400 hover:text-white transition-colors border-r border-white/10 pr-6">VN</button>
+<button class="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          SETTINGS
+        </button>
+<button class="px-4 py-1.5 border border-white/10 rounded bg-white/5 text-[10px] font-bold tracking-[0.2em] hover:bg-white/10 transition-all">BACK TO HQ</button>
+</nav>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: HeroAndSearch -->
+<main class="pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[85vh]">
+<!-- Hero Title -->
+<div class="text-center mb-12" data-purpose="hero-content">
+<h1 class="font-serif text-6xl md:text-8xl font-black mb-6 gold-gradient-text animate-shimmer leading-tight uppercase tracking-tight">
+        DIGITAL GOLD MINE
+      </h1>
+<p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light tracking-wide">
+        Hệ thống khai thác dữ liệu thị trường ngách tầng sâu. <br/>
+<span class="text-data-cyan/80">Tìm kiếm cơ hội CPM cao từ dữ liệu thời gian thực.</span>
+</p>
+</div>
+<!-- Terminal Search Bar -->
+<div class="w-full max-w-3xl relative mb-20 group" data-purpose="search-container">
+<!-- Glow Effect -->
+<div class="absolute -inset-1 bg-gold-accent/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+<div class="relative bg-[#121214] border border-white/10 rounded-xl p-2 flex items-center gap-2 shadow-2xl glass-morphism">
+<!-- Radar Icon -->
+<div class="pl-4">
+<svg class="animate-pulse" fill="none" height="22" stroke="#CDAD5A" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.53 8.47c.3-.3.3-.78 0-1.07l-1.41-1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m4.93 19.07 1.41-1.41"></path><path d="m14.12 14.12 1.41 1.41"></path><path d="m8.47 15.53 1.41 1.41"></path></svg>
+</div>
+<!-- Input Field -->
+<input class="w-full bg-transparent border-none text-white focus:ring-0 placeholder:text-slate-600 text-lg font-medium py-4 px-2" placeholder="Nhập chủ đề lớn (VD: Tài chính, AI, Sức khỏe...)" type="text"/>
+<!-- Action Button -->
+<button class="bg-gold-accent hover:bg-[#B6964A] text-[#0A0A0B] font-black px-8 py-4 rounded-lg flex items-center gap-2 transition-all active:scale-95 animate-pulse-glow shadow-[0_0_15px_rgba(205,173,90,0.4)]">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          KHAI THÁC
+        </button>
+</div>
+</div>
+<!-- Data Visualization Area (Empty State) -->
+<div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative" data-purpose="empty-state-grid">
+<!-- Overlay Ready Message -->
+<div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+<div class="text-center">
+<div class="text-[10px] tracking-[0.5em] text-gold-accent/40 mb-2">SYSTEM STATUS</div>
+<div class="text-2xl font-bold text-white tracking-widest animate-pulse opacity-80">READY TO MINE...</div>
+</div>
+</div>
+<!-- Skeleton Card 1: Volume Score -->
+<div class="glass-morphism h-48 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between opacity-40 group hover:opacity-100 transition-opacity">
+<div class="scanner-line"></div>
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Volume Score</span>
+<div class="w-4 h-4 rounded-full border border-white/20"></div>
+</div>
+<div class="space-y-3">
+<div class="h-8 w-2/3 bg-white/5 rounded overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sweep"></div>
+</div>
+<div class="h-2 w-full bg-white/5 rounded"></div>
+</div>
+</div>
+<!-- Skeleton Card 2: Competition -->
+<div class="glass-morphism h-48 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between opacity-40 group hover:opacity-100 transition-opacity">
+<div class="scanner-line" style="animation-delay: 1s;"></div>
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Competition Level</span>
+<div class="w-4 h-4 rounded-full border border-white/20"></div>
+</div>
+<div class="space-y-3">
+<div class="h-8 w-1/2 bg-white/5 rounded overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sweep" style="animation-delay: 0.5s;"></div>
+</div>
+<div class="h-2 w-3/4 bg-white/5 rounded"></div>
+</div>
+</div>
+<!-- Skeleton Card 3: Estimated CPM -->
+<div class="glass-morphism h-48 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between opacity-40 group hover:opacity-100 transition-opacity">
+<div class="scanner-line" style="animation-delay: 2s;"></div>
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Estimated CPM</span>
+<div class="w-4 h-4 rounded-full border border-white/20"></div>
+</div>
+<div class="space-y-3">
+<div class="h-8 w-3/4 bg-white/5 rounded overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sweep" style="animation-delay: 1s;"></div>
+</div>
+<div class="h-2 w-1/2 bg-white/5 rounded"></div>
+</div>
+</div>
+<!-- Skeleton Card 4: Potential Score -->
+<div class="glass-morphism h-48 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between opacity-40 group hover:opacity-100 transition-opacity">
+<div class="scanner-line" style="animation-delay: 0.5s;"></div>
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Potential Score</span>
+<div class="w-4 h-4 rounded-full border border-white/20"></div>
+</div>
+<div class="space-y-3">
+<div class="h-8 w-1/2 bg-white/5 rounded overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sweep" style="animation-delay: 1.5s;"></div>
+</div>
+<div class="h-2 w-full bg-white/5 rounded"></div>
+</div>
+</div>
+</div>
+</main>
+<!-- END: HeroAndSearch -->
+<!-- BEGIN: BottomStatus -->
+<footer class="fixed bottom-0 left-0 right-0 border-t border-white/5 bg-[#0A0A0B]/80 backdrop-blur-sm h-10 flex items-center px-6">
+<div class="w-full flex justify-between items-center text-[10px] font-mono tracking-widest text-slate-600 uppercase">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<div class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_green]"></div>
+          SERVER: OPTIMIZED
+        </div>
+<div>DB_NODES: 1,244 CONNECTED</div>
+</div>
+<div class="flex items-center gap-4">
+<div>COORDINATES: 21.0285° N, 105.8542° E</div>
+<div class="text-gold-accent/60">© 2024 NICHE_MINER_V3.0.1_STABLE</div>
+</div>
+</div>
+</footer>
+<!-- END: BottomStatus -->
+</body></html>
