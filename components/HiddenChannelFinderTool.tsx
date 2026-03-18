@@ -44,16 +44,35 @@ import { useTranslation } from 'next-i18next';
 
 // ... types ...
 
-const SonarLoader: React.FC = () => (
-  <div className="flex flex-col items-center justify-center py-20">
-    {/* ... svg ... */}
-    <h3 className="text-cyan-400 font-bold text-xl tracking-[0.2em] animate-pulse">
-      SONAR SCANNING...
-    </h3>
-    <p className="text-cyan-600 text-sm mt-2 font-mono">
-      Detecting hidden signals in the deep ocean
-    </p>
-  </div>
+const RadarVisualizer: React.FC = () => (
+  <section className="flex flex-col items-center my-12 animate-in fade-in duration-700">
+    <div className="relative w-72 h-72 md:w-96 md:h-96 flex items-center justify-center">
+      {/* Outer Circles */}
+      <div className="absolute inset-0 border border-[#00F3FF]/20 rounded-full"></div>
+      <div className="absolute inset-[15%] border border-[#00F3FF]/15 rounded-full"></div>
+      <div className="absolute inset-[30%] border border-[#00F3FF]/10 rounded-full"></div>
+      <div className="absolute inset-[45%] border border-[#00F3FF]/5 rounded-full"></div>
+      
+      {/* Rotating Sweep */}
+      <div className="absolute inset-0">
+        <div className="radar-line absolute top-1/2 left-1/2 h-[2px] w-[50%] origin-left" style={{marginTop: '-1px'}}></div>
+      </div>
+      
+      {/* Detected 'Underdog' Points */}
+      <div className="absolute top-[20%] left-[30%] w-2 h-2 bg-[#00F3FF] rounded-full shadow-[0_0_10px_#00F3FF] animate-pulse"></div>
+      <div className="absolute bottom-[35%] right-[25%] w-1.5 h-1.5 bg-[#00F3FF]/60 rounded-full shadow-[0_0_8px_#00F3FF] animate-bounce"></div>
+      <div className="absolute top-[60%] left-[15%] w-2.5 h-2.5 bg-blue-500 rounded-full shadow-[0_0_12px_#3B82F6] animate-pulse" style={{animationDelay: "1s"}}></div>
+      <div className="absolute top-[40%] right-[10%] w-1.5 h-1.5 bg-[#00F3FF] rounded-full animate-ping" style={{animationDuration: "3s"}}></div>
+      
+      {/* Center Hub */}
+      <div className="relative z-10 w-12 h-12 bg-[#0A0B10] border-2 border-[#00F3FF] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,243,255,0.5)]">
+        <div className="w-4 h-4 bg-[#00F3FF] rounded-full animate-pulse"></div>
+      </div>
+    </div>
+    <div className="mt-8 text-center">
+      <p className="text-xs text-[#00F3FF] uppercase tracking-[0.3em] font-bold animate-pulse">Quét tần số thấp... Đang thu nhận tín hiệu</p>
+    </div>
+  </section>
 );
 
 interface HiddenChannelFinderToolProps {
@@ -126,14 +145,51 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
   };
 
   return (
-    <div className="h-full bg-[#020617] text-cyan-50 font-sans selection:bg-cyan-500 selection:text-black overflow-y-auto overflow-x-hidden">
-      {/* Deep Sea Background Effects */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#0f172a_0%,_#020617_100%)]"></div>
-        <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-      </div>
+    <div className="h-full bg-[#0A0B10] text-cyan-50 font-sans selection:bg-cyan-500 selection:text-black overflow-y-auto overflow-x-hidden">
+      
+      {/* NEW DEEP OCEAN UI: Styles */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .grid-overlay {
+          background-image: radial-gradient(circle at 2px 2px, rgba(0, 243, 255, 0.05) 1px, transparent 0);
+          background-size: 40px 40px;
+        }
+        .glow-text {
+          text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+        .glass-panel-sonar {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(0, 243, 255, 0.2);
+          box-shadow: inset 0 0 30px rgba(0, 243, 255, 0.05);
+        }
+        @keyframes radar-sweep {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .radar-line {
+          background: linear-gradient(90deg, rgba(0, 243, 255, 0) 0%, rgba(0, 243, 255, 0.8) 100%);
+          animation: radar-sweep 4s linear infinite;
+        }
+        .scanning-laser {
+          background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.4), transparent);
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          top: 0;
+          left: -100%;
+          animation: laser-move 2s ease-in-out infinite;
+        }
+        @keyframes laser-move {
+          0% { left: -100%; }
+          50% { left: 100%; }
+          100% { left: 100%; }
+        }
+      `}} />
 
-      {/* HEADER */}
+      {/* Deep Sea Background Effects */}
+      <div className="fixed inset-0 grid-overlay pointer-events-none z-0"></div>
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,102,255,0.1),transparent)] pointer-events-none z-0"></div>
+{/* HEADER */}
       <header className="sticky top-0 left-0 right-0 h-16 bg-[#020617]/80 backdrop-blur border-b border-cyan-900/30 flex items-center justify-between px-6 z-50">
         <div className="flex items-center gap-4">
           {onBack && (
@@ -154,61 +210,85 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
       {/* MAIN CONTENT */}
       <main className="pt-8 px-6 pb-20 max-w-7xl mx-auto relative z-10">
 
-        {/* HERO SEARCH */}
-        <div className="max-w-4xl mx-auto mb-16 text-center">
-          <h2 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-100 to-cyan-800 mb-6 uppercase tracking-tighter drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-            {t('toolUI.hiddenChannel.hero_title')}
-          </h2>
-          <p className="text-cyan-600/60 text-lg mb-8 max-w-2xl mx-auto">
-            {t('toolUI.hiddenChannel.hero_desc')}
-          </p>
+                {/* HERO SEARCH */}
+        <div className="max-w-4xl mx-auto mb-16 relative z-20">
+          <header className="relative z-10 pt-8 pb-10 text-center px-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter uppercase mb-4 glow-text bg-clip-text text-transparent bg-gradient-to-r from-[#00F3FF] via-[#0066FF] to-blue-600 drop-shadow-none">
+              {t('toolUI.hiddenChannel.hero_title')}
+            </h2>
+            <p className="text-blue-300/80 text-lg md:text-xl font-light tracking-wide max-w-3xl mx-auto">
+              {t('toolUI.hiddenChannel.hero_desc')}
+            </p>
+          </header>
 
-          <form onSubmit={handleSubmit} className="relative z-20 bg-[#0f172a]/80 border border-cyan-900 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-grow">
-                <label className="block text-left text-xs font-bold text-cyan-600 mb-2 ml-1 uppercase tracking-wider">
+          <form onSubmit={handleSubmit} className="glass-panel-sonar w-full max-w-4xl p-8 rounded-3xl relative overflow-hidden mb-12 shadow-2xl">
+            {/* Glow decoration */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#00F3FF]/10 blur-[100px] rounded-full pointer-events-none"></div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end relative z-10">
+              {/* Keyword Search Input */}
+              <div className="md:col-span-7 flex flex-col gap-2">
+                <label className="text-xs uppercase tracking-widest text-[#00F3FF]/60 font-bold ml-1">
                   {t('toolUI.hiddenChannel.target_label')}
                 </label>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-700" size={20} />
-                  <input
+                <div className="relative group">
+                  <input 
                     type="text"
                     value={seedQuery}
                     onChange={(e) => setSeedQuery(e.target.value)}
-                    placeholder="e.g. Solo Camping, AI Coding, Street Food..."
-                    className="w-full bg-[#020617] border border-cyan-900/50 rounded-xl py-4 pl-12 pr-4 text-cyan-50 placeholder-cyan-900 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all font-medium text-lg"
+                    className="w-full bg-black/40 border-slate-700 text-white rounded-xl py-4 px-6 focus:ring-[#00F3FF] focus:border-[#00F3FF] transition-all duration-500 placeholder:text-slate-600 outline-none" 
+                    placeholder="Ví dụ: Solo Camping, AI Art, Tech Reviews..."
                   />
+                  <div className="scanning-laser pointer-events-none opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </div>
-
-              <div className="md:w-48">
-                <label className="block text-left text-xs font-bold text-cyan-600 mb-2 ml-1 uppercase tracking-wider">
+              
+              {/* Language Dropdown */}
+              <div className="md:col-span-3 flex flex-col gap-2">
+                <label className="text-xs uppercase tracking-widest text-[#00F3FF]/60 font-bold ml-1">
                   {t('toolUI.hiddenChannel.language_label')}
                 </label>
-                <div className="relative">
-                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-700" size={20} />
-                  <select
-                    value={outputLanguage}
-                    onChange={(e) => setOutputLanguage(e.target.value)}
-                    className="w-full bg-[#020617] border border-cyan-900/50 rounded-xl py-4 pl-12 pr-4 text-cyan-50 focus:border-cyan-500 outline-none appearance-none cursor-pointer font-medium text-lg"
-                  >
-                    <option value="Tiếng Việt">Vietnam</option>
-                    <option value="English">Global (EN)</option>
-                  </select>
-                </div>
+                <select 
+                  value={outputLanguage}
+                  onChange={(e) => setOutputLanguage(e.target.value)}
+                  className="w-full bg-black/40 border-slate-700 text-white rounded-xl py-4 px-6 focus:ring-[#00F3FF] focus:border-[#00F3FF] appearance-none cursor-pointer outline-none"
+                >
+                  <option value="Tiếng Việt">Tiếng Việt (VN)</option>
+                  <option value="English">English (US)</option>
+                  <option value="Global">Toàn Cầu (Global)</option>
+                </select>
+              </div>
+              
+              {/* Action Button */}
+              <div className="md:col-span-2">
+                <button 
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-[60px] bg-gradient-to-br from-[#0066FF] to-[#00F3FF] rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_25px_rgba(0,243,255,0.4)] group relative overflow-hidden disabled:opacity-50 disabled:grayscale"
+                >
+                  <span className="absolute inset-0 bg-white/20 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] rounded-xl opacity-0 hover:opacity-100 peer-disabled:hidden"></span>
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                  ) : (
+                    <Radar size={20} className="text-white mr-2" />
+                  )}
+                  <span className="font-bold text-white text-sm uppercase tracking-tighter">
+                    {isLoading ? t('toolUI.hiddenChannel.scanning') : t('toolUI.hiddenChannel.scan_btn')}
+                  </span>
+                </button>
               </div>
             </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all disabled:opacity-50 disabled:grayscale tracking-widest flex items-center justify-center gap-2"
-            >
-              {isLoading ? t('toolUI.hiddenChannel.scanning') : t('toolUI.hiddenChannel.scan_btn')} <Radar size={20} />
-            </button>
+            
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-medium z-10 relative">
+              <span>Sonar Status: {isLoading ? 'Scanning...' : 'Ready'}</span>
+              <span className={`w-1 h-1 rounded-full bg-[#00F3FF] ${isLoading ? 'animate-ping' : 'animate-pulse'}`}></span>
+              <span>Depth: 10,000m</span>
+              <span className="w-1 h-1 rounded-full bg-cyan-900"></span>
+              <span>Encryption: Active</span>
+            </div>
 
             {error && (
-              <div className="mt-4 p-3 bg-red-950/30 border border-red-900/50 rounded text-red-400 text-sm font-medium">
+              <div className="mt-4 p-3 bg-red-950/50 border border-red-900/50 rounded text-red-400 text-sm font-medium z-10 relative">
                 ⚠️ {error}
               </div>
             )}
@@ -216,7 +296,7 @@ export default function HiddenChannelFinderTool({ onBack }: HiddenChannelFinderT
         </div>
 
         {/* RESULTS */}
-        {isLoading && <SonarLoader />}
+        {isLoading && <RadarVisualizer />}
 
         {!isLoading && output && (
           <div className="animate-in fade-in slide-in-from-bottom-10 duration-700 space-y-16">

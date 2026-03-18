@@ -1,188 +1,14 @@
-// File: components/ScriptRefinerTool.tsx
-// UNIFIED: Same UI and logic as Homepage (pages/tools/script-refiner.tsx)
+import sys
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useSession } from "next-auth/react";
-import { AnimatePresence } from 'framer-motion';
-import UpgradeModal from '@/components/UpgradeModal';
-import DOMPurify from 'dompurify';
-import {
-    ArrowLeft,
-    FileText,
-    Zap,
-    Copy,
-    Download,
-    Repeat,
-    Check,
-    SplitSquareHorizontal,
-    MessageSquare,
-    Sparkles,
-    Maximize2,
-    Minimize2
-} from 'lucide-react';
+file_path = r'c:\Users\ADMIN\Desktop\A Tung\seenweb-main\seenweb-main\components\ScriptRefinerTool.tsx'
 
-// --- TYPES ---
-interface OutputData {
-    refinedScript: string;
-    diffScript: string;
-    metrics: {
-        uniqueness: string;
-        similarity: string;
-        readTime: string;
-        wordCount: number;
-    };
-}
+with open(file_path, 'r', encoding='utf-8') as f:
+    content = f.read()
 
-interface ScriptRefinerToolProps {
-    onBack?: () => void;
-}
+# Extract everything up to `return (`
+prefix, remainder = content.split('    return (\n', 1)
 
-export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
-    const { data: session } = useSession();
-    const router = useRouter();
-    const isEN = router.locale === 'en';
-
-    // --- STATE ---
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [originalScript, setOriginalScript] = useState('');
-    const [output, setOutput] = useState<OutputData | null>(null);
-    const [diffView, setDiffView] = useState(false);
-    const [rewriteLevel, setRewriteLevel] = useState('Standard');
-    const [optimizeGoal, setOptimizeGoal] = useState('Engagement');
-    const [language, setLanguage] = useState('Original');
-    const [initialChatRequest, setInitialChatRequest] = useState('');
-    const [iterativeChatRequest, setIterativeChatRequest] = useState('');
-    const [copySuccess, setCopySuccess] = useState('');
-    const [isFullScreen, setIsFullScreen] = useState(false);
-    const [showUpgrade, setShowUpgrade] = useState(false);
-
-    const buttonRef = useRef<HTMLButtonElement>(null);
-    const outputRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // --- HANDLERS ---
-    const handleCopy = () => {
-        if (output?.refinedScript) {
-            navigator.clipboard.writeText(output.refinedScript).then(() => {
-                setCopySuccess('Copied!');
-                setTimeout(() => setCopySuccess(''), 2000);
-            });
-        }
-    };
-
-    const handleExport = () => {
-        if (!output?.refinedScript) return;
-        const blob = new Blob([output.refinedScript], { type: 'text/plain;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'refined-script.txt';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    // --- API: INITIAL REWRITE (Fixed to use API-based quota) ---
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!originalScript) {
-            setError("Please enter original content.");
-            return;
-        }
-
-        setIsLoading(true);
-        setError('');
-        setOutput(null);
-        setCopySuccess('');
-
-        try {
-            const response = await fetch('/api/script-refiner-initial', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    originalScript,
-                    rewriteLevel,
-                    optimizeGoal,
-                    language,
-                    initialChatRequest,
-                }),
-            });
-
-            const result: any = await response.json();
-
-            // FIX: Check for PLAN errors and show modal (API-based quota)
-            if (!response.ok) {
-                const errRaw = result?.error || '';
-                const errStr = String(errRaw).toUpperCase();
-
-                if (response.status === 403 || errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
-                    setShowUpgrade(true);
-                    setIsLoading(false);
-                    return;
-                }
-                throw new Error(result.error || `Error ${response.status}`);
-            }
-
-            if (!result.refinedScript || !result.diffScript || !result.metrics) {
-                throw new Error("Invalid API response structure.");
-            }
-
-            setOutput(result as OutputData);
-
-        } catch (err: any) {
-            const errStr = String(err.message || '').toUpperCase();
-            if (errStr.includes('PLAN') || errStr.includes('QUOTA') || errStr.includes('LOCKED') || errStr.includes('LIMIT')) {
-                setShowUpgrade(true);
-            } else {
-                setError(`Error: ${err.message}`);
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // --- API: ITERATIVE CHAT ---
-    const handleIterativeSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!iterativeChatRequest || !output?.refinedScript) return;
-
-        setIsLoading(true);
-        setError('');
-        const currentScriptForRequest = output.refinedScript;
-        const requestText = iterativeChatRequest;
-        setIterativeChatRequest('');
-
-        try {
-            const response = await fetch('/api/script-refiner-iterative', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    currentScript: currentScriptForRequest,
-                    iterativeChatRequest: requestText,
-                }),
-            });
-
-            const editedScriptText = await response.text();
-
-            if (!response.ok) {
-                let errorMessage = `Error ${response.status}: ${editedScriptText}`;
-                try { errorMessage = JSON.parse(editedScriptText).error || errorMessage; } catch (e) { }
-                throw new Error(errorMessage);
-            }
-
-            setOutput(prev => prev ? { ...prev, refinedScript: editedScriptText } : null);
-
-        } catch (err: any) {
-            setError(`Error: ${err.message}`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className={`min-h-full bg-[#0A0B10] text-[#F8FAFC] font-sans flex flex-col transition-all duration-300 ${isFullScreen ? 'fixed inset-0 z-50' : ''} notranslate selection:bg-emerald-500/30`} translate="no">
+new_jsx = """        <div className={`min-h-full bg-[#0A0B10] text-[#F8FAFC] font-sans flex flex-col transition-all duration-300 ${isFullScreen ? 'fixed inset-0 z-50' : ''} notranslate selection:bg-emerald-500/30`} translate="no">
             <style dangerouslySetInnerHTML={{ __html: `
               .glass-panel {
                 background: rgba(255, 255, 255, 0.02);
@@ -241,12 +67,12 @@ export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
             </header>
 
             {/* MAIN CONTENT */}
-            <main className={`flex-grow flex flex-col lg:flex-row overflow-hidden ${output ? 'w-full' : 'max-w-6xl mx-auto w-full'} p-4 lg:p-6 pb-24 gap-6 lg:h-[calc(100vh-140px)] lg:min-h-[700px]`}>
+            <main className={`flex-grow flex flex-col lg:flex-row overflow-hidden ${output ? 'w-full' : 'max-w-6xl mx-auto w-full'} p-4 lg:p-6 gap-6`}>
                 
                 {/* LEFT: INPUT & CONTROLS */}
                 <div className={`flex flex-col gap-6 h-full transition-all duration-500 ${output ? 'lg:w-1/2' : 'w-full'}`}>
                     {/* Editor Canvas */}
-                    <section className="flex-1 glass-panel rounded-3xl relative flex flex-col overflow-hidden group min-h-[300px]">
+                    <section className="flex-1 glass-panel rounded-3xl relative flex flex-col overflow-hidden group">
                         <div className="p-4 lg:p-6 flex items-center justify-between border-b border-white/5 shrink-0">
                             <div className="flex items-center gap-2.5">
                                 <svg className="text-[#10b981]" fill="none" height="18" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="18"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
@@ -275,11 +101,11 @@ export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 relative overflow-hidden">
+                        <div className="flex-1 relative p-4 lg:p-8 overflow-hidden flex">
                             <textarea
                                 value={originalScript}
                                 onChange={e => setOriginalScript(e.target.value)}
-                                className="absolute inset-0 p-4 lg:p-8 w-full h-full bg-transparent border-none focus:ring-0 text-lg lg:text-xl font-light leading-relaxed text-slate-200 resize-none scrollbar-hide outline-none z-10"
+                                className="w-full h-full bg-transparent border-none focus:ring-0 text-lg lg:text-xl font-light leading-relaxed text-slate-200 resize-none scrollbar-hide outline-none z-10"
                                 placeholder="Dán kịch bản thô hoặc bản thảo của bạn vào đây..."
                                 spellCheck="false"
                             ></textarea>
@@ -289,32 +115,30 @@ export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
 
                     {/* AI Control Deck */}
                     <section className="shrink-0 flex flex-col gap-4 lg:gap-6">
-                        <div className="flex flex-col gap-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-wider">Rewrite Level</label>
-                                    <select value={rewriteLevel} onChange={e => setRewriteLevel(e.target.value)} className="bg-black/50 border border-white/10 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-slate-300 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all cursor-pointer">
-                                        <option value="Minor">Minor Polish (Fix grammar)</option>
-                                        <option value="Standard">Standard (Improve flow)</option>
-                                        <option value="Complete">Complete Overhaul (Rewrite)</option>
-                                    </select>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-wider">Goal</label>
-                                    <select value={optimizeGoal} onChange={e => setOptimizeGoal(e.target.value)} className="bg-black/50 border border-white/10 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-slate-300 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all cursor-pointer">
-                                        <option value="Engagement">Maximize Engagement</option>
-                                        <option value="Clarity">Maximize Clarity</option>
-                                        <option value="SEO">SEO Optimization</option>
-                                    </select>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-wider">Target Language</label>
-                                    <select value={language} onChange={e => setLanguage(e.target.value)} className="bg-black/50 border border-white/10 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-slate-300 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all cursor-pointer">
-                                        <option value="Original">Keep Original</option>
-                                        <option value="English">English</option>
-                                        <option value="Tiếng Việt">Vietnamese</option>
-                                    </select>
-                                </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-wider">Rewrite Level</label>
+                                <select value={rewriteLevel} onChange={e => setRewriteLevel(e.target.value)} className="bg-black/50 border border-white/10 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-slate-300 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all cursor-pointer">
+                                    <option value="Minor">Minor Polish (Fix grammar)</option>
+                                    <option value="Standard">Standard (Improve flow)</option>
+                                    <option value="Complete">Complete Overhaul (Rewrite)</option>
+                                </select>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-wider">Goal</label>
+                                <select value={optimizeGoal} onChange={e => setOptimizeGoal(e.target.value)} className="bg-black/50 border border-white/10 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-slate-300 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all cursor-pointer">
+                                    <option value="Engagement">Maximize Engagement</option>
+                                    <option value="Clarity">Maximize Clarity</option>
+                                    <option value="SEO">SEO Optimization</option>
+                                </select>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-wider">Target Language</label>
+                                <select value={language} onChange={e => setLanguage(e.target.value)} className="bg-black/50 border border-white/10 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-slate-300 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all cursor-pointer">
+                                    <option value="Original">Keep Original</option>
+                                    <option value="English">English</option>
+                                    <option value="Tiếng Việt">Vietnamese</option>
+                                </select>
                             </div>
                             <div className="flex flex-col gap-2">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase px-1 tracking-wider">Custom Instruction</label>
@@ -322,8 +146,8 @@ export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
                                     type="text"
                                     value={initialChatRequest}
                                     onChange={e => setInitialChatRequest(e.target.value)}
-                                    className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-300 placeholder:text-slate-600 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all"
-                                    placeholder="Ví dụ: Giọng điệu như TED Talk, ngắn gọn súc tích..."
+                                    className="bg-black/50 border border-white/10 rounded-xl px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm text-slate-300 placeholder:text-slate-600 focus:border-emerald-500/50 hover:bg-black/70 outline-none transition-all"
+                                    placeholder="e.g. TED Talk..."
                                 />
                             </div>
                         </div>
@@ -399,39 +223,39 @@ export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
                             </div>
 
                             {/* CHAT BAR */}
-                            <div className="px-3 py-2 bg-black/60 border-t border-white/5 shrink-0 backdrop-blur-md mr-14">
-                                <form onSubmit={handleIterativeSubmit} className="flex gap-2 relative mb-2">
+                            <div className="p-4 bg-black/60 border-t border-white/5 shrink-0 backdrop-blur-md">
+                                <form onSubmit={handleIterativeSubmit} className="flex gap-2 relative mb-3">
                                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                        <MessageSquare size={14} className="text-emerald-500/50" />
+                                        <MessageSquare size={16} className="text-emerald-500/50" />
                                     </div>
                                     <input
                                         type="text"
                                         value={iterativeChatRequest}
                                         onChange={e => setIterativeChatRequest(e.target.value)}
-                                        placeholder="Yêu cầu thay đổi (ví dụ: 'Rút gọn phần mở đầu')..."
-                                        className="pl-9 flex-grow bg-white/5 border border-white/10 rounded-full px-3 py-2 text-xs text-slate-200 focus:border-emerald-500/50 focus:bg-white/10 outline-none transition-all placeholder:text-slate-600"
+                                        placeholder="Ask for changes (e.g. 'Shorten the intro', 'Make it funnier')..."
+                                        className="pl-10 flex-grow bg-white/5 border border-white/10 rounded-full px-4 py-3 text-sm text-slate-200 focus:border-emerald-500/50 focus:bg-white/10 outline-none transition-all placeholder:text-slate-600"
                                         disabled={isLoading}
                                     />
                                     <button
                                         type="submit"
                                         disabled={!iterativeChatRequest || isLoading}
-                                        className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full w-8 h-8 flex items-center justify-center hover:bg-emerald-500/40 hover:text-white transition-colors disabled:opacity-50 disabled:grayscale shrink-0"
+                                        className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full w-11 h-11 flex items-center justify-center hover:bg-emerald-500/40 hover:text-white transition-colors disabled:opacity-50 disabled:grayscale"
                                     >
-                                        <Repeat size={14} />
+                                        <Repeat size={16} />
                                     </button>
                                 </form>
 
                                 <div className="flex justify-between items-center">
-                                    <div className="flex gap-1.5">
-                                        <button onClick={handleCopy} className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors">
-                                            {copySuccess ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} className="text-slate-400" />}
+                                    <div className="flex gap-2">
+                                        <button onClick={handleCopy} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                                            {copySuccess ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} className="text-slate-400" />}
                                             {copySuccess || 'Copy'}
                                         </button>
-                                        <button onClick={handleExport} className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors">
-                                            <Download size={12} className="text-slate-400" /> Export
+                                        <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                                            <Download size={14} className="text-slate-400" /> Export
                                         </button>
                                     </div>
-                                    <span className="text-[8px] text-emerald-500/50 font-mono tracking-widest uppercase">AI: Gemini 1.5 Pro</span>
+                                    <span className="text-[10px] text-emerald-500/50 font-mono tracking-widest uppercase">AI: Gemini 1.5 Pro</span>
                                 </div>
                             </div>
                         </div>
@@ -455,4 +279,9 @@ export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
             </AnimatePresence>
         </div>
     );
-}
+}"""
+
+with open(file_path, 'w', encoding='utf-8') as f:
+    f.write(prefix + new_jsx)
+
+print("ScriptRefinerTool.tsx has been completely rewritten with the new UI.")

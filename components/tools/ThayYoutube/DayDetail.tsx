@@ -262,8 +262,8 @@ const DayDetail: React.FC<Props> = ({
                                 <svg className="w-32 h-32 text-[#581C87]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             </div>
                             <h3 className="text-white font-bold mb-2">Cộng đồng VVIP</h3>
-                            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">Thảo luận cùng 2,000+ học viên khác trên Discord.</p>
-                            <a href="https://zalo.me" target="_blank" rel="noopener noreferrer" className="text-[#c084fc] text-xs font-black tracking-widest uppercase block mt-2">Tham Gia Ngay →</a>
+                            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">Thảo luận cùng 2,000+ học viên khác trên Nhóm Zalo Kín.</p>
+                            <a href="https://zalo.me/g/kqshmg192" target="_blank" rel="noopener noreferrer" className="text-[#c084fc] text-xs font-black tracking-widest uppercase block mt-2">Tham Gia Ngay →</a>
                         </div>
                     </div>
                 </div>
