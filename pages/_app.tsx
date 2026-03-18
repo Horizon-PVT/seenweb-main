@@ -7,6 +7,7 @@ import { SessionProvider } from "next-auth/react";
 import ErrorBoundary from "../components/ErrorBoundary";
 import AttributionTracker from "@/components/AttributionTracker";
 import WelcomePopupManager from "@/components/WelcomePopupManager";
+import { Toaster } from 'react-hot-toast';
 
 // Removed next/font/google to prevent ENOTFOUND build errors
 // Configuration is now handled via standard <link> tags in <Head> and CSS variables in styles/globals.css
@@ -98,6 +99,7 @@ function App({
         </main>
         <AttributionTracker />
         <WelcomePopupManager />
+        <Toaster position="top-right" />
       </ErrorBoundary>
 
       {/* THÊM DÒNG NÀY ĐỂ KÍCH HOẠT GTM TRÊN TOÀN BỘ TRANG */}

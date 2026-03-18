@@ -17,7 +17,7 @@ interface SidebarProps {
     toggleCollapse?: () => void;
 }
 
-export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, isCollapsed = false, toggleCollapse }: SidebarProps) {
+export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }: SidebarProps) {
     const router = useRouter();
     const { data: session } = useSession();
     const { t } = useTranslation('common');
@@ -25,6 +25,10 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
     const [lockedMessage, setLockedMessage] = useState('');
     const [showCheckout, setShowCheckout] = useState(false);
     const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+
+    // Hover State (Always collapsed unless hovered)
+    const [isHovered, setIsHovered] = useState(false);
+    const isCollapsed = !isHovered;
 
     // Accordion State
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
@@ -35,9 +39,6 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
     });
 
     const toggleGroup = (groupId: string) => {
-        if (isCollapsed && toggleCollapse) {
-            toggleCollapse(); // Expand if a group is clicked while collapsed
-        }
         setOpenGroups(prev => ({
             ...prev,
             [groupId]: !prev[groupId]
@@ -72,7 +73,11 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
 
     return (
         <>
-            <div className={`${isCollapsed ? 'w-20' : 'w-64'} bg-[#0D0D10] border-r border-gray-800 flex-shrink-0 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300`}>
+            <div 
+                className={`${isCollapsed ? 'w-20' : 'w-64'} bg-[#0D0D10] border-r border-gray-800 flex-shrink-0 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300`}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
 
                 {/* Header Logo */}
                 <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} mb-2 cursor-pointer relative group`} onClick={handleHomeClick}>
@@ -82,16 +87,6 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect, i
                         className="w-8 h-8 rounded-lg shadow-[0_0_15px_rgba(205,173,90,0.3)] object-cover"
                     />
                     {!isCollapsed && <span className="text-xl font-bold text-white tracking-wide whitespace-nowrap">SeenYT</span>}
-
-                    {toggleCollapse && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); toggleCollapse(); }}
-                            className="absolute -right-3 top-7 w-6 h-6 bg-gray-800 border border-gray-600 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-all z-50 shadow-lg"
-                            title={isCollapsed ? "Expand" : "Collapse"}
-                        >
-                            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-                        </button>
-                    )}
                 </div>
 
                 <style jsx>{`

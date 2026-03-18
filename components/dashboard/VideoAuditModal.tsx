@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, X, Zap, Target, Brain, FileText, Palette, CheckCircle2, Activity } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface VideoAuditModalProps {
     isOpen: boolean;
@@ -71,15 +72,15 @@ export default function VideoAuditModal({ isOpen, onClose, video }: VideoAuditMo
                 if (data?.strategy?.hook && data?.audit && data?.content?.titles) {
                     setOutput(data as StrategyOutput);
                 } else {
-                    alert('Phản hồi từ AI không đúng định dạng. Vui lòng thử lại.');
+                    toast.error('Phản hồi từ AI không đúng định dạng. Vui lòng thử lại.');
                     onClose();
                 }
             } else {
-                alert('Lỗi phân tích: ' + (data?.error || 'Không rõ lỗi'));
+                toast.error('Lỗi phân tích: ' + (data?.error || 'Không rõ lỗi'));
                 onClose();
             }
         } catch (error: any) {
-            alert('Lỗi phân tích: ' + (error?.message || 'Không thể kết nối API'));
+            toast.error('Lỗi phân tích: ' + (error?.message || 'Không thể kết nối API'));
             onClose();
         } finally {
             setIsLoading(false);

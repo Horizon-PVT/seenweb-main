@@ -100,6 +100,7 @@ export default function Tab3Automation({ onOpenTool }: Tab3Props) {
                 `}>
                                     {tool.label}
                                     {!tool.isAccessible && <span className="text-sm">🔒</span>}
+                                    {tool.isAccessible && <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] rounded-full uppercase tracking-wider">Đã mở khóa</span>}
                                 </h3>
                                 <p className="text-gray-400 text-sm">
                                     {tool.description}
@@ -115,18 +116,7 @@ export default function Tab3Automation({ onOpenTool }: Tab3Props) {
                 ))}
             </div>
 
-            {/* Tier indicators */}
-            <div className="flex flex-wrap gap-3 justify-center">
-                <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
-                    🎤 Dubbing: BASIC+
-                </span>
-                <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-                    🎙️ TTS: PRO+
-                </span>
-                <span className="px-3 py-1 bg-pink-500/20 text-pink-300 text-xs rounded-full">
-                    🎬 Video & MC: PRO
-                </span>
-            </div>
+
 
             {/* Upsell Modal */}
             <LockedFeatureModal

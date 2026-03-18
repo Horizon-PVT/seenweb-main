@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ShieldCheck, Zap, ArrowRight, Lock, Plus, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { PRICING, FEATURE_COMPARISON, calculatePrice, PRICING_CONFIG } from '@/lib/plans';
 import axios from 'axios';
 
@@ -92,7 +93,7 @@ export default function CheckoutModal({
     // PAYMENT HANDLER
     const handlePayment = async () => {
         if (!email) {
-            alert('Vui lòng nhập email');
+            toast.error('Vui lòng nhập email');
             return;
         }
 
@@ -126,11 +127,11 @@ export default function CheckoutModal({
             if (res.data.success && res.data.data.paymentUrl) {
                 window.location.href = res.data.data.paymentUrl;
             } else {
-                alert('Không thể tạo link thanh toán. Vui lòng thử lại.');
+                toast.error('Không thể tạo link thanh toán. Vui lòng thử lại.');
             }
         } catch (error: any) {
             console.error('Payment Error:', error);
-            alert(error.response?.data?.error || 'Lỗi kết nối thanh toán.');
+            toast.error(error.response?.data?.error || 'Lỗi kết nối thanh toán.');
         } finally {
             setIsLoading(false);
         }

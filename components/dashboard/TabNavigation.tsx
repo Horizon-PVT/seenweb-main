@@ -16,7 +16,15 @@ export default function TabNavigation({
     onLockedTabClick,
 }: TabNavigationProps) {
     return (
-        <div className="flex flex-wrap gap-2 mb-6 bg-black/40 p-2 rounded-xl border border-gray-800">
+        <div 
+            className="flex overflow-x-auto gap-2 mb-6 bg-black/40 p-2 rounded-xl border border-gray-800"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+            <style jsx>{`
+                div::-webkit-scrollbar {
+                    display: none;
+                }
+            `}</style>
             {TABS.map((tab) => {
                 const isAccessible = canAccessTab(userRole, tab.id);
                 const isActive = activeTab === tab.id;
@@ -32,7 +40,7 @@ export default function TabNavigation({
                             }
                         }}
                         className={`
-              flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300
+              flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0
               ${isActive
                                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30'
                                 : isAccessible
@@ -42,7 +50,7 @@ export default function TabNavigation({
             `}
                     >
                         <span className="text-lg">{tab.icon}</span>
-                        <span className="hidden sm:inline">{tab.label}</span>
+                        <span>{tab.label}</span>
                         {!isAccessible && (
                             <span className="ml-1 text-xs">🔒</span>
                         )}

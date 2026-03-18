@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import { toast } from 'react-hot-toast';
 import { PLAN_LIMITS } from '@/lib/plans';
 import CheckoutModal from './CheckoutModal';
 import { Trash2, Check, Plus, Target, Sparkles, TrendingUp } from 'lucide-react';
 import HealthCheckCard from './HealthCheckCard';
 import RecentVideosList from './RecentVideosList';
+import ChannelStatsCards from './ChannelStatsCards';
+import ChannelVideosTables from './ChannelVideosTables';
 import ChannelAuditModal from './ChannelAuditModal';
 import VideoAuditModal from './VideoAuditModal';
 import DailyIdeasCard from './DailyIdeasCard';
@@ -81,7 +84,7 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
             } else {
                 console.error("Connect Error:", err);
                 const msg = err.response?.data?.message || err.message || 'Có lỗi xảy ra khi kết nối.';
-                alert(`Lỗi kết nối: ${msg}`);
+                toast.error(`Lỗi kết nối: ${msg}`);
             }
         }
     };
@@ -92,7 +95,7 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
                 await axios.delete('/api/user/channels', { data: { id } });
                 fetchChannels();
             } catch (err) {
-                alert('Lỗi khi xóa kênh.');
+                toast.error('Lỗi khi xóa kênh.');
             }
         }
     };
@@ -102,10 +105,10 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
             setIsSyncing(true);
             await axios.get('/api/youtube/sync');
             await fetchChannels(); // Reload
-            alert('Đã đồng bộ dữ liệu mới nhất!');
+            toast.success('Đã đồng bộ dữ liệu mới nhất!');
         } catch (err) {
             console.error(err);
-            alert('Lỗi đồng bộ.');
+            toast.error('Lỗi đồng bộ.');
         } finally {
             setIsSyncing(false);
         }
@@ -322,7 +325,6 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
                         const recentVids = selectedChannel?.recentVideos || [];
 
                         // Real engagement data derived from actual channel stats
-                        const engagementBase = ratio > 200 ? 75 : ratio > 100 ? 60 : ratio > 50 ? 45 : 30;
 
                         const formatNum = (n: number) => {
                             if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
@@ -345,189 +347,20 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
                                 <div className="py-4 relative z-10 space-y-6">
 
                                     {/* ============ ROW 1: HEALTH GAUGE + 3 STAT CARDS ============ */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                                        {/* Health Score Gauge - takes more visual prominence */}
-                                        <div className="bg-[#0c1425] border border-white/5 rounded-2xl p-5 hover:border-yellow-500/20 transition-all group">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs text-gray-400 font-medium">Sức khỏe kênh</span>
-                                                <svg className="w-5 h-5 text-yellow-400/50 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                                            </div>
-                                            {/* SVG Gauge */}
-                                            <div className="flex justify-center">
-                                                <div className="relative w-32 h-20">
-                                                    <svg viewBox="0 0 150 90" className="w-full h-full">
-                                                        {/* Background arc */}
-                                                        <path
-                                                            d={`M ${gaugeCx - gaugeRadius} ${gaugeCy} A ${gaugeRadius} ${gaugeRadius} 0 0 1 ${gaugeCx + gaugeRadius} ${gaugeCy}`}
-                                                            fill="none"
-                                                            stroke="#1e293b"
-                                                            strokeWidth="10"
-                                                            strokeLinecap="round"
-                                                        />
-                                                        {/* Colored arc */}
-                                                        <path
-                                                            d={`M ${gaugeCx - gaugeRadius} ${gaugeCy} A ${gaugeRadius} ${gaugeRadius} 0 0 1 ${gaugeCx + gaugeRadius} ${gaugeCy}`}
-                                                            fill="none"
-                                                            stroke={healthScore >= 80 ? '#22c55e' : healthScore >= 60 ? '#eab308' : healthScore >= 40 ? '#f97316' : '#ef4444'}
-                                                            strokeWidth="10"
-                                                            strokeLinecap="round"
-                                                            strokeDasharray={`${dashLength} ${circumference}`}
-                                                            className="transition-all duration-1000"
-                                                        />
-                                                        {/* Score text */}
-                                                        <text x={gaugeCx} y={gaugeCy - 12} textAnchor="middle" className="text-2xl font-bold" fill="white" fontSize="22" fontWeight="bold">{healthScore}</text>
-                                                        <text x={gaugeCx} y={gaugeCy + 2} textAnchor="middle" fill={healthScore >= 80 ? '#22c55e' : healthScore >= 60 ? '#eab308' : healthScore >= 40 ? '#f97316' : '#ef4444'} fontSize="10" fontWeight="bold">{healthGrade}</text>
-                                                        {/* Min/Max labels */}
-                                                        <text x={gaugeCx - gaugeRadius - 2} y={gaugeCy + 14} textAnchor="middle" fill="#6b7280" fontSize="8">0</text>
-                                                        <text x={gaugeCx + gaugeRadius + 2} y={gaugeCy + 14} textAnchor="middle" fill="#6b7280" fontSize="8">100</text>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <ChannelStatsCards 
+                                        subCount={subs}
+                                        viewCount={views}
+                                        videoCount={videos}
+                                        healthScore={healthScore}
+                                        healthGrade={healthGrade}
+                                    />
 
-                                        {/* Subscribers */}
-                                        <div className="bg-[#0c1425] border border-white/5 rounded-2xl p-5 hover:border-blue-500/20 transition-all group">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="text-xs text-gray-400 font-medium">Subscribers</span>
-                                                <svg className="w-5 h-5 text-blue-400/50 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                            </div>
-                                            <div className="text-3xl font-bold text-white tracking-tight">{formatNum(subs)}</div>
-                                            <div className="flex items-center gap-1 mt-2">
-                                                <TrendingUp size={12} className="text-emerald-400" />
-                                                <span className="text-xs text-emerald-400 font-medium">+{(subs * 0.012).toFixed(0)}</span>
-                                                <span className="text-[10px] text-gray-500 ml-1">30 ngày</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Total Views */}
-                                        <div className="bg-[#0c1425] border border-white/5 rounded-2xl p-5 hover:border-purple-500/20 transition-all group">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="text-xs text-gray-400 font-medium">Lượt xem</span>
-                                                <svg className="w-5 h-5 text-purple-400/50 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                            </div>
-                                            <div className="text-3xl font-bold text-white tracking-tight">{formatNum(views)}</div>
-                                            <div className="flex items-center gap-1 mt-2">
-                                                <TrendingUp size={12} className="text-emerald-400" />
-                                                <span className="text-xs text-emerald-400 font-medium">~{formatNum(avgViews)}/video</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Total Videos */}
-                                        <div className="bg-[#0c1425] border border-white/5 rounded-2xl p-5 hover:border-cyan-500/20 transition-all group">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="text-xs text-gray-400 font-medium">Tổng Video</span>
-                                                <svg className="w-5 h-5 text-cyan-400/50 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            </div>
-                                            <div className="text-3xl font-bold text-white tracking-tight">{formatNum(videos)}</div>
-                                            <div className="flex items-center gap-1 mt-2">
-                                                <span className="text-[10px] text-gray-500">Đã xuất bản</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* ============ ROW 2: TOP CONTENT (full width) ============ */}
-                                    <div className="bg-[#0c1425] border border-white/5 rounded-2xl p-5">
-                                        <div className="flex items-center justify-between mb-5">
-                                            <h3 className="text-base font-bold text-white flex items-center gap-2">
-                                                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                                Video nổi bật
-                                            </h3>
-                                            <button onClick={handleChannelAudit} className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors">Phân tích kênh</button>
-                                        </div>
-                                        {/* Table Header */}
-                                        <div className="grid grid-cols-12 gap-2 text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-3 px-2">
-                                            <div className="col-span-5">VIDEO</div>
-                                            <div className="col-span-2 text-right">LƯỢT XEM</div>
-                                            <div className="col-span-2 text-right">CTR</div>
-                                            <div className="col-span-3 text-right">TƯƠNG TÁC</div>
-                                        </div>
-                                        {/* Video Rows */}
-                                        <div className="space-y-1">
-                                            {recentVids.slice(0, 4).map((vid: any, i: number) => {
-                                                const vidViews = parseInt(vid.viewCount || vid.views || '0');
-                                                const ctr = (engagementBase - i * 4 + Math.random() * 3).toFixed(1);
-                                                const engagement = Math.max(30, engagementBase + 15 - i * 12);
-                                                return (
-                                                    <div key={vid.id || i} className="grid grid-cols-12 gap-2 items-center p-2 rounded-xl hover:bg-white/[0.03] transition-colors group cursor-pointer" onClick={() => handleOptimize(vid.id)}>
-                                                        <div className="col-span-5 flex items-center gap-3 min-w-0">
-                                                            <img
-                                                                src={vid.thumbnail || `https://img.youtube.com/vi/${vid.id}/mqdefault.jpg`}
-                                                                alt={vid.title}
-                                                                className="w-12 h-8 rounded-lg object-cover flex-shrink-0 border border-white/5"
-                                                            />
-                                                            <div className="min-w-0">
-                                                                <p className="text-sm text-white font-medium truncate group-hover:text-blue-300 transition-colors">{vid.title}</p>
-                                                                <p className="text-[10px] text-gray-500">{vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString('vi-VN') : ''}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-span-2 text-right text-sm text-gray-300 font-medium">{formatNum(vidViews)}</div>
-                                                        <div className="col-span-2 text-right text-sm text-gray-300">{ctr}%</div>
-                                                        <div className="col-span-3 flex items-center gap-2 justify-end">
-                                                            <div className="w-16 bg-gray-800 rounded-full h-1.5 hidden sm:block">
-                                                                <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${engagement}%` }}></div>
-                                                            </div>
-                                                            <span className="text-sm text-gray-300 font-medium w-8 text-right">{engagement}%</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                            {recentVids.length === 0 && (
-                                                <div className="text-center py-8 text-gray-500 text-sm">Chưa có video nào. Đồng bộ để xem dữ liệu.</div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* ============ ROW 3: RECENT VIDEOS (same card style) ============ */}
-                                    <div className="bg-[#0c1425] border border-white/5 rounded-2xl p-5">
-                                        <div className="flex items-center justify-between mb-5">
-                                            <h3 className="text-base font-bold text-white flex items-center gap-2">
-                                                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                Video mới nhất
-                                            </h3>
-                                            <span className="text-xs text-gray-500">{recentVids.length} video</span>
-                                        </div>
-                                        {/* Table Header */}
-                                        <div className="grid grid-cols-12 gap-2 text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-3 px-2">
-                                            <div className="col-span-5">VIDEO</div>
-                                            <div className="col-span-2 text-right">LƯỢT XEM</div>
-                                            <div className="col-span-2 text-right">NGÀY ĐĂNG</div>
-                                            <div className="col-span-3 text-right">HÀNH ĐỘNG</div>
-                                        </div>
-                                        {/* Video Rows */}
-                                        <div className="space-y-1">
-                                            {recentVids.map((vid: any, i: number) => {
-                                                const vidViews = parseInt(vid.viewCount || vid.views || '0');
-                                                return (
-                                                    <div key={vid.id || i} className="grid grid-cols-12 gap-2 items-center p-2 rounded-xl hover:bg-white/[0.03] transition-colors group cursor-pointer" onClick={() => handleOptimize(vid.id)}>
-                                                        <div className="col-span-5 flex items-center gap-3 min-w-0">
-                                                            <img
-                                                                src={vid.thumbnail || `https://img.youtube.com/vi/${vid.id}/mqdefault.jpg`}
-                                                                alt={vid.title}
-                                                                className="w-12 h-8 rounded-lg object-cover flex-shrink-0 border border-white/5"
-                                                            />
-                                                            <div className="min-w-0">
-                                                                <p className="text-sm text-white font-medium truncate group-hover:text-blue-300 transition-colors">{vid.title}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-span-2 text-right text-sm text-gray-300 font-medium">{formatNum(vidViews)}</div>
-                                                        <div className="col-span-2 text-right text-xs text-gray-400">{vid.publishedAt ? new Date(vid.publishedAt).toLocaleDateString('vi-VN') : '—'}</div>
-                                                        <div className="col-span-3 flex items-center gap-2 justify-end">
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleOptimize(vid.id); }}
-                                                                className="px-3 py-1 text-[11px] font-medium text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all border border-blue-500/20 hover:border-blue-500/40"
-                                                            >
-                                                                Tối ưu
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                            {recentVids.length === 0 && (
-                                                <div className="text-center py-8 text-gray-500 text-sm">Chưa có video nào. Đồng bộ kênh để xem dữ liệu.</div>
-                                            )}
-                                        </div>
-                                    </div>
-
+                                    {/* ============ ROW 2 & 3: VIDEOS TABLES ============ */}
+                                    <ChannelVideosTables 
+                                        recentVids={recentVids}
+                                        handleOptimize={handleOptimize}
+                                        handleChannelAudit={handleChannelAudit}
+                                    />
                                     {/* ============ AI COACH INSIGHT ============ */}
                                     <div className="relative">
                                         <div className="absolute -left-6 bottom-0 w-24 h-24 z-20 pointer-events-none">

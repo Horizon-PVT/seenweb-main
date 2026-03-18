@@ -63,15 +63,24 @@ export default function Dashboard() {
 
   // Auto-open tool from URL param (extension integration)
   useEffect(() => {
-    if (!loading && router.query.tool) {
-      const toolId = router.query.tool as string;
-      setActiveTool(toolId);
+    if (!loading && router.isReady) {
+      if (router.query.tool) {
+        setActiveTool(router.query.tool as string);
+      }
+      if (router.query.tab) {
+        setActiveTab(router.query.tab as TabId);
+      }
     }
-  }, [loading, router.query.tool]);
+  }, [loading, router.isReady, router.query.tool, router.query.tab]);
 
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
     setActiveTool(null);
+    router.replace(
+      { pathname: '/dashboard', query: { tab: tabId } },
+      undefined,
+      { shallow: true }
+    );
   };
 
   const handleLockedTabClick = (tabId: TabId) => {

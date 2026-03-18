@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Target, X, ShieldAlert, Scan, Activity, Radar, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface ChannelAuditModalProps {
     isOpen: boolean;
@@ -79,13 +80,13 @@ export default function ChannelAuditModal({ isOpen, onClose, channelId, channelN
                     setIsLoading(false);
                 }, 500);
             } else {
-                alert('Error: ' + (data.error || 'Unknown Error'));
+                toast.error('Error: ' + (data.error || 'Unknown Error'));
                 setIsLoading(false);
                 onClose();
             }
         } catch (error: any) {
             clearInterval(interval);
-            alert('Error: ' + error.message);
+            toast.error('Error: ' + error.message);
             setIsLoading(false);
             onClose();
         }
