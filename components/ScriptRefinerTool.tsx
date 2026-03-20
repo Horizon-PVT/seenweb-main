@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { AnimatePresence } from 'framer-motion';
 import UpgradeModal from '@/components/UpgradeModal';
 import DOMPurify from 'dompurify';
+import { TypewriterEffect } from '@/components/ui/TypewriterEffect';
 import {
     ArrowLeft,
     FileText,
@@ -395,7 +396,9 @@ export default function ScriptRefinerTool({ onBack }: ScriptRefinerToolProps) {
                                         className="diff-content"
                                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(output.diffScript) }}
                                     />
-                                ) : output.refinedScript}
+                                ) : (
+                                    <TypewriterEffect content={output.refinedScript} speed={10} />
+                                )}
                             </div>
 
                             {/* CHAT BAR */}

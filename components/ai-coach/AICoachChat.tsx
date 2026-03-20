@@ -34,7 +34,7 @@ export default function AICoachChat() {
     const [thinkingMode, setThinkingMode] = useState('deep');
     const [attachment, setAttachment] = useState<{ type: string, name: string } | null>(null);
     const [usage, setUsage] = useState<{ remaining: number; limit: number } | null>(null);
-    const [isVisible, setIsVisible] = useState(true); // Default to true (expanded)
+    const [isVisible, setIsVisible] = useState(false); // Default to false (collapsed)
     const inputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 

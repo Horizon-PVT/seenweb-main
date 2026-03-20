@@ -27,6 +27,7 @@ import {
     Trash2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { TypewriterEffect } from './ui/TypewriterEffect';
 
 // --- CONSTANTS ---
 const tones = ["Hùng hồn", "Châm biếm", "Chuyên gia", "Thân thiện", "Kể chuyện", "Bí ẩn", "Hài hước", "Trang trọng", "Cổ vũ", "Nhẹ nhàng", "Kịch tính", "Giáo dục", "Tin tức", "Phỏng vấn", "Triết lý", "Hoài niệm", "Tò mò", "Cảm hứng", "Thách thức", "Giản dị"];
@@ -36,9 +37,11 @@ const languages: Record<string, string> = { "English": "en", "Spanish": "es", "F
 // --- HELPER COMPONENTS ---
 const TypewriterText: React.FC<{ text: string }> = ({ text }) => {
     return (
-        <div className="whitespace-pre-wrap text-gray-300 leading-relaxed text-lg">
-            {text}
-        </div>
+        <TypewriterEffect 
+            content={text} 
+            speed={10} 
+            className="whitespace-pre-wrap text-gray-300 leading-relaxed text-lg" 
+        />
     );
 };
 
