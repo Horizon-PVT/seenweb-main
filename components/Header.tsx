@@ -171,6 +171,13 @@ const Header: React.FC = () => {
                 >
                   {t('header.pricing', 'Bảng giá')}
                 </a>
+                <Link
+                  href="/all-in-one"
+                  className="flex items-center justify-between px-4 py-3 text-sm text-[#00ffb4] font-bold hover:bg-white/10 hover:text-[#CDAD5A] transition-colors"
+                >
+                  All-in-One Studio
+                  <span className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-lg shadow-red-500/20">NEW</span>
+                </Link>
               </div>
             </div>
 
@@ -407,6 +414,13 @@ const Header: React.FC = () => {
                   >
                     Bảng giá
                   </a>
+                  <Link
+                    href="/all-in-one"
+                    className="flex justify-between items-center px-3 py-3 text-[#00ffb4] hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl text-sm font-bold transition-colors pl-6"
+                  >
+                    All-in-One Studio
+                    <span className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-lg shadow-red-500/20 mr-2">NEW</span>
+                  </Link>
                 </div>
 
                 {/* Khám phá section */}
