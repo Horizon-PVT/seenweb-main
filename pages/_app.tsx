@@ -73,7 +73,7 @@ function App({
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={ogImage} />
 
-        {/* JSON-LD */}
+        {/* JSON-LD: Organization */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -83,6 +83,45 @@ function App({
               name: "SeenYT",
               url: `${siteUrl}/`,
               logo: ogImage,
+            }),
+          }}
+        />
+
+        {/* JSON-LD: SoftwareApplication */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "SeenYT",
+              url: `${siteUrl}/`,
+              applicationCategory: "MultimediaApplication",
+              operatingSystem: "Web",
+              offers: {
+                "@type": "Offer",
+                price: "169000",
+                priceCurrency: "VND",
+                availability: "https://schema.org/InStock",
+              },
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "500",
+                bestRating: "5",
+                worstRating: "1",
+              },
+              description:
+                "AI-powered YouTube studio for faceless content creation. 15+ tools for script writing, AI voice, virtual MC, and SEO.",
+              author: {
+                "@type": "Person",
+                name: "Tùng Phạm",
+              },
+              creator: {
+                "@type": "Organization",
+                name: "SeenYT",
+                url: `${siteUrl}/`,
+              },
             }),
           }}
         />

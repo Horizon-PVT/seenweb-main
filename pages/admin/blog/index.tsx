@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { requireAdminAuth } from '@/lib/admin/auth';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, FolderPlus, X } from 'lucide-react';
 
 interface BlogPost {
     id: string;
@@ -13,7 +13,7 @@ interface BlogPost {
     content: string;
     status: string;
     createdAt: string;
-    category: { name: string } | null;
+    category: { id: string; name: string } | null;
 }
 
 interface Category {
@@ -35,31 +35,72 @@ export default function AdminBlog({ session }: Props) {
     const [showModal, setShowModal] = useState(false);
     const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+
+    // New Category Modal
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [creatingCategory, setCreatingCategory] = useState(false);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Validate file size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            setUploadError('File quá lớn. Tối đa 10MB.');
+            return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setUploadError('Chỉ chấp nhận file ảnh.');
+            return;
+        }
+
         setUploading(true);
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', file);
+        setUploadError('');
 
         try {
+            // Try API upload first
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', file);
+
             const res = await fetch('/api/admin/upload', {
                 method: 'POST',
                 body: uploadFormData,
             });
 
-            if (!res.ok) throw new Error('Upload failed');
-
-            const data = await res.json();
-            setFormData(prev => ({ ...prev, coverImage: data.url }));
+            if (res.ok) {
+                const data = await res.json();
+                setFormData(prev => ({ ...prev, coverImage: data.url }));
+            } else {
+                // Fallback: convert to base64 data URL for preview, store as base64
+                // This works on Vercel where filesystem writes are not supported
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result as string;
+                    setFormData(prev => ({ ...prev, coverImage: base64 }));
+                };
+                reader.onerror = () => {
+                    setUploadError('Không thể đọc file. Vui lòng thử URL ảnh.');
+                };
+                reader.readAsDataURL(file);
+            }
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Lỗi tải ảnh lêng');
+            // Fallback to base64 
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64 = reader.result as string;
+                setFormData(prev => ({ ...prev, coverImage: base64 }));
+            };
+            reader.onerror = () => {
+                setUploadError('Lỗi tải ảnh. Vui lòng nhập URL ảnh bên dưới.');
+            };
+            reader.readAsDataURL(file);
         } finally {
             setUploading(false);
-            // Reset input value to allow re-selecting same file if needed
             e.target.value = '';
         }
     };
@@ -106,7 +147,36 @@ export default function AdminBlog({ session }: Props) {
         }
     };
 
+    const handleCreateCategory = async () => {
+        if (!newCategoryName.trim()) return;
+
+        setCreatingCategory(true);
+        try {
+            const res = await fetch('/api/admin/blog-categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newCategoryName.trim() }),
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Failed');
+            }
+
+            const newCat = await res.json();
+            setCategories(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)));
+            setFormData(prev => ({ ...prev, categoryId: newCat.id }));
+            setNewCategoryName('');
+            setShowCategoryModal(false);
+        } catch (error: any) {
+            alert('Lỗi tạo danh mục: ' + (error.message || 'Không rõ'));
+        } finally {
+            setCreatingCategory(false);
+        }
+    };
+
     const handleOpenModal = (post?: BlogPost) => {
+        setUploadError('');
         if (post) {
             setEditingPost(post);
             setFormData({
@@ -115,7 +185,7 @@ export default function AdminBlog({ session }: Props) {
                 coverImage: post.coverImage || '',
                 summary: post.summary || '',
                 content: post.content,
-                categoryId: (post.category as any)?.id || '',
+                categoryId: post.category?.id || '',
                 status: post.status,
             });
         } else {
@@ -315,11 +385,11 @@ export default function AdminBlog({ session }: Props) {
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* ====== POST MODAL ====== */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
                     <div className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-                        <div className="sticky top-0 bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+                        <div className="sticky top-0 bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between z-10">
                             <h3 className="text-2xl font-bold text-white">
                                 {editingPost ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới'}
                             </h3>
@@ -332,38 +402,12 @@ export default function AdminBlog({ session }: Props) {
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Tiêu đề *
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Slug (để trống để tự động tạo)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.slug}
-                                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
-                                />
-                            </div>
-
+                            {/* Ảnh bìa */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Ảnh bìa
                                 </label>
-
-                                {/* Image Upload UI */}
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     {formData.coverImage ? (
                                         <div className="relative group rounded-lg overflow-hidden border border-gray-600">
                                             <img
@@ -371,16 +415,17 @@ export default function AdminBlog({ session }: Props) {
                                                 alt="Cover Preview"
                                                 className="w-full h-64 object-cover"
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                                                    (e.target as HTMLImageElement).style.display = 'none';
                                                 }}
                                             />
                                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, coverImage: '' })}
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
                                                 >
                                                     <Trash2 size={18} />
+                                                    <span>Xoá ảnh</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -410,17 +455,41 @@ export default function AdminBlog({ session }: Props) {
                                         </div>
                                     )}
 
-                                    {/* Fallback URL Input (Optional, kept hidden or secondary if needed, or just replaced) */}
-                                    {/* <input
-                                        type="url"
-                                        placeholder="Hoặc nhập URL ảnh..."
-                                        value={formData.coverImage}
-                                        onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
-                                    /> */}
+                                    {/* Upload error */}
+                                    {uploadError && (
+                                        <p className="text-red-400 text-sm">{uploadError}</p>
+                                    )}
                                 </div>
                             </div>
 
+                            {/* Tiêu đề */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Tiêu đề *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
+                                />
+                            </div>
+
+                            {/* Slug */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Slug (để trống để tự động tạo)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.slug}
+                                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
+                                />
+                            </div>
+
+                            {/* Tóm tắt */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Tóm tắt
@@ -433,6 +502,7 @@ export default function AdminBlog({ session }: Props) {
                                 />
                             </div>
 
+                            {/* Nội dung */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Nội dung (Markdown) *
@@ -446,24 +516,42 @@ export default function AdminBlog({ session }: Props) {
                                 />
                             </div>
 
+                            {/* Danh mục */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Danh mục
                                 </label>
-                                <select
-                                    value={formData.categoryId}
-                                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
-                                >
-                                    <option value="">Không có danh mục</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {cat.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="flex gap-2">
+                                    <select
+                                        value={formData.categoryId}
+                                        onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                                        className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A]"
+                                    >
+                                        <option value="">Không có danh mục</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCategoryModal(true)}
+                                        className="flex items-center gap-1 px-3 py-2 bg-[#008080] text-white rounded-lg hover:bg-[#006666] transition-colors whitespace-nowrap"
+                                        title="Tạo danh mục mới"
+                                    >
+                                        <FolderPlus size={18} />
+                                        <span className="hidden sm:inline">Tạo mới</span>
+                                    </button>
+                                </div>
+                                {categories.length === 0 && (
+                                    <p className="text-yellow-400 text-xs mt-1">
+                                        ⚠️ Chưa có danh mục nào. Nhấn &quot;Tạo mới&quot; để thêm danh mục.
+                                    </p>
+                                )}
                             </div>
 
+                            {/* Trạng thái */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Trạng thái
@@ -478,6 +566,7 @@ export default function AdminBlog({ session }: Props) {
                                 </select>
                             </div>
 
+                            {/* Actions */}
                             <div className="flex justify-end space-x-3 pt-4">
                                 <button
                                     type="button"
@@ -494,6 +583,69 @@ export default function AdminBlog({ session }: Props) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ====== NEW CATEGORY MODAL ====== */}
+            {showCategoryModal && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
+                    <div className="bg-gray-800 rounded-xl w-full max-w-md border border-gray-700 shadow-2xl">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                            <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                                <FolderPlus size={20} className="text-[#CDAD5A]" />
+                                Tạo danh mục mới
+                            </h4>
+                            <button
+                                onClick={() => setShowCategoryModal(false)}
+                                className="text-gray-400 hover:text-white"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Tên danh mục *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newCategoryName}
+                                    onChange={(e) => setNewCategoryName(e.target.value)}
+                                    placeholder="VD: Hướng dẫn, Mẹo YouTube, SEO..."
+                                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#CDAD5A] placeholder-gray-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleCreateCategory();
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => setShowCategoryModal(false)}
+                                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    onClick={handleCreateCategory}
+                                    disabled={!newCategoryName.trim() || creatingCategory}
+                                    className="px-4 py-2 bg-[#008080] text-white rounded-lg hover:bg-[#006666] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    {creatingCategory ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Đang tạo...
+                                        </>
+                                    ) : (
+                                        'Tạo danh mục'
+                                    )}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
