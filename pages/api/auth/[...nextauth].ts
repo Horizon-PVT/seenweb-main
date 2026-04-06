@@ -193,6 +193,7 @@ export const authOptions: NextAuthOptions = {
       (session.user as any).id = token.id;
       (session.user as any).role = token.role;
       (session.user as any).hasMasterclass = token.hasMasterclass;
+      (session.user as any).membershipExpiry = token.membershipExpiry;
       return session;
     },
   },
