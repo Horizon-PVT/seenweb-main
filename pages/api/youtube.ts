@@ -1,5 +1,7 @@
 // pages/api/youtube.ts
 // BẢN FULL ĐÃ FIX HOÀN HẢO CHO MICRO NICHE MINER + REDIS CACHE (Jan 2026)
+export const maxDuration = 60; // Cứu cánh lỗi Vercel Timeout (504 An error occurred with your deployment)
+
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';

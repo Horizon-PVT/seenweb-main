@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+export const maxDuration = 60; // Cứu cánh lỗi Vercel Timeout (504 An error occurred)
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]';
 import { GoogleGenerativeAI } from '@google/generative-ai';
