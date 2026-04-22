@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { GetServerSideProps } from "next";
 import Link from 'next/link';
-import { Wrench, GraduationCap, ShieldCheck, ArrowRight, Target, PenTool, Video, UploadCloud, DollarSign, LineChart, Database, FileText, Search, Map, Users, Star, Sparkles, Layers } from "lucide-react";
+import { Wrench, GraduationCap, ShieldCheck, ArrowRight, Target, PenTool, Video, UploadCloud, DollarSign, LineChart, Database, FileText, Map, Users, Star, Sparkles, Layers, Search, Download, CheckCircle2, Globe } from "lucide-react";
 
 // Hardcoded Series Data (Moved from Component)
 const VIDEO_SERIES_2026 = [
@@ -37,7 +37,7 @@ import CreatorMeritSection from "../components/CreatorMeritSection";
 import KnowledgeSection from "../components/KnowledgeSection";
 import VideoTipsSection from "../components/VideoTipsSection";
 import ExploreSection from "../components/ExploreSection";
-import ToolsGrid from "../components/ToolsGrid";
+
 import Partners from "../components/Partners";
 import Projects from "../components/Projects";
 import Testimonials from "../components/Testimonials";
@@ -55,10 +55,7 @@ import LeftPromotionSidebar from "@/components/LeftPromotionSidebar";
 import SocialProofBar from "@/components/SocialProofBar";
 import { prisma } from "../lib/prisma";
 
-// ✅ Overlay SSR off (an toàn cho tool dùng window, AudioContext, localStorage...)
-const ToolOverlay = dynamic(() => import("../components/ToolOverlay"), {
-  ssr: false,
-});
+
 
 // Fetch ebooks and videos from database
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
@@ -147,29 +144,7 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
   const title = t('home.meta_title');
   const description = t('home.meta_description');
 
-  // ✅ mở overlay khi có ?tool=<id>
-  const toolIdRaw = router.query.tool;
-  const toolId = typeof toolIdRaw === "string" ? toolIdRaw : null;
-  const openAnyTool = !!toolId;
 
-  // ✅ Close overlay + scroll to tools board
-  const closeAndGoToolsBoard = async () => {
-    const nextQuery = { ...router.query };
-    delete (nextQuery as any).tool;
-
-    await router.push(
-      { pathname: router.pathname, query: nextQuery },
-      undefined,
-      { shallow: true }
-    );
-
-    // wait for overlay unmount then scroll
-    setTimeout(() => {
-      document
-        .getElementById("bang-cong-cu-seenyt")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
 
   // Callback when onboarding modal goal is selected
   const handleOnboardingComplete = () => {
@@ -335,130 +310,144 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
           </div>
         </section>
 
-        {/* --- KHU VỰC 4: KEY TOOLS NỔI BẬT --- */}
+        {/* --- KHU VỰC 4: VŨ KHÍ HẠNG NẶNG (WORKFLOWS) --- */}
         <section className="py-24 relative overflow-hidden bg-[#050505] border-y border-white/5">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-pink-900/10 blur-[150px] rounded-full pointer-events-none" />
+
           <div className="max-w-7xl mx-auto px-4 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-black mb-4 text-white">{t('home_tools.title')}</h2>
-              <p className="text-gray-400 text-lg">{t('home_tools.subtitle')}</p>
+              <span className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-cyan-500/20 mb-4 inline-block">
+                Hệ Sinh Thái Mới
+              </span>
+              <h2 className="text-4xl md:text-6xl font-black mb-4 text-white">All-in-One <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Workflows</span></h2>
+              <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">Không bán công cụ lẻ tẻ. Chúng tôi mang đến cho bạn các luồng làm việc khép kín từ Idea cho đến Video cuối cùng để thống trị YouTube.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Tool 1 */}
-              <div className="bg-[#18181b] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
-                <div className="h-40 w-full relative overflow-hidden">
-                  <img src="/images/tool-niche-miner.jpg" alt="Đào Ngách CPM Cao" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">{t('home_tools.badge_hot')}</span>
-                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">{t('home_tools.badge_vip')}</span>
-                  </div>
+            <div className="flex flex-col gap-8">
+              
+              {/* Product 1: TRẠM NỘI DUNG WEB (Cloud) */}
+              <div className="bg-[#111] border border-white/5 p-8 md:p-12 rounded-[2.5rem] hover:border-pink-500/30 transition-all group overflow-hidden relative flex flex-col md:flex-row items-center gap-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 blur-[100px] pointer-events-none" />
+                <div className="md:w-1/2 relative z-10">
+                   <div className="w-16 h-16 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mb-6 border border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.2)] group-hover:scale-110 transition-transform">
+                     <Globe className="w-8 h-8 text-pink-400" />
+                   </div>
+                   <h3 className="text-3xl md:text-4xl font-black text-white mb-4">1. Trạm Nội Dung Web</h3>
+                   <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                     Giải pháp Cloud All-in-One: Dò đài tìm ngách dễ chơi, AI Thầy Youtube viết kịch bản 10 vạn chữ chuẩn SEO, và công cụ Lồng tiếng chân thực. Mọi thứ trên mây, không cần cài đặt.
+                   </p>
+                   <ul className="space-y-3 mb-8">
+                      <li className="flex items-center gap-3 text-gray-300"><CheckCircle2 className="w-5 h-5 text-pink-500" /> Dò ngách siêu nhỏ, bóc tách đối thủ</li>
+                      <li className="flex items-center gap-3 text-gray-300"><CheckCircle2 className="w-5 h-5 text-pink-500" /> Viết kịch bản tự động, tối ưu SEO kênh</li>
+                   </ul>
+                   <Link href="/dashboard" className="inline-flex w-full md:w-auto py-4 px-8 rounded-xl bg-white/5 border border-white/10 group-hover:bg-pink-600 group-hover:text-white group-hover:border-transparent text-white font-bold items-center justify-center gap-2 transition-all">
+                      Sử Dụng Trạm Web <ArrowRight className="w-5 h-5" />
+                   </Link>
                 </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-white mb-2">{t('home_tools.tool1_title')}</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool1_desc')}</p>
-                  <div className="flex items-center gap-1.5 text-cyan-500 text-xs font-black tracking-widest uppercase group-hover:text-cyan-400 transition-colors mt-auto">
-                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Tool 2 */}
-              <div className="bg-[#18181b] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
-                <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
-                  <img src="/images/tool-niche-engine.jpg" alt="Thư Viện Ngách Thắng 100%" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">{t('home_tools.badge_hot')}</span>
-                    <span className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-purple-500/20">{t('home_tools.badge_vip')}</span>
-                  </div>
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-white mb-2">{t('home_tools.tool2_title')}</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool2_desc')}</p>
-                  <div className="flex items-center gap-1.5 text-gray-500 text-xs font-black tracking-widest uppercase group-hover:text-white transition-colors mt-auto">
-                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
-                  </div>
+                <div className="md:w-1/2 w-full mt-8 md:mt-0 relative aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 group-hover:shadow-[0_0_50px_rgba(236,72,153,0.2)] transition-shadow">
+                   <img src="/images/tool-niche-miner.jpg" alt="Trạm Nội Dung Web" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
                 </div>
               </div>
 
-              {/* Tool 3 */}
-              <div className="bg-[#111111] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
-                <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
-                  <img src="/images/tool-scriptwriter.jpg" alt="Viết Kịch Bản Viral" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-white mb-2">{t('home_tools.tool3_title')}</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool3_desc')}</p>
-                  <div className="flex items-center gap-1.5 text-cyan-600 text-xs font-black tracking-widest uppercase group-hover:text-cyan-500 transition-colors mt-auto">
-                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
+              {/* Product 2: KODA VIDEO STUDIO (BYOK) */}
+              <div className="mt-8 bg-gradient-to-br from-[#18181b] to-black border border-cyan-500/30 shadow-[0_0_50px_rgba(0,255,180,0.15)] rounded-[2.5rem] overflow-hidden hover:-translate-y-2 transition-transform duration-500 group flex flex-col md:flex-row relative z-20">
+                <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-blue-500/5 animate-pulse rounded-[2.5rem] pointer-events-none" />
+                <div className="md:w-1/2 p-8 md:p-12 xl:p-16 flex flex-col justify-center relative z-10">
+                  <div className="flex gap-2 mb-6">
+                    <span className="bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-black px-3 py-1.5 rounded-md uppercase tracking-widest flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" /> Vũ Khí Hạng Nặng
+                    </span>
+                    <span className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white text-xs font-black px-3 py-1.5 rounded-md uppercase tracking-widest shadow-lg shadow-cyan-500/20">
+                       Windows Desktop App
+                    </span>
                   </div>
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 mb-6 leading-tight">
+                    2. Koda Video <br /> <span className="text-[#00ffb4]">Studio</span>
+                  </h3>
+                  <p className="text-gray-300 text-lg md:text-xl mb-8 leading-relaxed max-w-lg">
+                    Chìa khóa thay thế một studio thực thụ. <strong>Phần mềm Windows</strong> tự động cào hàng nghìn ảnh, ghép nhạc, làm hiệu ứng lách bản quyền video 4K tốc độ cao bằng sức mạnh Card Đồ Hoạ của chính bạn.
+                  </p>
+                  <Link href="/dashboard" className="inline-flex items-center justify-between bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-8 py-5 rounded-2xl font-bold transition-all shadow-xl hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] w-max border border-white/20">
+                    <span className="flex items-center gap-2"><Download className="w-5 h-5" /> Tải Giải Pháp Về Máy</span>
+                  </Link>
                 </div>
-              </div>
-
-              {/* Tool 4 */}
-              <div className="bg-[#111111] border border-white/5 shadow-2xl rounded-2xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col relative">
-                <div className="h-40 w-full relative overflow-hidden bg-gray-900 border-b border-white/5">
-                  <img src="/images/tool-seo.jpg" alt="Tối Ưu SEO & Từ Khóa" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg shadow-red-500/20">{t('home_tools.badge_hot')}</span>
-                  </div>
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-cyan-400 mb-2">{t('home_tools.tool4_title')}</h3>
-                  <p className="text-gray-400 text-sm mb-6 flex-1 leading-relaxed">{t('home_tools.tool4_desc')}</p>
-                  <div className="flex items-center gap-1.5 text-cyan-600 text-xs font-black tracking-widest uppercase group-hover:text-cyan-500 transition-colors mt-auto">
-                    {t('home_tools.launch')} <ArrowRight className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tool 5: All-in-One Super Tool (Full Width Featured) */}
-            <div className="mt-8 bg-gradient-to-br from-[#18181b] to-black border border-cyan-500/30 shadow-[0_0_40px_rgba(0,255,180,0.1)] rounded-3xl overflow-hidden hover:-translate-y-2 transition-transform duration-300 group flex flex-col md:flex-row relative z-20">
-              <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-10 mix-blend-overlay pointer-events-none" />
-              <div className="md:w-1/2 p-8 md:p-12 xl:p-16 flex flex-col justify-center relative z-10">
-                <div className="flex gap-2 mb-6">
-                  <span className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-black px-3 py-1.5 rounded-md uppercase tracking-widest flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" /> Mới Ra Mắt
-                  </span>
-                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-black px-3 py-1.5 rounded-md uppercase tracking-widest shadow-lg shadow-purple-500/20">
-                    Siêu Công Cụ
-                  </span>
-                </div>
-                <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 mb-4 leading-tight">
-                  Sáng Tạo Video <br /> <span className="text-[#00ffb4]">All-in-One Studio</span>
-                </h3>
-                <p className="text-gray-400 text-base md:text-lg mb-8 leading-relaxed max-w-lg">
-                  Không cần chuyển đổi hàng chục tab. Giờ đây bạn có thể nghiên cứu, viết kịch bản, lồng tiếng và dựng video AI ngay trong <strong>một không gian duy nhất</strong>.
-                </p>
-                <Link href="/all-in-one" className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] w-max">
-                  Khám Phá All-in-One <ArrowRight className="w-5 h-5" />
-                </Link>
-              </div>
-              <div className="md:w-1/2 relative min-h-[300px] md:min-h-full bg-[#0a0f1e] overflow-hidden flex items-center justify-center p-8 border-t md:border-t-0 md:border-l border-white/5">
-                <div className="absolute inset-0 bg-cyan-900/20 blur-[100px] rounded-full" />
-                <div className="relative w-full max-w-md aspect-[4/3] bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl flex flex-col p-4 transform md:rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                  <div className="flex gap-2 mb-4 border-b border-white/5 pb-4">
-                    <div className="w-3 h-3 rounded-full bg-red-400/50" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-400/50" />
-                    <div className="w-3 h-3 rounded-full bg-green-400/50" />
-                  </div>
-                  <div className="flex-1 flex gap-4">
-                    <div className="w-1/4 bg-white/5 rounded-lg" />
-                    <div className="flex-1 flex flex-col gap-4">
-                      <div className="h-1/2 bg-cyan-500/10 rounded-lg flex items-center justify-center border border-cyan-500/20">
-                          <Layers className="w-10 h-10 text-cyan-400/50" />
+                <div className="md:w-1/2 relative min-h-[300px] md:min-h-full bg-[#0a0f1e] overflow-hidden flex items-center justify-center p-8 border-t md:border-t-0 md:border-l border-white/5">
+                  <div className="absolute inset-0 bg-cyan-900/30 blur-[120px] rounded-full" />
+                  <div className="relative w-full max-w-md aspect-[4/3] bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col p-4 transform md:rotate-2 group-hover:rotate-0 transition-transform duration-500">
+                    <div className="flex gap-2 mb-4 border-b border-white/5 pb-4">
+                      <div className="w-3 h-3 rounded-full bg-red-400/80 shadow-[0_0_10px_rgba(248,113,113,0.5)]" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-400/80 shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                      <div className="w-3 h-3 rounded-full bg-green-400/80 shadow-[0_0_10px_rgba(74,222,128,0.5)]" />
+                    </div>
+                    <div className="flex-1 flex gap-4">
+                      <div className="w-1/4 bg-white/5 rounded-lg flex flex-col gap-2 p-2">
+                          <div className="w-full h-8 bg-cyan-500/20 rounded border border-cyan-500/20" />
+                          <div className="w-full h-8 bg-white/5 rounded" />
+                          <div className="w-full h-8 bg-white/5 rounded" />
                       </div>
-                      <div className="flex-1 bg-white/5 rounded-lg" />
+                      <div className="flex-1 flex flex-col gap-4">
+                        <div className="h-2/3 bg-[url('/images/noise.png')] bg-cyan-900/40 rounded-lg flex items-center justify-center border border-cyan-500/30 overflow-hidden relative">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                            <Video className="w-12 h-12 text-cyan-400/80 relative z-10 animate-pulse" />
+                        </div>
+                        <div className="flex-1 bg-white/5 rounded-lg border border-white/5" />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mt-16 text-center">
-              <Link href="/dashboard" className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-full font-bold transition-colors shadow">
-                {t('home_tools.cta')} <ArrowRight className="w-5 h-5" />
-              </Link>
+               {/* Product 3: KODA WEB NOVEL (BYOK) */}
+               <div className="mt-8 bg-gradient-to-br from-[#18181b] to-black border border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.15)] rounded-[2.5rem] overflow-hidden hover:-translate-y-2 transition-transform duration-500 group flex flex-col md:flex-row relative z-20">
+                <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-pink-500/5 animate-pulse rounded-[2.5rem] pointer-events-none" />
+                <div className="md:w-1/2 p-8 md:p-12 xl:p-16 flex flex-col justify-center relative z-10">
+                  <div className="flex gap-2 mb-6">
+                    <span className="bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-black px-3 py-1.5 rounded-md uppercase tracking-widest flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" /> Vũ Khí Hạng Nặng
+                    </span>
+                    <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-black px-3 py-1.5 rounded-md uppercase tracking-widest shadow-lg shadow-purple-500/20">
+                       Windows Desktop App
+                    </span>
+                  </div>
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 mb-6 leading-tight">
+                    3. Koda Web <br /> <span className="text-[#e879f9]">Novel</span>
+                  </h3>
+                  <p className="text-gray-300 text-lg md:text-xl mb-8 leading-relaxed max-w-lg">
+                    Cỗ máy sản xuất Truyện Chữ. Tự động cào truyện, tạo hình nhân vật, xào nấu nội dung bằng AI và xuất bản hàng loạt lên các nền tảng Web Novel lớn nhất, chỉ bằng 1 cú click!
+                  </p>
+                  <Link href="/dashboard" className="inline-flex items-center justify-between bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-8 py-5 rounded-2xl font-bold transition-all shadow-xl hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] w-max border border-white/20">
+                    <span className="flex items-center gap-2"><Download className="w-5 h-5" /> Tải Giải Pháp Về Máy</span>
+                  </Link>
+                </div>
+                <div className="md:w-1/2 relative min-h-[300px] md:min-h-full bg-[#0a0f1e] overflow-hidden flex items-center justify-center p-8 border-t md:border-t-0 md:border-l border-white/5">
+                  <div className="absolute inset-0 bg-purple-900/30 blur-[120px] rounded-full" />
+                  <div className="relative w-full max-w-md aspect-[4/3] bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col p-4 transform md:-rotate-2 group-hover:rotate-0 transition-transform duration-500">
+                    <div className="flex gap-2 mb-4 border-b border-white/5 pb-4">
+                      <div className="w-3 h-3 rounded-full bg-red-400/80 shadow-[0_0_10px_rgba(248,113,113,0.5)]" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-400/80 shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                      <div className="w-3 h-3 rounded-full bg-green-400/80 shadow-[0_0_10px_rgba(74,222,128,0.5)]" />
+                    </div>
+                    <div className="flex-1 flex gap-4">
+                      <div className="w-1/4 bg-white/5 rounded-lg flex flex-col gap-2 p-2">
+                          <div className="w-full h-8 bg-purple-500/20 rounded border border-purple-500/20" />
+                          <div className="w-full h-8 bg-white/5 rounded" />
+                          <div className="w-full h-8 bg-white/5 rounded" />
+                      </div>
+                      <div className="flex-1 flex flex-col gap-4">
+                        <div className="h-2/3 bg-[url('/images/noise.png')] bg-purple-900/40 rounded-lg flex items-center justify-center border border-purple-500/30 overflow-hidden relative">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                            <Database className="w-12 h-12 text-purple-400/80 relative z-10 animate-pulse" />
+                        </div>
+                        <div className="flex-1 bg-white/5 rounded-lg border border-white/5" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
@@ -548,11 +537,6 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
       <Footer />
       <ChatbotWidget />
       {/* Sidebars REMOVED for clean layout */}
-
-      {/* ✅ Overlay full-screen: mở cho TẤT CẢ tool */}
-      {openAnyTool && toolId && (
-        <ToolOverlay toolId={toolId} onBack={closeAndGoToolsBoard} />
-      )}
     </div>
   );
 }

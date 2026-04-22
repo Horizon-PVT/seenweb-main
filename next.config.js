@@ -44,6 +44,15 @@ const nextConfig = {
   },
 
   pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+
+  webpack: (config, { dev }) => {
+    // Tắt bộ nhớ đệm (cache) của Webpack trong môi trường Dev
+    // Sẽ sửa dứt điểm lỗi Fast Refresh bị lặp vô tận (Loop) do Windows Antivirus khoá file .pack.gz
+    if (dev) {
+      config.cache = false;
+    }
+    return config;
+  },
 };
 
 module.exports = withMDX(nextConfig);
