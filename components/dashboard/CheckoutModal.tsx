@@ -1,127 +1,99 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, ShieldCheck, Zap, ArrowRight, Lock, Plus, Loader2 } from 'lucide-react';
+import { X, Check, Zap, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { PRICING, FEATURE_COMPARISON, calculatePrice, PRICING_CONFIG } from '@/lib/plans';
 import axios from 'axios';
 
 interface CheckoutModalProps {
     isOpen: boolean;
     onClose: () => void;
-    currentPlan?: string;
-    currentChannelCount?: number;
     requiredPlan?: string;
     userEmail?: string;
+    forceYearly?: boolean;
 }
 
 export default function CheckoutModal({
     isOpen,
     onClose,
-    currentPlan = 'FREE',
-    currentChannelCount = 0,
-    userEmail = ''
+    requiredPlan = '',
+    userEmail = '',
+    forceYearly = false
 }: CheckoutModalProps) {
-    const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'YEARLY'>('YEARLY'); // AUTO DEFAULT YEARLY
+    const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'YEARLY'>(forceYearly ? 'YEARLY' : 'MONTHLY');
     const [email, setEmail] = useState(userEmail);
-    const [channelCount, setChannelCount] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [mounted, setMounted] = useState(false);
 
-    // For SSR - only render portal on client
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    // CONTEXTUAL LOGIC STATE — use actual plan role, not channel count
-    const isFree = !currentPlan || currentPlan === 'FREE' || currentPlan === 'USER';
-    const isBasic = currentPlan === 'BASIC';
-    const isPro = currentPlan === 'PRO' || currentPlan === 'ADMIN';
-
-    // Smart Defaults based on User State
     useEffect(() => {
         if (isOpen) {
-            setBillingCycle('YEARLY');
+            setBillingCycle(forceYearly ? 'YEARLY' : 'MONTHLY');
             if (userEmail) setEmail(userEmail);
-
-            if (isFree) setChannelCount(1);
-            else if (isBasic) setChannelCount(2);
-            else if (isPro) setChannelCount(currentChannelCount + 1);
         }
-    }, [isOpen, currentChannelCount, isFree, isBasic, isPro, userEmail]);
+    }, [isOpen, forceYearly, userEmail]);
 
     if (!isOpen || !mounted) return null;
 
     const isYearly = billingCycle === 'YEARLY';
 
-    // Calculate Pricing Logic
-    const monthlyTotal = calculatePrice(channelCount, 'MONTHLY');
-    const annualTotal = calculatePrice(channelCount, 'YEARLY');
+    // Exact Workflow Pricing
+    let baseMonthly = 169000;
+    let baseYearly = 169000 * 12 * 0.7;
+    let planLabel = 'Gói Cơ Bản';
+    let targetPlanRole = 'BASIC';
+    let features: string[] = [];
 
-    const finalPrice = isYearly ? annualTotal : monthlyTotal;
-
-    // Upgrade Cost Logic (Difference)
-    let displayPrice = finalPrice;
-    let isUpgrade = false;
-
-    if (isPro && channelCount > 2) {
-        // User is Pro, buying extra slots
-        const slotsToAdd = channelCount - currentChannelCount;
-        if (slotsToAdd > 0) {
-            isUpgrade = true;
-            const slotPrice = PRICING_CONFIG.EXTRA_SLOT;
-            const monthlyAddon = slotPrice * slotsToAdd;
-
-            if (isYearly) {
-                displayPrice = monthlyAddon * 12 * 0.7;
-            } else {
-                displayPrice = monthlyAddon;
-            }
-        }
+    if (requiredPlan === 'WEBSPACE') {
+        baseMonthly = 199000;
+        baseYearly = Math.round(199000 * 12 * 0.7);
+        planLabel = 'Webspace SEO';
+        targetPlanRole = 'WEBSPACE';
+        features = ["Tìm Ngách & Đối thủ", "Sinh kịch bản Viral", "Tối ưu hóa On-Page"];
+    } else if (requiredPlan === 'STUDIO') {
+        baseMonthly = 459000;
+        baseYearly = Math.round(459000 * 12 * 0.7);
+        planLabel = 'Koda Studio (Video Auto)';
+        targetPlanRole = 'STUDIO';
+        features = ["Render Video YouTube/Tiktok", "Hỗ trợ làm phim Veo3", "Tặng lõi Voice TTS đỉnh cao", "Tool chạy ẩn trên Window"];
+    } else if (requiredPlan === 'NOVEL') {
+        baseMonthly = 559000;
+        baseYearly = Math.round(559000 * 12 * 0.7);
+        planLabel = 'Koda Novel (Phim Truyện)';
+        targetPlanRole = 'NOVEL';
+        features = ["Sáng tác Truyện Chữ Auto", "Chuyển thể tiểu thuyết thành Video", "Quản lý dữ liệu nhân vật", "Lồng giọng nhân vật tự động"];
+    } else if (requiredPlan === 'COMBO') {
+        baseMonthly = 790000;
+        baseYearly = 6990000; // Custom Anchor Decoy Price
+        planLabel = 'VIP COMBO ALL-IN-ONE';
+        targetPlanRole = 'VIP_COMBO';
+        features = ["Mở khóa 100% Webspace", "Mở khóa 100% Koda Studio", "Mở khóa 100% Koda Novel", "Cam kết rẻ nhất hệ sinh thái"];
     }
 
-    // Determine Labels & Contextual Message
-    let planLabel = 'Basic Plan';
-
-    if (channelCount === 2) {
-        planLabel = 'Pro Plan - Chuyên nghiệp';
-    }
-    if (channelCount > 2) {
-        planLabel = `Gói Pro (2 Kênh) + Mua thêm ${channelCount - 2} Slot`;
-    }
+    const finalPrice = isYearly ? baseYearly : baseMonthly;
 
     // PAYMENT HANDLER
     const handlePayment = async () => {
         if (!email) {
-            toast.error('Vui lòng nhập email');
+            toast.error('Vui lòng nhập Email nạp VIP!');
             return;
         }
 
         setIsLoading(true);
         try {
-            // Determine Plan Code and Role based on selection
-            // We need to map the channel count to a role or plan logic
-            // Assuming Upgrade logic stores extra slots
-
-            let targetPlanRole = 'BASIC'; // Default
-            if (channelCount === 2) targetPlanRole = 'PRO'; // Pro
-            if (channelCount > 2) targetPlanRole = 'PRO'; // Pro + Slots
-
-            // Construct Description
-            const planDescription = isUpgrade
-                ? `Nâng cấp thêm ${channelCount - currentChannelCount} Slot (${billingCycle})`
-                : `Mua mới gói ${channelCount} Kênh (${billingCycle})`;
+            const planDescription = `Nâng cấp ${planLabel} (${billingCycle})`;
 
             const res = await axios.post('/api/payment/create-payos-link', {
                 email,
-                amount: Math.round(displayPrice),
+                amount: Math.round(finalPrice),
                 plan: planDescription,
                 role: targetPlanRole,
-                note: `Channels: ${channelCount}, Cycle: ${billingCycle}`,
-                // Explicit data for webhook — no more text parsing
+                note: `Cycle: ${billingCycle}`,
                 billingCycle,
-                isSlotUpgrade: isUpgrade,
-                extraChannelSlots: isUpgrade ? (channelCount - currentChannelCount) : 0
+                isSlotUpgrade: false,
+                extraChannelSlots: 0
             });
 
             if (res.data.success && res.data.data.paymentUrl) {
@@ -137,11 +109,12 @@ export default function CheckoutModal({
         }
     };
 
-    const modalContent = (
+    const formatPrice = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[999999]">
-                    {/* Backdrop */}
+                <div className="fixed inset-0 z-[999999]" style={{ zIndex: 999999 }}>
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -150,8 +123,7 @@ export default function CheckoutModal({
                         className="absolute inset-0 bg-black/90 backdrop-blur-sm"
                     />
 
-                    {/* Modal Container */}
-                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 999999 }}>
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -162,56 +134,40 @@ export default function CheckoutModal({
                                 <X size={20} />
                             </button>
 
-                            {/* LEFT COLUMN: HERO IMAGE & FEATURES */}
+                            {/* LEFT COLUMN: HERO & FEATURES */}
                             <div className="w-full md:w-5/12 flex flex-col bg-[#161b22] border-r border-gray-800">
-                                {/* HERO IMAGE SECTION - TOP HALF */}
                                 <div className="relative h-48 md:h-64 w-full overflow-hidden">
                                     <img
                                         src="/images/checkout-hero.jpg"
-                                        alt="10X YouTube"
+                                        alt="Checkout Hero"
                                         className="w-full h-full object-cover object-top"
                                     />
                                     <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#161b22] to-transparent"></div>
                                 </div>
 
-                                {/* TEXT CONTENT - BOTTOM HALF */}
                                 <div className="p-6 md:p-8 flex flex-col flex-1">
                                     <h2 className="text-2xl font-black text-white italic tracking-tighter mb-4">
-                                        10X <span className="text-blue-500">YouTube</span>
+                                        SEEN<span className="text-blue-500">YT</span> AI
                                     </h2>
 
                                     <div className="space-y-3 mb-6">
-                                        <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
                                             <Zap size={14} className="text-yellow-500" />
-                                            Quyền lợi nổi bật
+                                            Quyền lợi nổi bật gói
                                         </h3>
                                         <div className="space-y-2">
-                                            {FEATURE_COMPARISON.map((feat, idx) => (
+                                            {features.map((feat, idx) => (
                                                 <div key={idx} className="flex items-start gap-3">
                                                     <div className="mt-0.5 bg-green-500/10 p-1 rounded-full">
                                                         <Check size={10} className="text-green-500" />
                                                     </div>
-                                                    <div className="text-sm text-gray-300">
-                                                        {idx === 4 ? (
-                                                            <span className="text-white font-bold">{channelCount} Kênh YouTube</span>
-                                                        ) : feat.basic}
+                                                    <div className="text-sm text-gray-300 font-medium">
+                                                        {feat}
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-
-                                    {/* UPSELL MESSAGE */}
-                                    {currentChannelCount > 0 && (
-                                        <div className="bg-blue-600/10 border border-blue-500/20 p-3 rounded-xl mt-auto">
-                                            <div className="text-[10px] text-blue-400 font-bold mb-1 uppercase tracking-wide">Trạng thái</div>
-                                            <div className="text-white font-bold flex items-center gap-2 text-sm">
-                                                <span className="opacity-70">{currentChannelCount} Kênh</span>
-                                                <ArrowRight size={14} className="text-gray-500" />
-                                                <span className="text-green-400">Lên {channelCount} Kênh</span>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
@@ -219,134 +175,68 @@ export default function CheckoutModal({
                             <div className="w-full md:w-7/12 bg-[#0D0D10] p-8 flex flex-col">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
-                                    <h2 className="text-2xl font-bold text-white">Cấu hình gói của bạn</h2>
+                                    <h2 className="text-2xl font-bold text-white">Thanh toán tự động 24/7</h2>
                                 </div>
 
-                                {!isPro ? (
-                                    // LOCKED VIEW FOR FREE/BASIC
-                                    <div className="mb-8 p-6 bg-gray-900 rounded-2xl border border-gray-800 flex items-center justify-between shadow-inner">
-                                        <div>
-                                            <div className="text-sm font-bold text-gray-400 mb-1">Gói đề xuất cho bạn</div>
-                                            <div className="text-3xl font-black text-white">{channelCount} Kênh</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-lg shadow-blue-900/50 mb-1 inline-block">
-                                                {isFree ? 'STARTER' : 'UPGRADE'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    // SLIDER VIEW FOR PRO+
-                                    <div className="mb-8 p-6 bg-gray-900 rounded-2xl border border-gray-800 shadow-inner">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <label className="text-sm font-bold text-gray-300">Bạn muốn quản lý bao nhiêu kênh?</label>
-                                            <span className="text-4xl font-black text-white tracking-tighter">{channelCount}</span>
-                                        </div>
-
-                                        <div className="relative h-12 flex items-center">
-                                            <input
-                                                type="range"
-                                                min={Math.max(currentChannelCount + 1, 3)}
-                                                max="10"
-                                                step="1"
-                                                value={channelCount}
-                                                onChange={(e) => setChannelCount(parseInt(e.target.value))}
-                                                className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500 z-10 relative"
-                                            />
-                                            <div className="absolute inset-0 flex justify-between px-1 pointer-events-none">
-                                                {[...Array(8)].map((_, i) => (
-                                                    <div key={i} className="w-1 h-1 bg-gray-600 rounded-full"></div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between text-xs text-gray-500 mt-2 font-mono">
-                                            <span>{currentChannelCount} kênh</span>
-                                            <span>MAX 10</span>
-                                        </div>
-                                    </div>
-                                )}
+                                <div className="mb-8 p-6 bg-gray-900 rounded-2xl border border-gray-800 shadow-inner flex flex-col items-center">
+                                    <div className="text-sm font-bold text-gray-400 mb-1">Bạn đang chọn Nạp Gói:</div>
+                                    <div className="text-2xl font-black text-blue-400 uppercase tracking-wider text-center">{planLabel}</div>
+                                </div>
 
                                 {/* BILLING CYCLE */}
                                 <div className="grid grid-cols-2 gap-4 mb-8">
                                     <button
                                         onClick={() => setBillingCycle('MONTHLY')}
-                                        className={`p-4 rounded-xl border-2 text-left transition-all ${billingCycle === 'MONTHLY' ? 'border-blue-600 bg-blue-900/10' : 'border-gray-800 bg-gray-900/30 opacity-60 hover:opacity-100 hover:border-gray-700'}`}
+                                        className={`p-4 rounded-xl border-2 text-left transition-all ${billingCycle === 'MONTHLY' ? 'border-blue-600 bg-blue-900/10' : 'border-gray-800 bg-gray-900/30 opacity-60 hover:opacity-100'}`}
                                     >
                                         <div className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider">Thanh toán tháng</div>
                                         <div className="text-lg font-black text-white">
-                                            {isUpgrade ? `+ ${PRICING_CONFIG.EXTRA_SLOT.toLocaleString()} đ` : `${monthlyTotal.toLocaleString()} đ`}
+                                            {formatPrice(baseMonthly)} đ
                                         </div>
                                     </button>
+                                    
                                     <button
                                         onClick={() => setBillingCycle('YEARLY')}
-                                        className={`relative p-4 rounded-xl border-2 text-left transition-all ${billingCycle === 'YEARLY' ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-900/20 ring-1 ring-blue-400' : 'border-gray-800'}`}
+                                        className={`p-4 rounded-xl border-2 text-left transition-all relative ${billingCycle === 'YEARLY' ? 'border-blue-500 bg-blue-900/10' : 'border-gray-800 bg-gray-900/30 opacity-60 hover:opacity-100'}`}
                                     >
-                                        <div className="absolute -top-3 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg">SAVE 30%</div>
-                                        <div className="text-xs font-bold text-blue-300 mb-1 uppercase tracking-wider flex items-center gap-1">
-                                            <Check size={10} strokeWidth={4} /> Khuyên dùng
+                                        <div className="absolute -top-3 -right-3 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg animate-bounce">
+                                            SIÊU TIẾT KIỆM
                                         </div>
-                                        <div className="text-xl font-black text-white mb-1">
-                                            {isUpgrade
-                                                ? `+ ${(PRICING_CONFIG.EXTRA_SLOT * 0.7).toLocaleString()} đ`
-                                                : `${Math.round(annualTotal / 12).toLocaleString()} đ`}
-                                            <span className="text-sm font-medium text-gray-400">/tháng</span>
-                                        </div>
-                                        <div className="text-[11px] text-gray-400 bg-black/20 px-2 py-1 rounded inline-block">
-                                            Tổng: {isUpgrade ? (displayPrice).toLocaleString() : annualTotal.toLocaleString()} đ/năm
+                                        <div className="text-xs font-bold text-blue-400 mb-1 uppercase tracking-wider">Thanh toán năm</div>
+                                        <div className="text-lg font-black text-white">
+                                            {formatPrice(baseYearly)} đ
                                         </div>
                                     </button>
                                 </div>
 
-                                {/* TOTAL SUMMARY */}
-                                <div className="mt-auto border-t border-gray-800 pt-6">
-                                    <div className="flex justify-between items-end mb-6">
-                                        <div>
-                                            <div className="text-white font-bold text-lg flex items-center gap-2">
-                                                {isUpgrade && <Plus size={20} className="text-green-500" />}
-                                                {isUpgrade ? `Nâng cấp thêm ${channelCount - currentChannelCount} Slot` : planLabel}
-                                            </div>
-                                            <div className="text-gray-500 text-sm mt-1">
-                                                {isYearly ? 'Gói trọn gói 1 năm (Tiết kiệm nhất)' : 'Gói linh hoạt theo tháng'}
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
-                                                {isUpgrade ? '+' : ''}{displayPrice.toLocaleString()} đ
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div className="mb-8">
+                                    <label className="text-xs font-bold text-gray-400 mb-2 block uppercase tracking-wider">Email kích hoạt hệ thống</label>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Nhập email của bạn (vd: tung@gmail.com)"
+                                        className="w-full bg-gray-900/50 border border-gray-800 rounded-xl px-4 py-4 text-white hover:border-gray-700 outline-none focus:border-blue-500 transition-colors"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-2 italic">Tài khoản & mã sẽ được gửi về mail này ngay lập tức.</p>
+                                </div>
 
-                                    <div className="mb-4 relative">
-                                        <label className="absolute -top-2.5 left-3 bg-[#0D0D10] px-1 text-[10px] font-bold text-blue-500 uppercase tracking-wider">Thông tin nhận hóa đơn</label>
-                                        <input
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="Nhập email của bạn..."
-                                            className="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-4 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-600"
-                                        />
+                                <div className="mt-auto">
+                                    <div className="flex items-center justify-between mb-4 px-2">
+                                        <span className="text-gray-400 font-bold">Tổng thanh toán:</span>
+                                        <span className="text-3xl font-black text-white">{formatPrice(finalPrice)} đ</span>
                                     </div>
-
                                     <button
                                         onClick={handlePayment}
                                         disabled={isLoading}
-                                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-lg py-4 rounded-xl shadow-xl shadow-blue-900/30 transition-all hover:scale-[1.01] active:scale-[0.99] flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-lg rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isLoading ? (
-                                            <>
-                                                <Loader2 className="animate-spin" /> Đang tạo giao dịch...
-                                            </>
+                                            <><Loader2 size={20} className="animate-spin" /> QUÉT MÃ QR...</>
                                         ) : (
-                                            <>
-                                                <ShieldCheck size={20} />
-                                                {isUpgrade ? `Thanh toán nâng cấp • ${displayPrice.toLocaleString()} đ` : `Thanh toán ngay • ${displayPrice.toLocaleString()} đ`}
-                                            </>
+                                            <>QUÉT PAYOS NGAY <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" /></>
                                         )}
                                     </button>
-
-                                    <p className="text-center text-xs text-gray-600 mt-4">
-                                        Thông tin thanh toán được bảo mật an toàn tuyệt đối bởi PayOS
-                                    </p>
                                 </div>
                             </div>
                         </motion.div>
@@ -355,7 +245,4 @@ export default function CheckoutModal({
             )}
         </AnimatePresence>
     );
-
-    // Use Portal to render at body level - avoids stacking context issues
-    return createPortal(modalContent, document.body);
 }

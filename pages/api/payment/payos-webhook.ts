@@ -238,13 +238,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         }
 
+        // =================== AUTO LICENSE KEY GENERATION (VPS KODA) ===================
+        // If the purchased plan includes desktop tools (STUDIO, NOVEL, VIP_COMBO),
+        // we auto-call the VPS license server to generate a key and save it to user profile.
+        let generatedLicenseKey: string | null = null;
+        const toolRoles = ['STUDIO', 'NOVEL', 'VIP_COMBO'];
+        const purchasedRole = paymentRequest.role;
+
+        if (toolRoles.includes(purchasedRole)) {
+            try {
+                // Map SeenWeb role to VPS tier
+                let vpsTier = 'vip'; // Default VIP (includes AI proxy)
+                if (purchasedRole === 'STUDIO') vpsTier = 'combo_master'; // Studio gets full tool access
+                if (purchasedRole === 'NOVEL') vpsTier = 'combo_master';  // Novel gets full tool access  
+                if (purchasedRole === 'VIP_COMBO') vpsTier = 'combo_master'; // Combo = everything
+
+                const vpsResponse = await axios.post('http://47.250.174.44/api/admin/create-license', {
+                    adminSecret: 'koda-admin-2026',
+                    tier: vpsTier,
+                    owner: `${paymentRequest.email} (Web Auto)`,
+                    expiresInDays: membershipDays
+                }, { timeout: 10000 }); // 10s timeout
+
+                if (vpsResponse.data?.success && vpsResponse.data?.licenseKey) {
+                    generatedLicenseKey = vpsResponse.data.licenseKey;
+                    
+                    // Save license key to user profile
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            kodaLicenseKey: generatedLicenseKey,
+                            kodaTier: vpsTier
+                        }
+                    });
+                    console.log(`[Auto License] ✅ Generated ${generatedLicenseKey} for ${paymentRequest.email} (tier: ${vpsTier}, days: ${membershipDays})`);
+                }
+            } catch (licErr: any) {
+                console.error('[Auto License] ❌ Failed to generate license from VPS:', licErr.message);
+                // Non-blocking: payment still succeeds, admin can manually create key later
+            }
+        }
+
         // Send Telegram notification directly
         try {
             const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
             const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
             if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-                const msg = `✅ THANH TOÁN THÀNH CÔNG!\n------------------------------------\n- Khách: ${paymentRequest.email}\n- Số tiền: ${paymentRequest.amount.toLocaleString('vi-VN')} đ\n- Gói: ${paymentInfo.plan || 'N/A'} (${paymentRequest.role})\n- Mã đơn: ${orderCode}\n------------------------------------\nGói đã được kích hoạt tự động! 🎉`;
+                const licenseInfo = generatedLicenseKey 
+                    ? `\n🔑 License Key: ${generatedLicenseKey}` 
+                    : '';
+                const msg = `✅ THANH TOÁN THÀNH CÔNG!\n------------------------------------\n- Khách: ${paymentRequest.email}\n- Số tiền: ${paymentRequest.amount.toLocaleString('vi-VN')} đ\n- Gói: ${paymentInfo.plan || 'N/A'} (${paymentRequest.role})\n- Mã đơn: ${orderCode}${licenseInfo}\n------------------------------------\nGói đã được kích hoạt tự động! 🎉`;
 
                 await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     chat_id: TELEGRAM_CHAT_ID,
@@ -263,7 +307,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({
             success: true,
             message: 'Payment processed successfully',
-            data: { userId: user.id, email: user.email, role: user.role }
+            data: { userId: user.id, email: user.email, role: user.role, licenseKey: generatedLicenseKey }
         });
 
     } catch (error: any) {

@@ -83,6 +83,10 @@ model User {
   // AI COACH PERSONALIZATION
   aiCoachSettings     Json?  // { nickname, channelInfo, personality, helpStyle, additionalInfo }
 
+  // KODA DESKTOP LICENSE (Auto-gen from VPS 47.250.174.44)
+  kodaLicenseKey      String?   // e.g. "KODA-VIP-A1B2C3D4"
+  kodaTier            String?   // "vip", "studio", "novel", "combo_master"
+
   @@map("users")
 }
 
