@@ -26,6 +26,19 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
     const [showCheckout, setShowCheckout] = useState(false);
     const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
+    // Get membershipExpiry
+    const membershipExpiry = (session?.user as any)?.membershipExpiry;
+    let daysLeftText = '';
+    if (membershipExpiry && userRole !== 'FREE' && userRole !== 'ADMIN') {
+        const diff = new Date(membershipExpiry).getTime() - new Date().getTime();
+        const days = Math.ceil(diff / (1000 * 3600 * 24));
+        if (days > 0) {
+            daysLeftText = `(còn ${days} ngày)`;
+        } else {
+            daysLeftText = `(hết hạn)`;
+        }
+    }
+
     // Hover State (Always collapsed unless hovered)
     const [isHovered, setIsHovered] = useState(false);
     const isCollapsed = !isHovered;
@@ -331,7 +344,10 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                         {!isCollapsed && (
                             <div className="flex-1 overflow-hidden">
                                 <div className="text-xs font-bold text-white truncate group-hover:text-gray-300 transition-colors">{t('sidebar.my_account')}</div>
-                                <div className="text-[10px] text-gray-500 truncate font-mono uppercase">{userRole} PLAN</div>
+                                <div className="text-[10px] text-gray-500 truncate font-mono uppercase">
+                                    {userRole} PLAN
+                                    {daysLeftText && <span className="text-emerald-500/80 lowercase ml-1 font-sans font-bold">{daysLeftText}</span>}
+                                </div>
                             </div>
                         )}
 
