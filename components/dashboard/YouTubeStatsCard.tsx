@@ -408,8 +408,6 @@ export default function YouTubeStatsCard({ userRole = 'FREE', userEmail = '' }: 
             <CheckoutModal
                 isOpen={showCheckout}
                 onClose={() => setShowCheckout(false)}
-                currentPlan={userRole}
-                currentChannelCount={channels.length}
                 requiredPlan="PRO"
                 userEmail={userEmail}
             />

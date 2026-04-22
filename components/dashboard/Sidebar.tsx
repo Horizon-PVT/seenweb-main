@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
-import { Home, Globe, ChevronLeft, ChevronRight, LogOut, Settings, CreditCard, ChevronDown, TrendingUp, Database, ShoppingCart, PlayCircle } from 'lucide-react';
+import { Home, Globe, ChevronLeft, ChevronRight, LogOut, Settings, CreditCard, ChevronDown, TrendingUp, Database, ShoppingCart, PlayCircle, Key } from 'lucide-react';
 import { TOOLS } from '@/lib/tool-config';
 import { hasMinRole } from '@/lib/tab-access';
-import LockedFeatureModal from './LockedFeatureModal';
+
 import CheckoutModal from './CheckoutModal';
 
 interface SidebarProps {
@@ -77,11 +77,10 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
         router.push('/dashboard');
     };
 
-    const accordionGroups = [
-        { id: 'research', label: 'CHIẾN LƯỢC & NGHIÊN CỨU' },
-        { id: 'create', label: 'SẢN XUẤT NỘI DUNG AI' },
-        { id: 'niche', label: 'Ngách' },
-        { id: 'dev', label: 'Đang phát triển' }
+    const workflows = [
+        { id: 'web-tools', label: 'WORKFLOW 1: WEBSPACE', icon: Globe, color: 'text-pink-400' },
+        { id: 'desktop-video', label: 'WORKFLOW 2: VIDEO', icon: PlayCircle, color: 'text-cyan-400' },
+        { id: 'desktop-novel', label: 'WORKFLOW 3: NOVEL', icon: Database, color: 'text-purple-400' }
     ];
 
     return (
@@ -187,61 +186,38 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
 
                     <div className="h-px bg-gray-800/50 my-2 mx-4"></div>
 
-                    {/* ACCORDION GROUPS */}
-                    <div className="flex flex-col gap-1 mt-2">
-                        {accordionGroups.map(group => {
-                            const groupTools = TOOLS.filter(t => t.group === group.id);
-                            if (groupTools.length === 0) return null;
-                            const isOpen = openGroups[group.id];
-
-                            return (
-                                <div key={group.id} className="flex flex-col">
-                                    {/* Accordion Header */}
+                    {/* WORKFLOWS */}
+                    <div className="flex flex-col mt-2">
+                         {!isCollapsed && <div className="px-4 text-[10px] font-bold text-gray-500 uppercase mb-2 mt-4 tracking-wider">HỆ THỐNG KODA</div>}
+                        <div className="flex flex-col gap-1 px-2">
+                            {workflows.map(wf => {
+                                // Nếu là web-tools thì có thể user đang ở màn 'niche-radar' hoặc 'script-studio'
+                                const isActive = activeTool ? wf.id === 'web-tools' : router.query.tab === wf.id;
+                                const Icon = wf.icon;
+                                
+                                return (
                                     <div
-                                        onClick={() => toggleGroup(group.id)}
-                                        className={`flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg hover:bg-white/5 transition-colors ${isOpen ? 'text-gray-200' : 'text-gray-400'}`}
+                                        key={wf.id}
+                                        onClick={() => {
+                                            if (onToolSelect) onToolSelect(''); // Về dashboard base
+                                            router.push(`/dashboard?tab=${wf.id}`);
+                                        }}
+                                        className={`
+                                            flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer group
+                                            ${isActive 
+                                                ? 'bg-white/10 text-white font-bold border border-white/5 shadow-lg' 
+                                                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                                            }
+                                        `}
+                                        title={wf.label}
                                     >
-                                        {!isCollapsed ? (
-                                            <>
-                                                <span className="text-[12px] font-semibold tracking-wide">{group.label}</span>
-                                                <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180 text-gray-300' : 'text-gray-500'}`} />
-                                            </>
-                                        ) : (
-                                            <div className="w-full flex justify-center">
-                                                <ChevronRight size={16} className={`${isOpen ? 'rotate-90 text-gray-300' : 'text-gray-500'}`} />
-                                            </div>
-                                        )}
+                                        <Icon size={18} strokeWidth={isActive ? 2 : 1.5} className={`${isActive ? wf.color : 'text-gray-500 group-hover:text-gray-300'}`} />
+                                        {!isCollapsed && <span className="text-[13px] font-medium truncate flex-1">{wf.label}</span>}
                                     </div>
-
-                                    {/* Accordion Body */}
-                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen && !isCollapsed ? 'max-h-[800px] opacity-100 mt-1 mb-2' : 'max-h-0 opacity-0'}`}>
-                                        <div className="flex flex-col gap-0.5 border-l border-gray-800 ml-5 pl-2">
-                                            {groupTools.map(tool => {
-                                                const isActive = activeTool === tool.id;
-                                                const Icon = tool.icon;
-                                                return (
-                                                    <div
-                                                        key={tool.id}
-                                                        onClick={() => handleToolClick(tool)}
-                                                        className={`
-                                                            flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group
-                                                            ${isActive
-                                                                ? 'bg-white/5 text-white font-medium'
-                                                                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-                                                            }
-                                                        `}
-                                                        title={tool.label}
-                                                    >
-                                                        <Icon size={16} strokeWidth={isActive ? 2 : 1.5} className={`${isActive ? (tool.color || 'text-white') : 'text-gray-500 group-hover:text-gray-300'}`} />
-                                                        <span className="text-[13px] font-normal truncate flex-1">{tool.label}</span>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                )
+                            })}
+                        </div>
+                    </div>
 
                         {/* NEW: Hệ sinh thái SeenYT */}
                         <div className="flex flex-col mt-2">
@@ -288,7 +264,7 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
                                 </div>
                             </div>
                         </div>
-                    </div>
+
 
                     <div className="h-px bg-gray-800/50 my-4 mx-4"></div>
 
@@ -407,18 +383,12 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
             </div >
 
             {/* Modals */}
-            <LockedFeatureModal
-                isOpen={showLockedModal}
-                onClose={() => setShowLockedModal(false)}
-                title={t('sidebar.premium_feature')}
-                message={lockedMessage}
-            />
+
 
             <CheckoutModal
                 isOpen={showCheckout}
                 onClose={() => setShowCheckout(false)}
-                currentPlan={userRole}
-                currentChannelCount={userRole === 'PRO' ? 2 : userRole === 'BASIC' ? 1 : 0}
+                requiredPlan={userRole}
                 userEmail={session?.user?.email || ''}
             />
         </>
