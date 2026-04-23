@@ -31,6 +31,10 @@ const VoiceStudioTool = () => {
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [isPlaying, setIsPlaying] = useState(false); // Visualization state
 
+    // Polling states
+    const [jobMessage, setJobMessage] = useState('Processing...');
+    const [jobProgress, setJobProgress] = useState(0);
+
     // Clone states
     const [cloneName, setCloneName] = useState('');
     const [cloneFile, setCloneFile] = useState<File | null>(null);
@@ -45,6 +49,35 @@ const VoiceStudioTool = () => {
     const [generatingSrt, setGeneratingSrt] = useState(false);
 
     const audioRef = useRef<HTMLAudioElement>(null);
+
+    const pollJobStatus = async (jobId: string) => {
+        return new Promise<string>((resolve, reject) => {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/tools/tts/status?jobId=${jobId}`);
+                    if (!res.ok) {
+                        if (res.status === 404) return; // Keep waiting
+                        throw new Error('Polling failed');
+                    }
+                    const data = await res.json();
+                    
+                    setJobMessage(data.message || 'Processing...');
+                    if (data.progress) setJobProgress(data.progress);
+
+                    if (data.status === 'completed') {
+                        clearInterval(interval);
+                        resolve(`/api/tools/tts/download?jobId=${jobId}`);
+                    } else if (data.status === 'failed') {
+                        clearInterval(interval);
+                        reject(new Error(data.error || 'Job failed on server'));
+                    }
+                } catch (err) {
+                    clearInterval(interval);
+                    reject(err);
+                }
+            }, 2000);
+        });
+    };
 
     // Fetch voices
     useEffect(() => {
@@ -91,6 +124,8 @@ const VoiceStudioTool = () => {
         setGenerating(true);
         setAudioUrl(null);
         setIsPlaying(true); // Fake visualization during generation
+        setJobMessage('Initializing...');
+        setJobProgress(0);
 
         try {
             const isCustom = selectedVoice.startsWith('custom_') || selectedVoice.startsWith('vn_clone_');
@@ -112,9 +147,24 @@ const VoiceStudioTool = () => {
                 throw new Error(err.error || 'Failed to generate');
             }
 
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            setAudioUrl(url);
+            const contentType = res.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await res.json();
+                if (data.jobId) {
+                    const downloadUrl = await pollJobStatus(data.jobId);
+                    const audioRes = await fetch(downloadUrl);
+                    if (!audioRes.ok) throw new Error("Failed to download result");
+                    const blob = await audioRes.blob();
+                    setAudioUrl(URL.createObjectURL(blob));
+                } else {
+                    throw new Error("Invalid async response");
+                }
+            } else {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                setAudioUrl(url);
+            }
+
             // Auto play is handled by <audio autoPlay> but we reset visualizer
             setIsPlaying(false);
 
@@ -142,6 +192,8 @@ const VoiceStudioTool = () => {
         setGeneratingSrt(true);
         setAudioUrl(null);
         setIsPlaying(true); // Fake visualization during generation
+        setJobMessage('Uploading SRT...');
+        setJobProgress(0);
 
         try {
             const formData = new FormData();
@@ -163,9 +215,17 @@ const VoiceStudioTool = () => {
                 throw new Error(err.error || 'Failed to generate from SRT');
             }
 
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            setAudioUrl(url);
+            const data = await res.json();
+            if (data.jobId) {
+                const downloadUrl = await pollJobStatus(data.jobId);
+                const audioRes = await fetch(downloadUrl);
+                if (!audioRes.ok) throw new Error("Failed to download result");
+                const blob = await audioRes.blob();
+                setAudioUrl(URL.createObjectURL(blob));
+            } else {
+                 throw new Error("Invalid async response");
+            }
+
             setIsPlaying(false);
 
         } catch (error: any) {
@@ -335,7 +395,23 @@ const VoiceStudioTool = () => {
                                 </div>
 
                                 {/* Bottom Controls Bar */}
-                                <div className="p-4 bg-[#111] border-t border-white/5 flex items-center justify-end">
+                                <div className="p-4 bg-[#111] border-t border-white/5 flex items-center justify-between">
+                                    {generating ? (
+                                        <div className="flex-1 mr-6">
+                                            <div className="flex justify-between text-[11px] text-gray-400 font-mono mb-2 uppercase tracking-wide">
+                                                <span>{jobMessage}</span>
+                                                <span>{jobProgress}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden border border-white/5 relative">
+                                                <div 
+                                                    className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-1.5 rounded-full transition-all duration-300 ease-out" 
+                                                    style={{ width: `${jobProgress}%` }}
+                                                ></div>
+                                                <div className="absolute top-0 left-0 w-full h-full bg-white/20 animate-pulse mix-blend-overlay"></div>
+                                            </div>
+                                        </div>
+                                    ) : <div></div>}
+                                    
                                     <button
                                         onClick={srtFile ? handleSRTGenerate : handleGenerate}
                                         disabled={generating || (!text && !srtFile)}

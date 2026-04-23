@@ -49,18 +49,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Read SRT file content
         const srtContent = fs.readFileSync(srtFile.filepath, 'utf-8');
 
-        // Forward to Railway TTS server
-        const formData = new FormData();
-        const blob = new Blob([srtContent], { type: 'text/plain' });
-        formData.append('srt_file', blob, 'subtitles.srt');
-        formData.append('voice', voice);
-        if (customVoiceId) {
-            formData.append('custom_voice_id', customVoiceId);
-        }
+        // Forward to Async TTS Job server
+        const params = new URLSearchParams({
+            type: 'srt',
+            text: srtContent,
+            voice: voice,
+            custom_voice_id: customVoiceId || ''
+        });
 
-        const response = await fetch(`${TTS_SERVER_URL}/generate-srt`, {
+        const response = await fetch(`${TTS_SERVER_URL}/job/submit`, {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
         });
 
         // Cleanup temp file
@@ -68,18 +68,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Server error: ' + response.statusText);
+            throw new Error(errorData.error || errorData.detail || 'Server error: ' + response.statusText);
         }
 
-        // Forward audio buffer
-        const audioBuffer = await response.arrayBuffer();
+        const data = await response.json();
 
         // INCREMENT USAGE
         await incrementUserUsage((session.user as any).id, 'text-to-speech');
 
-        res.setHeader('Content-Type', 'audio/wav');
-        res.setHeader('Content-Disposition', `attachment; filename="srt_audio_${Date.now()}.wav"`);
-        res.send(Buffer.from(audioBuffer));
+        return res.status(200).json({
+            success: true,
+            jobId: data.job_id,
+            status: 'queued',
+            engine: 'pocket_srt'
+        });
 
     } catch (error: any) {
         console.error('SRT Generate Error:', error);
