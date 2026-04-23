@@ -139,8 +139,8 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
       {/* <Head> <title>RIVAL SCANNER | MILITARY GRADE INTELLIGENCE</title> </Head> */}
 
       {/* CRT OVERLAY */}
-      <div className="fixed inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(0,255,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_2px,3px_100%]"></div>
-      <div className="fixed inset-0 pointer-events-none z-50 opacity-20 radial-gradient-green"></div>
+      <div className="absolute inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(0,255,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_2px,3px_100%]"></div>
+      <div className="absolute inset-0 pointer-events-none z-50 opacity-20 radial-gradient-green"></div>
 
       {/* HEADER */}
       <header className="sticky top-0 left-0 right-0 h-14 bg-[#0a140a] border-b border-[#003b00] flex items-center justify-between px-6 z-40 shrink-0">

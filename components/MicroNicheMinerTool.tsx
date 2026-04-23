@@ -285,7 +285,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
     <div className="h-full bg-[#0A0A0B] text-slate-200 font-sans selection:bg-[#CDAD5A]/30 flex flex-col overflow-hidden relative">
 
       {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md h-16 flex items-center justify-between px-6">
+      <header className="absolute top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md h-16 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
           {onBack && (
             <button onClick={onBack} className="text-xs font-medium text-slate-400 hover:text-white transition-colors border-r border-white/10 pr-6 mr-2 flex items-center gap-2">
@@ -410,16 +410,16 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
       </main>
 
       {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-10"
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-10"
         style={{
           backgroundImage: 'linear-gradient(#CDAD5A .5px, transparent .5px), linear-gradient(90deg, #CDAD5A .5px, transparent .5px)',
           backgroundSize: '40px 40px'
         }}
       ></div>
-      <div className="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0A0A0B] to-transparent pointer-events-none z-10"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0A0A0B] to-transparent pointer-events-none z-10"></div>
 
       {/* FOOTER STATUS */}
-      <footer className="fixed bottom-0 left-0 right-0 border-t border-white/5 bg-[#0A0A0B]/80 backdrop-blur-sm h-10 flex items-center px-6 z-20">
+      <footer className="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-[#0A0A0B]/80 backdrop-blur-sm h-10 flex items-center px-6 z-20">
         <div className="w-full flex justify-between items-center text-[10px] font-mono tracking-widest text-slate-600 uppercase">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">

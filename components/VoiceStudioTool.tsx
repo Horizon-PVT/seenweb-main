@@ -126,7 +126,56 @@ const VoiceStudioTool = () => {
         }
     };
 
-    const handleSRTGenerate = async () => { /* ... existing logic ... */ }; // keeping simple for brevity in thought, but implementing full
+    const handleSRTGenerate = async () => {
+        // --- FREEMIUM GATE CHECK ---
+        const userRole = ((session?.user as any)?.role || "FREE");
+        const allowed = ['PRO', 'ADMIN'].includes(userRole);
+        if (!allowed) {
+            setShowUpgrade(true);
+            return;
+        }
+        // ---------------------------
+
+        if (!srtFile) return alert('Vui lòng chọn file SRT!');
+
+        setGenerating(true);
+        setGeneratingSrt(true);
+        setAudioUrl(null);
+        setIsPlaying(true); // Fake visualization during generation
+
+        try {
+            const formData = new FormData();
+            formData.append('srtFile', srtFile);
+            formData.append('voice', selectedVoice);
+
+            const isCustom = selectedVoice.startsWith('custom_') || selectedVoice.startsWith('vn_clone_');
+            if (isCustom) {
+                formData.append('customVoiceId', selectedVoice);
+            }
+
+            const res = await fetch('/api/tools/tts/generate-srt', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to generate from SRT');
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            setAudioUrl(url);
+            setIsPlaying(false);
+
+        } catch (error: any) {
+            alert(error.message);
+            setIsPlaying(false);
+        } finally {
+            setGenerating(false);
+            setGeneratingSrt(false);
+        }
+    };
 
     const handleClone = async () => {
         // --- FREEMIUM GATE CHECK ---
@@ -176,7 +225,7 @@ const VoiceStudioTool = () => {
     };
 
     return (
-        <div className="flex flex-col h-[85vh] bg-[#0a0a0a] text-gray-200 rounded-3xl overflow-hidden border border-white/10 shadow-2xl font-sans">
+        <div className="flex flex-col h-full bg-[#0a0a0a] text-gray-200 rounded-3xl overflow-hidden border border-white/10 shadow-2xl font-sans">
 
             {/* Header Audio Station */}
             <div className="flex items-center justify-between px-6 py-4 bg-[#111] border-b border-white/5">
@@ -239,9 +288,39 @@ const VoiceStudioTool = () => {
                                 className="flex flex-col h-full"
                             >
                                 {/* Text Editor Area */}
-                                <div className="flex-1 p-6 relative">
+                                <div className="flex-1 flex flex-col relative">
                                     <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-[#0f0f0f] to-transparent z-10 pointer-events-none"></div>
-                                    <textarea
+                                    
+                                    {/* Top SRT Toolbar */}
+                                    <div className="flex items-center justify-between p-4 border-b border-white/5 bg-[#0f0f0f] relative z-20">
+                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            Script Editor
+                                        </span>
+                                        <div className="flex items-center gap-3">
+                                            {srtFile ? (
+                                                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl shadow-inner cursor-pointer" onClick={() => setSrtFile(null)} title="Bấm để xoá">
+                                                    <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400">
+                                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                                    </span>
+                                                    <span className="text-xs font-bold text-emerald-400">{srtFile.name}</span>
+                                                    <span className="text-red-400 font-bold ml-2">✕</span>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => srtInputRef.current?.click()}
+                                                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white transition-all font-bold text-[11px] flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                                    TẢI FILE SRT LÊN
+                                                </button>
+                                            )}
+                                            <input ref={srtInputRef} type="file" accept=".srt" className="hidden" onChange={(e) => setSrtFile(e.target.files?.[0] || null)} />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 p-6 relative">
+                                        <textarea
                                         value={text}
                                         onChange={(e) => setText(e.target.value)}
                                         placeholder="// Enter your script here...\n// Supports English and Vietnamese.\n\nHello world, this is SeenYT AI Voice generation."
@@ -253,37 +332,24 @@ const VoiceStudioTool = () => {
                                         {text.length} chars
                                     </div>
                                 </div>
+                                </div>
 
                                 {/* Bottom Controls Bar */}
-                                <div className="p-4 bg-[#111] border-t border-white/5 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        {/* Upload SRT Button - Icon only style */}
-                                        <button
-                                            onClick={() => srtInputRef.current?.click()}
-                                            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors tooltip"
-                                            title="Upload SRT"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                            <input ref={srtInputRef} type="file" accept=".srt" className="hidden" onChange={(e) => setSrtFile(e.target.files?.[0] || null)} />
-                                        </button>
-
-                                        {srtFile && <span className="text-xs text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">{srtFile.name}</span>}
-                                    </div>
-
+                                <div className="p-4 bg-[#111] border-t border-white/5 flex items-center justify-end">
                                     <button
-                                        onClick={handleGenerate}
-                                        disabled={generating || !text}
-                                        className={`px-8 py-3 rounded-xl font-bold text-sm tracking-wide shadow-lg transition-all flex items-center gap-2 ${generating ? 'bg-gray-700 cursor-wait' : 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:shadow-emerald-500/20 text-white hover:scale-105'}`}
+                                        onClick={srtFile ? handleSRTGenerate : handleGenerate}
+                                        disabled={generating || (!text && !srtFile)}
+                                        className={`px-8 py-3 rounded-xl font-bold text-sm tracking-wide shadow-lg transition-all flex items-center gap-2 ${generating ? 'bg-gray-700 cursor-wait' : srtFile ? 'bg-gradient-to-r from-amber-600 to-orange-500 hover:shadow-amber-500/20 text-white hover:scale-105' : 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:shadow-emerald-500/20 text-white hover:scale-105'}`}
                                     >
                                         {generating ? (
                                             <>
                                                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                                                PROCESSING
+                                                {srtFile ? 'ĐANG ĐỌC SRT...' : 'PROCESSING'}
                                             </>
                                         ) : (
                                             <>
                                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                                                GENERATE AUDIO
+                                                {srtFile ? '🎬 ĐỌC SRT → AUDIO' : 'GENERATE AUDIO'}
                                             </>
                                         )}
                                     </button>
