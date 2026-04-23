@@ -24,6 +24,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         
         const data = await response.json();
+
+        // Inject the direct Cloudflare tunnel URL to bypass Vercel's 4.5MB download limit for large audio files
+        if (data.status === 'completed') {
+            data.resultUrl = `${TTS_SERVER_URL}/job/${jobId}/download`;
+        }
+
         return res.status(200).json(data);
     } catch (error: any) {
         console.error('Job Status Error:', error);

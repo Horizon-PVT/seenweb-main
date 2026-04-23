@@ -66,7 +66,8 @@ const VoiceStudioTool = () => {
 
                     if (data.status === 'completed') {
                         clearInterval(interval);
-                        resolve(`/api/tools/tts/download?jobId=${jobId}`);
+                        // Using direct cloudflare URL to bypass NextJS 4.5MB serverless limits
+                        resolve(data.resultUrl || `/api/tools/tts/download?jobId=${jobId}`);
                     } else if (data.status === 'failed') {
                         clearInterval(interval);
                         reject(new Error(data.error || 'Job failed on server'));
@@ -152,10 +153,8 @@ const VoiceStudioTool = () => {
                 const data = await res.json();
                 if (data.jobId) {
                     const downloadUrl = await pollJobStatus(data.jobId);
-                    const audioRes = await fetch(downloadUrl);
-                    if (!audioRes.ok) throw new Error("Failed to download result");
-                    const blob = await audioRes.blob();
-                    setAudioUrl(URL.createObjectURL(blob));
+                    // Pass the Direct Cloudflare Tunnel URL directly to <audio> tag
+                    setAudioUrl(downloadUrl);
                 } else {
                     throw new Error("Invalid async response");
                 }
@@ -218,10 +217,8 @@ const VoiceStudioTool = () => {
             const data = await res.json();
             if (data.jobId) {
                 const downloadUrl = await pollJobStatus(data.jobId);
-                const audioRes = await fetch(downloadUrl);
-                if (!audioRes.ok) throw new Error("Failed to download result");
-                const blob = await audioRes.blob();
-                setAudioUrl(URL.createObjectURL(blob));
+                // Assign direct tunnel link to prevent Next.js 4.5MB crash
+                setAudioUrl(downloadUrl);
             } else {
                  throw new Error("Invalid async response");
             }
@@ -249,6 +246,11 @@ const VoiceStudioTool = () => {
 
         if (!cloneFile) return alert('Vui lòng chọn file audio mẫu!');
         if (!cloneName) return alert('Vui lòng đặt tên cho giọng!');
+
+        // Ensure format is WAV (MP3 will fail with RIFF error on Python server)
+        if (!cloneFile.name.toLowerCase().endsWith('.wav')) {
+             return alert('Hệ thống hiện tại chỉ học chuẩn xác nhất qua định dạng .WAV! Vui lòng chuyển định dạng file nhạc của bạn sang WAV nhé.');
+        }
 
         setCloning(true);
         try {
