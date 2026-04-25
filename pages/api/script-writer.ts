@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { getServerSession } from "next-auth/next"; // Auth import
 import { authOptions } from "./auth/[...nextauth]"; // Auth definitions
 import { checkUserQuota, incrementUserUsage } from "@/lib/quota"; // Quota logic
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 interface ErrorResponse {
   error: string;
@@ -17,6 +18,14 @@ export default async function handler(
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+  }
+
+  // Rate limit: 20 AI requests per minute per IP
+  const ip = getClientIp(req);
+  const { limited, resetIn } = checkRateLimit(`ai:${ip}`, RATE_LIMITS.AI_GENERATION);
+  if (limited) {
+    res.setHeader('Retry-After', String(resetIn));
+    return res.status(429).json({ error: "Quá nhiều yêu cầu AI. Vui lòng thử lại sau." });
   }
 
   // 1. Auth & Quota Check

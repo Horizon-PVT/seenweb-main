@@ -61,9 +61,9 @@ export async function middleware(request: NextRequest) {
     response = NextResponse.rewrite(new URL(targetPathname, request.url));
   }
 
-  // 4. Logic Affiliate: Lưu cookie nếu có ref code
+  // 4. Logic Affiliate: Lưu cookie nếu có ref code (validated)
   const refCode = url.searchParams.get('ref');
-  if (refCode) {
+  if (refCode && /^[A-Za-z0-9]{1,20}$/.test(refCode)) {
     response.cookies.set('aff_ref', refCode.toUpperCase(), {
       path: '/',
       maxAge: 60 * 24 * 60 * 60, // 60 ngày

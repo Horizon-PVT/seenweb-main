@@ -251,9 +251,9 @@ export default function Dashboard() {
                        {licenseKey || 'Chưa có mã — Mua gói tại Pricing'}
                     </div>
                   </div>
-                  <div className="bg-emerald-500/10 px-4 py-3 rounded-xl text-emerald-400 border border-emerald-500/20 font-bold uppercase tracking-wide flex flex-col items-center justify-center shrink-0">
-                     <span className="text-xs text-emerald-500/60 mb-0.5">Trạng thái</span>
-                     🟢 ACTIVE
+                  <div className={`${licenseKey ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'} px-4 py-3 rounded-xl border font-bold uppercase tracking-wide flex flex-col items-center justify-center shrink-0`}>
+                     <span className={`text-xs ${licenseKey ? 'text-emerald-500/60' : 'text-amber-500/60'} mb-0.5`}>Trạng thái</span>
+                     {licenseKey ? '🟢 ACTIVE' : '🟡 CHƯA KÍCH HOẠT'}
                   </div>
                </div>
 

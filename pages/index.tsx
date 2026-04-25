@@ -2,63 +2,35 @@ import React, { useEffect } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { GetServerSideProps } from "next";
 import Link from 'next/link';
 import { Wrench, GraduationCap, ShieldCheck, ArrowRight, Target, PenTool, Video, UploadCloud, DollarSign, LineChart, Database, FileText, Map, Users, Star, Sparkles, Layers, Search, Download, CheckCircle2, Globe } from "lucide-react";
 
-// Hardcoded Series Data (Moved from Component)
-const VIDEO_SERIES_2026 = [
-  { id: '1', title: 'Tư duy đúng khi làm YouTube 2026', youtubeId: 'yvUouUjwZKw', description: 'Bài 1: Khởi động hành trình' },
-  { id: '2', title: 'Cách chọn ngách tiềm năng', youtubeId: '_KzRdzW5SSM', description: 'Bài 2: Chiến lược ngách' },
-  { id: '3', title: 'Phân tích đối thủ & Thị trường', youtubeId: 'UgpPkYBAXL0', description: 'Bài 3: Nghiên cứu' },
-  { id: '4', title: 'Quy trình sản xuất video chuẩn', youtubeId: '4SlGnwW4nOE', description: 'Bài 4: Production' },
-  { id: '5', title: 'Tối ưu SEO & Thuật toán', youtubeId: 'WsyJ_JMknoY', description: 'Bài 5: SEO Mastery' },
-  { id: '6', title: 'Chiến lược Thumbnail & Title', youtubeId: '-LJDDrLi76g', description: 'Bài 6: Click-Through Rate' },
-  { id: '7', title: 'Kiếm tiền & Affiliate', youtubeId: 'Mv6XwQhN3ig', description: 'Bài 7: Monetization' },
-  { id: '8', title: 'Xây dựng hệ thống tự động', youtubeId: '2bm-goinao4', description: 'Bài 8: Automation' },
-];
 
-const DEFAULT_TOOL_VIDEOS = [
-  { id: 't1', title: 'Đào ngách cpm cao', youtubeId: 'fwIst_IscQs', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-1.jpg' },
-  { id: 't2', title: 'Phân tích kênh đối thủ', youtubeId: 'ndey_-0BBnA', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-2.jpg' },
-  { id: 't3', title: 'Công cụ tạo video', youtubeId: 'cUP6biV4cHQ', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-3.jpg' },
-  { id: 't4', title: 'Remix kịch bản', youtubeId: 'zXJ_inukLGo', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-4.jpg' },
-  { id: 't5', title: 'Kể Chuyện Lịch Sử / Story', youtubeId: '-yV4qOEkxZw', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-5.jpg' },
-  { id: 't6', title: 'Tool thư viện ngách thắng', youtubeId: 'CNbEXE6pj1Q', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-6.jpg' },
-  { id: 't7', title: 'Tool seo và từ khoá', youtubeId: 'M4UBTX8omq0', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-7.jpg' },
-  { id: 't8', title: 'Hướng dẫn viết kịch bản viral', youtubeId: 'NGLzDUTPvgs', description: 'Xem hướng dẫn chi tiết', thumbnailUrl: '/images/tools/tool-8.jpg' },
-];
+
 
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation, Trans } from 'next-i18next';
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
 import CreatorMeritSection from "../components/CreatorMeritSection";
-import KnowledgeSection from "../components/KnowledgeSection";
-import VideoTipsSection from "../components/VideoTipsSection";
-import ExploreSection from "../components/ExploreSection";
 
-import Partners from "../components/Partners";
-import Projects from "../components/Projects";
-import Testimonials from "../components/Testimonials";
-import BlogTeaser from "../components/BlogTeaser";
-import PricingTable from "../components/PricingTable";
-// AffiliateSection merged into ExploreSection
-import FinalCTA from "../components/FinalCTA";
-import OnboardingModal from "../components/OnboardingModal";
-
-import FAQ from "../components/FAQ";
-import Footer from "../components/Footer";
-import ChatbotWidget from "../components/ChatbotWidget";
-import FloatingSidebar from "../components/FloatingSidebar";
-import LeftPromotionSidebar from "@/components/LeftPromotionSidebar";
-import SocialProofBar from "@/components/SocialProofBar";
+// Lazy load below-the-fold components for faster initial page load
+const KnowledgeSection = dynamic(() => import("../components/KnowledgeSection"));
+const VideoTipsSection = dynamic(() => import("../components/VideoTipsSection"));
+const ExploreSection = dynamic(() => import("../components/ExploreSection"));
+const Testimonials = dynamic(() => import("../components/Testimonials"));
+const PricingTable = dynamic(() => import("../components/PricingTable"));
+const FinalCTA = dynamic(() => import("../components/FinalCTA"));
+const FAQ = dynamic(() => import("../components/FAQ"));
+const Footer = dynamic(() => import("../components/Footer"));
+const OnboardingModal = dynamic(() => import("../components/OnboardingModal"), { ssr: false });
+const ChatbotWidget = dynamic(() => import("../components/ChatbotWidget"), { ssr: false });
 import { prisma } from "../lib/prisma";
 
 
 
-// Fetch ebooks and videos from database
-export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+// Fetch ebooks and videos from database — ISR for performance (revalidate every 60s)
+export const getStaticProps = async ({ locale }: { locale?: string }) => {
   try {
     const [ebooks, videoTips, blogPosts] = await Promise.all([
       prisma.ebook.findMany({
@@ -95,11 +67,12 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
       props: {
         ...(await serverSideTranslations(locale || 'vi', ['common'])),
         ebooks: JSON.parse(JSON.stringify(ebooks)),
-        videos: JSON.parse(JSON.stringify(videos)), // This is the old videos prop, keeping for compatibility if utilized elsewhere
+        videos: JSON.parse(JSON.stringify(videos)),
         tutorialVideos: JSON.parse(JSON.stringify(tutorialVideos)),
         featuredStrategyVideo: featuredStrategyVideo ? JSON.parse(JSON.stringify(featuredStrategyVideo)) : null,
         articles: JSON.parse(JSON.stringify(blogPosts)),
       },
+      revalidate: 60, // ISR: regenerate every 60 seconds
     };
   } catch (error) {
     console.error('Error fetching ebooks/videos:', error);
@@ -109,6 +82,7 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
         ebooks: [],
         videos: [],
       },
+      revalidate: 30, // Retry faster on error
     };
   }
 };

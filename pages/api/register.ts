@@ -4,11 +4,20 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { serialize } from "cookie";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ error: `Method ${req.method} not allowed` });
+  }
+
+  // Rate limit: 10 attempts per 15 minutes per IP
+  const ip = getClientIp(req);
+  const { limited, resetIn } = checkRateLimit(`register:${ip}`, RATE_LIMITS.AUTH);
+  if (limited) {
+    res.setHeader('Retry-After', String(resetIn));
+    return res.status(429).json({ error: "Quá nhiều yêu cầu đăng ký. Vui lòng thử lại sau." });
   }
 
   const { email, password } = req.body;

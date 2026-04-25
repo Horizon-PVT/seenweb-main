@@ -28,7 +28,7 @@ function App({
   // GIỮ ẢNH CŨ (đúng cái ảnh đang hiện khi share)
   const ogImage = `${siteUrl}/thumbnail.jpg`;
 
-  const title = "SeenYT - Công cụ AI YouTube thông minh nhất 2025";
+  const title = "SeenYT - Công cụ AI YouTube thông minh nhất 2026";
   const description =
     "SeenYT - Tool AI hỗ trợ creator YouTube tạo video tự động, tìm micro niche, viết kịch bản, tối ưu SEO và tạo thumbnail AI.";
 
@@ -37,7 +37,7 @@ function App({
       session={session}
       // giúp session cập nhật nhanh hơn sau login/redirect
       refetchOnWindowFocus={true}
-      refetchInterval={30}
+      refetchInterval={300}
     >
       <Head>
         {/* BASIC */}

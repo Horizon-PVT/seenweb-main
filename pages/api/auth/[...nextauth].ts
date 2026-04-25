@@ -7,9 +7,7 @@ import { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { trackEvent } from "@/lib/analytics";
 
-console.log("[DEBUG] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
-console.log("[DEBUG] GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "Set" : "Missing");
-console.log("[DEBUG] NODE_ENV:", process.env.NODE_ENV);
+// Debug logs removed for production security (was leaking NEXTAUTH_URL & CLIENT_ID status)
 
 export const authOptions: NextAuthOptions = {
   providers: [

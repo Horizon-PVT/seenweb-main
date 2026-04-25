@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 const COOKIE_NAME = "session";
 
@@ -10,6 +11,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
     return res.status(405).json({ error: `Method ${req.method} not allowed` });
+  }
+
+  // Rate limit: 10 attempts per 15 minutes per IP
+  const ip = getClientIp(req);
+  const { limited, remaining, resetIn } = checkRateLimit(`login:${ip}`, RATE_LIMITS.AUTH);
+  if (limited) {
+    res.setHeader('Retry-After', String(resetIn));
+    return res.status(429).json({ error: "Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau." });
   }
 
   const { email, password } = req.body || {};
@@ -21,25 +30,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      console.warn("❌ Không tìm thấy user:", email);
       return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
     }
 
-    console.log("🧩 CHECK LOGIN:");
-    console.log("Email:", email);
-    console.log("Plain password:", password);
-    console.log("Stored hash:", user.passwordHash);
-
     if (!user.passwordHash) {
-      console.warn("❌ User has no password (provider login?):", email);
       return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
-    console.log("COMPARE RESULT:", isMatch);
 
     if (!isMatch) {
-      console.warn("❌ Sai mật khẩu cho:", email);
       return res.status(401).json({ error: "Email hoặc mật khẩu không đúng." });
     }
 
@@ -57,13 +57,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     );
 
-    console.log("✅ Đăng nhập thành công:", email);
     return res.status(200).json({ success: true, message: "Đăng nhập thành công!" });
   } catch (err: any) {
-    console.error("LOGIN_ERROR:", err);
+    console.error("LOGIN_ERROR:", err.message);
     return res.status(500).json({
       error: "Lỗi máy chủ khi đăng nhập.",
-      detail: err.message || "Không rõ lỗi (có thể do Prisma hoặc JWT).",
     });
   }
 }
+

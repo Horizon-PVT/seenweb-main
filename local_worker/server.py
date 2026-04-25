@@ -389,8 +389,6 @@ async def health_check():
 
 @app.get("/voices")
 async def list_voices():
-    # Helper to clean up cache on list request
-    cleanup_old_files()
     custom_voice_ids = [vid for vid in voice_states.keys() if vid.startswith("custom_")]
     return {
         "voices": PRESET_VOICES,
