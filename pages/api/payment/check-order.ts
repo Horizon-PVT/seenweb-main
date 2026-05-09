@@ -30,10 +30,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // 2. If already PAID, return success immediately
         if (paymentRequest.status === 'PAID') {
+            // Get user to check for license key
+            const user = await prisma.user.findUnique({ where: { email: paymentRequest.email } });
+            
             return res.status(200).json({
                 success: true,
                 status: 'PAID',
-                message: 'Payment already confirmed'
+                message: 'Payment already confirmed',
+                licenseKey: user?.kodaLicenseKey || null,
+                kodaTier: user?.kodaTier || null
             });
         }
 
@@ -100,7 +105,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(200).json({
                     success: true,
                     status: 'PAID',
-                    message: 'Payment confirmed via PayOS API check'
+                    message: 'Payment confirmed via PayOS API check',
+                    licenseKey: user?.kodaLicenseKey || null,
+                    kodaTier: user?.kodaTier || null
                 });
             }
 

@@ -6,6 +6,9 @@ export default function SuccessPage() {
   const router = useRouter();
   const { data: session, update } = useSession();
   const [status, setStatus] = useState<'loading' | 'activating' | 'success' | 'error'>('loading');
+  const [licenseKey, setLicenseKey] = useState<string | null>(null);
+  const [kodaTier, setKodaTier] = useState<string | null>(null);
+  const [purchasedPlan, setPurchasedPlan] = useState<string | null>(null);
 
   const { code, desc, status: payStatus, orderCode } = router.query;
 
@@ -33,6 +36,16 @@ export default function SuccessPage() {
 
         if (data.success && data.status === 'PAID') {
           console.log("Payment confirmed. Activating session...");
+
+          // Capture license key if present
+          if (data.licenseKey) {
+            setLicenseKey(data.licenseKey);
+            setKodaTier(data.kodaTier);
+          }
+          if (data.purchasedPlan) {
+            setPurchasedPlan(data.purchasedPlan);
+          }
+
           setStatus('activating');
 
           // 2. Force Session Update & Retry Loop
@@ -146,9 +159,39 @@ export default function SuccessPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-green-600 mb-2">🎉 Nâng cấp hoàn tất!</h1>
+            <h1 className="text-3xl font-bold text-green-600 mb-2">Nâng cấp hoàn tất!</h1>
             <p className="text-gray-600 mb-2">Mã đơn: <span className="font-mono font-bold">{String(orderCode || '')}</span></p>
             <p className="text-gray-500 mb-6">Tài khoản của bạn đã được nâng cấp.</p>
+
+            {/* License Key Display - NEW */}
+            {licenseKey && (
+              <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/50 rounded-xl p-5 mb-6">
+                <p className="text-purple-400 text-sm font-semibold mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  License Key của bạn
+                </p>
+                <div className="bg-black/50 rounded-lg p-3 font-mono text-green-400 text-sm break-all select-all">
+                  {licenseKey}
+                </div>
+                <p className="text-gray-400 text-xs mt-2">
+                  Lưu lại license key này để kích hoạt Koda {kodaTier === 'factory' ? 'Factory' : kodaTier === 'agency' ? 'Agency' : 'Studio'}
+                </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(licenseKey);
+                    alert('Đã copy license key!');
+                  }}
+                  className="mt-3 w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  Copy License Key
+                </button>
+              </div>
+            )}
 
             <div className="space-y-3">
               {userHasMasterclass && (
@@ -157,14 +200,14 @@ export default function SuccessPage() {
                   download="10-Bi-Mat-YouTube-2026-SeenYT.pdf"
                   className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2 mb-3"
                 >
-                  🎁 TẢI NGAY EBOOK VIP 10 BÍ MẬT 2026
+                  Tải Ebook VIP 10 Bí Mật 2026
                 </a>
               )}
               <button
                 onClick={() => window.location.href = userHasMasterclass ? '/academy' : '/dashboard'}
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition transform hover:scale-[1.02]"
               >
-                🚀 Vào {userHasMasterclass ? 'Academy' : 'Dashboard'} ngay
+                Vào {userHasMasterclass ? 'Academy' : 'Dashboard'} ngay
               </button>
             </div>
 

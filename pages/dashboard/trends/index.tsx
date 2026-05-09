@@ -63,13 +63,21 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (!session) {
         return {
             redirect: {
-                destination: '/login', // Adjust this if your login route is different (e.g., '/')
+                destination: '/login',
                 permanent: false,
             },
         };
     }
 
+    // Only pass serializable user data (no Date objects)
+    const user = {
+        name: session.user?.name || null,
+        email: session.user?.email || null,
+        image: session.user?.image || null,
+        role: (session.user as any)?.role || 'FREE',
+    };
+
     return {
-        props: { user: session.user },
+        props: { user },
     };
 };

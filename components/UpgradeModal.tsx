@@ -5,9 +5,11 @@ import Link from 'next/link';
 
 interface UpgradeModalProps {
     onClose: () => void;
+    requiredPlan?: string;
+    userEmail?: string;
 }
 
-const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose }) => {
+const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, requiredPlan = 'BASIC' }) => {
     return (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
@@ -33,32 +35,36 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose }) => {
                         </div>
 
                         <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-2">
-                            Unlock <span className="text-[#CDAD5A]">Pro Insights</span>
+                            Unlock <span className="text-[#CDAD5A]">Premium</span>
                         </h2>
 
                         <p className="text-gray-400 text-sm mb-8 leading-relaxed max-w-sm">
-                            Bạn đang sử dụng gói miễn phí. Nâng cấp lên <strong className="text-white">PRO PLAN</strong> để mở khóa toàn bộ tính năng cao cấp này.
+                            Bạn đang sử dụng gói <strong className="text-white">FREE</strong>. 
+                            Nâng cấp lên <strong className="text-[#CDAD5A]">{requiredPlan}</strong> để mở khóa tính năng này.
                         </p>
 
                         <div className="grid grid-cols-2 gap-4 w-full mb-8">
                             <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <div className="text-xl font-bold text-white mb-1">∞</div>
-                                <div className="text-[10px] text-gray-500 uppercase font-bold">Unlimited Access</div>
+                                <div className="text-xl font-bold text-white mb-1">
+                                    {requiredPlan === 'STARTER' ? '5' : requiredPlan === 'CREATOR' ? '20' : '50'}+                                </div>
+                                <div className="text-[10px] text-gray-500 uppercase font-bold">AI Coach/ngày</div>
                             </div>
                             <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                                <div className="text-xl font-bold text-white mb-1">100%</div>
-                                <div className="text-[10px] text-gray-500 uppercase font-bold">Full Data</div>
+                                <div className="text-xl font-bold text-white mb-1">
+                                    {requiredPlan === 'STARTER' ? '1' : requiredPlan === 'CREATOR' ? '2' : '2+'}
+                                </div>
+                                <div className="text-[10px] text-gray-500 uppercase font-bold">Kênh YouTube</div>
                             </div>
                         </div>
 
                         <Link href="/pricing" className="w-full block">
                             <button className="w-full py-4 bg-[#CDAD5A] hover:bg-[#ffe18f] text-black font-bold text-sm uppercase tracking-widest rounded-xl transition-all shadow-[0_5px_20px_rgba(205,173,90,0.3)] hover:shadow-[0_10px_30px_rgba(205,173,90,0.4)] transform hover:-translate-y-1">
-                                Upgrade to Pro Now
+                                Xem Bảng Giá
                             </button>
                         </Link>
 
                         <p className="mt-4 text-[10px] text-gray-600">
-                            Secure payment via Stripe. Cancel anytime.
+                            Thanh toán an toàn qua PayOS. Hủy bất kỳ lúc nào.
                         </p>
                     </div>
                 </div>

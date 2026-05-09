@@ -1,30 +1,35 @@
+// components/dashboard/Sidebar.tsx - Clean & Modern Sidebar
+
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
 import { useTranslation } from 'next-i18next';
-import { Home, Globe, ChevronLeft, ChevronRight, LogOut, Settings, CreditCard, ChevronDown, TrendingUp, Database, ShoppingCart, PlayCircle, Key } from 'lucide-react';
-import { TOOLS } from '@/lib/tool-config';
-import { hasMinRole } from '@/lib/tab-access';
-
+import { 
+  Home, MessageSquare, TrendingUp, Settings, CreditCard, 
+  LogOut, ChevronRight, Video, FileText, Search, 
+  Sparkles, Download, Key, ChevronLeft, Star, Zap,
+  BarChart3, Globe, Users, Clock
+} from 'lucide-react';
 import CheckoutModal from './CheckoutModal';
 
 interface SidebarProps {
     userRole?: string;
     activeTool?: string | null;
     onToolSelect?: (toolId: string) => void;
-    isCollapsed?: boolean;
-    toggleCollapse?: () => void;
 }
 
 export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }: SidebarProps) {
     const router = useRouter();
     const { data: session } = useSession();
     const { t } = useTranslation('common');
-    const [showLockedModal, setShowLockedModal] = useState(false);
-    const [lockedMessage, setLockedMessage] = useState('');
     const [showCheckout, setShowCheckout] = useState(false);
     const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(true);
+
+    // Get avatar from session
+    const userAvatar = session?.user?.image;
+    const userName = session?.user?.name || '';
 
     // Get membershipExpiry
     const membershipExpiry = (session?.user as any)?.membershipExpiry;
@@ -33,358 +38,340 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
         const diff = new Date(membershipExpiry).getTime() - new Date().getTime();
         const days = Math.ceil(diff / (1000 * 3600 * 24));
         if (days > 0) {
-            daysLeftText = `(còn ${days} ngày)`;
+            daysLeftText = `${days}d`;
         } else {
-            daysLeftText = `(hết hạn)`;
+            daysLeftText = 'Hết hạn';
         }
     }
 
-    // Hover State (Always collapsed unless hovered)
-    const [isHovered, setIsHovered] = useState(false);
-    const isCollapsed = !isHovered;
-
-    // Accordion State
-    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-        research: true,
-        create: false,
-        niche: false,
-        dev: false
-    });
-
-    const toggleGroup = (groupId: string) => {
-        setOpenGroups(prev => ({
-            ...prev,
-            [groupId]: !prev[groupId]
-        }));
+    // Get tier color
+    const getTierColor = (role: string) => {
+        const colors: Record<string, { bg: string; text: string; border: string }> = {
+            'FREE': { bg: 'bg-gray-500/20', text: 'text-gray-400', border: 'border-gray-500/30' },
+            'STARTER': { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30' },
+            'CREATOR': { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30' },
+            'FACTORY': { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30' },
+            'AGENCY': { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' },
+            'ENTERPRISE': { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30' },
+            'ADMIN': { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
+        };
+        return colors[role] || colors.FREE;
     };
 
-    const handleToolClick = (tool: typeof TOOLS[0]) => {
-        if (!hasMinRole(userRole, tool.minRole)) {
-            setLockedMessage(t('sidebar.locked_message', { feature: tool.label, role: tool.minRole }));
-            setShowLockedModal(true);
-            return;
-        }
+    const tierColor = getTierColor(userRole);
 
-        if (onToolSelect) {
-            onToolSelect(tool.id);
-        }
-    };
-
-    const handleHomeClick = () => {
-        if (onToolSelect) {
-            onToolSelect('');
-        }
-        router.push('/dashboard');
-    };
-
-    const workflows = [
-        { id: 'web-tools', label: 'WORKFLOW 1: WEBSPACE', icon: Globe, color: 'text-pink-400' },
-        { id: 'desktop-video', label: 'WORKFLOW 2: VIDEO', icon: PlayCircle, color: 'text-cyan-400' },
-        { id: 'desktop-novel', label: 'WORKFLOW 3: NOVEL', icon: Database, color: 'text-purple-400' }
+    // Navigation items
+    const navItems = [
+        { id: 'home', label: 'Trang chủ', icon: Home, path: '/dashboard', exact: true },
+        { id: 'ai-coach', label: 'AI Coach', icon: MessageSquare, path: '/dashboard/ai-coach', badge: 'Beta', badgeColor: 'bg-purple-500/20 text-purple-400' },
+        { id: 'trends', label: 'Xu hướng', icon: TrendingUp, path: '/dashboard/trends' },
     ];
+
+    const toolItems = [
+        { id: 'niche-radar', label: 'Niche Radar', icon: Search, toolId: 'niche-radar' },
+        { id: 'script-studio', label: 'Script Studio', icon: FileText, toolId: 'script-studio' },
+        { id: 'video-pipeline', label: 'Video Pipeline', icon: Video, path: '/tools/video-pipeline' },
+        { id: 'intelligence', label: 'Intelligence Hub', icon: Sparkles, path: '/tools/intelligence-hub' },
+        { id: 'channels', label: 'Kênh của tôi', icon: BarChart3, path: '/dashboard/trends' },
+    ];
+
+    const isActive = (item: any) => {
+        if (item.path) {
+            if (item.exact) return router.pathname === item.path;
+            return router.pathname.startsWith(item.path);
+        }
+        if (item.toolId) return activeTool === item.toolId;
+        return false;
+    };
+
+    const handleNavClick = (item: any) => {
+        if (item.path) {
+            router.push(item.path);
+        }
+        if (item.toolId && onToolSelect) {
+            onToolSelect(item.toolId);
+        }
+    };
 
     return (
         <>
             <div 
-                className={`${isCollapsed ? 'w-20' : 'w-64'} bg-[#0D0D10] border-r border-gray-800 flex-shrink-0 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300`}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                className={`bg-[#0D0D10] border-r border-gray-800 flex-shrink-0 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 ${
+                    isCollapsed ? 'w-20' : 'w-64'
+                }`}
+                onMouseEnter={() => setIsCollapsed(false)}
+                onMouseLeave={() => setIsCollapsed(true)}
             >
 
-                {/* Header Logo */}
-                <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} mb-2 cursor-pointer relative group`} onClick={handleHomeClick}>
-                    <img
-                        src="/seenyt-logo.jpg"
-                        alt="SeenYT Logo"
-                        className="w-8 h-8 rounded-lg shadow-[0_0_15px_rgba(205,173,90,0.3)] object-cover"
-                    />
-                    {!isCollapsed && <span className="text-xl font-bold text-white tracking-wide whitespace-nowrap">SeenYT</span>}
+                {/* Logo */}
+                <div className="p-5 flex items-center justify-between border-b border-gray-800">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/dashboard')}>
+                        <img
+                            src="/seenyt-logo.jpg"
+                            alt="SeenYT"
+                            className="w-10 h-10 rounded-xl shadow-lg"
+                        />
+                        {!isCollapsed && (
+                            <span className="text-xl font-bold text-white tracking-wide">SeenYT</span>
+                        )}
+                    </div>
+                    {!isCollapsed && (
+                        <button 
+                            onClick={() => setIsCollapsed(true)}
+                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <ChevronLeft size={18} className="text-gray-500" />
+                        </button>
+                    )}
                 </div>
 
-                <style jsx>{`
-                    .custom-scrollbar::-webkit-scrollbar {
-                        width: 4px;
-                    }
-                    .custom-scrollbar::-webkit-scrollbar-track {
-                        background: transparent;
-                    }
-                    .custom-scrollbar::-webkit-scrollbar-thumb {
-                        background: rgba(255,255,255,0.05);
-                        border-radius: 4px;
-                    }
-                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                        background: rgba(255,255,255,0.1);
-                    }
-                `}</style>
-
-                <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar pb-20">
-
-                    {/* Website Link */}
-                    <a
-                        href="https://www.seenyt.net/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700 transition-all duration-200 cursor-pointer group mb-1
-                        `}
-                        title="Website"
-                    >
-                        <Globe size={20} strokeWidth={1.5} />
-                        {!isCollapsed && <span className="text-sm font-medium">Trang chủ</span>}
-                    </a>
-
-                    {/* General Dashboard/Home */}
-                    <div
-                        onClick={handleHomeClick}
-                        className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl transition-all duration-200 cursor-pointer group mb-1
-                            ${!activeTool && router.pathname === '/dashboard'
-                                ? 'bg-[#CDAD5A]/10 text-[#CDAD5A] font-bold border border-[#CDAD5A]/20'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700'
-                            }
-                        `}
-                        title={t('sidebar.overview')}
-                    >
-                        <Home size={20} strokeWidth={1.5} />
-                        {!isCollapsed && <span className="text-sm font-medium">{t('sidebar.overview')}</span>}
+                {/* Navigation */}
+                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                    
+                    {/* Main Nav */}
+                    <div className="space-y-1">
+                        {navItems.map(item => {
+                            const Icon = item.icon;
+                            const active = isActive(item);
+                            
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleNavClick(item)}
+                                    className={`
+                                        w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200
+                                        ${active 
+                                            ? 'bg-[#CDAD5A]/10 text-[#CDAD5A] font-bold border border-[#CDAD5A]/20' 
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                        }
+                                    `}
+                                >
+                                    <Icon size={20} strokeWidth={active ? 2 : 1.5} className={active ? 'text-[#CDAD5A]' : ''} />
+                                    {!isCollapsed && (
+                                        <>
+                                            <span className="text-sm font-medium flex-1 text-left">{item.label}</span>
+                                            {item.badge && (
+                                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase ${item.badgeColor}`}>
+                                                    {item.badge}
+                                                </span>
+                                            )}
+                                        </>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
 
-                    {/* AI Coach */}
-                    <div
-                        onClick={() => router.push('/dashboard/ai-coach')}
-                        className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl transition-all duration-200 cursor-pointer group mb-1
-                            ${router.pathname === '/dashboard/ai-coach'
-                                ? 'bg-[#1C2029] text-white font-bold border border-[#2A2E39]'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700'
-                            }
-                        `}
-                        title="AI Coach"
-                    >
-                        <div className="w-6 h-6 rounded-full overflow-hidden border border-purple-500/30 flex-shrink-0 group-hover:border-purple-500/60 shadow-[0_0_8px_rgba(168,85,247,0.3)] group-hover:shadow-[0_0_12px_rgba(168,85,247,0.6)] transition-all">
-                            <img src="/images/ai-coach.png" alt="AI Coach" className="w-full h-full object-cover" />
+                    {/* Divider */}
+                    <div className="h-px bg-gray-800/50 my-4"></div>
+
+                    {/* Quick Tools */}
+                    {!isCollapsed && (
+                        <div className="text-[10px] font-bold text-gray-500 uppercase mb-2 px-3 tracking-wider">
+                            Công cụ nhanh
                         </div>
-                        {!isCollapsed && <span className="text-sm font-medium">AI Coach <span className="ml-2 text-[9px] bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider relative -top-px">Beta</span></span>}
+                    )}
+                    
+                    <div className="space-y-1">
+                        {toolItems.map(item => {
+                            const Icon = item.icon;
+                            const active = isActive(item);
+                            
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleNavClick(item)}
+                                    className={`
+                                        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                                        ${active 
+                                            ? 'bg-white/10 text-white font-bold border border-white/5' 
+                                            : 'text-gray-500 hover:bg-white/5 hover:text-gray-300 border border-transparent'
+                                        }
+                                    `}
+                                >
+                                    <Icon size={18} strokeWidth={1.5} />
+                                    {!isCollapsed && (
+                                        <span className="text-sm font-medium">{item.label}</span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
 
-                    {/* Explore Section */}
-                    {!isCollapsed && <div className="px-4 text-[10px] font-bold text-gray-600 uppercase mb-2 mt-4 tracking-wider">KHÁM PHÁ</div>}
-                    <div
-                        onClick={() => router.push('/dashboard/trends')}
-                        className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl transition-all duration-200 cursor-pointer group mb-1
-                            ${router.pathname === '/dashboard/trends'
-                                ? 'bg-pink-600/20 text-pink-400 font-bold border border-pink-500/30'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white border border-transparent hover:border-gray-700'
-                            }
-                        `}
-                        title="Xu hướng"
-                    >
-                        <TrendingUp size={20} strokeWidth={1.5} />
-                        {!isCollapsed && <span className="text-sm font-medium">Xu hướng</span>}
+                    {/* Divider */}
+                    <div className="h-px bg-gray-800/50 my-4"></div>
+
+                    {/* More Links */}
+                    <div className="space-y-1">
+                        <button
+                            onClick={() => setShowCheckout(true)}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-white/5 hover:text-white transition-colors"
+                        >
+                            <CreditCard size={18} strokeWidth={1.5} />
+                            {!isCollapsed && <span className="text-sm font-medium">Mua thêm kênh</span>}
+                        </button>
+
+                        <Link
+                            href="/pricing"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-white/5 hover:text-white transition-colors"
+                        >
+                            <Star size={18} strokeWidth={1.5} />
+                            {!isCollapsed && <span className="text-sm font-medium">Bảng giá</span>}
+                        </Link>
+
+                        <Link
+                            href="/guides"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-white/5 hover:text-white transition-colors"
+                        >
+                            <Download size={18} strokeWidth={1.5} />
+                            {!isCollapsed && <span className="text-sm font-medium">Hướng dẫn</span>}
+                        </Link>
                     </div>
-
-                    <div className="h-px bg-gray-800/50 my-2 mx-4"></div>
-
-                    {/* WORKFLOWS */}
-                    <div className="flex flex-col mt-2">
-                         {!isCollapsed && <div className="px-4 text-[10px] font-bold text-gray-500 uppercase mb-2 mt-4 tracking-wider">HỆ THỐNG KODA</div>}
-                        <div className="flex flex-col gap-1 px-2">
-                            {workflows.map(wf => {
-                                // Nếu là web-tools thì có thể user đang ở màn 'niche-radar' hoặc 'script-studio'
-                                const isActive = activeTool ? wf.id === 'web-tools' : router.query.tab === wf.id;
-                                const Icon = wf.icon;
-                                
-                                return (
-                                    <div
-                                        key={wf.id}
-                                        onClick={() => {
-                                            if (onToolSelect) onToolSelect(''); // Về dashboard base
-                                            router.push(`/dashboard?tab=${wf.id}`);
-                                        }}
-                                        className={`
-                                            flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer group
-                                            ${isActive 
-                                                ? 'bg-white/10 text-white font-bold border border-white/5 shadow-lg' 
-                                                : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-                                            }
-                                        `}
-                                        title={wf.label}
-                                    >
-                                        <Icon size={18} strokeWidth={isActive ? 2 : 1.5} className={`${isActive ? wf.color : 'text-gray-500 group-hover:text-gray-300'}`} />
-                                        {!isCollapsed && <span className="text-[13px] font-medium truncate flex-1">{wf.label}</span>}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-
-                        {/* NEW: Hệ sinh thái SeenYT */}
-                        <div className="flex flex-col mt-2">
-                            <div
-                                onClick={() => setOpenGroups(prev => ({ ...prev, ecosystem: !prev.ecosystem }))}
-                                className={`flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg hover:bg-white/5 transition-colors ${openGroups.ecosystem ? 'text-blue-400' : 'text-gray-400'}`}
-                            >
-                                {!isCollapsed ? (
-                                    <>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[12px] font-semibold tracking-wide text-blue-400">HỆ SINH THÁI SEENYT</span>
-                                        </div>
-                                        <ChevronDown size={14} className={`transition-transform duration-300 ${openGroups.ecosystem ? 'rotate-180 text-blue-400' : 'text-gray-500'}`} />
-                                    </>
-                                ) : (
-                                    <div className="w-full flex justify-center text-blue-400">
-                                        <ChevronRight size={16} className={`${openGroups.ecosystem ? 'rotate-90 text-blue-400' : 'text-blue-500/70'}`} />
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openGroups.ecosystem && !isCollapsed ? 'max-h-[400px] opacity-100 mt-1 mb-2' : 'max-h-0 opacity-0'}`}>
-                                <div className="flex flex-col gap-0.5 border-l border-blue-900/50 ml-5 pl-2">
-                                    <Link href="/academy" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10" title="Academy">
-                                        <span className="text-sm">🎓</span>
-                                        <span className="text-[13px] font-normal truncate flex-1">Academy</span>
-                                    </Link>
-                                    <Link href="/coaching" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10" title="Huấn luyện 1-1">
-                                        <span className="text-sm">🧑‍🏫</span>
-                                        <span className="text-[13px] font-normal truncate flex-1">Huấn luyện 1-1</span>
-                                    </Link>
-                                    <Link href="/services" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-[#CDAD5A] hover:text-yellow-300 hover:bg-yellow-500/10 font-medium" title="Dịch vụ">
-                                        <span className="text-sm">🚀</span>
-                                        <span className="text-[13px] font-medium truncate flex-1">Dịch vụ</span>
-                                    </Link>
-                                    <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10" title="Cá nhân">
-                                        <span className="text-sm">👤</span>
-                                        <span className="text-[13px] font-normal truncate flex-1">Cá nhân</span>
-                                    </Link>
-                                    <Link href="/affiliate" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-[#00a3a3] hover:text-[#4ddcdc] hover:bg-teal-500/10" title="Affiliate">
-                                        <span className="text-sm">🤝</span>
-                                        <span className="text-[13px] font-normal truncate flex-1">Affiliate</span>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    <div className="h-px bg-gray-800/50 my-4 mx-4"></div>
-
-                    {/* Bottom Utility Links */}
-                    <div
-                        onClick={() => setShowCheckout(true)}
-                        className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl cursor-pointer transition-all duration-300 group mb-1
-                            text-purple-400 hover:text-purple-300 hover:bg-purple-500/10
-                        `}
-                        title="Mua thêm kênh"
-                    >
-                        <ShoppingCart size={20} strokeWidth={1.5} />
-                        {!isCollapsed && <span className="text-sm font-medium">Mua thêm kênh</span>}
-                    </div>
-
-                    <Link
-                        href="/pricing"
-                        className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl cursor-pointer transition-all duration-300 group mb-1
-                            text-gray-400 hover:text-white hover:bg-gray-800
-                        `}
-                        title="Bảng giá"
-                    >
-                        <CreditCard size={20} strokeWidth={1.5} className="group-hover:text-emerald-400 transition-colors" />
-                        {!isCollapsed && <span className="text-sm font-medium">Bảng giá</span>}
-                    </Link>
-
-                    <Link
-                        href="/guides"
-                        className={`
-                            flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl cursor-pointer transition-all duration-300 group mb-1
-                            text-gray-400 hover:text-white hover:bg-gray-800
-                        `}
-                        title="Hướng dẫn sử dụng tools"
-                    >
-                        <PlayCircle size={20} strokeWidth={1.5} className="group-hover:text-red-400 transition-colors" />
-                        {!isCollapsed && <span className="text-sm font-medium">Hướng dẫn sử dụng tools</span>}
-                    </Link>
-
                 </nav>
 
-                {/* User Mini Profile & Settings */}
-                <div className="p-4 border-t border-gray-800 bg-[#0a0a0c] relative">
-                    <div
-                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} cursor-pointer group hover:bg-gray-800/50 p-2 -m-2 rounded-xl transition-all select-none`}
-                        onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                    >
-                        <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-xs text-white ${userRole === 'PRO' ? 'bg-gradient-to-tr from-yellow-400 to-orange-500' : 'bg-gradient-to-tr from-gray-700 to-gray-600'}`}>
-                            {userRole.charAt(0)}
-                        </div>
-
+                {/* User Profile */}
+                <div className="p-4 border-t border-gray-800">
+                    <div className="flex items-center gap-3">
+                        {/* Avatar - click to show popup */}
+                        <button
+                            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                            className="relative"
+                        >
+                            {userAvatar ? (
+                                <img 
+                                    src={userAvatar} 
+                                    alt="Avatar" 
+                                    className="w-10 h-10 rounded-xl object-cover hover:ring-2 hover:ring-white/20 transition-all"
+                                />
+                            ) : (
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm ${tierColor.bg} hover:ring-2 hover:ring-white/20 transition-all`}>
+                                    {userName.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                            )}
+                            {!isCollapsed && (
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0D0D10]"></div>
+                            )}
+                        </button>
+                        
                         {!isCollapsed && (
-                            <div className="flex-1 overflow-hidden">
-                                <div className="text-xs font-bold text-white truncate group-hover:text-gray-300 transition-colors">{t('sidebar.my_account')}</div>
-                                <div className="text-[10px] text-gray-500 truncate font-mono uppercase">
-                                    {userRole} PLAN
-                                    {daysLeftText && <span className="text-emerald-500/80 lowercase ml-1 font-sans font-bold">{daysLeftText}</span>}
+                            <div className="flex-1 min-w-0">
+                                <div className="text-sm font-bold text-white truncate">
+                                    {userName || 'User'}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-xs ${tierColor.text} font-bold uppercase`}>
+                                        {userRole}
+                                    </span>
+                                    {daysLeftText && (
+                                        <span className="text-xs text-gray-500">
+                                            • {daysLeftText}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         )}
 
-                        {/* Settings / Logout Trigger */}
-                        <div className="relative">
-                            <button
-                                className={`text-gray-500 group-hover:text-white transition-colors p-1.5 rounded-lg ${isCollapsed ? 'hidden group-hover:block absolute left-8 bottom-0 bg-[#1a1a20] border border-gray-700 w-max' : ''}`}
-                            >
-                                <Settings size={18} />
-                            </button>
-
-                            {/* Settings Dropdown */}
-                            {showSettingsMenu && (
-                                <div
-                                    className="absolute bottom-full right-0 mb-2 w-48 bg-[#1a1a20] border border-gray-700 rounded-xl shadow-2xl p-1 z-[60] overflow-hidden animate-in fade-in slide-in-from-bottom-2"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <Link
-                                        href="/dashboard/settings"
-                                        className="block px-3 py-2 border-b border-gray-700/50 mb-1 hover:bg-gray-700/30 transition-colors"
-                                        onClick={() => setShowSettingsMenu(false)}
-                                    >
-                                        <p className="text-xs font-bold text-white">Cài đặt tài khoản</p>
-                                    </Link>
-                                    <Link
-                                        href="/pricing"
-                                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white rounded-lg transition-colors"
-                                        onClick={() => setShowSettingsMenu(false)}
-                                    >
-                                        <CreditCard size={14} /> Quản lý gói cước
-                                    </Link>
-                                    <button
-                                        onClick={() => {
-                                            setShowSettingsMenu(false);
-                                            signOut({ callbackUrl: '/' });
-                                        }}
-                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors"
-                                    >
-                                        <LogOut size={14} /> Đăng xuất
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Backdrop to close menu */}
-                            {showSettingsMenu && (
-                                <div
-                                    className="fixed inset-0 z-[55] cursor-default"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowSettingsMenu(false);
-                                    }}
-                                />
-                            )}
-                        </div>
+                        {/* Settings Icon */}
+                        <button
+                            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <Settings size={16} className="text-gray-500 hover:text-white transition-colors" />
+                        </button>
                     </div>
                 </div>
-            </div >
+            </div>
 
-            {/* Modals */}
+            {/* Settings Popup - Fixed position, outside sidebar */}
+            {showSettingsMenu && (
+                <>
+                    {/* Backdrop */}
+                    <div 
+                        className="fixed inset-0 z-[100]"
+                        onClick={() => setShowSettingsMenu(false)}
+                    />
+                    
+                    {/* Popup Menu */}
+                    <div 
+                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-[#1a1a20] border border-gray-700 rounded-2xl shadow-2xl p-3 z-[110] animate-fadeIn"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* User Info Header */}
+                        <div className="p-3 border-b border-gray-800 mb-2">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white text-lg ${tierColor.bg}`}>
+                                    {userRole.charAt(0)}
+                                </div>
+                                <div>
+                                    <div className="font-bold text-white">
+                                        {session?.user?.name || 'User'}
+                                    </div>
+                                    <div className={`text-xs ${tierColor.text} font-bold uppercase`}>
+                                        {userRole} Plan
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Menu Items */}
+                        <Link
+                            href="/dashboard/settings"
+                            className="flex items-center gap-3 px-3 py-3 hover:bg-white/5 rounded-xl transition-colors"
+                            onClick={() => setShowSettingsMenu(false)}
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                <Settings size={16} className="text-blue-400" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium text-white">Cài đặt tài khoản</div>
+                                <div className="text-xs text-gray-500">Hồ sơ, avatar, thông tin</div>
+                            </div>
+                        </Link>
+                        
+                        <Link
+                            href="/dashboard/subscription"
+                            className="flex items-center gap-3 px-3 py-3 hover:bg-white/5 rounded-xl transition-colors"
+                            onClick={() => setShowSettingsMenu(false)}
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                                <CreditCard size={16} className="text-amber-400" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium text-white">Quản lý gói</div>
+                                <div className="text-xs text-gray-500">Nâng cấp, gia hạn, thanh toán</div>
+                            </div>
+                        </Link>
+                        
+                        {daysLeftText && userRole !== 'ADMIN' && (
+                            <div className="px-3 py-2 bg-amber-500/10 rounded-lg mx-1 mb-2">
+                                <div className="text-xs text-amber-400">
+                                    <Clock size={12} className="inline mr-1" />
+                                    Còn lại: <span className="font-bold">{daysLeftText}</span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="h-px bg-gray-800 my-2"></div>
+                        
+                        <button
+                            onClick={() => {
+                                setShowSettingsMenu(false);
+                                signOut({ callbackUrl: '/' });
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-3 hover:bg-red-500/10 rounded-xl transition-colors"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                                <LogOut size={16} className="text-red-400" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium text-red-400">Đăng xuất</div>
+                            </div>
+                        </button>
+                    </div>
+                </>
+            )}
 
-
+            {/* Checkout Modal */}
             <CheckoutModal
                 isOpen={showCheckout}
                 onClose={() => setShowCheckout(false)}

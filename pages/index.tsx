@@ -3,7 +3,7 @@ import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import Link from 'next/link';
-import { Wrench, GraduationCap, ShieldCheck, ArrowRight, Target, PenTool, Video, UploadCloud, DollarSign, LineChart, Database, FileText, Map, Users, Star, Sparkles, Layers, Search, Download, CheckCircle2, Globe } from "lucide-react";
+import { Wrench, GraduationCap, ShieldCheck, ArrowRight, Target, PenTool, Video, UploadCloud, DollarSign, LineChart, Database, FileText, Sparkles, Layers, Search, Download, CheckCircle2, Globe } from "lucide-react";
 
 
 
@@ -225,57 +225,60 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
               <p className="text-gray-400 text-lg">{t('home_timeline.subtitle')}</p>
             </div>
 
-            {/* Horizontal Zigzag Timeline Container */}
+            {/* Horizontal Timeline with Connecting Lines */}
             <div className="relative pt-12">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
-
+              {/* Connecting Line */}
+              <div className="hidden md:block absolute top-[52px] left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 via-pink-500 via-cyan-500 via-orange-500 to-green-500 opacity-30" />
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 md:gap-4 relative z-10">
+                
                 {/* Step 1 */}
-                <div className="flex flex-col items-center text-center group md:-translate-y-6">
-                  <div className="w-12 h-12 rounded-full bg-black border-2 border-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-purple-900 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                    <Target className="w-5 h-5 text-purple-400" />
+                <div className="flex flex-col items-center text-center group">
+                  <div className="w-14 h-14 rounded-full bg-black border-2 border-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-all relative z-10 group-hover:bg-purple-600 group-hover:shadow-[0_0_25px_rgba(168,85,247,0.5)]">
+                    <Target className="w-6 h-6 text-purple-400 group-hover:text-white" />
                   </div>
-                  <div className="text-purple-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step1_label')}</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step1_title')}</h3>
+                  <span className="text-purple-400 font-bold text-xs uppercase tracking-wider mb-1">{t('home_timeline.step1_label')}</span>
+                  <h3 className="text-base font-bold text-white mb-2">{t('home_timeline.step1_title')}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step1_desc')}</p>
                 </div>
 
                 {/* Step 2 */}
-                <div className="flex flex-col items-center text-center group md:translate-y-12">
-                  <div className="w-12 h-12 rounded-full bg-black border-2 border-pink-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-pink-900 group-hover:shadow-[0_0_20px_rgba(236,72,153,0.4)]">
-                    <PenTool className="w-5 h-5 text-pink-400" />
+                <div className="flex flex-col items-center text-center group">
+                  <div className="w-14 h-14 rounded-full bg-black border-2 border-pink-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-all relative z-10 group-hover:bg-pink-600 group-hover:shadow-[0_0_25px_rgba(236,72,153,0.5)]">
+                    <PenTool className="w-6 h-6 text-pink-400 group-hover:text-white" />
                   </div>
-                  <div className="text-pink-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step2_label')}</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step2_title')}</h3>
+                  <span className="text-pink-400 font-bold text-xs uppercase tracking-wider mb-1">{t('home_timeline.step2_label')}</span>
+                  <h3 className="text-base font-bold text-white mb-2">{t('home_timeline.step2_title')}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step2_desc')}</p>
                 </div>
 
                 {/* Step 3 */}
-                <div className="flex flex-col items-center text-center group md:-translate-y-6">
-                  <div className="w-12 h-12 rounded-full bg-black border-2 border-cyan-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-cyan-900 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]">
-                    <Video className="w-5 h-5 text-cyan-400" />
+                <div className="flex flex-col items-center text-center group">
+                  <div className="w-14 h-14 rounded-full bg-black border-2 border-cyan-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-all relative z-10 group-hover:bg-cyan-600 group-hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]">
+                    <Video className="w-6 h-6 text-cyan-400 group-hover:text-white" />
                   </div>
-                  <div className="text-cyan-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step3_label')}</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step3_title')}</h3>
+                  <span className="text-cyan-400 font-bold text-xs uppercase tracking-wider mb-1">{t('home_timeline.step3_label')}</span>
+                  <h3 className="text-base font-bold text-white mb-2">{t('home_timeline.step3_title')}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step3_desc')}</p>
                 </div>
 
                 {/* Step 4 */}
-                <div className="flex flex-col items-center text-center group md:translate-y-12">
-                  <div className="w-12 h-12 rounded-full bg-black border-2 border-orange-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10 group-hover:bg-orange-900 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]">
-                    <UploadCloud className="w-5 h-5 text-orange-400" />
+                <div className="flex flex-col items-center text-center group">
+                  <div className="w-14 h-14 rounded-full bg-black border-2 border-orange-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-all relative z-10 group-hover:bg-orange-600 group-hover:shadow-[0_0_25px_rgba(249,115,22,0.5)]">
+                    <UploadCloud className="w-6 h-6 text-orange-400 group-hover:text-white" />
                   </div>
-                  <div className="text-orange-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step4_label')}</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step4_title')}</h3>
+                  <span className="text-orange-400 font-bold text-xs uppercase tracking-wider mb-1">{t('home_timeline.step4_label')}</span>
+                  <h3 className="text-base font-bold text-white mb-2">{t('home_timeline.step4_title')}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step4_desc')}</p>
                 </div>
 
                 {/* Step 5 */}
-                <div className="flex flex-col items-center text-center group hover:-translate-y-1 transition-transform md:-translate-y-6">
-                  <div className="w-12 h-12 rounded-full bg-green-900/50 border-2 border-green-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(34,197,94,0.2)] md:shadow-[0_0_20px_rgba(34,197,94,0.4)] relative z-10 group-hover:bg-green-900">
-                    <DollarSign className="w-5 h-5 text-green-400 font-bold" />
+                <div className="flex flex-col items-center text-center group">
+                  <div className="w-14 h-14 rounded-full bg-black border-2 border-green-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-all relative z-10 group-hover:bg-green-600 group-hover:shadow-[0_0_25px_rgba(34,197,94,0.5)]">
+                    <DollarSign className="w-6 h-6 text-green-400 group-hover:text-white" />
                   </div>
-                  <div className="text-green-400 font-bold mb-1 uppercase tracking-wide text-xs">{t('home_timeline.step5_label')}</div>
-                  <h3 className="text-lg font-bold text-white mb-2 px-2">{t('home_timeline.step5_title')}</h3>
+                  <span className="text-green-400 font-bold text-xs uppercase tracking-wider mb-1">{t('home_timeline.step5_label')}</span>
+                  <h3 className="text-base font-bold text-white mb-2">{t('home_timeline.step5_title')}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{t('home_timeline.step5_desc')}</p>
                 </div>
 
@@ -422,78 +425,6 @@ export default function Home({ ebooks = [], videos = [], tutorialVideos = [], fe
                 </div>
               </div>
 
-            </div>
-          </div>
-        </section>
-
-        {/* --- KHU VỰC 5: COACHING 1-1 COPYWRITING --- */}
-        <section className="py-24 relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/10 via-black to-black">
-
-          <div className="max-w-4xl mx-auto px-4 relative z-10">
-            <div className="space-y-10">
-              {/* Headline */}
-              <div className="text-center relative">
-                <h2 className="text-3xl md:text-5xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-400 leading-tight">
-                  {t('home_coaching.headline_1')}<br />{t('home_coaching.headline_2')}
-                </h2>
-              </div>
-
-              {/* Copywriting blocks */}
-              <div className="bg-[#111] border border-orange-500/10 rounded-3xl p-8 md:p-12 shadow-[0_0_50px_rgba(234,88,12,0.05)] space-y-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 blur-[100px] rounded-full" />
-
-                <div className="flex gap-4 relative z-10">
-                  <div className="mt-1 bg-red-500/10 p-2 rounded-xl w-fit h-fit border border-red-500/20 shrink-0">
-                    <Target className="w-6 h-6 text-red-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-red-400 font-bold text-lg mb-2">{t('home_coaching.problem_title')}</h4>
-                    <p className="text-gray-300 text-lg leading-relaxed">{t('home_coaching.problem_desc')}</p>
-                  </div>
-                </div>
-
-                <div className="w-full h-px bg-white/5 relative z-10" />
-
-                <div className="flex gap-4 relative z-10">
-                  <div className="mt-1 bg-cyan-500/10 p-2 rounded-xl w-fit h-fit border border-cyan-500/20 shrink-0">
-                    <Map className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-cyan-400 font-bold text-lg mb-2">{t('home_coaching.solution_title')}</h4>
-                    <p className="text-gray-300 text-lg leading-relaxed">
-                      <Trans
-                        i18nKey="home_coaching.solution_desc"
-                        components={{ 1: <strong /> }}
-                      />
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 relative z-10">
-                  <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-orange-500/30 transition-colors">
-                    <Star className="w-8 h-8 text-yellow-500 mb-3" />
-                    <h4 className="text-white font-bold mb-2 text-lg">{t('home_coaching.perk1_title')}</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">{t('home_coaching.perk1_desc')}</p>
-                  </div>
-                  <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-orange-500/30 transition-colors">
-                    <Users className="w-8 h-8 text-purple-400 mb-3" />
-                    <h4 className="text-white font-bold mb-2 text-lg">{t('home_coaching.perk2_title')}</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">{t('home_coaching.perk2_desc')}</p>
-                  </div>
-                </div>
-
-                <div className="pt-8 text-center relative z-10 group">
-                  <Link href="/coaching" className="relative inline-block hover:scale-105 transition-transform duration-300">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-yellow-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-300"></div>
-                    <div className="relative bg-black px-8 md:px-12 py-5 rounded-full border border-orange-500/50">
-                      <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-400">
-                        {t('home_coaching.cta')}
-                      </span>
-                    </div>
-                  </Link>
-                </div>
-
-              </div>
             </div>
           </div>
         </section>

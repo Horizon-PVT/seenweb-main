@@ -1,17 +1,25 @@
 // pages/dashboard/settings.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { User, Phone, Mail, Camera, Loader2, Save, ShieldAlert } from 'lucide-react';
+import { User, Phone, Mail, Camera, Loader2, Save, ShieldAlert, Upload, Check, Clock, CreditCard, Calendar } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 
 export default function SettingsPage() {
     const { data: session, update } = useSession();
     const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [subscription, setSubscription] = useState<{
+        plan: string;
+        expiresAt: string | null;
+        daysRemaining: number | null;
+    } | null>(null);
     const [formData, setFormData] = useState({
         name: '',
         phoneNumber: '',
@@ -24,12 +32,91 @@ export default function SettingsPage() {
                 // @ts-ignore - Custom property potentially
                 phoneNumber: (session.user as any).phoneNumber || '',
             });
+            // Set avatar from session if exists
+            if (session.user.image) {
+                setAvatarPreview(session.user.image);
+            }
         }
     }, [session]);
+
+    // Fetch subscription info
+    useEffect(() => {
+        const fetchSubscription = async () => {
+            try {
+                const res = await fetch('/api/user/subscription');
+                const data = await res.json();
+                if (data.success) {
+                    setSubscription(data.subscription);
+                }
+            } catch (err) {
+                console.error('Failed to fetch subscription:', err);
+            }
+        };
+        fetchSubscription();
+    }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error('Vui lòng chọn file hình ảnh!');
+            return;
+        }
+
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            toast.error('Kích thước ảnh tối đa 2MB!');
+            return;
+        }
+
+        // Preview image
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setAvatarPreview(event.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to server
+        setIsUploading(true);
+        try {
+            const formDataUpload = new FormData();
+            formDataUpload.append('avatar', file);
+
+            const response = await fetch('/api/user/upload-avatar', {
+                method: 'POST',
+                body: formDataUpload,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Lỗi upload ảnh');
+            }
+
+            const data = await response.json();
+            
+            // Update session with new image
+            await update({ image: data.imageUrl });
+            
+            toast.success('Đã cập nhật ảnh đại diện!');
+        } catch (error: any) {
+            console.error('Upload avatar error:', error);
+            toast.error(error.message || 'Có lỗi xảy ra khi upload ảnh');
+            // Revert preview if upload failed
+            setAvatarPreview(session?.user?.image || null);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -71,6 +158,19 @@ export default function SettingsPage() {
         return name.charAt(0).toUpperCase();
     };
 
+    // Get tier color
+    const getTierColor = (tier: string) => {
+        const colors: Record<string, string> = {
+            'FREE': 'text-gray-400 bg-gray-400/10 border-gray-400/20',
+            'STARTER': 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+            'CREATOR': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+            'FACTORY': 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+            'AGENCY': 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',
+            'ENTERPRISE': 'text-rose-400 bg-rose-400/10 border-rose-400/20',
+        };
+        return colors[tier] || colors.FREE;
+    };
+
     // @ts-ignore
     const userRole = session?.user?.role || 'FREE';
 
@@ -81,9 +181,55 @@ export default function SettingsPage() {
             </Head>
             <Toaster position="top-center" />
 
-            <div className="max-w-3xl mx-auto py-8">
+            <div className="max-w-3xl mx-auto space-y-8">
+                {/* Subscription Info Card */}
+                {subscription && subscription.plan !== 'FREE' && (
+                    <div className={`p-6 rounded-2xl border ${getTierColor(subscription.plan)} bg-current/5`}>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getTierColor(subscription.plan)}`}>
+                                    <CreditCard size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-xs uppercase tracking-wider opacity-70 mb-1"> Gói Subscription</p>
+                                    <h3 className="text-xl font-bold">{subscription.plan} Plan</h3>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                {subscription.expiresAt && (
+                                    <div className="text-right">
+                                        <p className="text-xs uppercase tracking-wider opacity-70 mb-1">Ngày hết hạn</p>
+                                        <p className="font-semibold flex items-center gap-2">
+                                            <Calendar size={14} />
+                                            {new Date(subscription.expiresAt).toLocaleDateString('vi-VN')}
+                                        </p>
+                                    </div>
+                                )}
+                                {subscription.daysRemaining !== null && (
+                                    <div className="text-right">
+                                        <p className="text-xs uppercase tracking-wider opacity-70 mb-1">Còn lại</p>
+                                        <p className="font-bold text-2xl flex items-center gap-1">
+                                            <Clock size={18} />
+                                            {subscription.daysRemaining}
+                                        </p>
+                                        <p className="text-xs opacity-70">ngày</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-current/20">
+                            <button
+                                onClick={() => router.push('/pricing')}
+                                className="text-sm hover:underline opacity-80 hover:opacity-100"
+                            >
+                                Gia hạn hoặc nâng cấp gói khác →
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header */}
-                <div className="mb-8">
+                <div>
                     <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Cài Đặt Tài Khoản</h1>
                     <p className="text-gray-400">Quản lý thông tin cá nhân và định danh của bạn trên hệ thống.</p>
                 </div>
@@ -98,24 +244,54 @@ export default function SettingsPage() {
                             <div className="relative group">
                                 <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center text-4xl font-bold text-white shadow-lg overflow-hidden border-4 border-[#14161B]">
                                     {/* Placeholder for uploaded image */}
-                                    {session?.user?.image ? (
-                                        <img src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
+                                    {avatarPreview ? (
+                                        <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                                     ) : (
                                         getInitials(formData.name)
                                     )}
                                 </div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarChange}
+                                    className="hidden"
+                                />
                                 <button
                                     type="button"
-                                    title="Tính năng upload ảnh đang phát triển"
-                                    className="absolute bottom-0 right-0 p-2 bg-gray-800 border border-gray-600 rounded-full text-white hover:bg-gray-700 transition-colors shadow-lg cursor-not-allowed opacity-80"
+                                    onClick={handleAvatarClick}
+                                    disabled={isUploading}
+                                    title="Tải lên ảnh đại diện"
+                                    className="absolute bottom-0 right-0 p-2 bg-gray-800 border border-gray-600 rounded-full text-white hover:bg-gray-700 transition-colors shadow-lg"
                                 >
-                                    <Camera size={14} />
+                                    {isUploading ? (
+                                        <Loader2 size={14} className="animate-spin" />
+                                    ) : (
+                                        <Camera size={14} />
+                                    )}
                                 </button>
+                                {avatarPreview && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                        <Check size={12} className="text-white" />
+                                    </div>
+                                )}
                             </div>
                             <div className="text-center sm:text-left">
                                 <h3 className="text-xl font-bold text-white mb-1">{formData.name || 'Người dùng mới'}</h3>
-                                <p className="text-sm font-mono text-purple-400 uppercase tracking-widest bg-purple-500/10 inline-block px-3 py-1 rounded-full border border-purple-500/20">{userRole} PLAN</p>
-                                <p className="text-xs text-gray-500 mt-3 font-light">Ảnh đại diện kích thước 256x256px. Tối đa 2MB. (Chức năng tải lên sắp ra mắt)</p>
+                                <p className={`text-xs font-mono uppercase tracking-widest inline-block px-3 py-1 rounded-full border ${getTierColor(userRole)}`}>
+                                    {userRole} PLAN
+                                </p>
+                                <p className="text-xs text-gray-500 mt-3 font-light">
+                                    Ảnh đại diện kích thước 256x256px. Tối đa 2MB.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleAvatarClick}
+                                    className="mt-2 text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                                >
+                                    <Upload size={12} />
+                                    Tải ảnh lên
+                                </button>
                             </div>
                         </div>
 

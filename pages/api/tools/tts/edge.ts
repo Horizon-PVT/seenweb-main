@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createHash } from 'crypto';
 import https from 'https';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
+import { authOptions } from '../../../auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 

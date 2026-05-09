@@ -19,7 +19,11 @@ import {
     User, // Virtual MC
     Target, // Keyword Research
     Search, // ADDED
-    FileText // ADDED
+    FileText, // ADDED
+    Sparkles, // Video Pipeline
+    Brain, // Intelligence Hub
+    Languages, // Multilingual Studio
+    BarChart3 // Creator Dashboard
 } from 'lucide-react';
 
 export interface ToolConfig {
@@ -54,5 +58,49 @@ export const TOOLS: ToolConfig[] = [
         minRole: 'FREE',
         color: 'text-purple-400',
         group: 'create'
+    },
+    // WF4: Video Automation Pipeline
+    {
+        id: 'video-pipeline',
+        label: 'Video Automation Pipeline',
+        description: 'AI generates complete video production: Script, Visual Prompts, Voiceover, Thumbnail & SEO',
+        icon: Sparkles,
+        status: 'new',
+        minRole: 'BASIC',
+        color: 'text-indigo-400',
+        group: 'create'
+    },
+    // WF5: Content Intelligence Hub
+    {
+        id: 'intelligence-hub',
+        label: 'Content Intelligence Hub',
+        description: 'Micro Niche + Rival Scanner + Hidden Channels + SEO Analysis in one unified engine',
+        icon: Brain,
+        status: 'new',
+        minRole: 'BASIC',
+        color: 'text-cyan-400',
+        group: 'research'
+    },
+    // WF6: Multilingual Studio
+    {
+        id: 'multilingual-studio',
+        label: 'Multilingual Studio',
+        description: 'Translate scripts, localize titles & descriptions for English, Spanish, French & more markets',
+        icon: Languages,
+        status: 'new',
+        minRole: 'PRO',
+        color: 'text-emerald-400',
+        group: 'create'
+    },
+    // WF7: Creator Dashboard
+    {
+        id: 'creator-dashboard',
+        label: 'Creator Analytics Dashboard',
+        description: 'AI-powered channel analytics: health score, video performance, SWOT analysis & recommendations',
+        icon: BarChart3,
+        status: 'new',
+        minRole: 'PRO',
+        color: 'text-rose-400',
+        group: 'research'
     }
 ];

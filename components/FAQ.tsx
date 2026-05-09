@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
+import { ChevronDown } from 'lucide-react';
 
 const FAQ: React.FC = () => {
     const { t } = useTranslation('common');
@@ -21,7 +22,35 @@ const FAQ: React.FC = () => {
         {
             question: t('faq.q3', "Tôi có thể kiếm tiền từ các video tạo bởi SeenYT không?"),
             answer: t('faq.a3', "Chắc chắn rồi. Bạn sở hữu 100% bản quyền video tạo ra. Rất nhiều người dùng của chúng tôi đã bật kiếm tiền và nhận doanh thu từ YouTube cũng như Affiliate.")
-        }
+        },
+        {
+            question: "Tôi cần có kỹ năng gì để sử dụng SeenYT không?",
+            answer: "Không cần kỹ năng gì đặc biệt! Chỉ cần biết sử dụng máy tính cơ bản. Giao diện được thiết kế intuitive với hướng dẫn từng bước. Nếu bạn đọc được và làm theo, bạn có thể tạo video ngay trong ngày đầu tiên."
+        },
+        {
+            question: "SeenYT có hỗ trợ trên điện thoại không?",
+            answer: "Hiện tại SeenYT tối ưu nhất trên máy tính (Windows/Mac). Phiên bản web có thể truy cập từ điện thoại nhưng trải nghiệm tốt nhất là trên desktop. Chúng tôi đang phát triển app di động cho tương lai."
+        },
+        {
+            question: "Video tạo ra có bị YouTube đánh bản quyền không?",
+            answer: "Không. Video do SeenYT tạo ra sử dụng voiceover AI và nội dung do bạn nhập, không sao chép từ nguồn có bản quyền. Bạn sở hữu 100% bản quyền video. Tuy nhiên, nếu bạn nhập nội dung có bản quyền (nhạc, hình ảnh từ người khác) thì đó là trách nhiệm của bạn."
+        },
+        {
+            question: "Tôi có được hoàn tiền nếu không hài lòng không?",
+            answer: "Có. Chúng tôi cung cấp chính sách hoàn tiền trong 7 ngày đầu tiên nếu bạn không hài lòng với sản phẩm. Điều này cho thấy chúng tôi tự tin vào chất lượng dịch vụ và muốn bạn yên tâm khi đăng ký."
+        },
+        {
+            question: "Tôi có thể dùng thử trước khi trả tiền không?",
+            answer: "Có! Chúng tôi cung cấp gói Starter với giá 199K/tháng để bạn trải nghiệm. Ngoài ra, bạn có thể xem các video hướng dẫn trên YouTube và tham gia cộng đồng CreatorCamp miễn phí trước khi quyết định."
+        },
+        {
+            question: "Koda Studio (Desktop App) khác gì phiên bản web?",
+            answer: "Koda Studio là phiên bản desktop với các tính năng nâng cao: render video nhanh hơn, hỗ trợ nhiều workers cùng lúc, và không phụ thuộc internet. Phiên bản web phù hợp để bắt đầu, desktop app dành cho creator chuyên nghiệp cần sản lượng lớn."
+        },
+        {
+            question: "SeenYT có cập nhật tính năng mới không?",
+            answer: "Có! Chúng tôi liên tục cập nhật dựa trên feedback của người dùng. Các tính năng mới như Multilingual Studio, Intelligence Hub, và Rival Scanner được thêm thường xuyên. Bạn không phải trả thêm phí cho các cập nhật trong gói của mình."
+        },
     ];
 
     return (
@@ -44,8 +73,8 @@ const FAQ: React.FC = () => {
                                 <span className={`text-lg md:text-xl font-medium transition-colors duration-300 ${openIndex === index ? 'text-[#CDAD5A]' : 'text-white group-hover:text-[#CDAD5A]'}`}>
                                     {item.question}
                                 </span>
-                                <span className={`transform transition-transform duration-300 text-[#CDAD5A] text-2xl ${openIndex === index ? 'rotate-180' : ''}`}>
-                                    ▼
+                                <span className={`transform transition-transform duration-300 text-[#CDAD5A] ${openIndex === index ? 'rotate-180' : ''}`}>
+                                    <ChevronDown size={20} />
                                 </span>
                             </button>
 

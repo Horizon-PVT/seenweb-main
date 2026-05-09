@@ -8,6 +8,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import AttributionTracker from "@/components/AttributionTracker";
 import WelcomePopupManager from "@/components/WelcomePopupManager";
 import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // Removed next/font/google to prevent ENOTFOUND build errors
 // Configuration is now handled via standard <link> tags in <Head> and CSS variables in styles/globals.css
@@ -39,7 +40,8 @@ function App({
       refetchOnWindowFocus={true}
       refetchInterval={300}
     >
-      <Head>
+      <ThemeProvider>
+        <Head>
         {/* BASIC */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -140,6 +142,7 @@ function App({
         <WelcomePopupManager />
         <Toaster position="top-right" />
       </ErrorBoundary>
+      </ThemeProvider>
 
       {/* THÊM DÒNG NÀY ĐỂ KÍCH HOẠT GTM TRÊN TOÀN BỘ TRANG */}
       <GoogleTagManager gtmId="GTM-PS4LS7FF" />

@@ -42,8 +42,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'GET') {
         try {
+            const userId = (session.user as any).id;
+            console.log('[API /channels] Fetching for user:', userId);
+            
             const channels = await prisma.youTubeChannel.findMany({
-                where: { userId: (session.user as any).id },
+                where: { userId: userId },
                 select: {
                     id: true,
                     channelId: true,
@@ -52,10 +55,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     subCount: true,
                     viewCount: true,
                     videoCount: true,
+                    lastSync: true,
                     recentVideos: true,
                     channelHealth: true
                 }
             });
+            
+            console.log('[API /channels] Found channels:', channels.length);
 
             // PARSE JSON FIELDS (legacy storage might be string)
             const parsedChannels = channels.map(channel => ({
@@ -76,8 +82,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const MAX_CHANNELS: Record<string, number> = {
                 'FREE': 0,
                 'USER': 0,
-                'BASIC': 1,
-                'PRO': 2,
+                'STARTER': 1,
+                'CREATOR': 2,
+                'FACTORY': 2,
+                'AGENCY': 5,
+                'ENTERPRISE': 10,
+                'BASIC': 1,   // Legacy
+                'PRO': 2,      // Legacy
                 'ADMIN': 999
             };
 
@@ -86,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             return res.status(200).json({
                 success: true,
-                data: parsedChannels,
+                channels: parsedChannels,
                 limit: totalLimit
             });
         } catch (error) {

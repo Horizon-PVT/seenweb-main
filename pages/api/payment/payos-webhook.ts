@@ -119,9 +119,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Calculate dubbing credits based on role
         let dubbingCreditsToAdd = 0;
-        if (paymentRequest.role === 'BASIC') dubbingCreditsToAdd = 10;
-        else if (paymentRequest.role === 'PRO') dubbingCreditsToAdd = 30;
-        // MASTERCLASS does not currently add dubbing credits. Wait, it doesn't matter.
+        if (['STARTER', 'BASIC'].includes(paymentRequest.role)) dubbingCreditsToAdd = 10;
+        else if (['CREATOR', 'PRO'].includes(paymentRequest.role)) dubbingCreditsToAdd = 30;
+        else if (['FACTORY'].includes(paymentRequest.role)) dubbingCreditsToAdd = 50;
+        else if (['AGENCY', 'ENTERPRISE'].includes(paymentRequest.role)) dubbingCreditsToAdd = 100;
+        // MASTERCLASS does not currently add dubbing credits.
 
         // ... (User find/create logic above)
 
@@ -132,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let extraSlotsToAdd = isSlotUpgrade ? (parseInt(paymentInfo.extraChannelSlots) || 1) : 0;
 
         // Membership duration based on billing cycle
-        const membershipDays = billingCycle === 'YEARLY' ? 365 : 30;
+        const membershipDays = billingCycle === 'YEARLY' ? 365 : billingCycle === 'SIX_MONTHS' ? 180 : 30;
 
         // 2. Logic to update User
         if (!user) {
@@ -239,19 +241,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // =================== AUTO LICENSE KEY GENERATION (VPS KODA) ===================
-        // If the purchased plan includes desktop tools (STUDIO, NOVEL, VIP_COMBO),
-        // we auto-call the VPS license server to generate a key and save it to user profile.
+        // If the purchased plan includes desktop tools, we auto-call the VPS license server
         let generatedLicenseKey: string | null = null;
-        const toolRoles = ['STUDIO', 'NOVEL', 'VIP_COMBO'];
+        const plansWithLicense = ['CREATOR', 'FACTORY', 'AGENCY', 'ENTERPRISE'];
         const purchasedRole = paymentRequest.role;
 
-        if (toolRoles.includes(purchasedRole)) {
+        if (plansWithLicense.includes(purchasedRole)) {
             try {
                 // Map SeenWeb role to VPS tier
-                let vpsTier = 'vip'; // Default VIP (includes AI proxy)
-                if (purchasedRole === 'STUDIO') vpsTier = 'combo_master'; // Studio gets full tool access
-                if (purchasedRole === 'NOVEL') vpsTier = 'combo_master';  // Novel gets full tool access  
-                if (purchasedRole === 'VIP_COMBO') vpsTier = 'combo_master'; // Combo = everything
+                let vpsTier = 'creator'; // Default for CREATOR
+                if (purchasedRole === 'FACTORY') vpsTier = 'factory';
+                if (purchasedRole === 'AGENCY') vpsTier = 'agency';
+                if (purchasedRole === 'ENTERPRISE') vpsTier = 'enterprise';
 
                 const vpsResponse = await axios.post('http://47.250.174.44/api/admin/create-license', {
                     adminSecret: 'koda-admin-2026',

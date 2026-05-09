@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SeenWeb | Koda Suite Desktop Apps</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#464747",
+                        "on-primary-fixed-variant": "#594400",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#464747",
+                        "tertiary": "#cccccc",
+                        "on-primary-fixed": "#241a00",
+                        "surface": "#0a0a0a",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "primary-fixed": "#ffdf92",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-bright": "#3a3939",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-surface": "#e5e2e1",
+                        "on-error": "#690005",
+                        "tertiary-container": "#b0b1b1",
+                        "surface-container": "#141414",
+                        "surface-tint": "#e4c36d",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-container-lowest": "#0e0e0e",
+                        "inverse-surface": "#e5e2e1",
+                        "background": "#0a0a0a",
+                        "surface-dim": "#131313",
+                        "surface-container-low": "#141414",
+                        "primary-fixed-dim": "#e4c36d",
+                        "on-primary": "#3e2e00",
+                        "on-tertiary": "#2f3131",
+                        "on-secondary": "#303031",
+                        "outline": "#99907f",
+                        "primary-container": "#cdad5a",
+                        "error": "#ffb4ab",
+                        "secondary": "#c7c6c6",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed-dim": "#c7c6c6",
+                        "surface-container-high": "#2a2a2a",
+                        "outline-variant": "rgba(255,255,255,0.08)",
+                        "on-primary-container": "#554100",
+                        "primary": "#cdad5a",
+                        "on-tertiary-container": "#424444",
+                        "inverse-on-surface": "#313030",
+                        "on-background": "#e5e2e1",
+                        "on-surface-variant": "#d0c5b3",
+                        "inverse-primary": "#745b0d",
+                        "surface-variant": "#353534",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#e3e2e2",
+                        "on-secondary-container": "#b5b5b5",
+                        "on-tertiary-fixed-variant": "#454747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "base": "4px",
+                        "xl": "40px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "container-max": "1280px",
+                        "sm": "8px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "mono-sm": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "mono-sm": ["13px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: #141414;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease-in-out;
+        }
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: #181818;
+        }
+        .inner-glow:hover {
+            box-shadow: inset 0 1px 0 0 rgba(205, 173, 90, 0.2);
+        }
+        .active-pill {
+            position: relative;
+        }
+        .active-pill::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background-color: #cdad5a;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-primary/30">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-[240px] border-r border-outline-variant/10 bg-surface-container-low flex flex-col h-full py-md px-sm z-50">
+<div class="mb-xl px-md">
+<h1 class="font-headline-md text-headline-md text-primary font-bold tracking-tight">SeenWeb</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-xs">Creator Suite</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-primary relative before:content-[''] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[2px] before:bg-primary" href="#">
+<span class="material-symbols-outlined">build</span>
+<span class="font-label-caps text-label-caps">Tools</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-caps text-label-caps">Analytics</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-md">
+<button class="w-full bg-primary-container text-on-primary-container py-sm rounded-lg font-bold text-body-md hover:scale-[0.98] transition-transform">
+                Download Desktop
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[240px] min-h-screen relative overflow-hidden">
+<!-- Header -->
+<header class="fixed top-0 right-0 w-[calc(100%-240px)] z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 flex justify-between items-center h-16 px-lg">
+<div class="flex items-center gap-md flex-1">
+<div class="relative w-full max-w-md group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg pl-10 text-body-md focus:ring-1 focus:ring-primary/30 py-2" placeholder="Search tools..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg ml-md">
+<span class="material-symbols-outlined text-on-surface-variant hover:bg-surface-variant/20 p-2 rounded-lg cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:bg-surface-variant/20 p-2 rounded-lg cursor-pointer">help</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/20">
+<img alt="Creator Profile" data-alt="A professional close-up portrait of a digital creator in a dimly lit studio setting with warm gold rim lighting. The individual has a focused expression, representing the elite user base of the Koda Suite. The aesthetic is cinematic and high-end, aligning with the dark gold and obsidian theme of the platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUrEIgqNqdvw-U-iSKMEn7OkKCgyoW3HG3psCLSXIDvWjeS8G3Mpb6idEXAE4UMNeZ4RcNUP33Co71I9bn1G3Qd33083BOv5xfNUz9s9iVeWtIoMAxIAMrcrvF1Hqe0sCEIDhhrSF_mZrD0UmATDF2mx_ZHLUSwaSsuNOuNdSm2ka4_flC-gcjkvmJg7YzPNhFWMPWadLgSKafeyEe2S-8c31-M0SNF6IQK-fMxqnZN2Uvu9m0Z9M-uBmSAcFEgyHmvSn3-XENbIJc"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="pt-24 pb-20 px-xl max-w-[1440px] mx-auto">
+<!-- Hero Section -->
+<section class="text-center py-20 relative">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+<span class="inline-block font-label-caps text-label-caps text-primary border border-primary/20 bg-primary/10 px-md py-1 rounded-full mb-md">V2.4 Stable Release</span>
+<h2 class="font-display-lg text-display-lg font-black text-on-surface mb-md">Koda Suite</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg max-w-2xl mx-auto mb-lg leading-relaxed">
+                    Elevate your workflow with the definitive desktop toolkit for professional YouTube creators. Precision-engineered for efficiency, performance, and creative mastery.
+                </p>
+</section>
+<!-- License & Download Card -->
+<div class="max-w-4xl mx-auto -mt-10 mb-24 relative z-10">
+<div class="glass-panel rounded-xl p-lg flex flex-col md:flex-row items-center justify-between gap-lg shadow-2xl">
+<div class="flex-1 w-full">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-xs">Your Individual License Key</p>
+<div class="flex items-center gap-sm bg-surface-container-lowest p-md rounded-lg border border-outline-variant/10 group">
+<code class="font-mono-sm text-mono-sm text-primary flex-1">KODA-XT92-SWEB-8841-PRIME</code>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">content_copy</button>
+</div>
+</div>
+<div class="flex flex-col items-center gap-sm w-full md:w-auto">
+<button class="w-full md:w-auto bg-primary text-on-primary py-md px-xl rounded-lg font-bold text-body-lg flex items-center justify-center gap-md hover:scale-[1.02] transition-all">
+<span class="material-symbols-outlined">download</span>
+                            Download Koda Suite
+                        </button>
+<p class="font-mono-sm text-[11px] text-on-surface-variant">Available for Windows 10/11 (64-bit)</p>
+</div>
+</div>
+</div>
+<!-- App Selection Grid -->
+<section class="mb-24">
+<div class="flex flex-col lg:flex-row gap-lg">
+<!-- Koda Studio -->
+<div class="flex-1 glass-panel p-lg rounded-xl flex flex-col group inner-glow">
+<div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-lg border border-primary/20 group-hover:border-primary/40 transition-colors">
+<span class="material-symbols-outlined text-[32px] text-primary" data-weight="fill">movie_edit</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Koda Studio</h3>
+<p class="text-on-surface-variant mb-lg italic">Advanced Video Optimization Shell</p>
+<ul class="space-y-md mb-xl flex-1">
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Batch metadata injection and bulk thumbnail A/B testing suite.</span>
+</li>
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Real-time competitor tracking and trending keyword alerts.</span>
+</li>
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Advanced render queues for direct-to-platform high-bitrate uploads.</span>
+</li>
+</ul>
+<div class="pt-lg border-t border-outline-variant/10">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-sm">Requirements</p>
+<div class="flex gap-md text-on-surface-variant/60">
+<span class="material-symbols-outlined text-[18px]">window</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">account_circle</span>
+</div>
+</div>
+</div>
+<!-- Koda Novel -->
+<div class="flex-1 glass-panel p-lg rounded-xl flex flex-col group inner-glow">
+<div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-lg border border-primary/20 group-hover:border-primary/40 transition-colors">
+<span class="material-symbols-outlined text-[32px] text-primary" data-weight="fill">auto_stories</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Koda Novel</h3>
+<p class="text-on-surface-variant mb-lg italic">Scripting &amp; Narrative Architect</p>
+<ul class="space-y-md mb-xl flex-1">
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>AI-assisted pacing analysis for high-retention storytelling.</span>
+</li>
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Visual storyboard integration with multi-user sync support.</span>
+</li>
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Context-aware research panels and source material organization.</span>
+</li>
+</ul>
+<div class="pt-lg border-t border-outline-variant/10">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-sm">Requirements</p>
+<div class="flex gap-md text-on-surface-variant/60">
+<span class="material-symbols-outlined text-[18px]">window</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">account_circle</span>
+</div>
+</div>
+</div>
+<!-- Koda Factory -->
+<div class="flex-1 glass-panel p-lg rounded-xl flex flex-col group inner-glow">
+<div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-lg border border-primary/20 group-hover:border-primary/40 transition-colors">
+<span class="material-symbols-outlined text-[32px] text-primary" data-weight="fill">factory</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Koda Factory</h3>
+<p class="text-on-surface-variant mb-lg italic">High-Volume Content Assembly</p>
+<ul class="space-y-md mb-xl flex-1">
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Automated "Shorts" generator from long-form archival content.</span>
+</li>
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Dynamic asset library with cloud-sync for editing teams.</span>
+</li>
+<li class="flex items-start gap-md text-body-md">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span>Template-based mass production for repeatable niche content.</span>
+</li>
+</ul>
+<div class="pt-lg border-t border-outline-variant/10">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-sm">Requirements</p>
+<div class="flex gap-md text-on-surface-variant/60">
+<span class="material-symbols-outlined text-[18px]">window</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">account_circle</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Installation Steps -->
+<section class="max-w-5xl mx-auto">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-surface mb-sm">Getting Started</h2>
+<p class="text-on-surface-variant">Deploy your suite in less than 5 minutes</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-lg relative">
+<!-- Progress Line -->
+<div class="hidden md:block absolute top-[28px] left-8 right-8 h-[1px] bg-outline-variant/20 z-0"></div>
+<!-- Step 1 -->
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-surface-container border border-outline-variant/20 flex items-center justify-center mb-md font-black text-primary glass-panel">1</div>
+<h4 class="font-bold mb-xs">Download</h4>
+<p class="text-body-md text-on-surface-variant">Get the installer from the secure link above.</p>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-surface-container border border-outline-variant/20 flex items-center justify-center mb-md font-black text-primary glass-panel">2</div>
+<h4 class="font-bold mb-xs">Install</h4>
+<p class="text-body-md text-on-surface-variant">Run the .exe and follow the prompt instructions.</p>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-surface-container border border-outline-variant/20 flex items-center justify-center mb-md font-black text-primary glass-panel">3</div>
+<h4 class="font-bold mb-xs">Authenticate</h4>
+<p class="text-body-md text-on-surface-variant">Login with your Google Account for sync.</p>
+</div>
+<!-- Step 4 -->
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-primary border border-primary flex items-center justify-center mb-md font-black text-on-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<h4 class="font-bold mb-xs">Launch</h4>
+<p class="text-body-md text-on-surface-variant">Enter your license key and start creating.</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Background Decorations -->
+<div class="fixed bottom-0 right-0 w-[40%] h-[40%] bg-primary/5 blur-[150px] rounded-full pointer-events-none -z-10"></div>
+<div class="fixed top-20 left-[240px] w-full h-[1px] bg-gradient-to-r from-transparent via-primary/10 to-transparent pointer-events-none opacity-50"></div>
+</main>
+<!-- Footer -->
+<footer class="ml-[240px] border-t border-outline-variant/10 py-lg px-xl text-center">
+<p class="text-on-surface-variant text-[12px] font-label-caps">© 2024 SEENWEB CREATOR SUITE • PREMIUM DESKTOP TOOLS • ALL RIGHTS RESERVED</p>
+</footer>
+</body></html>

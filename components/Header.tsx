@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import AuthModal from "./AuthModal";
+import ThemeToggle from "./ThemeToggle";
 import { useSession, signOut } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import { GraduationCap, Users, Rocket, User, Link as LinkIcon, Gift, Flame } from "lucide-react";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
@@ -76,7 +78,7 @@ const Header: React.FC = () => {
       {/* TOP ANNOUNCEMENT BAR */}
       <div className="w-full bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 py-1.5 px-4 text-center text-white text-[11px] sm:text-xs md:text-sm font-bold shadow-md shadow-red-900/20 relative z-[61]">
         <span className="inline-flex items-center gap-1.5 flex-wrap justify-center">
-          <span className="animate-pulse text-yellow-300">🔥</span>
+          <span className="animate-pulse text-yellow-300"><Flame size={14} /></span>
           <span>{t('header.announcement_1', 'Ưu đãi gói Setup chỉ dành cho')} <span className="text-yellow-300 text-base md:text-lg">10</span> {t('header.announcement_2', 'người đăng ký sớm nhất tuần này!')}</span>
           <Link href="/services" className="underline text-yellow-100 hover:text-white transition-colors ml-2 bg-white/20 px-2 py-0.5 rounded-full border border-white/30 truncate max-w-full">
             {t('header.announcement_cta', 'Khám phá ngay')}
@@ -86,7 +88,7 @@ const Header: React.FC = () => {
 
       <div className="bg-[#050505]/80 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] w-full">
         <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
-          <Link href="/#bang-cong-cu-seenyt" className="flex items-center gap-2 sm:gap-3 group select-none flex-shrink-0">
+          <Link href="/#hero" className="flex items-center gap-2 sm:gap-3 group select-none flex-shrink-0">
             <Image
               src="/seenyt-mark.png"
               alt="SeenYT Logo"
@@ -121,31 +123,31 @@ const Header: React.FC = () => {
                   href="/academy"
                   className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors flex items-center gap-2"
                 >
-                  <span>🎓</span> Academy
+                  <span className="text-purple-400"><GraduationCap size={16} /></span> Academy
                 </Link>
                 <Link
                   href="/coaching"
                   className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors flex items-center gap-2"
                 >
-                  <span>🧑‍🏫</span> Huấn luyện 1-1
+                  <span className="text-purple-400"><Users size={16} /></span> Huấn luyện 1-1
                 </Link>
                 <Link
                   href="/services"
                   className="block px-4 py-3 text-sm text-[#CDAD5A] hover:bg-white/10 hover:text-yellow-300 transition-colors font-bold flex items-center gap-2"
                 >
-                  <span>🚀</span> Dịch vụ
+                  <span className="text-orange-400"><Rocket size={16} /></span> Dịch vụ
                 </Link>
                 <Link
                   href="/dashboard"
                   className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-[#CDAD5A] transition-colors flex items-center gap-2"
                 >
-                  <span>👤</span> Cá nhân
+                  <span className="text-blue-400"><User size={16} /></span> Cá nhân
                 </Link>
                 <Link
                   href="/affiliate"
                   className="block px-4 py-3 text-sm text-[#00a3a3] hover:bg-white/10 hover:text-[#4ddcdc] transition-colors font-semibold flex items-center gap-2"
                 >
-                  <span>🤝</span> Affiliate
+                  <span className="text-green-400"><LinkIcon size={16} /></span> Affiliate
                 </Link>
               </div>
             </div>
@@ -171,13 +173,6 @@ const Header: React.FC = () => {
                 >
                   {t('header.pricing', 'Bảng giá')}
                 </a>
-                <Link
-                  href="/all-in-one"
-                  className="flex items-center justify-between px-4 py-3 text-sm text-[#00ffb4] font-bold hover:bg-white/10 hover:text-[#CDAD5A] transition-colors"
-                >
-                  All-in-One Studio
-                  <span className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-lg shadow-red-500/20">NEW</span>
-                </Link>
               </div>
             </div>
 
@@ -198,7 +193,7 @@ const Header: React.FC = () => {
                   href="/promotions"
                   className="block px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors font-bold tracking-wide flex items-center gap-2"
                 >
-                  <span className="text-yellow-400">🎁</span> {t('header.promotions', 'KHUYẾN MẠI')}
+                  <span className="text-yellow-400"><Gift size={16} /></span> {t('header.promotions', 'KHUYẾN MẠI')}
                 </Link>
               </div>
             </div>
@@ -263,6 +258,11 @@ const Header: React.FC = () => {
                   <img src="https://flagcdn.com/w40/us.png" alt="US" className="w-5 h-auto rounded-sm border border-white/10" /> English
                 </button>
               </div>
+            </div>
+
+            {/* THEME TOGGLE */}
+            <div className="border-l border-white/10 pl-4 ml-2">
+              <ThemeToggle />
             </div>
           </nav>
 
@@ -414,13 +414,6 @@ const Header: React.FC = () => {
                   >
                     Bảng giá
                   </a>
-                  <Link
-                    href="/all-in-one"
-                    className="flex justify-between items-center px-3 py-3 text-[#00ffb4] hover:bg-white/5 hover:text-[#CDAD5A] rounded-xl text-sm font-bold transition-colors pl-6"
-                  >
-                    All-in-One Studio
-                    <span className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded-full shadow-lg shadow-red-500/20 mr-2">NEW</span>
-                  </Link>
                 </div>
 
                 {/* Khám phá section */}

@@ -2,15 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Brand defaults */
-:root {
+/* =========================
+   BRAND TOKENS (shared)
+   ========================= */
+:root,
+:root.dark {
   --brand-gold: #CDAD5A;
   --brand-red: #C1121F;
-  --brand-ink: #0A0F1E;
   --brand-white: #FFFFFF;
-  --font-montserrat: 'Montserrat', sans-serif;
-  --font-playfair: 'Playfair Display', serif;
-  --font-bangers: 'Bangers', cursive;
+
+  /* Dark theme (default) */
+  --bg-primary: #0A0F1E;
+  --bg-secondary: #0F1629;
+  --bg-card: #111827;
+  --bg-card-hover: #1a2235;
+  --bg-elevated: #1e293b;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+  --border-active: rgba(255, 255, 255, 0.25);
+
+  --accent-purple: #8B5CF6;
+  --accent-blue: #3B82F6;
+  --accent-green: #22C55E;
+  --accent-red: #EF4444;
+  --accent-yellow: #EAB308;
+  --accent-cyan: #06B6D4;
+  --accent-orange: #F97316;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+  --gradient-radial-1: rgba(205, 173, 90, 0.12);
+  --gradient-radial-2: rgba(0, 128, 128, 0.10);
+}
+
+/* =========================
+   LIGHT THEME OVERRIDES
+   ========================= */
+:root.light {
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #F1F5F9;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --bg-elevated: #FFFFFF;
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.15);
+  --border-active: rgba(0, 0, 0, 0.25);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+  --gradient-radial-1: rgba(139, 92, 246, 0.06);
+  --gradient-radial-2: rgba(59, 130, 246, 0.05);
 }
 
 html,
@@ -20,14 +75,11 @@ body {
 }
 
 body {
-  background: var(--brand-ink);
-  color: var(--brand-white);
+  background: radial-gradient(1200px 700px at 15% 0%, var(--gradient-radial-1), transparent 60%),
+    radial-gradient(900px 520px at 85% 15%, var(--gradient-radial-2), transparent 55%),
+    var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Montserrat', sans-serif;
-}
-
-/* Smooth scrolling for "back to tools" */
-html {
-  scroll-behavior: smooth;
 }
 
 /* Better focus ring */
@@ -77,27 +129,16 @@ html {
 }
 
 /* =========================
-   Optional: metallic sheen (nếu anh muốn chữ "SeenYT" kiểu kim loại quét sáng)
-   Dùng bằng cách thêm span overlay như bản cũ (hiện tại Header mới không cần).
+   OPTIONAL: METALLIC SHEEN
    ========================= */
 @keyframes metallic-sheen {
   0% {
     transform: translateX(-120%) skewX(-18deg);
     opacity: 0;
   }
-
-  15% {
-    opacity: 0.35;
-  }
-
-  45% {
-    opacity: 0.55;
-  }
-
-  60% {
-    opacity: 0.35;
-  }
-
+  15% { opacity: 0.35; }
+  45% { opacity: 0.55; }
+  60% { opacity: 0.35; }
   100% {
     transform: translateX(120%) skewX(-18deg);
     opacity: 0;
@@ -116,13 +157,9 @@ html {
   mix-blend-mode: screen;
 }
 
-:root {
-  --brand-gold: #CDAD5A;
-  --brand-red: #C1121F;
-  --brand-ink: #0A0F1E;
-}
-
-/* Smooth scroll + không bị header che */
+/* =========================
+   SCROLL + SELECTION
+   ========================= */
 html {
   scroll-behavior: smooth;
 }
@@ -131,21 +168,13 @@ html {
   scroll-margin-top: 112px;
 }
 
-/* Nền tổng thể nhẹ premium */
-body {
-  background: radial-gradient(1200px 700px at 15% 0%, rgba(205, 173, 90, 0.12), transparent 60%),
-    radial-gradient(900px 520px at 85% 15%, rgba(0, 128, 128, 0.10), transparent 55%),
-    var(--brand-ink);
-}
-
-/* Logo icon glow + animation */
+/* Logo icon pop animation */
 @keyframes seenyt-pop {
   0% {
     transform: translateY(-2px) scale(0.96);
     filter: drop-shadow(0 0 0 rgba(255, 70, 70, 0));
     opacity: 0;
   }
-
   100% {
     transform: translateY(0) scale(1);
     filter: drop-shadow(0 0 14px rgba(255, 70, 70, 0.65));
@@ -185,7 +214,33 @@ body {
   filter: drop-shadow(0 0 18px rgba(255, 70, 70, 0.85));
 }
 
-/* Selection đẹp */
+/* Selection */
 ::selection {
   background: rgba(205, 173, 90, 0.28);
+}
+
+/* =========================
+   LIGHT THEME: OVERRIDE LOGO STYLES
+   ========================= */
+:root.light .seenyt-logo-icon {
+  filter: drop-shadow(0 0 6px rgba(193, 18, 31, 0.4));
+}
+
+:root.light .seenyt-wordmark {
+  text-shadow: none;
+  color: var(--brand-gold);
+}
+
+:root.light .seenyt-wordmark span {
+  text-shadow: none;
+  color: var(--text-primary);
+}
+
+:root.light .group:hover .seenyt-wordmark {
+  text-shadow: none;
+  transform: scale(1.05);
+}
+
+:root.light .group:hover .seenyt-logo-icon {
+  filter: drop-shadow(0 0 10px rgba(193, 18, 31, 0.5));
 }

@@ -130,7 +130,7 @@ const Footer: React.FC = () => {
         {/* Bản quyền */}
         <div className="mt-12 border-t border-gray-800/50 pt-6 text-center text-gray-600">
           <p>
-            {t("footer.copyright", "© 2025 SeenYT. Bảo lưu mọi quyền.")}
+            {t("footer.copyright", `© ${new Date().getFullYear()} SeenYT. Bảo lưu mọi quyền.`)}
           </p>
         </div>
       </div>

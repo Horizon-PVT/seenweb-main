@@ -87,6 +87,18 @@ model User {
   kodaLicenseKey      String?   // e.g. "KODA-VIP-A1B2C3D4"
   kodaTier            String?   // "vip", "studio", "novel", "combo_master"
 
+  // PHASE 0: Creator Hub Foundation
+  tier                String    @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
+  apiKeys             Json?    // { openai?: string, gemini?: string } - BYOK user-provided keys
+
+  // Relations
+  contentCalendar     ContentCalendar[]
+  channelAnalytics   ChannelAnalytics[]
+  marketplaceListings MarketplaceListing[] @relation("SellerListings")
+  marketplaceTransactionsAsBuyer MarketplaceTransaction[] @relation("BuyerTransactions")
+  marketplaceTransactionsAsSeller MarketplaceTransaction[] @relation("SellerTransactions")
+  multiChannelConfigs MultiChannelConfig[]
+
   @@map("users")
 }
 
@@ -470,3 +482,238 @@ model ZoomRegistration {
 
   @@map("zoom_registrations")
 }
+
+// ============================================
+// PHASE 0: CREATOR HUB FOUNDATION
+// ============================================
+
+// Content Calendar - schedule videos across platforms
+model ContentCalendar {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  channelId       String?   // YouTubeChannel.id or tiktok_handle etc.
+  platform        String    @default("youtube") // youtube, tiktok, facebook
+
+  scheduledDate   DateTime
+  title           String
+  script          String?   @db.Text
+  thumbnailUrl    String?
+  videoUrl        String?   // Rendered video URL
+  status          String    @default("DRAFT") // DRAFT, SCHEDULED, PUBLISHED, FAILED
+
+  publishedAt     DateTime?
+  youtubeVideoId  String?   // After publish, store the YouTube video ID
+
+  seoTitle        String?
+  seoDescription  String?   @db.Text
+  seoTags         String[]  @default([])
+
+  // AI metadata
+  niche           String?
+  targetAudience  String?
+
+  // Notes
+  notes           String?   @db.Text
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, scheduledDate])
+  @@index([channelId, scheduledDate])
+  @@index([userId, status])
+  @@map("content_calendar")
+}
+
+// Channel Analytics Snapshots - historical performance tracking
+model ChannelAnalytics {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  channelId       String    // YouTubeChannel.id
+
+  // Snapshot date
+  snapshotDate    DateTime  @default(now())
+
+  // Core metrics
+  subscribers     Int       @default(0)
+  totalViews      BigInt    @default(0)
+  videoCount      Int       @default(0)
+
+  // Performance
+  avgViewsPerVideo  Float   @default(0)
+  avgEngagementRate Float   @default(0) // (likes + comments) / views * 100
+  ctr              Float   @default(0)  // Click-through rate %
+  retentionRate    Float   @default(0)  // Avg retention %
+
+  // Revenue estimate
+  estimatedRevenue Decimal  @default(0)
+
+  // Traffic sources breakdown
+  trafficSources   Json?    // { browse: 30, search: 40, external: 20, suggested: 10 }
+  topCountries     Json?    // [{ country: "VN", views: 10000 }, ...]
+
+  // Computed scores
+  healthScore     Int       @default(50) // 0-100
+
+  createdAt       DateTime  @default(now())
+
+  @@unique([channelId, snapshotDate])
+  @@index([channelId])
+  @@index([userId, snapshotDate])
+  @@map("channel_analytics")
+}
+
+// Channel Marketplace Listings
+model MarketplaceListing {
+  id              String    @id @default(cuid())
+  userId          String
+
+  // Channel info
+  channelId       String    @unique // YouTubeChannel.id (if connected) or external
+  channelUrl      String?   // For channels not yet connected
+  channelTitle    String?
+  channelThumbnail String?
+
+  // Metrics at time of listing
+  subscriberCount Int       @default(0)
+  avgViewsPerVideo Float    @default(0)
+  totalViews      BigInt    @default(0)
+  videoCount      Int       @default(0)
+  cpm             Float     @default(0) // Estimated CPM of the niche
+  niche           String?
+
+  // Pricing
+  askingPrice     Decimal   @default(0)
+  currency        String    @default("VND")
+
+  // Verification status
+  isVerified      Boolean   @default(false)
+  verifiedAt      DateTime?
+  verifiedBy      String?   // Admin user ID
+
+  // Listing details
+  description     String?   @db.Text
+  reasonForSelling String?
+  includedContent String?   @db.Text // What's included: email, analytics access, etc.
+
+  // Media evidence
+  screenshots     String[]  @default([]) // URLs to screenshot images
+  analyticsProof  Json?     // { avgViews: ..., subscriberCount: ... }
+
+  // Status
+  status          String    @default("PENDING") // PENDING, ACTIVE, SOLD, REMOVED, EXPIRED
+
+  // Transaction
+  buyerId         String?
+  transactionId    String?
+  salePrice       Decimal?
+  soldAt          DateTime?
+  completedAt     DateTime?
+
+  // Admin review
+  adminNote       String?   @db.Text
+  reviewedAt      DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  expiresAt       DateTime? // Auto-expire after 30 days
+
+  @@index([status])
+  @@index([userId])
+  @@index([niche])
+  @@index([subscriberCount])
+  @@map("marketplace_listings")
+}
+
+// Multi-Platform Configuration (TikTok, Facebook, etc.)
+model MultiChannelConfig {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  platform        String    // tiktok, facebook, instagram, twitter
+  platformUserId  String    // Platform's user ID / page ID
+  platformHandle  String?   // @handle or page name
+
+  // OAuth tokens
+  accessToken     String?   @db.Text
+  refreshToken    String?   @db.Text
+  tokenExpiry     DateTime?
+
+  // Channel metadata
+  displayName    String?
+  profileImage    String?
+  followerCount   Int       @default(0)
+  pageUrl        String?
+
+  // Auto-publish settings
+  autoPublish     Boolean   @default(false)
+  defaultSchedule String?   // "09:00" UTC time for posting
+
+  // Sync status
+  lastSync        DateTime?
+  syncError       String?
+
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, platform, platformUserId])
+  @@index([userId, platform])
+  @@map("multi_channel_configs")
+}
+
+// Marketplace Transactions (Escrow tracking)
+model MarketplaceTransaction {
+  id              String    @id @default(cuid())
+
+  listingId       String
+  listing         MarketplaceListing @relation(fields: [listingId], references: [id])
+
+  sellerId        String
+  buyerId         String
+
+  // Pricing
+  agreedPrice     Decimal
+  platformFee     Decimal   @default(0)
+  netAmount       Decimal   @default(0)
+
+  // Payment
+  paymentStatus   String    @default("PENDING") // PENDING, PAID, RELEASED, REFUNDED
+  paymentId       String?   // PayOS / Stripe payment ID
+  paidAt          DateTime?
+
+  // Channel transfer
+  transferStatus  String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, DISPUTED
+  transferNotes   String?   @db.Text
+  completedAt     DateTime?
+
+  // Dispute
+  disputeReason   String?   @db.Text
+  disputeOpenedAt DateTime?
+  disputeResolvedAt DateTime?
+  disputeWinner   String?   // 'buyer' or 'seller'
+
+  // Verification
+  channelVerified Boolean   @default(false)
+  channelTransferred Boolean @default(false)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@index([status])
+  @@map("marketplace_transactions")
+}
+
+// User tier & API Keys extension
+// (These fields are added to User model via migration)
+// tier: FREE | BASIC | PRO | ENTERPRISE
+// apiKeys: JSON { openai: "...", gemini: "..." } - user-provided API keys for BYOK
+

@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
-import { Rocket, Play } from 'lucide-react';
+import { Rocket, Play, Volume2, VolumeX } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
   const [isMuted, setIsMuted] = useState(true);
@@ -72,27 +72,28 @@ const HeroSection: React.FC = () => {
           {t('hero.subtitle_desc')}
         </p>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 w-full md:w-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+        {/* CTAs - ONE primary CTA */}
+        <div className="flex flex-col items-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          {/* Primary CTA - Large and prominent */}
           <button
             onClick={handleTryFreeClick}
-            className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg transition-all shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:shadow-[0_0_60px_rgba(168,85,247,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-10 py-5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xl transition-all shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:shadow-[0_0_60px_rgba(168,85,247,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3"
           >
-            {t('hero.cta_try_free')} <Rocket className="w-5 h-5" />
+            {t('hero.cta_try_free')} <Rocket className="w-6 h-6" />
           </button>
 
-          <div className="flex flex-col items-center gap-3 w-full sm:w-auto">
-            <Link href="/coaching" className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-400 hover:to-yellow-400 text-white font-bold text-lg transition-all shadow-[0_0_40px_rgba(249,115,22,0.4)] hover:shadow-[0_0_60px_rgba(249,115,22,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2">
+          {/* Secondary options - subtle text links */}
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
+            <Link href="/coaching" className="hover:text-orange-400 transition-colors flex items-center gap-1.5">
+              <span className="animate-pulse text-orange-400">🔥</span>
               {t('hero.cta_coaching')}
             </Link>
-            <span className="text-orange-400 text-[11px] sm:text-xs md:text-sm font-bold flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full border border-orange-500/30 backdrop-blur-sm">
-              <span className="animate-pulse text-yellow-500">🔥</span> {t('hero.urgency_badge')}
-            </span>
+            <span className="text-gray-600">|</span>
+            <Link href="/new-youtuber" className="hover:text-purple-400 transition-colors flex items-center gap-1.5">
+              <Play className="w-4 h-4" />
+              {t('hero.cta_roadmap')}
+            </Link>
           </div>
-
-          <Link href="/new-youtuber" className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/10 border border-white/20 hover:bg-white/15 text-white font-bold text-lg transition-all backdrop-blur-md flex items-center justify-center gap-2">
-            <Play className="w-5 h-5 text-purple-400" /> {t('hero.cta_roadmap')}
-          </Link>
         </div>
 
         {/* Social Proof Bar */}
@@ -116,7 +117,7 @@ const HeroSection: React.FC = () => {
         className="absolute bottom-8 right-6 md:right-12 z-20 bg-black/60 backdrop-blur-sm p-4 rounded-full hover:bg-black/80 transition text-white text-2xl shadow-lg border border-white/10"
         aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
       >
-        {isMuted ? '🔇' : '🔊'}
+        {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
       </button>
     </section>
   );

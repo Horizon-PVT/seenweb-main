@@ -15,9 +15,9 @@ const ExploreSection: React.FC = () => {
 
     // Top affiliates for social proof
     const topAffiliates = [
-        { name: "Bùi Tuấn Kiệt", commission: "48.9M" },
-        { name: "Đặng Ngọc Sơn", commission: "35.6M" },
-        { name: "Ngô Thị Thu Hương", commission: "39.2M" },
+        { name: "Bùi Tuấn Kiệt", commission: "Top Affiliate" },
+        { name: "Đặng Ngọc Sơn", commission: "Top Affiliate" },
+        { name: "Ngô Thị Thu Hương", commission: "Top Affiliate" },
     ];
 
     const [currentAffiliateIndex, setCurrentAffiliateIndex] = useState(0);

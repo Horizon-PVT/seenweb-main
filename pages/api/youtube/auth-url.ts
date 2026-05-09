@@ -34,8 +34,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const MAX_CHANNELS: Record<string, number> = {
         'FREE': 0,
         'USER': 0,
-        'BASIC': 1,
-        'PRO': 2,
+        'STARTER': 1,
+        'CREATOR': 2,
+        'FACTORY': 2,
+        'AGENCY': 5,
+        'ENTERPRISE': 10,
+        'BASIC': 1,   // Legacy
+        'PRO': 2,      // Legacy
         'ADMIN': 999
     };
 
