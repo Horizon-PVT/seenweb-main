@@ -9,7 +9,7 @@ import {
   Home, MessageSquare, TrendingUp, Settings, CreditCard, 
   LogOut, ChevronRight, Video, FileText, Search, 
   Sparkles, Download, Key, ChevronLeft, Star, Zap,
-  BarChart3, Globe, Users, Clock
+  BarChart3, Globe, Users, Clock, ShoppingBag, Share2
 } from 'lucide-react';
 import CheckoutModal from './CheckoutModal';
 
@@ -65,6 +65,8 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
         { id: 'home', label: 'Trang chủ', icon: Home, path: '/dashboard', exact: true },
         { id: 'ai-coach', label: 'AI Coach', icon: MessageSquare, path: '/dashboard/ai-coach', badge: 'Beta', badgeColor: 'bg-purple-500/20 text-purple-400' },
         { id: 'trends', label: 'Xu hướng', icon: TrendingUp, path: '/dashboard/trends' },
+        { id: 'marketplace', label: 'Chợ Kênh', icon: ShoppingBag, path: '/tools/marketplace' },
+        { id: 'affiliate', label: 'Affiliate', icon: Share2, path: '/tools/affiliate-partner' },
     ];
 
     const toolItems = [

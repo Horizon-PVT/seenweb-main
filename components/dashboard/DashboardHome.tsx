@@ -9,7 +9,7 @@ import {
   BarChart3, Globe, Download, Key, CreditCard, ChevronRight,
   MessageSquare, Clock, Users, Play, ArrowUpRight, Lock,
   CheckCircle2, AlertCircle, Star, ArrowRight, Copy, Check,
-  Image, PenTool, Mic
+  Image, PenTool, Mic, ShoppingBag, Share2
 } from 'lucide-react';
 
 interface DashboardHomeProps {
@@ -59,6 +59,8 @@ const ALL_TOOLS: ToolItem[] = [
   { id: 'koda-studio', name: 'Koda Studio', desc: 'Desktop Veo3 Render', icon: Play, badge: 'DESKTOP', type: 'desktop', route: '/tools/desktop-apps' },
   { id: 'koda-novel', name: 'Koda Novel', desc: 'Chuyển truyện thành phim', icon: FileText, badge: 'DESKTOP', type: 'desktop', route: '/tools/desktop-apps' },
   { id: 'koda-factory', name: 'Koda Factory', desc: 'Multi-workers', icon: Users, badge: 'DESKTOP', type: 'desktop', route: '/tools/desktop-apps' },
+  { id: 'marketplace', name: 'Chợ Kênh', desc: 'Mua bán kênh YouTube', icon: ShoppingBag, type: 'page', route: '/tools/marketplace' },
+  { id: 'affiliate', name: 'Affiliate', desc: 'Kiếm tiền cùng SeenYT', icon: Share2, type: 'page', route: '/tools/affiliate-partner' },
 ];
 
 // ============== TOOLS BY TIER ==============
@@ -74,7 +76,7 @@ const TOOLS_BY_TIER: Record<string, {
     color: 'text-gray-400',
     bgColor: 'bg-gray-500/10',
     borderColor: 'border-gray-500/20',
-    toolIds: ['niche-radar', 'script-studio', 'ai-coach'],
+    toolIds: ['niche-radar', 'script-studio', 'ai-coach', 'marketplace', 'affiliate'],
   },
   STARTER: {
     tier: 'Starter',
