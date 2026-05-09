@@ -22,8 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const [referralCount, earnings] = await Promise.all([
       prisma.user.count({ where: { referrerId: userId } }),
-      prisma.payout.aggregate({
-        where: { userId, status: 'COMPLETED' },
+      prisma.commission.aggregate({
+        where: { referrerId: userId, status: 'APPROVED' },
         _sum: { amount: true }
       })
     ]);
