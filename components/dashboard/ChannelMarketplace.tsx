@@ -434,52 +434,52 @@ export default function ChannelMarketplace({ mode: initialMode }: { mode: 'brows
         <div className="space-y-6">
             {/* Stats Cards */}
             {stats && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-[#111] border border-white/10 rounded-xl p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-gray-500 uppercase">Tổng listing</p>
-                                <p className="text-2xl font-black text-white">{stats.totalListings}</p>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Tổng listing</p>
+                                <p className="text-xl font-black text-white">{stats.totalListings}</p>
                             </div>
-                            <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                <TrendingUp className="w-5 h-5 text-indigo-400" />
+                            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                                <TrendingUp className="w-4 h-4 text-indigo-400" />
                             </div>
                         </div>
                     </div>
                     <div className="bg-[#111] border border-white/10 rounded-xl p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-gray-500 uppercase">Giá TB</p>
-                                <p className="text-2xl font-black text-green-400">
+                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Giá TB</p>
+                                <p className="text-xl font-black text-green-400">
                                     {formatCurrency(stats.avgPrice, 'VND')}
                                 </p>
                             </div>
-                            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                                <DollarSign className="w-5 h-5 text-green-400" />
+                            <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                                <DollarSign className="w-4 h-4 text-green-400" />
                             </div>
                         </div>
                     </div>
                     <div className="bg-[#111] border border-white/10 rounded-xl p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-gray-500 uppercase">CPM TB</p>
-                                <p className="text-2xl font-black text-yellow-400">${stats.avgCPM.toFixed(2)}</p>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">CPM TB</p>
+                                <p className="text-xl font-black text-yellow-400">${stats.avgCPM.toFixed(2)}</p>
                             </div>
-                            <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                                <TrendingUp className="w-5 h-5 text-yellow-400" />
+                            <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                                <TrendingUp className="w-4 h-4 text-yellow-400" />
                             </div>
                         </div>
                     </div>
                     <div className="bg-[#111] border border-white/10 rounded-xl p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-gray-500 uppercase">Top niches</p>
-                                <p className="text-lg font-bold text-white truncate">
+                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Top niches</p>
+                                <p className="text-sm font-bold text-white truncate">
                                     {stats.topNiches.slice(0, 2).join(', ')}
                                 </p>
                             </div>
-                            <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                <Filter className="w-5 h-5 text-purple-400" />
+                            <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                <Filter className="w-4 h-4 text-purple-400" />
                             </div>
                         </div>
                     </div>
@@ -490,13 +490,13 @@ export default function ChannelMarketplace({ mode: initialMode }: { mode: 'brows
             <div className="bg-[#111] border border-white/10 rounded-2xl p-4">
                 <form onSubmit={handleSearch} className="flex gap-4">
                     <div className="flex-1 relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                         <input
                             type="text"
                             value={filters.search}
                             onChange={e => setFilters({ ...filters, search: e.target.value })}
                             placeholder="Tìm kiếm kênh..."
-                            className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500"
+                            className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-all"
                         />
                     </div>
                     <button
@@ -609,11 +609,11 @@ export default function ChannelMarketplace({ mode: initialMode }: { mode: 'brows
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {listings.map(listing => (
                             <div 
                                 key={listing.id} 
-                                className="bg-[#111] border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all cursor-pointer group"
+                                className="bg-[#111] border border-white/10 rounded-xl p-4 hover:border-white/20 transition-all cursor-pointer group"
                             >
                                 {/* Header */}
                                 <div className="flex items-center gap-3 mb-4">

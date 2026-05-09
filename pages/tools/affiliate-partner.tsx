@@ -183,9 +183,9 @@ export default function AffiliatePartnerPage() {
             activeTool="affiliate"
             title="Affiliate & Partner - SeenYT"
         >
-            <div className="space-y-6">
+            <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
                 {/* Header Section */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
                             <Award className="w-6 h-6 text-indigo-400" />
@@ -197,13 +197,13 @@ export default function AffiliatePartnerPage() {
                     </div>
 
                     {/* Main Tabs */}
-                    <div className="flex gap-2">
+                    <div className="flex bg-white/5 p-1 rounded-xl">
                         <button
                             onClick={() => setActiveTab('daily')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
                                 activeTab === 'daily'
-                                    ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                                    : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                    ? 'bg-indigo-500 text-white shadow-lg'
+                                    : 'text-gray-500 hover:text-white'
                             }`}
                         >
                             <User size={16} />
@@ -211,10 +211,10 @@ export default function AffiliatePartnerPage() {
                         </button>
                         <button
                             onClick={() => setActiveTab('reseller')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
                                 activeTab === 'reseller'
-                                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                    : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                    ? 'bg-amber-500 text-white shadow-lg'
+                                    : 'text-gray-500 hover:text-white'
                             }`}
                         >
                             <Building size={16} />
@@ -237,46 +237,46 @@ export default function AffiliatePartnerPage() {
                             className="space-y-8"
                         >
                             {/* Stats Overview */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                                            <DollarSign className="w-5 h-5 text-green-400" />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                                            <DollarSign className="w-4 h-4 text-green-400" />
                                         </div>
-                                        <span className="text-xs text-green-400">+12%</span>
+                                        <span className="text-[10px] text-green-400">+12%</span>
                                     </div>
-                                    <p className="text-3xl font-black text-green-400">{formatUSD(affiliateStats.totalEarnings)}</p>
-                                    <p className="text-sm text-gray-500">Tổng thu nhập</p>
+                                    <p className="text-xl font-black text-green-400">{formatUSD(affiliateStats.totalEarnings)}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Tổng thu nhập</p>
                                 </div>
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                            <Award className="w-5 h-5 text-blue-400" />
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                            <Award className="w-4 h-4 text-blue-400" />
                                         </div>
-                                        <span className="text-xs text-blue-400">Active</span>
+                                        <span className="text-[10px] text-blue-400">Active</span>
                                     </div>
-                                    <p className="text-3xl font-black text-white">{affiliateStats.totalReferrals}</p>
-                                    <p className="text-sm text-gray-500">Người giới thiệu</p>
+                                    <p className="text-xl font-black text-white">{affiliateStats.totalReferrals}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Người giới thiệu</p>
                                 </div>
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                                            <Star className="w-5 h-5 text-amber-400" />
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                                            <Star className="w-4 h-4 text-amber-400" />
                                         </div>
-                                        <span className="text-xs text-amber-400">Pending</span>
+                                        <span className="text-[10px] text-amber-400">Pending</span>
                                     </div>
-                                    <p className="text-3xl font-black text-amber-400">{formatUSD(affiliateStats.pendingPayout)}</p>
-                                    <p className="text-sm text-gray-500">Chờ thanh toán</p>
+                                    <p className="text-xl font-black text-amber-400">{formatUSD(affiliateStats.pendingPayout)}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Chờ thanh toán</p>
                                 </div>
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                            <Award className="w-5 h-5 text-indigo-400" />
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                                            <Award className="w-4 h-4 text-indigo-400" />
                                         </div>
-                                        <span className="text-xs text-indigo-400">Current</span>
+                                        <span className="text-[10px] text-indigo-400">Current</span>
                                     </div>
-                                    <p className="text-3xl font-black text-indigo-400">{affiliateStats.tier}</p>
-                                    <p className="text-sm text-gray-500">Cấp bậc hiện tại</p>
+                                    <p className="text-xl font-black text-indigo-400">{affiliateStats.tier}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Cấp bậc hiện tại</p>
                                 </div>
                             </div>
 
@@ -394,46 +394,46 @@ export default function AffiliatePartnerPage() {
                             className="space-y-6"
                         >
                             {/* Stats Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                                            <Users className="w-5 h-5 text-amber-400" />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                                            <Users className="w-4 h-4 text-amber-400" />
                                         </div>
-                                        <span className="text-xs text-green-400">+12%</span>
+                                        <span className="text-[10px] text-green-400">+12%</span>
                                     </div>
-                                    <p className="text-3xl font-black text-white">{resellerStats.totalPartners}</p>
-                                    <p className="text-sm text-gray-500">Tổng đối tác</p>
+                                    <p className="text-xl font-black text-white">{resellerStats.totalPartners}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Tổng đối tác</p>
                                 </div>
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                                            <DollarSign className="w-5 h-5 text-green-400" />
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                                            <DollarSign className="w-4 h-4 text-green-400" />
                                         </div>
-                                        <span className="text-xs text-green-400">+28%</span>
+                                        <span className="text-[10px] text-green-400">+28%</span>
                                     </div>
-                                    <p className="text-3xl font-black text-green-400">{formatCurrency(resellerStats.totalRevenue)}</p>
-                                    <p className="text-sm text-gray-500">Doanh thu</p>
+                                    <p className="text-xl font-black text-green-400">{formatCurrency(resellerStats.totalRevenue)}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Doanh thu</p>
                                 </div>
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                            <Building className="w-5 h-5 text-blue-400" />
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                            <Building className="w-4 h-4 text-blue-400" />
                                         </div>
-                                        <span className="text-xs text-blue-400">Active</span>
+                                        <span className="text-[10px] text-blue-400">Active</span>
                                     </div>
-                                    <p className="text-3xl font-black text-white">{resellerStats.activeResellers}</p>
-                                    <p className="text-sm text-gray-500">Đại lý đang hoạt động</p>
+                                    <p className="text-xl font-black text-white">{resellerStats.activeResellers}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Đại lý đang hoạt động</p>
                                 </div>
-                                <div className="bg-[#111] border border-white/10 rounded-xl p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                            <BarChart3 className="w-5 h-5 text-purple-400" />
+                                <div className="bg-[#111] border border-white/10 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                            <BarChart3 className="w-4 h-4 text-purple-400" />
                                         </div>
-                                        <span className="text-xs text-purple-400">Commission</span>
+                                        <span className="text-[10px] text-purple-400">Commission</span>
                                     </div>
-                                    <p className="text-3xl font-black text-purple-400">{resellerStats.commission}%</p>
-                                    <p className="text-sm text-gray-500">Hoa hồng của bạn</p>
+                                    <p className="text-xl font-black text-purple-400">{resellerStats.commission}%</p>
+                                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Hoa hồng của bạn</p>
                                 </div>
                             </div>
 
