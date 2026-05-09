@@ -6,7 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 import { useSession, signOut } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { GraduationCap, Users, Rocket, User, Link as LinkIcon, Gift, Flame } from "lucide-react";
+import { GraduationCap, Users, Rocket, User, Link as LinkIcon, Gift, Flame, ShoppingBag } from "lucide-react";
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
@@ -144,7 +144,13 @@ const Header: React.FC = () => {
                   <span className="text-blue-400"><User size={16} /></span> Cá nhân
                 </Link>
                 <Link
-                  href="/affiliate"
+                  href="/tools/marketplace"
+                  className="block px-4 py-3 text-sm text-[#CDAD5A] hover:bg-white/10 hover:text-yellow-300 transition-colors font-bold flex items-center gap-2"
+                >
+                  <span className="text-amber-500"><ShoppingBag size={16} /></span> Chợ Kênh
+                </Link>
+                <Link
+                  href="/tools/affiliate-partner"
                   className="block px-4 py-3 text-sm text-[#00a3a3] hover:bg-white/10 hover:text-[#4ddcdc] transition-colors font-semibold flex items-center gap-2"
                 >
                   <span className="text-green-400"><LinkIcon size={16} /></span> Affiliate
@@ -390,7 +396,13 @@ const Header: React.FC = () => {
                     👤 Cá nhân
                   </Link>
                   <Link
-                    href="/affiliate"
+                    href="/tools/marketplace"
+                    className="block px-3 py-3 text-[#CDAD5A] hover:bg-white/5 hover:text-yellow-300 rounded-xl text-sm font-bold transition-colors pl-6"
+                  >
+                    🛍️ Chợ Kênh
+                  </Link>
+                  <Link
+                    href="/tools/affiliate-partner"
                     className="block px-3 py-3 text-[#00a3a3] hover:bg-white/5 hover:text-[#4ddcdc] rounded-xl text-sm font-semibold transition-colors pl-6"
                   >
                     🤝 Affiliate
