@@ -570,6 +570,7 @@ model ChannelAnalytics {
 model MarketplaceListing {
   id              String    @id @default(cuid())
   userId          String
+  user            User      @relation("SellerListings", fields: [userId], references: [id])
 
   // Channel info
   channelId       String    @unique // YouTubeChannel.id (if connected) or external
@@ -619,6 +620,7 @@ model MarketplaceListing {
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  transactions    MarketplaceTransaction[]
 
   expiresAt       DateTime? // Auto-expire after 30 days
 
@@ -676,7 +678,9 @@ model MarketplaceTransaction {
   listing         MarketplaceListing @relation(fields: [listingId], references: [id])
 
   sellerId        String
+  seller          User      @relation("SellerTransactions", fields: [sellerId], references: [id])
   buyerId         String
+  buyer           User      @relation("BuyerTransactions", fields: [buyerId], references: [id])
 
   // Pricing
   agreedPrice     Decimal
@@ -708,7 +712,6 @@ model MarketplaceTransaction {
 
   @@index([sellerId])
   @@index([buyerId])
-  @@index([status])
   @@map("marketplace_transactions")
 }
 

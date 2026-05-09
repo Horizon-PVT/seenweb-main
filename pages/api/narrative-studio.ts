@@ -5,9 +5,9 @@ export const config = {
 };
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI, Type, GenerateImagesConfig } from "@google/genai";
+import { GoogleGenAI, Type, GenerateImagesConfig } from '@google/genai';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 interface SceneAnalysis {

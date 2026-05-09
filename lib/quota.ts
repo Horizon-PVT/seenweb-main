@@ -1,6 +1,6 @@
 // File: lib/quota.ts
 import { prisma } from './prisma';
-import { ROLES, ROLE_LIMITS, FREE_ALLOWED_TOOLS, BASIC_ALLOWED_TOOLS, Role } from './roles';
+import { ROLES, ROLE_LIMITS, FREE_ALLOWED_TOOLS, STARTER_ALLOWED_TOOLS, Role } from './roles';
 import { getRedisClient } from './redis';
 
 const EVENT_NAME = 'TOOL_USAGE';
@@ -14,8 +14,8 @@ function getDailyRedisKey(userId: string, toolId: string): string {
 /**
  * STRICT QUOTA CHECK (Per Tool)
  * - FREE: 1 lifetime use per allowed tool.
- * - BASIC: 20 uses per day per allowed tool.
- * - PRO: 50 uses per day per tool (ALL TOOLS).
+ * - STARTER: 20 uses per day per allowed tool.
+ * - CREATOR/PRO: 50 uses per day per tool (ALL TOOLS).
  */
 export async function checkUserQuota(userId: string, toolId?: string): Promise<void> {
     const user = await prisma.user.findUnique({
@@ -52,9 +52,9 @@ export async function checkUserQuota(userId: string, toolId?: string): Promise<v
         }
     }
 
-    // 2. Check Allowed Tools for BASIC
-    if (role === 'BASIC') {
-        if (!BASIC_ALLOWED_TOOLS.includes(toolId)) {
+    // 2. Check Allowed Tools for STARTER
+    if (role === 'STARTER') {
+        if (!STARTER_ALLOWED_TOOLS.includes(toolId)) {
             throw new Error('PLAN_LOCKED'); // Show Upgrade Popup - need PRO plan
         }
     }

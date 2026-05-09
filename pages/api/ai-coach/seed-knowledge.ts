@@ -1,7 +1,7 @@
 // API endpoint to seed knowledge base to Pinecone
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { batchUpsertDocuments } from '@/lib/pinecone';
 import { getAllDocuments } from '@/lib/youtube-knowledge';
 import { getAllVidIQDocuments } from '@/lib/vidiq-knowledge';

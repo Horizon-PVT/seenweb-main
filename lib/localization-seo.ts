@@ -1,7 +1,7 @@
 // lib/localization-seo.ts
 // Phase 6: Multi-Language SEO - Local keyword research and SEO optimization per market
 
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface LocalSEOConfig {
   language: string;
@@ -49,7 +49,7 @@ export async function generateLocalSEO(
     throw new Error('GEMINI_API_KEY not configured');
   }
 
-  const genAI = new GoogleGenAI(apiKey);
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const localesToTranslate = SUPPORTED_LOCALES.filter(
@@ -115,16 +115,7 @@ export async function getSEOScore(
   description: string,
   tags: string[],
   locale: string = 'vi-VN'
-): Promise<{
-  score: number;
-  analysis: {
-    titleScore: number;
-    descriptionScore: number;
-    tagScore: number;
-    keywordScore: number;
-  };
-  suggestions: string[];
-}> {
+) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return {
@@ -134,7 +125,7 @@ export async function getSEOScore(
     };
   }
 
-  const genAI = new GoogleGenAI(apiKey);
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `
@@ -142,7 +133,7 @@ Analyze this YouTube video SEO and provide scores (0-100) with suggestions:
 
 Title: ${title}
 Description: ${description}
-Tags: ${tags.join(', '))}
+Tags: ${tags.join(', ')}
 Locale: ${locale}
 
 Scoring criteria:
@@ -170,7 +161,16 @@ Respond JSON:
     const jsonMatch = text.match(/\{[\s\S]*\}/);
 
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      return JSON.parse(jsonMatch[0]) as {
+        score: number;
+        analysis: {
+          titleScore: number;
+          descriptionScore: number;
+          tagScore: number;
+          keywordScore: number;
+        };
+        suggestions: string[];
+      };
     }
   } catch (err) {
     console.error('SEO analysis failed:', err);

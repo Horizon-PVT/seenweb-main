@@ -24,12 +24,12 @@ type Platform = 'youtube' | 'tiktok' | 'facebook' | 'instagram';
 interface PlatformChannel {
   id: string;
   platform: Platform;
-  platformUserId: string;
-  displayName: string | null;
-  profileImage: string | null;
-  followerCount: number;
-  isActive: boolean;
-  lastSync: string | null;
+  platformUserId?: string;
+  displayName?: string | null;
+  profileImage?: string | null;
+  followerCount?: number;
+  isActive?: boolean;
+  lastSync?: string | null;
 }
 
 const PLATFORM_CONFIG: Record<Platform, {
@@ -92,7 +92,7 @@ function PlatformCard({
           )}
         </div>
         <p className="text-xs text-gray-500">
-          {formatFollowers(channel.followerCount)} followers
+          {formatFollowers(channel.followerCount || 0)} followers
         </p>
       </div>
 

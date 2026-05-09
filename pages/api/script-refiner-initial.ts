@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
-import { GoogleGenAI, Type } from "@google/genai"; // Cần Type cho schema
+import { GoogleGenAI, Type } from '@google/genai'; // Cần Type cho schema
 
 // Định nghĩa schema JSON mà AI phải trả về
 const refinerSchema = {

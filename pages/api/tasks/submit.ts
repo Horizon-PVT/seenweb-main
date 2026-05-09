@@ -4,7 +4,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { addAITask, TaskPayload, TaskType } from '@/lib/queue';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
 const VALID_TASK_TYPES: TaskType[] = [
     'generate-script',

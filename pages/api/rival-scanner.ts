@@ -1,8 +1,8 @@
 // File: pages/api/rival-scanner.ts (Đây là Backend)
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
 // Định nghĩa kiểu dữ liệu trả về (tùy chọn nhưng nên có)
 interface OutputData {

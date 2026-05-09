@@ -3,9 +3,9 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from '@/lib/prisma';
-import { GoogleGenAI } from '@google/genative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -28,10 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 1. Get user's channel data
     const channels = await prisma.youTubeChannel.findMany({
       where: { userId: session.user.id },
-      include: {
-        recentVideos: true,
-        channelHealth: true,
-      },
     });
 
     const primaryChannel = channelId
@@ -61,7 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         role: true,
         streakDays: true,
         aiCoachSettings: true,
-        niche: true,
       },
     });
 
@@ -71,7 +66,7 @@ THÔNG TIN USER:
 - Tên: ${user?.name || 'Unknown'}
 - Tier: ${user?.role || 'FREE'}
 - Streak: ${user?.streakDays || 0} ngày
-- Ngách: ${user?.aiCoachSettings?.channelInfo?.niche || 'Chưa xác định'}
+- Ngách: ${(user?.aiCoachSettings as any)?.channelInfo?.niche || 'Chưa xác định'}
 
 KÊNH YOUTUBE:
 ${primaryChannel ? `
@@ -79,7 +74,7 @@ ${primaryChannel ? `
 - Subscribers: ${primaryChannel.subCount.toLocaleString()}
 - Tổng views: ${primaryChannel.viewCount || 'N/A'}
 - Số video: ${primaryChannel.videoCount}
-- Health Score: ${primaryChannel.channelHealth?.score || 'N/A'}
+- Health Score: ${(primaryChannel.channelHealth as any)?.score || 'N/A'}
 
 VIDEO GẦN ĐÂY:
 ${(primaryChannel.recentVideos as any[])?.slice(0, 5).map((v, i) =>
@@ -111,7 +106,7 @@ Format: Markdown với headers và bullet points.
 `;
 
     // 5. Generate AI response
-    const genAI = new GoogleGenAI(apiKey);
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const result = await model.generateContent(context);

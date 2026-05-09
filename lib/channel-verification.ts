@@ -121,7 +121,7 @@ export async function verifyChannelListing(listingId: string): Promise<Verificat
   passedChecks++;
 
   // Check 5: Listing completeness
-  const hasRequired = listing.description && listing.niche && listing.askingPrice > 0;
+  const hasRequired = listing.description && listing.niche && listing.askingPrice.toNumber() > 0;
   if (hasRequired) {
     checks.push({
       name: 'Listing Completeness',

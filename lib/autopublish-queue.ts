@@ -27,7 +27,7 @@ export interface AutoPublishResult {
   publishedVideoId?: string;
   publishedUrl?: string;
   error?: string;
-  retryCount: number;
+  retryCount?: number;
 }
 
 // Create or get existing queue
@@ -40,7 +40,7 @@ export function getAutoPublishQueue() {
         if (times > 3) return null; // Stop retrying
         return Math.min(times * 100, 3000);
       },
-    }),
+    }) as any,
     defaultJobOptions: {
       attempts: 3,
       backoff: {
@@ -59,19 +59,14 @@ export async function queueVideoPublish(job: AutoPublishJob): Promise<string> {
 
   const jobId = `publish-${job.userId}-${Date.now()}`;
 
-  await queue.add('publish-video', job, {
+  await (queue as any).add('publish-video', job, {
     jobId,
     ...(job.scheduledDate
       ? {
-          scheduled: job.scheduledDate.getTime() - Date.now() < 0 ? undefined : job.scheduledDate.getTime(),
+          delay: Math.max(0, job.scheduledDate.getTime() - Date.now()),
         }
       : {}),
   });
-
-  // If scheduled for now or past, process immediately
-  if (!job.scheduledDate || job.scheduledDate.getTime() <= Date.now()) {
-    await queue.processJob(jobId);
-  }
 
   return jobId;
 }

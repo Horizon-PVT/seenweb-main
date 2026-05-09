@@ -3,8 +3,8 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
-import { GoogleGenAI } from '@google/generative-ai';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface GapResult {
   topic: string;
@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const genAI = new GoogleGenAI(apiKey);
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const prompt = `

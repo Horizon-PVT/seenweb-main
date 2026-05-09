@@ -1,8 +1,8 @@
 // File: pages/api/script-refine.ts (Bản Sửa Lỗi Hoàn Chỉnh)
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from "@/lib/quota";
 
 interface ErrorResponse {

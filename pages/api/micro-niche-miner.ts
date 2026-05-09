@@ -1,8 +1,8 @@
 // File: pages/api/micro-niche-miner.ts (Backend cho Micro Niche Miner)
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from "next-auth/next"; // Auth import
-import { authOptions } from "./auth/[...nextauth]"; // Auth definitions
+import { authOptions } from '@/pages/api/auth/[...nextauth]'; // Auth definitions
 import { checkUserQuota, incrementUserUsage } from "@/lib/quota"; // Quota logic
 
 // Định nghĩa kiểu Output (hoặc import)

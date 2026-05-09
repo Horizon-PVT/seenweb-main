@@ -1,9 +1,9 @@
 // pages/api/multilingual-studio.ts
 // WF6: Multilingual Content Studio - Script → Translate → TTS → Video
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type } from '@google/genai';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./auth/[...nextauth]";
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from "@/lib/quota";
 import { getCached, setCache, generateCacheKey, CACHE_PREFIXES } from "@/lib/cache";
 

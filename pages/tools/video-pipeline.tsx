@@ -417,7 +417,6 @@ export default function VideoPipelinePage() {
             {/* Upgrade Modal */}
             {showUpgrade && (
                 <UpgradeModal
-                    isOpen={showUpgrade}
                     onClose={() => setShowUpgrade(false)}
                     requiredPlan="STARTER"
                     userEmail={session?.user?.email || ''}

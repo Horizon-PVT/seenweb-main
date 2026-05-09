@@ -7,7 +7,7 @@ import path from 'path';
 import FormDataNode from 'form-data';
 import axios from 'axios';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../../auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 export const config = {

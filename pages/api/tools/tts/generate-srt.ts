@@ -12,7 +12,7 @@ export const config = {
 const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'https://seenweb-main-production.up.railway.app';
 
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../../auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

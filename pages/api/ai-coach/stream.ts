@@ -1,7 +1,7 @@
 // AI Coach Streaming Chat API - Server-Sent Events
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from '@/lib/prisma';
 import { AI_COACH_LIMITS, AI_COACH_SYSTEM_PROMPT } from '@/lib/ai-coach-config';
 import { searchKnowledge } from '@/lib/pinecone';

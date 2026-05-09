@@ -2,9 +2,9 @@
 // WF7: Creator Analytics Dashboard - Channel health, video performance, growth tracking
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./auth/[...nextauth]";
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from "@/lib/quota";
 import { prisma } from "@/lib/prisma";
 import { getCached, setCache, generateCacheKey, CACHE_PREFIXES } from "@/lib/cache";

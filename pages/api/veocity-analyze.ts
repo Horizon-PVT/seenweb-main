@@ -1,9 +1,9 @@
 // File: pages/api/veocity-analyze.ts (Bản Fix CUỐI: Thống nhất Model 2.5 Flash + Character Consistency)
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type } from '@google/genai';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]'; // Corrected path
+import { authOptions } from '@/pages/api/auth/[...nextauth]'; // Corrected path
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 interface Scene { originalText: string; prompt: string; }

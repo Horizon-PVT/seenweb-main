@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { GoogleGenAI, Modality, GenerateImagesConfig } from "@google/genai";
+import { GoogleGenAI, Modality, GenerateImagesConfig } from '@google/genai';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from '@/lib/quota';
 
 /** FIX 413: allow larger JSON bodies for base64 images */
@@ -170,8 +170,8 @@ export default async function handler(
 
     const imageUrls =
       response.generatedImages
-        ?.map((img) => img.image?.imageBytes ? `data:image/jpeg;base64,${img.image.imageBytes}` : null)
-        .filter((url): url is string => typeof url === "string") || [];
+        ?.map((img: any) => img.image?.imageBytes ? `data:image/jpeg;base64,${img.image.imageBytes}` : null)
+        .filter((url: any): url is string => typeof url === "string") || [];
     if (!imageUrls.length) throw new Error("Imagen không trả về ảnh (hoặc ảnh bị lỗi).");
 
     await incrementUserUsage((session.user as any).id, 'image-forge');

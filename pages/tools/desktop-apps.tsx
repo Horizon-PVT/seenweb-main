@@ -222,7 +222,7 @@ export default function DesktopAppsPage() {
                                 {licenseKey ? (
                                     <div className="space-y-3">
                                         <div className="bg-black/50 rounded-xl p-4 border border-gray-700">
-                                            <p className="text-xs text-gray-500 mb-2">Koda {kodaTier?.charAt(0).toUpperCase() + kodaTier?.slice(1)} License</p>
+                                            <p className="text-xs text-gray-500 mb-2">Koda {kodaTier ? kodaTier.charAt(0).toUpperCase() + kodaTier.slice(1) : ''} License</p>
                                             <p className="font-mono text-green-400 text-lg break-all select-all">
                                                 {licenseKey}
                                             </p>

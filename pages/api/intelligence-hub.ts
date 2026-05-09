@@ -2,9 +2,9 @@
 // WF5: Content Intelligence Hub - Combine all research tools into one unified workflow
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { google } from 'googleapis';
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./auth/[...nextauth]";
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { checkUserQuota, incrementUserUsage } from "@/lib/quota";
 import { getCached, setCache, generateCacheKey, CACHE_PREFIXES } from "@/lib/cache";
 

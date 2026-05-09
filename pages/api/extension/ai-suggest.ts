@@ -1,6 +1,6 @@
 // pages/api/extension/ai-suggest.ts - AI Quick Actions for Extension
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type } from '@google/genai';
 
 type ActionType = 'generate-titles' | 'optimize-description' | 'suggest-tags';
 

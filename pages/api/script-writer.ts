@@ -1,8 +1,8 @@
 // File: pages/api/script-writer.ts (Backend cho Viết Kịch Bản)
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from "next-auth/next"; // Auth import
-import { authOptions } from "./auth/[...nextauth]"; // Auth definitions
+import { authOptions } from '@/pages/api/auth/[...nextauth]'; // Auth definitions
 import { checkUserQuota, incrementUserUsage } from "@/lib/quota"; // Quota logic
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 

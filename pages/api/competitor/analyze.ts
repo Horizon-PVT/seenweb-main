@@ -3,8 +3,8 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
-import { GoogleGenAI } from '@google/generative-ai';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface CompetitorAnalysisRequest {
   channelIds: string[];
@@ -97,7 +97,7 @@ async function analyzeChannel(
   limit: number,
   apiKey: string
 ): Promise<CompetitorReport> {
-  const genAI = new GoogleGenAI(apiKey);
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   // Generate mock data (in production, this would fetch from YouTube API)

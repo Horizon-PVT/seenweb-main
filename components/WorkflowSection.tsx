@@ -18,7 +18,9 @@ export default function WorkflowSection() {
             color: "from-blue-500 to-cyan-400",
             bgColor: "bg-blue-500/10",
             borderColor: "hover:border-blue-500/60",
-            cta: t('workflow.step1.cta', 'Chỉ tôi nên làm video gì →')
+            cta: t('workflow.step1.cta', 'Chỉ tôi nên làm video gì →'),
+            tag: undefined as string | undefined,
+            tagColor: undefined as string | undefined
         },
         {
             step: 2,
@@ -30,7 +32,9 @@ export default function WorkflowSection() {
             color: "from-purple-500 to-pink-500",
             bgColor: "bg-purple-500/10",
             borderColor: "hover:border-purple-500/60",
-            cta: t('workflow.step2.cta', 'Lấy kịch bản video →')
+            cta: t('workflow.step2.cta', 'Lấy kịch bản video →'),
+            tag: undefined as string | undefined,
+            tagColor: undefined as string | undefined
         },
         {
             step: 3,
@@ -42,7 +46,9 @@ export default function WorkflowSection() {
             color: "from-amber-400 to-orange-500",
             bgColor: "bg-amber-500/10",
             borderColor: "hover:border-amber-500/60",
-            cta: t('workflow.step3.cta', 'Chuẩn bị đăng video →')
+            cta: t('workflow.step3.cta', 'Chuẩn bị đăng video →'),
+            tag: undefined as string | undefined,
+            tagColor: undefined as string | undefined
         },
     ];
 

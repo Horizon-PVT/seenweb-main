@@ -95,7 +95,7 @@ function HubLayoutInner({
       <AICoachChat />
 
       {/* Tool Guide (floating button when tool is active) */}
-      {activeTool && <ToolGuide />}
+      {activeTool && <ToolGuide toolId={activeTool} />}
     </div>
   );
 }
