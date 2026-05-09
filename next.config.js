@@ -51,6 +51,11 @@ const nextConfig = {
     // Sẽ sửa dứt điểm lỗi Fast Refresh bị lặp vô tận (Loop) do Windows Antivirus khoá file .pack.gz
     if (dev) {
       config.cache = false;
+      config.watchOptions = {
+        poll: 1000, // Check for changes every second
+        aggregateTimeout: 300, // delay before rebuilding
+        ignored: /node_modules/,
+      };
     }
     return config;
   },
