@@ -670,7 +670,13 @@ export default function ChannelMarketplace({ mode: initialMode }: { mode: 'brows
                                 </div>
 
                                 {/* Action */}
-                                <button className="w-full mt-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 rounded-lg font-bold text-sm transition-colors">
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        alert('Tính năng thanh toán trực tuyến đang được hoàn thiện. Vui lòng liên hệ Admin qua Zalo/Telegram để giao dịch an toàn!');
+                                    }}
+                                    className="w-full mt-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 rounded-lg font-bold text-sm transition-colors"
+                                >
                                     Liên hệ mua
                                 </button>
                             </div>

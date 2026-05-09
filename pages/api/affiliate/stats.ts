@@ -13,27 +13,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const session = await getServerSession(req, res, authOptions);
     
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Mock data - replace with real database queries
-    const userId = (session.user as any).id || 'demo';
+    const userId = session.user.id;
+    const { prisma } = await import('@/lib/prisma');
     
-    // Return affiliate stats based on user tier
+    const [referralCount, earnings] = await Promise.all([
+      prisma.user.count({ where: { referrerId: userId } }),
+      prisma.payout.aggregate({
+        where: { userId, status: 'COMPLETED' },
+        _sum: { amount: true }
+      })
+    ]);
+    
     const stats = {
-      totalEarnings: 0,
-      totalReferrals: 0,
+      totalEarnings: earnings._sum.amount || 0,
+      totalReferrals: referralCount,
       pendingPayout: 0,
       tier: 'SILVER' as const
     };
-
-    // TODO: Query database for real stats
-    // Example:
-    // const earnings = await prisma.affiliateEarnings.findMany({
-    //   where: { userId },
-    //   select: { amount: true, status: true }
-    // });
 
     res.status(200).json(stats);
   } catch (error) {

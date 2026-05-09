@@ -68,8 +68,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     prisma.marketplaceListing.count({ where }),
   ]);
 
+  // Fix BigInt serialization
+  const serializedListings = listings.map(l => ({
+    ...l,
+    totalViews: l.totalViews.toString(),
+  }));
+
   return res.status(200).json({
-    listings,
+    listings: serializedListings,
     pagination: {
       page: pageNum,
       limit: limitNum,

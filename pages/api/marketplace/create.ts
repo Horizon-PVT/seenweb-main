@@ -90,8 +90,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    // Fix BigInt serialization
+    const serializedListing = {
+      ...listing,
+      totalViews: listing.totalViews.toString(),
+    };
+
     return res.status(201).json({
-      listing,
+      listing: serializedListing,
       message: 'Listing created. It will be published after admin verification.',
     });
   } catch (error: any) {
