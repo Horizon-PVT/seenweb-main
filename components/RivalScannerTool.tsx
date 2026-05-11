@@ -63,6 +63,16 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
   const [radarAngle, setRadarAngle] = useState(0);
   const [showUpgrade, setShowUpgrade] = useState(false); // NEW: Upgrade modal state
 
+  // Persistence Logic
+  useEffect(() => {
+    const saved = localStorage.getItem('seenyt_rival_input');
+    if (saved) setInput(saved);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('seenyt_rival_input', input);
+  }, [input]);
+
   // Radar Animation Effect
   useEffect(() => {
     const interval = setInterval(() => {

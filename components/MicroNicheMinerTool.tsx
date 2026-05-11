@@ -225,6 +225,16 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
   const [isLoading, setIsLoading] = useState(false);
   const [output, setOutput] = useState<OutputData | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false); // ADDED
+
+  // Persistence Logic
+  React.useEffect(() => {
+    const saved = localStorage.getItem('seenyt_niche_input');
+    if (saved) setInput(saved);
+  }, []);
+
+  React.useEffect(() => {
+    localStorage.setItem('seenyt_niche_input', input);
+  }, [input]);
   const isVN = market === 'VN';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -282,10 +292,10 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
   };
 
   return (
-    <div className="h-full bg-[#0A0A0B] text-slate-200 font-sans selection:bg-[#CDAD5A]/30 flex flex-col overflow-hidden relative">
+    <div className="min-h-full bg-[#0A0A0B] text-slate-200 font-sans selection:bg-[#CDAD5A]/30 flex flex-col relative">
 
       {/* HEADER */}
-      <header className="absolute top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md h-16 flex items-center justify-between px-6">
+      <header className="sticky top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md h-16 flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
           {onBack && (
             <button onClick={onBack} className="text-xs font-medium text-slate-400 hover:text-white transition-colors border-r border-white/10 pr-6 mr-2 flex items-center gap-2">
@@ -319,7 +329,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
       </header>
 
       {/* MAIN */}
-      <main className="pt-32 px-6 pb-20 max-w-7xl mx-auto w-full overflow-y-auto h-full relative z-10 scrollbar-thin scrollbar-thumb-white/10 flex flex-col items-center">
+      <main className="pt-10 px-6 pb-20 max-w-7xl mx-auto w-full relative z-10 flex flex-col items-center">
         <div className="text-center mb-12 w-full">
           <style dangerouslySetInnerHTML={{ __html: `
             @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }

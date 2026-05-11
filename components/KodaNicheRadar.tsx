@@ -56,16 +56,16 @@ export default function KodaNicheRadar({ onBack }: { onBack?: () => void }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden bg-black/50">
-        <div className="h-full relative">
+      <div className="flex-1 overflow-y-auto bg-black/50 scrollbar-thin scrollbar-thumb-white/10">
+        <div className="min-h-full relative">
           {activeTab === 'niche' && (
-            <div className="h-full animate-fadeIn">
+            <div className="animate-fadeIn">
                {/* We wrap the existing component but pass the required props to avoid TS errors. */}
                <MicroNicheMinerTool onBack={undefined} tools={dummyTools} onToolSelect={dummyOnToolSelect} />
             </div>
           )}
           {activeTab === 'rival' && (
-            <div className="h-full animate-fadeIn">
+            <div className="animate-fadeIn">
                <RivalScannerTool onBack={undefined} tools={dummyTools} onToolSelect={dummyOnToolSelect} />
             </div>
           )}

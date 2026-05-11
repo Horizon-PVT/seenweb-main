@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from './Sidebar';
+import MobileNav from './MobileNav';
 import Head from 'next/head';
 import AICoachChat from '../ai-coach/AICoachChat';
 import ToolGuide from '../ToolGuide';
@@ -9,7 +10,7 @@ interface DashboardLayoutProps {
     userRole?: string;
     title?: string;
     activeTool?: string | null;
-    onToolSelect?: (toolId: string) => void;
+    onToolSelect?: (toolId: string | null) => void;
 }
 
 export default function DashboardLayout({
@@ -39,12 +40,18 @@ export default function DashboardLayout({
             </div>
 
             {/* Main Content */}
-            <main className={`flex-1 min-w-0 bg-black ${activeTool ? 'h-screen overflow-hidden' : 'min-h-screen pb-32'}`}>
+            <main className={`flex-1 min-w-0 bg-black min-h-screen pb-20 md:pb-0 ${activeTool ? '' : 'pb-32'}`}>
                 {/* Content Container */}
-                <div className={activeTool ? 'h-full w-full' : 'p-4 md:p-8 max-w-7xl mx-auto'}>
+                <div className={activeTool ? 'min-h-full w-full relative' : 'p-4 md:p-8 max-w-7xl mx-auto'}>
                     {children}
                 </div>
             </main>
+
+            {/* Mobile Navigation */}
+            <MobileNav 
+                activeTool={activeTool} 
+                onToolSelect={(id) => onToolSelect && onToolSelect(id)} 
+            />
 
             {/* AI Coach Chat Widget */}
             <AICoachChat />

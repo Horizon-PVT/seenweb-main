@@ -80,20 +80,20 @@ export default function KodaScriptStudio({ onBack }: { onBack?: () => void }) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden bg-black/50">
-        <div className="h-full overflow-y-auto [&>div]:h-full">
+      <div className="flex-1 overflow-y-auto bg-black/50 scrollbar-thin scrollbar-thumb-white/10">
+        <div className="min-h-full">
           {step === 1 && (
-            <div className="h-full animate-fadeIn p-4 md:p-0">
+            <div className="animate-fadeIn p-4 md:p-0">
                <ScriptwriterTool onBack={() => {}} tools={dummyTools} onToolSelect={dummyOnToolSelect} />
             </div>
           )}
           {step === 2 && (
-            <div className="h-full animate-fadeIn p-4 md:p-0">
+            <div className="animate-fadeIn p-4 md:p-0">
                <SeoTool onBack={() => {}} />
             </div>
           )}
           {step === 3 && (
-            <div className="h-full animate-fadeIn p-4 md:p-0">
+            <div className="animate-fadeIn p-4 md:p-0">
                <VoiceStudioTool />
             </div>
           )}

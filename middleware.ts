@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   let targetPathname = pathname;
 
   if (isAppDomain && pathname === '/') {
-    targetPathname = '/dashboard';
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   } else if (isAcademyDomain && !pathname.startsWith('/academy')) {
     targetPathname = `/academy${pathname === '/' ? '' : pathname}`;
   }

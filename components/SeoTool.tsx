@@ -110,6 +110,18 @@ export default function SeoTool({ onBack }: SeoToolProps) {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Persistence Logic
+    useEffect(() => {
+        const saved = localStorage.getItem('seenyt_seo_idea');
+        if (saved) setCoreIdea(saved);
+    }, []);
+
+    useEffect(() => {
+        if (coreIdea) {
+            localStorage.setItem('seenyt_seo_idea', coreIdea);
+        }
+    }, [coreIdea]);
+
     // Grid animation
     useEffect(() => {
         const interval = setInterval(() => {

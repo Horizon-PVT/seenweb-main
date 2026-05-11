@@ -19,29 +19,26 @@ export function getRedisClient(): Redis {
 
     redisClient = new Redis(redisUrl, {
         // Connection options
-        maxRetriesPerRequest: 3,
+        maxRetriesPerRequest: 1, // Fix: fail fast
         retryStrategy(times) {
-            // Exponential backoff: wait 2^times * 100ms (max 30 seconds)
-            const delay = Math.min(times * 100 * Math.pow(2, times - 1), 30000);
-            console.log(`[Redis] Retry attempt ${times}, waiting ${delay}ms...`);
-            return delay;
+            if (times > 1) return null;
+            return 50;
         },
 
         // Reconnect on connection lost
         reconnectOnError(err) {
             const targetError = 'READONLY';
             if (err.message.includes(targetError)) {
-                // Only reconnect when the error contains "READONLY"
                 return true;
             }
             return false;
         },
 
-        // Enable offline queue (commands are queued when disconnected)
+        // Enable offline queue (original setting)
         enableOfflineQueue: true,
 
-        // Connection timeout
-        connectTimeout: 10000,
+        // Connection timeout - reduced to 2s
+        connectTimeout: 2000,
 
         // Lazy connect - don't connect until first command
         lazyConnect: true,

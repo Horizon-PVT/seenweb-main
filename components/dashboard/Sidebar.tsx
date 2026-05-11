@@ -72,8 +72,9 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
     const toolItems = [
         { id: 'niche-radar', label: 'Niche Radar', icon: Search, toolId: 'niche-radar' },
         { id: 'script-studio', label: 'Script Studio', icon: FileText, toolId: 'script-studio' },
-        { id: 'video-pipeline', label: 'Video Pipeline', icon: Video, path: '/tools/video-pipeline' },
-        { id: 'intelligence', label: 'Intelligence Hub', icon: Sparkles, path: '/tools/intelligence-hub' },
+        { id: 'video-pipeline', label: 'Video Pipeline', icon: Video, toolId: 'video-pipeline' },
+        { id: 'intelligence', label: 'Intelligence Hub', icon: Sparkles, toolId: 'intelligence-hub' },
+        { id: 'seo-tool', label: 'SEO Tool', icon: TrendingUp, toolId: 'seo-tool' },
         { id: 'channels', label: 'Kênh của tôi', icon: BarChart3, path: '/dashboard/trends' },
     ];
 
@@ -89,9 +90,12 @@ export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }:
     const handleNavClick = (item: any) => {
         if (item.path) {
             router.push(item.path);
-        }
-        if (item.toolId && onToolSelect) {
-            onToolSelect(item.toolId);
+        } else if (item.toolId) {
+            if (onToolSelect) {
+                onToolSelect(item.toolId);
+            } else {
+                router.push('/dashboard?tool=' + item.toolId);
+            }
         }
     };
 

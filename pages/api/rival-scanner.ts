@@ -82,7 +82,7 @@ export default async function handler(
     // 5. Gọi Google AI từ máy chủ (an toàn)
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest", // Hoặc model bạn muốn dùng
+      model: "gemini-2.5-flash", // Dùng bản 2.5 theo yêu cầu của anh
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }], // Sử dụng grounding nếu cần

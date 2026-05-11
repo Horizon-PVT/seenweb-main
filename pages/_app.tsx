@@ -38,7 +38,7 @@ function App({
       session={session}
       // giúp session cập nhật nhanh hơn sau login/redirect
       refetchOnWindowFocus={true}
-      refetchInterval={300}
+      refetchInterval={300} // This is 5 minutes in next-auth v4 (seconds)
     >
       <ThemeProvider>
         <Head>

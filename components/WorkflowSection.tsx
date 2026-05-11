@@ -108,7 +108,16 @@ export default function WorkflowSection() {
     ];
 
     const handleOpenTool = (toolId: string) => {
-        router.push('/tools/' + toolId);
+        // Mapped tools to their unified dashboard equivalents
+        const toolMap: Record<string, string> = {
+            "micro-niche-miner": "niche-radar",
+            "scriptwriter": "script-studio",
+            // For now, other tools might still be standalone, we push them to dashboard anyway if we want them unified later, 
+            // but if they don't exist in dashboard yet, they need to be handled.
+            // Let's route everything to /dashboard?tool=... and let the dashboard handle it.
+        };
+        const dashboardToolId = toolMap[toolId] || toolId;
+        router.push('/dashboard?tool=' + dashboardToolId);
     };
 
     return (

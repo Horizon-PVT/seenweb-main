@@ -26,6 +26,16 @@ const VoiceStudioTool = () => {
     const [text, setText] = useState('');
     const [selectedVoice, setSelectedVoice] = useState('alba');
     const [voices, setVoices] = useState<Voice[]>([]);
+
+    // Persistence Logic
+    useEffect(() => {
+        const saved = localStorage.getItem('seenyt_voice_text');
+        if (saved) setText(saved);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('seenyt_voice_text', text);
+    }, [text]);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
