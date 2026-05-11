@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 interface MobileNavProps {
-    activeTool: string | null;
+    activeTool?: string | null;
     onToolSelect: (toolId: string | null) => void;
 }
 
