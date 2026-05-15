@@ -32,11 +32,16 @@ import {
   getToolAction,
 } from "@/lib/creator-workflows";
 import { getCreatorCopy } from "@/lib/creator-i18n";
+import { WorkflowDraftData } from "@/lib/workflow-drafts";
 
 interface DashboardHomeProps {
   userRole: string;
   selectedWorkflow: WorkflowId;
+  workflowDraft: WorkflowDraftData;
+  draftSaving: boolean;
   onWorkflowSelect: (_workflowId: WorkflowId) => void;
+  onWorkflowStepRun: (_stepId: string, _action: WorkflowAction) => void;
+  onWorkflowStepComplete: (_stepId: string) => void;
   onToolSelect: (_toolId: string) => void;
   onNavigate: (_path: string) => void;
 }
@@ -68,7 +73,17 @@ function statusLabel(status: CreatorTool["status"]) {
   return { text: "Hidden", className: "bg-slate-400/10 text-slate-300 border-slate-300/20" };
 }
 
-export default function DashboardHome({ userRole, selectedWorkflow, onWorkflowSelect, onToolSelect, onNavigate }: DashboardHomeProps) {
+export default function DashboardHome({
+  userRole,
+  selectedWorkflow,
+  workflowDraft,
+  draftSaving,
+  onWorkflowSelect,
+  onWorkflowStepRun,
+  onWorkflowStepComplete,
+  onToolSelect,
+  onNavigate,
+}: DashboardHomeProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const copy = getCreatorCopy(router.locale);
@@ -89,6 +104,9 @@ export default function DashboardHome({ userRole, selectedWorkflow, onWorkflowSe
 
   const firstName = session?.user?.name?.split(" ")[0] || "Creator";
   const isFree = userRole === "FREE";
+  const doneSteps = workflowDraft.steps.filter((step) => step.status === "done").length;
+  const progressPercent = workflowDraft.steps.length > 0 ? Math.round((doneSteps / workflowDraft.steps.length) * 100) : 0;
+  const currentStep = workflowDraft.steps.find((step) => step.stepId === workflowDraft.currentStepId);
 
   const runAction = (action: WorkflowAction) => {
     if (action.type === "tool") {
@@ -125,7 +143,7 @@ export default function DashboardHome({ userRole, selectedWorkflow, onWorkflowSe
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <button
-                onClick={() => runAction(currentWorkflow.steps[0].action)}
+                onClick={() => onWorkflowStepRun(currentWorkflow.steps[0].id, currentWorkflow.steps[0].action)}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-cyan-300 px-6 text-sm font-black text-slate-950 transition hover:bg-cyan-200"
               >
                 {copy.dashboard.startWorkflow} <ArrowRight size={17} />
@@ -173,6 +191,26 @@ export default function DashboardHome({ userRole, selectedWorkflow, onWorkflowSe
                 {copy.dashboard.productRuleBody}
               </p>
             </div>
+
+            <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-black text-white">Workflow draft</div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {draftSaving ? "Saving..." : `Saved progress: ${doneSteps}/${workflowDraft.steps.length} steps`}
+                  </div>
+                </div>
+                <div className="text-sm font-black text-cyan-200">{progressPercent}%</div>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-cyan-300 transition-all" style={{ width: `${progressPercent}%` }} />
+              </div>
+              {currentStep && (
+                <div className="mt-3 text-xs font-bold text-slate-400">
+                  Current step: <span className="text-cyan-200">{currentStep.stepId}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -218,22 +256,64 @@ export default function DashboardHome({ userRole, selectedWorkflow, onWorkflowSe
           </div>
 
           <div className="mt-6 space-y-4">
-            {currentWorkflow.steps.map((step, index) => (
-              <button
-                key={step.id}
-                onClick={() => runAction(step.action)}
-                className="group flex w-full gap-4 rounded-lg border border-white/10 bg-black/20 p-4 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/[0.04]"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-cyan-300/25 bg-cyan-300/10 text-sm font-black text-cyan-200">
-                  {index + 1}
+            {currentWorkflow.steps.map((step, index) => {
+              const draftStep = workflowDraft.steps.find((item) => item.stepId === step.id);
+              const isDone = draftStep?.status === "done";
+              const isActive = draftStep?.status === "active";
+
+              return (
+                <div
+                  key={step.id}
+                  className={`rounded-lg border p-4 transition ${
+                    isActive
+                      ? "border-cyan-300/45 bg-cyan-300/[0.06]"
+                      : isDone
+                      ? "border-emerald-300/35 bg-emerald-300/[0.05]"
+                      : "border-white/10 bg-black/20"
+                  }`}
+                >
+                  <button
+                    onClick={() => onWorkflowStepRun(step.id, step.action)}
+                    className="group flex w-full gap-4 text-left"
+                  >
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-sm font-black ${
+                      isDone
+                        ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200"
+                        : "border-cyan-300/25 bg-cyan-300/10 text-cyan-200"
+                    }`}>
+                      {isDone ? <CheckCircle2 size={18} /> : index + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-black text-white">{copy.workflows[currentWorkflow.id].steps[index] || step.title}</h3>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
+                          isDone
+                            ? "bg-emerald-300/10 text-emerald-200"
+                            : isActive
+                            ? "bg-cyan-300/10 text-cyan-200"
+                            : "bg-slate-300/10 text-slate-300"
+                        }`}>
+                          {isDone ? "Done" : isActive ? "Active" : "Pending"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm leading-6 text-slate-400">{step.description}</p>
+                    </div>
+                    <ChevronRight className="mt-2 shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-cyan-300" />
+                  </button>
+
+                  {!isDone && (
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        onClick={() => onWorkflowStepComplete(step.id)}
+                        className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-xs font-black text-emerald-200 transition hover:bg-emerald-300/15"
+                      >
+                        Mark done
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-black text-white">{copy.workflows[currentWorkflow.id].steps[index] || step.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-slate-400">{step.description}</p>
-                </div>
-                <ChevronRight className="mt-2 shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-cyan-300" />
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
 

@@ -8,7 +8,7 @@ SeenYT repositioning work is implemented in the working tree but not committed y
 
 The current repo state shows a large uncommitted change set across homepage, dashboard, navigation, tool surfaces, i18n, sitemap, middleware, and PayOS payment APIs.
 
-Maintenance mode is currently hard-enabled in `middleware.ts` so public routes rewrite to `/maintenance` during the workflow upgrade. Reopen by changing `maintenanceMode` back to a flag-based value or `false` after final workflow QA.
+Maintenance mode is currently enabled for production via `process.env.NODE_ENV === "production"` in `middleware.ts` and `pages/_app.tsx`. Local development remains open so workflow upgrades can be tested. Reopen production by setting `maintenanceMode` to `false` or moving it back behind a release flag after final workflow QA.
 
 ## Completed Work
 
@@ -152,12 +152,29 @@ Steps:
 - Commit the repositioning, billing hardening, pricing/channel logic, and maintenance mode work.
 - Push/deploy while maintenance mode is active.
 - Smoke test production routes and one PayOS sandbox/manual checkout path if credentials are available.
-- Reopen by disabling `maintenanceMode` in `middleware.ts` after final workflow QA.
+- Reopen by disabling `maintenanceMode` in `middleware.ts` and `pages/_app.tsx` after final workflow QA.
 
 ## Future Product Work
 
-- Persist workflow drafts and project state.
-- Connect workflows to projects/channel IDs.
+- Persist workflow drafts and project state. Initial draft persistence is now implemented on top of `UserProject` with `toolId="workflow-draft"`.
+- Connect workflows to channel IDs and real tool output project IDs.
 - Review quota and role access in `lib/roles.ts`.
 - Deep-review API/loading/error states tool by tool.
 - Delete hidden legacy routes only after route, API, billing, and admin dependency review.
+
+## Workflow Draft Persistence
+
+Status: initial implementation in progress.
+
+Implemented:
+
+- `lib/workflow-drafts.ts` defines workflow draft types, default draft creation, and normalization.
+- `pages/api/workflow-drafts.ts` loads/saves one draft per user and workflow using the existing `UserProject` table.
+- `pages/dashboard.tsx` loads the selected workflow draft, saves step state, marks steps active/done, and routes the selected step to the right tool.
+- `components/dashboard/DashboardHome.tsx` displays saved progress, current step, step status, and a `Mark done` action.
+
+Current limits:
+
+- Tool outputs are not automatically attached to draft steps yet.
+- Drafts are not linked to a specific connected YouTube channel yet.
+- Production maintenance remains active, so test this in local dev until the release is ready.

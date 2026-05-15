@@ -5,7 +5,8 @@ import dynamic from "next/dynamic";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DashboardHome from "@/components/dashboard/DashboardHome";
-import { CREATOR_WORKFLOWS, WorkflowId, getDashboardToolId } from "@/lib/creator-workflows";
+import { CREATOR_WORKFLOWS, WorkflowAction, WorkflowId, getDashboardToolId } from "@/lib/creator-workflows";
+import { WorkflowDraftData, createDefaultWorkflowDraft, normalizeWorkflowDraft } from "@/lib/workflow-drafts";
 
 // Dynamic imports for performance
 const KodaNicheRadar = dynamic(() => import('@/components/KodaNicheRadar'), { ssr: false });
@@ -38,6 +39,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [workflowDraft, setWorkflowDraft] = useState<WorkflowDraftData | null>(null);
+  const [draftSaving, setDraftSaving] = useState(false);
   const selectedWorkflow = getWorkflowId(router.query.workflow);
 
   // Authentication guard
@@ -60,6 +63,99 @@ export default function DashboardPage() {
       }
     }
   }, [loading, router.isReady, router.query]);
+
+  useEffect(() => {
+    if (loading || !router.isReady || status !== "authenticated") return;
+
+    let cancelled = false;
+
+    const fetchDraft = async () => {
+      try {
+        const response = await fetch(`/api/workflow-drafts?workflowId=${selectedWorkflow}`);
+        const result = await response.json();
+        if (!cancelled) {
+          setWorkflowDraft(normalizeWorkflowDraft(selectedWorkflow, result.draft?.data));
+        }
+      } catch (error) {
+        console.error("Failed to fetch workflow draft:", error);
+        if (!cancelled) {
+          setWorkflowDraft(createDefaultWorkflowDraft(selectedWorkflow));
+        }
+      }
+    };
+
+    fetchDraft();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, router.isReady, selectedWorkflow, status]);
+
+  const saveWorkflowDraft = async (nextDraft: WorkflowDraftData) => {
+    const normalized = normalizeWorkflowDraft(selectedWorkflow, nextDraft);
+    setWorkflowDraft(normalized);
+    setDraftSaving(true);
+
+    try {
+      const response = await fetch("/api/workflow-drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workflowId: selectedWorkflow,
+          data: normalized,
+        }),
+      });
+      const result = await response.json();
+      setWorkflowDraft(normalizeWorkflowDraft(selectedWorkflow, result.draft?.data || normalized));
+    } catch (error) {
+      console.error("Failed to save workflow draft:", error);
+    } finally {
+      setDraftSaving(false);
+    }
+  };
+
+  const updateWorkflowStep = async (stepId: string, nextStatus: "active" | "done") => {
+    const baseDraft = workflowDraft || createDefaultWorkflowDraft(selectedWorkflow);
+    const now = new Date().toISOString();
+    const workflow = CREATOR_WORKFLOWS.find((item) => item.id === selectedWorkflow) || CREATOR_WORKFLOWS[0];
+    const selectedIndex = workflow.steps.findIndex((step) => step.id === stepId);
+
+    const nextDraft = normalizeWorkflowDraft(selectedWorkflow, {
+      ...baseDraft,
+      currentStepId: stepId,
+      status: nextStatus === "done" ? "in_progress" : "in_progress",
+      updatedAt: now,
+      steps: baseDraft.steps.map((step) => {
+        if (step.stepId === stepId) {
+          return { ...step, status: nextStatus, updatedAt: now };
+        }
+        if (nextStatus === "active" && step.status === "active") {
+          return { ...step, status: "pending", updatedAt: now };
+        }
+        return step;
+      }).map((step, index) => {
+        if (nextStatus === "done" && selectedIndex >= 0 && index === selectedIndex + 1 && step.status === "pending") {
+          return { ...step, status: "active", updatedAt: now };
+        }
+        return step;
+      }),
+    });
+
+    const allDone = nextDraft.steps.every((step) => step.status === "done");
+    await saveWorkflowDraft({ ...nextDraft, status: allDone ? "completed" : nextDraft.status });
+  };
+
+  const runWorkflowStep = async (stepId: string, action: WorkflowAction) => {
+    await updateWorkflowStep(stepId, "active");
+
+    if (action.type === "tool") {
+      const dashboardToolId = getDashboardToolId(action.toolId) || action.toolId;
+      router.push(`/dashboard?workflow=${selectedWorkflow}&tool=${dashboardToolId}`, undefined, { shallow: true });
+      return;
+    }
+
+    router.push(action.href);
+  };
 
   if (loading || status === "loading") {
     return (
@@ -94,9 +190,13 @@ export default function DashboardPage() {
           <DashboardHome 
             userRole={userRole} 
             selectedWorkflow={selectedWorkflow}
+            workflowDraft={workflowDraft || createDefaultWorkflowDraft(selectedWorkflow)}
+            draftSaving={draftSaving}
             onWorkflowSelect={(workflowId) => {
               router.push(`/dashboard?workflow=${workflowId}`, undefined, { shallow: true });
             }}
+            onWorkflowStepRun={runWorkflowStep}
+            onWorkflowStepComplete={(stepId) => updateWorkflowStep(stepId, "done")}
             onToolSelect={(toolId) => {
               const dashboardToolId = getDashboardToolId(toolId) || toolId;
               router.push(`/dashboard?tool=${dashboardToolId}`, undefined, { shallow: true });
