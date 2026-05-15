@@ -4,9 +4,7 @@ Last reconstructed: 2026-05-15
 
 ## Where We Are
 
-SeenYT repositioning work is implemented in the working tree but not committed yet.
-
-The current repo state shows a large uncommitted change set across homepage, dashboard, navigation, tool surfaces, i18n, sitemap, middleware, and PayOS payment APIs.
+SeenYT repositioning work is committed and production is intentionally parked behind the maintenance page while workflow upgrades continue.
 
 Maintenance mode is currently enabled for production via `process.env.NODE_ENV === "production"` in `middleware.ts` and `pages/_app.tsx`. Local development remains open so workflow upgrades can be tested. Reopen production by setting `maintenanceMode` to `false` or moving it back behind a release flag after final workflow QA.
 
@@ -46,15 +44,16 @@ Recorded checks:
 
 ## Next Best Step
 
-1. Re-run the core checks if the machine state changed:
-   - `npx tsc --noEmit`
-   - `npm run lint`
-   - `npm run build`
-   - `npm run sitemap`
-   - `git diff --check`
-2. Review the uncommitted diff at a high level.
-3. Commit the repositioning work.
-4. Deploy after owner approval.
+1. Test dashboard workflow locally while production remains in maintenance:
+   - `npm run dev`
+   - `/dashboard?workflow=launch-channel`
+   - `/dashboard?workflow=produce-video`
+   - `/dashboard?workflow=improve-channel`
+2. Verify workflow draft behavior:
+   - General workspace draft saves and reloads.
+   - Selecting a connected channel creates a separate draft for that channel.
+   - Switching channels does not mix workflow progress.
+3. Continue attaching real tool output IDs to each workflow step.
 
 ## Completion Plan
 
@@ -157,24 +156,24 @@ Steps:
 ## Future Product Work
 
 - Persist workflow drafts and project state. Initial draft persistence is now implemented on top of `UserProject` with `toolId="workflow-draft"`.
-- Connect workflows to channel IDs and real tool output project IDs.
+- Connect workflows to channel IDs and real tool output project IDs. Channel-linked draft storage is now implemented; tool output linking remains next.
 - Review quota and role access in `lib/roles.ts`.
 - Deep-review API/loading/error states tool by tool.
 - Delete hidden legacy routes only after route, API, billing, and admin dependency review.
 
 ## Workflow Draft Persistence
 
-Status: initial implementation in progress.
+Status: channel-aware implementation in progress.
 
 Implemented:
 
 - `lib/workflow-drafts.ts` defines workflow draft types, default draft creation, and normalization.
-- `pages/api/workflow-drafts.ts` loads/saves one draft per user and workflow using the existing `UserProject` table.
-- `pages/dashboard.tsx` loads the selected workflow draft, saves step state, marks steps active/done, and routes the selected step to the right tool.
-- `components/dashboard/DashboardHome.tsx` displays saved progress, current step, step status, and a `Mark done` action.
+- `pages/api/workflow-drafts.ts` loads/saves drafts per user, workflow, and optional connected YouTube channel using the existing `UserProject` table.
+- `pages/dashboard.tsx` loads connected channels, keeps the selected `channel` in the dashboard query string, saves step state per channel, marks steps active/done, and routes the selected step to the right tool.
+- `components/dashboard/DashboardHome.tsx` displays a channel workspace selector, saved progress, current step, step status, and a `Mark done` action.
+- `components/dashboard/MyChannels.tsx` is reachable from the dashboard as `tool=channel-manager` for connecting the first channel.
 
 Current limits:
 
 - Tool outputs are not automatically attached to draft steps yet.
-- Drafts are not linked to a specific connected YouTube channel yet.
 - Production maintenance remains active, so test this in local dev until the release is ready.

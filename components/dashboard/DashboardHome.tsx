@@ -13,6 +13,7 @@ import {
   Layers,
   Lightbulb,
   Lock,
+  Plus,
   Search,
   Sparkles,
   Target,
@@ -37,14 +38,28 @@ import { WorkflowDraftData } from "@/lib/workflow-drafts";
 interface DashboardHomeProps {
   userRole: string;
   selectedWorkflow: WorkflowId;
+  channels: DashboardChannel[];
+  selectedChannelId: string | null;
+  channelLimit: number;
+  channelsLoading: boolean;
   workflowDraft: WorkflowDraftData;
   draftSaving: boolean;
+  onChannelSelect: (_channelId: string | null) => void;
   onWorkflowSelect: (_workflowId: WorkflowId) => void;
   onWorkflowStepRun: (_stepId: string, _action: WorkflowAction) => void;
   onWorkflowStepComplete: (_stepId: string) => void;
   onToolSelect: (_toolId: string) => void;
   onNavigate: (_path: string) => void;
 }
+
+type DashboardChannel = {
+  id: string;
+  channelId: string;
+  title: string | null;
+  thumbnail: string | null;
+  subCount: number;
+  videoCount: number;
+};
 
 const workflowIcons = {
   target: Target,
@@ -76,8 +91,13 @@ function statusLabel(status: CreatorTool["status"]) {
 export default function DashboardHome({
   userRole,
   selectedWorkflow,
+  channels,
+  selectedChannelId,
+  channelLimit,
+  channelsLoading,
   workflowDraft,
   draftSaving,
+  onChannelSelect,
   onWorkflowSelect,
   onWorkflowStepRun,
   onWorkflowStepComplete,
@@ -107,6 +127,7 @@ export default function DashboardHome({
   const doneSteps = workflowDraft.steps.filter((step) => step.status === "done").length;
   const progressPercent = workflowDraft.steps.length > 0 ? Math.round((doneSteps / workflowDraft.steps.length) * 100) : 0;
   const currentStep = workflowDraft.steps.find((step) => step.stepId === workflowDraft.currentStepId);
+  const selectedChannel = channels.find((channel) => channel.id === selectedChannelId);
 
   const runAction = (action: WorkflowAction) => {
     if (action.type === "tool") {
@@ -195,9 +216,70 @@ export default function DashboardHome({
             <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
+                  <div className="text-sm font-black text-white">Channel workspace</div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {channelsLoading ? "Loading channels..." : `${channels.length}/${channelLimit} channel slots used`}
+                  </div>
+                </div>
+                <Youtube size={18} className="text-cyan-300" />
+              </div>
+              <div className="grid gap-2">
+                <button
+                  onClick={() => onChannelSelect(null)}
+                  className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition ${
+                    !selectedChannelId
+                      ? "border-cyan-300/45 bg-cyan-300/10 text-cyan-100"
+                      : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20"
+                  }`}
+                >
+                  <span className="font-bold">General workspace</span>
+                  {!selectedChannelId && <CheckCircle2 size={16} />}
+                </button>
+
+                {channels.slice(0, 4).map((channel) => (
+                  <button
+                    key={channel.id}
+                    onClick={() => onChannelSelect(channel.id)}
+                    className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
+                      channel.id === selectedChannelId
+                        ? "border-cyan-300/45 bg-cyan-300/10"
+                        : "border-white/10 bg-white/[0.03] hover:border-white/20"
+                    }`}
+                  >
+                    {channel.thumbnail ? (
+                      <img src={channel.thumbnail} alt="" className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-300/10 text-cyan-300">
+                        <Youtube size={16} />
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-black text-white">{channel.title || "Untitled channel"}</span>
+                      <span className="block text-xs text-slate-500">{channel.subCount.toLocaleString()} subs · {channel.videoCount} videos</span>
+                    </span>
+                    {channel.id === selectedChannelId && <CheckCircle2 size={16} className="text-cyan-300" />}
+                  </button>
+                ))}
+              </div>
+              {channels.length === 0 && !channelsLoading && (
+                <button
+                  onClick={() => onNavigate("/dashboard?tool=channel-manager")}
+                  className="mt-3 inline-flex h-9 items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 text-xs font-black text-cyan-100 transition hover:bg-cyan-300/15"
+                >
+                  <Plus size={14} />
+                  Connect first channel
+                </button>
+              )}
+            </div>
+
+            <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
                   <div className="text-sm font-black text-white">Workflow draft</div>
                   <div className="mt-1 text-xs text-slate-500">
-                    {draftSaving ? "Saving..." : `Saved progress: ${doneSteps}/${workflowDraft.steps.length} steps`}
+                    {draftSaving
+                      ? "Saving..."
+                      : `${selectedChannel ? selectedChannel.title || "Selected channel" : "General workspace"} · ${doneSteps}/${workflowDraft.steps.length} steps`}
                   </div>
                 </div>
                 <div className="text-sm font-black text-cyan-200">{progressPercent}%</div>

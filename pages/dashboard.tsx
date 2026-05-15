@@ -16,6 +16,7 @@ const IntelligenceHub = dynamic(() => import('@/components/IntelligenceHub'), { 
 const VideoPipeline = dynamic(() => import('@/components/VideoPipeline'), { ssr: false });
 const RivalScanner = dynamic(() => import('@/components/RivalScannerTool'), { ssr: false });
 const VoiceStudio = dynamic(() => import('@/components/VoiceStudioTool'), { ssr: false });
+const MyChannels = dynamic(() => import('@/components/dashboard/MyChannels'), { ssr: false });
 
 const TOOL_COMPONENTS: Record<string, any> = {
   'niche-radar': KodaNicheRadar,
@@ -25,13 +26,27 @@ const TOOL_COMPONENTS: Record<string, any> = {
   'video-pipeline': VideoPipeline,
   'rival-scanner': RivalScanner,
   'voice-studio': VoiceStudio,
+  'channel-manager': MyChannels,
 };
 
 const DEFAULT_WORKFLOW: WorkflowId = "launch-channel";
 
+type DashboardChannel = {
+  id: string;
+  channelId: string;
+  title: string | null;
+  thumbnail: string | null;
+  subCount: number;
+  videoCount: number;
+};
+
 function getWorkflowId(value: string | string[] | undefined): WorkflowId {
   const requested = Array.isArray(value) ? value[0] : value;
   return CREATOR_WORKFLOWS.some((workflow) => workflow.id === requested) ? (requested as WorkflowId) : DEFAULT_WORKFLOW;
+}
+
+function getQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value || "";
 }
 
 export default function DashboardPage() {
@@ -41,7 +56,20 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [workflowDraft, setWorkflowDraft] = useState<WorkflowDraftData | null>(null);
   const [draftSaving, setDraftSaving] = useState(false);
+  const [channels, setChannels] = useState<DashboardChannel[]>([]);
+  const [channelLimit, setChannelLimit] = useState(0);
+  const [channelsLoading, setChannelsLoading] = useState(false);
   const selectedWorkflow = getWorkflowId(router.query.workflow);
+  const selectedChannelId = getQueryValue(router.query.channel) || null;
+
+  const getDashboardPath = (params: { workflow?: WorkflowId; tool?: string | null; channelId?: string | null } = {}) => {
+    const query = new URLSearchParams();
+    query.set("workflow", params.workflow || selectedWorkflow);
+    const channel = params.channelId === undefined ? selectedChannelId : params.channelId;
+    if (channel) query.set("channel", channel);
+    if (params.tool) query.set("tool", params.tool);
+    return `/dashboard?${query.toString()}`;
+  };
 
   // Authentication guard
   useEffect(() => {
@@ -69,17 +97,51 @@ export default function DashboardPage() {
 
     let cancelled = false;
 
-    const fetchDraft = async () => {
+    const fetchChannels = async () => {
+      setChannelsLoading(true);
       try {
-        const response = await fetch(`/api/workflow-drafts?workflowId=${selectedWorkflow}`);
+        const response = await fetch("/api/user/channels");
         const result = await response.json();
         if (!cancelled) {
-          setWorkflowDraft(normalizeWorkflowDraft(selectedWorkflow, result.draft?.data));
+          setChannels(Array.isArray(result.channels) ? result.channels : []);
+          setChannelLimit(typeof result.limit === "number" ? result.limit : 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch channels:", error);
+        if (!cancelled) {
+          setChannels([]);
+          setChannelLimit(0);
+        }
+      } finally {
+        if (!cancelled) setChannelsLoading(false);
+      }
+    };
+
+    fetchChannels();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, router.isReady, status]);
+
+  useEffect(() => {
+    if (loading || !router.isReady || status !== "authenticated") return;
+
+    let cancelled = false;
+
+    const fetchDraft = async () => {
+      try {
+        const query = new URLSearchParams({ workflowId: selectedWorkflow });
+        if (selectedChannelId) query.set("channelId", selectedChannelId);
+        const response = await fetch(`/api/workflow-drafts?${query.toString()}`);
+        const result = await response.json();
+        if (!cancelled) {
+          setWorkflowDraft(normalizeWorkflowDraft(selectedWorkflow, result.draft?.data, selectedChannelId));
         }
       } catch (error) {
         console.error("Failed to fetch workflow draft:", error);
         if (!cancelled) {
-          setWorkflowDraft(createDefaultWorkflowDraft(selectedWorkflow));
+          setWorkflowDraft(createDefaultWorkflowDraft(selectedWorkflow, selectedChannelId));
         }
       }
     };
@@ -89,10 +151,10 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [loading, router.isReady, selectedWorkflow, status]);
+  }, [loading, router.isReady, selectedChannelId, selectedWorkflow, status]);
 
   const saveWorkflowDraft = async (nextDraft: WorkflowDraftData) => {
-    const normalized = normalizeWorkflowDraft(selectedWorkflow, nextDraft);
+    const normalized = normalizeWorkflowDraft(selectedWorkflow, { ...nextDraft, channelId: selectedChannelId }, selectedChannelId);
     setWorkflowDraft(normalized);
     setDraftSaving(true);
 
@@ -102,11 +164,12 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workflowId: selectedWorkflow,
+          channelId: selectedChannelId,
           data: normalized,
         }),
       });
       const result = await response.json();
-      setWorkflowDraft(normalizeWorkflowDraft(selectedWorkflow, result.draft?.data || normalized));
+      setWorkflowDraft(normalizeWorkflowDraft(selectedWorkflow, result.draft?.data || normalized, selectedChannelId));
     } catch (error) {
       console.error("Failed to save workflow draft:", error);
     } finally {
@@ -115,13 +178,14 @@ export default function DashboardPage() {
   };
 
   const updateWorkflowStep = async (stepId: string, nextStatus: "active" | "done") => {
-    const baseDraft = workflowDraft || createDefaultWorkflowDraft(selectedWorkflow);
+    const baseDraft = workflowDraft || createDefaultWorkflowDraft(selectedWorkflow, selectedChannelId);
     const now = new Date().toISOString();
     const workflow = CREATOR_WORKFLOWS.find((item) => item.id === selectedWorkflow) || CREATOR_WORKFLOWS[0];
     const selectedIndex = workflow.steps.findIndex((step) => step.id === stepId);
 
     const nextDraft = normalizeWorkflowDraft(selectedWorkflow, {
       ...baseDraft,
+      channelId: selectedChannelId,
       currentStepId: stepId,
       status: nextStatus === "done" ? "in_progress" : "in_progress",
       updatedAt: now,
@@ -139,7 +203,7 @@ export default function DashboardPage() {
         }
         return step;
       }),
-    });
+    }, selectedChannelId);
 
     const allDone = nextDraft.steps.every((step) => step.status === "done");
     await saveWorkflowDraft({ ...nextDraft, status: allDone ? "completed" : nextDraft.status });
@@ -150,7 +214,7 @@ export default function DashboardPage() {
 
     if (action.type === "tool") {
       const dashboardToolId = getDashboardToolId(action.toolId) || action.toolId;
-      router.push(`/dashboard?workflow=${selectedWorkflow}&tool=${dashboardToolId}`, undefined, { shallow: true });
+      router.push(getDashboardPath({ tool: dashboardToolId }), undefined, { shallow: true });
       return;
     }
 
@@ -175,31 +239,38 @@ export default function DashboardPage() {
       onToolSelect={(toolId) => {
         if (toolId) {
           const dashboardToolId = getDashboardToolId(toolId) || toolId;
-          router.push(`/dashboard?tool=${dashboardToolId}`, undefined, { shallow: true });
+          router.push(getDashboardPath({ tool: dashboardToolId }), undefined, { shallow: true });
         } else {
-          router.push(`/dashboard?workflow=${selectedWorkflow}`, undefined, { shallow: true });
+          router.push(getDashboardPath({ tool: null }), undefined, { shallow: true });
         }
       }}
     >
       <div className="min-h-full">
         {ActiveComponent ? (
           <div className="animate-fadeIn">
-            <ActiveComponent onBack={() => router.push(`/dashboard?workflow=${selectedWorkflow}`, undefined, { shallow: true })} />
+            <ActiveComponent onBack={() => router.push(getDashboardPath({ tool: null }), undefined, { shallow: true })} />
           </div>
         ) : (
           <DashboardHome 
             userRole={userRole} 
             selectedWorkflow={selectedWorkflow}
-            workflowDraft={workflowDraft || createDefaultWorkflowDraft(selectedWorkflow)}
+            channels={channels}
+            selectedChannelId={selectedChannelId}
+            channelLimit={channelLimit}
+            channelsLoading={channelsLoading}
+            workflowDraft={workflowDraft || createDefaultWorkflowDraft(selectedWorkflow, selectedChannelId)}
             draftSaving={draftSaving}
+            onChannelSelect={(channelId) => {
+              router.push(getDashboardPath({ channelId, tool: null }), undefined, { shallow: true });
+            }}
             onWorkflowSelect={(workflowId) => {
-              router.push(`/dashboard?workflow=${workflowId}`, undefined, { shallow: true });
+              router.push(getDashboardPath({ workflow: workflowId, tool: null }), undefined, { shallow: true });
             }}
             onWorkflowStepRun={runWorkflowStep}
             onWorkflowStepComplete={(stepId) => updateWorkflowStep(stepId, "done")}
             onToolSelect={(toolId) => {
               const dashboardToolId = getDashboardToolId(toolId) || toolId;
-              router.push(`/dashboard?tool=${dashboardToolId}`, undefined, { shallow: true });
+              router.push(getDashboardPath({ tool: dashboardToolId }), undefined, { shallow: true });
             }}
             onNavigate={(path) => router.push(path)}
           />

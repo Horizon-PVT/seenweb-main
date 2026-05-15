@@ -29,11 +29,19 @@ export type WorkflowDraft = {
 
 export const WORKFLOW_DRAFT_TOOL_ID = "workflow-draft";
 
+export function getWorkflowDraftName(workflowId: string, channelId?: string | null) {
+  return `Workflow Draft: ${workflowId}:${channelId || "global"}`;
+}
+
+export function getLegacyWorkflowDraftName(workflowId: string) {
+  return `Workflow Draft: ${workflowId}`;
+}
+
 export function isWorkflowId(value: unknown): value is WorkflowId {
   return CREATOR_WORKFLOWS.some((workflow) => workflow.id === value);
 }
 
-export function createDefaultWorkflowDraft(workflowId: WorkflowId): WorkflowDraftData {
+export function createDefaultWorkflowDraft(workflowId: WorkflowId, channelId?: string | null): WorkflowDraftData {
   const workflow = CREATOR_WORKFLOWS.find((item) => item.id === workflowId) || CREATOR_WORKFLOWS[0];
   const now = new Date().toISOString();
 
@@ -41,7 +49,7 @@ export function createDefaultWorkflowDraft(workflowId: WorkflowId): WorkflowDraf
     workflowId: workflow.id,
     currentStepId: workflow.steps[0]?.id || "",
     status: "draft",
-    channelId: null,
+    channelId: channelId || null,
     updatedAt: now,
     steps: workflow.steps.map((step, index) => ({
       stepId: step.id,
@@ -52,8 +60,8 @@ export function createDefaultWorkflowDraft(workflowId: WorkflowId): WorkflowDraf
   };
 }
 
-export function normalizeWorkflowDraft(workflowId: WorkflowId, value: unknown): WorkflowDraftData {
-  const defaults = createDefaultWorkflowDraft(workflowId);
+export function normalizeWorkflowDraft(workflowId: WorkflowId, value: unknown, channelId?: string | null): WorkflowDraftData {
+  const defaults = createDefaultWorkflowDraft(workflowId, channelId);
   const raw = value && typeof value === "object" ? (value as Partial<WorkflowDraftData>) : {};
   const workflow = CREATOR_WORKFLOWS.find((item) => item.id === workflowId) || CREATOR_WORKFLOWS[0];
   const rawSteps = Array.isArray(raw.steps) ? raw.steps : [];
@@ -83,7 +91,7 @@ export function normalizeWorkflowDraft(workflowId: WorkflowId, value: unknown): 
     workflowId,
     currentStepId,
     status: raw.status === "completed" || raw.status === "in_progress" || raw.status === "draft" ? raw.status : defaults.status,
-    channelId: typeof raw.channelId === "string" ? raw.channelId : null,
+    channelId: channelId || (typeof raw.channelId === "string" ? raw.channelId : null),
     updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : defaults.updatedAt,
     steps,
   };
