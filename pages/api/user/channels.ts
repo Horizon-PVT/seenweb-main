@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from "@/lib/prisma";
+import { CHANNEL_LIMITS } from '@/lib/roles';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions);
@@ -79,20 +80,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const userRole = user?.role || 'FREE';
             const extraSlots = user?.extraChannelSlots || 0;
 
-            const MAX_CHANNELS: Record<string, number> = {
-                'FREE': 0,
-                'USER': 0,
-                'STARTER': 1,
-                'CREATOR': 2,
-                'FACTORY': 2,
-                'AGENCY': 5,
-                'ENTERPRISE': 10,
-                'BASIC': 1,   // Legacy
-                'PRO': 2,      // Legacy
-                'ADMIN': 999
+            const LEGACY_CHANNEL_LIMITS: Record<string, number> = {
+                USER: 0,
+                BASIC: 1,
+                PRO: 2,
             };
 
-            const baseLimit = MAX_CHANNELS[userRole] || 0;
+            const baseLimit = CHANNEL_LIMITS[userRole] ?? LEGACY_CHANNEL_LIMITS[userRole] ?? 0;
             const totalLimit = (userRole === 'ADMIN') ? 999 : (baseLimit + extraSlots);
 
             return res.status(200).json({

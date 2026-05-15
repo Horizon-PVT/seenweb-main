@@ -1,655 +1,229 @@
 import React, { useState } from "react";
-import Link from "next/link";
-import { CheckCircle2, Zap, ShieldCheck, Crown, Video, BookOpen, Send, X, ChevronDown, Users, MessageSquare, Layers, Sparkles, Building2 } from "lucide-react";
-import CheckoutModal from './dashboard/CheckoutModal';
+import { ArrowRight, Bot, Check, Clapperboard, Layers, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
+import CheckoutModal from "./dashboard/CheckoutModal";
+import {
+  EXTRA_CHANNEL_SLOT,
+  PUBLIC_PLAN_ORDER,
+  PUBLIC_PLANS,
+  PublicPlanId,
+  PricingBillingKey,
+  getPlanMonthlyPrice,
+} from "@/lib/public-plans";
 
-// ============== PRICING DATA ==============
-const PLANS = {
-  starter: {
-    id: 'STARTER',
-    name: 'Starter',
-    tagline: 'Dành cho người mới bắt đầu',
-    monthly: 199000,
-    sixMonths: 149000,
-    yearly: 99000,
-    color: 'blue',
-    bgGradient: 'from-blue-600/20 to-blue-900/10',
-    borderColor: 'border-blue-500/30',
-    hoverBorder: 'hover:border-blue-500/60',
-    badge: null,
-    features: [
-      { icon: '🔍', name: 'Niche Radar', desc: 'Tìm ngách tiềm năng' },
-      { icon: '✍️', name: 'Script Studio', desc: 'Viết kịch bản viral' },
-      { icon: '🎬', name: 'Video Pipeline', desc: 'Tạo video cơ bản' },
-      { icon: '📊', name: 'Channel Analytics', desc: 'Theo dõi thống kê' },
-    ],
-    tools: ['Niche Radar', 'Script Studio', 'Video Pipeline', 'SEO Tool', 'Thumbnail AI'],
-    aiCoach: 5,
-    channels: 1,
-    support: 'Email',
-  },
-  creator: {
-    id: 'CREATOR',
-    name: 'Creator',
-    tagline: 'Phổ biến nhất - Tối ưu nhất',
-    monthly: 399000,
-    sixMonths: 299000,
-    yearly: 249000,
-    color: 'purple',
-    bgGradient: 'from-purple-600/20 to-purple-900/10',
-    borderColor: 'border-purple-500/40',
-    hoverBorder: 'hover:border-purple-500/70',
-    badge: 'MOST POPULAR',
-    features: [
-      { icon: '🔍', name: 'Niche Radar', desc: 'Tìm ngách tiềm năng' },
-      { icon: '✍️', name: 'Script Studio', desc: 'Viết kịch bản viral' },
-      { icon: '🎬', name: 'Video Pipeline', desc: 'Tạo video nâng cao' },
-      { icon: '📊', name: 'Channel Analytics', desc: 'Theo dõi thống kê' },
-      { icon: '🖥️', name: 'Koda Studio', desc: 'Desktop App (Veo3)' },
-      { icon: '🧠', name: 'Intelligence Hub', desc: 'Phân tích xu hướng' },
-      { icon: '🌐', name: 'Multilingual Studio', desc: 'Đa ngôn ngữ' },
-    ],
-    tools: ['Tất cả Starter', 'Koda Studio', 'Intelligence Hub', 'Multilingual Studio', 'Rival Scanner', 'Auto Upload'],
-    aiCoach: 20,
-    channels: 2,
-    support: 'Priority Email',
-  },
-  factory: {
-    id: 'FACTORY',
-    name: 'Factory',
-    tagline: 'Cho content creator chuyên nghiệp',
-    monthly: 699000,
-    sixMonths: 549000,
-    yearly: 399000,
-    color: 'amber',
-    bgGradient: 'from-amber-600/20 to-amber-900/10',
-    borderColor: 'border-amber-500/40',
-    hoverBorder: 'hover:border-amber-500/70',
-    badge: null,
-    features: [
-      { icon: '🔍', name: 'Niche Radar', desc: 'Tìm ngách tiềm năng' },
-      { icon: '✍️', name: 'Script Studio', desc: 'Viết kịch bản viral' },
-      { icon: '🎬', name: 'Video Pipeline', desc: 'Tạo video không giới hạn' },
-      { icon: '📊', name: 'Channel Analytics', desc: 'Theo dõi thống kê' },
-      { icon: '🖥️', name: 'Koda Studio', desc: 'Desktop App (Veo3)' },
-      { icon: '🧠', name: 'Intelligence Hub', desc: 'Phân tích xu hướng' },
-      { icon: '🌐', name: 'Multilingual Studio', desc: 'Đa ngôn ngữ' },
-      { icon: '📚', name: 'Koda Novel', desc: 'Chuyển truyện thành phim' },
-      { icon: '🏭', name: 'Koda Factory', desc: 'Multi-workers desktop' },
-    ],
-    tools: ['Tất cả Creator', 'Koda Novel', 'Koda Factory', 'Bulk Processing'],
-    aiCoach: 50,
-    channels: 2,
-    support: 'Live Chat',
-  },
-  agency: {
-    id: 'AGENCY',
-    name: 'Agency',
-    tagline: 'Cho team và agency',
-    monthly: 1990000,
-    sixMonths: 1590000,
-    yearly: 1290000,
-    color: 'cyan',
-    bgGradient: 'from-cyan-600/20 to-cyan-900/10',
-    borderColor: 'border-cyan-500/40',
-    hoverBorder: 'hover:border-cyan-500/70',
-    badge: null,
-    features: [
-      { icon: '🔍', name: 'Niche Radar', desc: 'Tìm ngách tiềm năng' },
-      { icon: '✍️', name: 'Script Studio', desc: 'Viết kịch bản viral' },
-      { icon: '🎬', name: 'Video Pipeline', desc: 'Tạo video không giới hạn' },
-      { icon: '📊', name: 'Channel Analytics', desc: 'Theo dõi thống kê' },
-      { icon: '🖥️', name: 'Koda Studio', desc: 'Desktop App (Veo3)' },
-      { icon: '🧠', name: 'Intelligence Hub', desc: 'Phân tích xu hướng' },
-      { icon: '🌐', name: 'Multilingual Studio', desc: 'Đa ngôn ngữ' },
-      { icon: '📚', name: 'Koda Novel', desc: 'Chuyển truyện thành phim' },
-      { icon: '🏭', name: 'Koda Factory', desc: 'Multi-workers desktop' },
-      { icon: '👥', name: 'Team Seats', desc: '5 người dùng' },
-      { icon: '📺', name: 'Kênh YouTube', desc: '5 kênh' },
-    ],
-    tools: ['Tất cả Factory', 'Multi-user (5 seats)', 'Team Dashboard', 'Bulk License'],
-    aiCoach: 100,
-    channels: 5,
-    support: 'Priority 24/7',
-  },
-  enterprise: {
-    id: 'ENTERPRISE',
-    name: 'Enterprise',
-    tagline: 'Giải pháp doanh nghiệp toàn diện',
-    monthly: 4990000,
-    sixMonths: 3990000,
-    yearly: 2990000,
-    color: 'rose',
-    bgGradient: 'from-rose-600/20 to-rose-900/10',
-    borderColor: 'border-rose-500/40',
-    hoverBorder: 'hover:border-rose-500/70',
-    badge: null,
-    features: [
-      { icon: '🔍', name: 'Niche Radar', desc: 'Tìm ngách tiềm năng' },
-      { icon: '✍️', name: 'Script Studio', desc: 'Viết kịch bản viral' },
-      { icon: '🎬', name: 'Video Pipeline', desc: 'Tạo video không giới hạn' },
-      { icon: '📊', name: 'Channel Analytics', desc: 'Theo dõi thống kê' },
-      { icon: '🖥️', name: 'Koda Studio', desc: 'Desktop App (Veo3)' },
-      { icon: '🧠', name: 'Intelligence Hub', desc: 'Phân tích xu hướng' },
-      { icon: '🌐', name: 'Multilingual Studio', desc: 'Đa ngôn ngữ' },
-      { icon: '📚', name: 'Koda Novel', desc: 'Chuyển truyện thành phim' },
-      { icon: '🏭', name: 'Koda Factory', desc: 'Multi-workers desktop' },
-      { icon: '👥', name: 'Team Seats', desc: '15 người dùng' },
-      { icon: '📺', name: 'Kênh YouTube', desc: '10 kênh' },
-      { icon: '🎨', name: 'White-label', desc: 'Domain riêng' },
-      { icon: '🛠️', name: 'Custom Workflow', desc: 'Quy trình tùy chỉnh' },
-    ],
-    tools: ['Tất cả Agency', 'White-label', 'API Access', 'Dedicated Manager'],
-    aiCoach: 500,
-    channels: 10,
-    support: 'Dedicated Manager',
-  },
+const planIcons: Record<PublicPlanId, React.ElementType> = {
+  STARTER: Search,
+  CREATOR: Clapperboard,
+  FACTORY: Users,
 };
 
-const ADDONS = [
+const planAccents: Record<PublicPlanId, string> = {
+  STARTER: "border-blue-300/35 bg-blue-300/[0.07] text-blue-200",
+  CREATOR: "border-cyan-300/45 bg-cyan-300/[0.09] text-cyan-200",
+  FACTORY: "border-amber-300/40 bg-amber-300/[0.08] text-amber-200",
+};
+
+const billingOptions: Array<{ id: PricingBillingKey; label: string; suffix: string; note?: string }> = [
+  { id: "monthly", label: "Hàng tháng", suffix: "/tháng" },
+  { id: "sixMonths", label: "6 tháng", suffix: "/tháng", note: "Tiết kiệm" },
+  { id: "yearly", label: "1 năm", suffix: "/tháng", note: "Tốt nhất" },
+];
+
+const workflowRows = [
   {
-    id: 'CHANNEL_SLOT',
-    name: '+1 Kênh YouTube',
-    desc: 'Thêm 1 slot kênh YouTube',
-    price: 169000,
-    icon: '📺',
+    label: "Launch Channel",
+    icon: Search,
+    getValue: (planId: PublicPlanId) => PUBLIC_PLANS[planId].workflowCoverage.launchChannel,
   },
   {
-    id: 'AI_COACH_50',
-    name: '+50 AI Coach Lượt',
-    desc: 'Thêm 50 lượt chat AI Coach',
-    price: 29000,
-    icon: '💬',
+    label: "Produce Video",
+    icon: Clapperboard,
+    getValue: (planId: PublicPlanId) => PUBLIC_PLANS[planId].workflowCoverage.produceVideo,
   },
   {
-    id: 'AI_COACH_100',
-    name: '+100 AI Coach Lượt',
-    desc: 'Thêm 100 lượt chat AI Coach',
-    price: 49000,
-    icon: '💬',
+    label: "Improve Channel",
+    icon: Layers,
+    getValue: (planId: PublicPlanId) => PUBLIC_PLANS[planId].workflowCoverage.improveChannel,
   },
   {
-    id: 'MASTERCLASS',
-    name: 'Creator Masterclass',
-    desc: 'Khóa học online trọn đời',
-    price: 849000,
-    icon: '🎓',
-    badge: 'TRỌN ĐỜI',
+    label: "AI Creator Coach",
+    icon: Bot,
+    getValue: (planId: PublicPlanId) => `${PUBLIC_PLANS[planId].aiCoachDailyLimit}/day`,
   },
   {
-    id: 'USER_SEAT',
-    name: '+1 Team Seat',
-    desc: 'Thêm 1 người dùng team',
-    price: 99000,
-    icon: '👤',
+    label: "Channel slots",
+    icon: ShieldCheck,
+    getValue: (planId: PublicPlanId) => String(PUBLIC_PLANS[planId].channelLimit),
   },
 ];
 
-// ============== HELPER FUNCTIONS ==============
 const formatPrice = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-const getPrice = (plan: any, billing: 'monthly' | 'sixMonths' | 'yearly') => {
-  return plan[billing];
-};
-
-const getSaving = (plan: any) => {
-  const monthlyTotal = plan.monthly * 12;
-  const yearlyTotal = plan.yearly * 12;
-  const saving = monthlyTotal - yearlyTotal;
-  return formatPrice(saving);
-};
-
-const getColorClasses = (color: string) => {
-  const colors: Record<string, any> = {
-    blue: {
-      bg: 'bg-blue-500/10',
-      text: 'text-blue-400',
-      border: 'border-blue-500/30',
-      button: 'bg-blue-600 hover:bg-blue-500',
-      check: 'text-blue-400',
-    },
-    purple: {
-      bg: 'bg-purple-500/10',
-      text: 'text-purple-400',
-      border: 'border-purple-500/40',
-      button: 'bg-purple-600 hover:bg-purple-500',
-      check: 'text-purple-400',
-    },
-    amber: {
-      bg: 'bg-amber-500/10',
-      text: 'text-amber-400',
-      border: 'border-amber-500/40',
-      button: 'bg-amber-600 hover:bg-amber-500',
-      check: 'text-amber-400',
-    },
-    cyan: {
-      bg: 'bg-cyan-500/10',
-      text: 'text-cyan-400',
-      border: 'border-cyan-500/40',
-      button: 'bg-cyan-600 hover:bg-cyan-500',
-      check: 'text-cyan-400',
-    },
-    rose: {
-      bg: 'bg-rose-500/10',
-      text: 'text-rose-400',
-      border: 'border-rose-500/40',
-      button: 'bg-rose-600 hover:bg-rose-500',
-      check: 'text-rose-400',
-    },
-  };
-  return colors[color] || colors.blue;
-};
-
 export default function PricingTable() {
-  const [billing, setBilling] = useState<'monthly' | 'sixMonths' | 'yearly'>('monthly');
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
-
-  const billingOptions = [
-    { id: 'monthly', label: 'Hàng tháng' },
-    { id: 'sixMonths', label: '6 tháng', badge: 'Tiết kiệm 20%' },
-    { id: 'yearly', label: '1 năm', badge: 'Tiết kiệm 40%' },
-  ];
-
-  const planOrder = ['starter', 'creator', 'factory'];
+  const [billing, setBilling] = useState<PricingBillingKey>("monthly");
+  const [selectedPlan, setSelectedPlan] = useState<PublicPlanId | typeof EXTRA_CHANNEL_SLOT.id | null>(null);
 
   return (
     <div className="w-full">
-      {/* ============== BILLING TOGGLE ============== */}
-      <div className="flex justify-center mb-12">
-        <div className="bg-gray-900/80 backdrop-blur-md p-1.5 rounded-full border border-gray-700 flex items-center shadow-2xl">
+      <div className="mb-10 flex justify-center">
+        <div className="grid w-full max-w-xl grid-cols-3 rounded-full border border-white/10 bg-white/[0.04] p-1">
           {billingOptions.map((option) => (
             <button
               key={option.id}
-              onClick={() => setBilling(option.id as any)}
-              className={`relative px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
-                billing === option.id
-                  ? 'bg-gradient-to-r from-[#CDAD5A] to-amber-600 text-black shadow-lg'
-                  : 'text-gray-400 hover:text-white'
+              onClick={() => setBilling(option.id)}
+              className={`min-h-11 rounded-full px-3 text-sm font-black transition ${
+                billing === option.id ? "bg-cyan-300 text-slate-950" : "text-slate-400 hover:text-white"
               }`}
             >
               {option.label}
-              {option.badge && billing !== option.id && (
-                <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full">
-                  {option.badge}
-                </span>
-              )}
-              {billing === option.id && option.badge && (
-                <span className="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full">
-                  {option.badge}
-                </span>
-              )}
+              {option.note && <span className="ml-1 hidden text-[10px] uppercase sm:inline">{option.note}</span>}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ============== PRICING CARDS ============== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 max-w-5xl mx-auto">
-        {planOrder.map((planKey) => {
-          const plan = PLANS[planKey as keyof typeof PLANS];
-          const colors = getColorClasses(plan.color);
-          const currentPrice = getPrice(plan, billing);
-          const isExpanded = expandedPlan === plan.id;
-          const isYearly = billing === 'yearly';
-          const isSixMonths = billing === 'sixMonths';
+      <div className="grid gap-6 lg:grid-cols-3">
+        {PUBLIC_PLAN_ORDER.map((planId) => {
+          const plan = PUBLIC_PLANS[planId];
+          const Icon = planIcons[plan.id];
+          const price = getPlanMonthlyPrice(plan, billing);
 
           return (
-            <div
-              key={plan.id}
-              className={`relative bg-gradient-to-b ${plan.bgGradient} backdrop-blur-sm border ${plan.borderColor} ${plan.hoverBorder} rounded-2xl p-5 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
-                plan.badge ? 'lg:-translate-y-4' : ''
-              }`}
-            >
-              {/* Badge */}
+            <article key={plan.id} className={`relative flex min-h-[560px] flex-col rounded-xl border p-6 ${planAccents[plan.id]}`}>
               {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[10px] font-black tracking-widest px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap animate-pulse">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-cyan-300 px-4 py-1 text-xs font-black uppercase tracking-[0.16em] text-slate-950">
                   {plan.badge}
                 </div>
               )}
 
-              {/* Header */}
-              <div className="mb-4">
-                <h3 className={`text-xl font-bold ${colors.text} uppercase tracking-wider mb-1`}>
-                  {plan.name}
-                </h3>
-                <p className="text-gray-400 text-xs">{plan.tagline}</p>
-              </div>
-
-              {/* Price */}
-              <div className="mb-4">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-white">{formatPrice(currentPrice)}</span>
-                  <span className="text-gray-500 text-sm">/tháng</span>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-sm font-black uppercase tracking-[0.18em] opacity-80">{plan.label}</div>
+                  <h2 className="mt-2 text-3xl font-black text-white">{plan.publicName}</h2>
                 </div>
-                {billing !== 'monthly' && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    {(currentPrice * (billing === 'yearly' ? 12 : 6)).toLocaleString('vi-VN')}đ {billing === 'yearly' ? '/năm' : '/6 tháng'}
-                  </div>
-                )}
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/20">
+                  <Icon size={22} />
+                </div>
               </div>
 
-              {/* CTA Button */}
-              <button
-                onClick={() => setSelectedPlan(plan.id)}
-                className={`w-full py-2.5 px-4 ${colors.button} text-white text-center font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 mb-4 shadow-lg`}
-              >
-                <Zap size={14} /> Chọn {plan.name}
-              </button>
+              <p className="min-h-[72px] text-sm leading-6 text-slate-300">{plan.description}</p>
 
-              {/* Quick Features */}
-              <div className="space-y-2 mb-4">
-                {plan.features.slice(0, 4).map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-xs">
-                    <span>{feature.icon}</span>
-                    <span className="text-gray-300">{feature.name}</span>
-                  </div>
-                ))}
-                {plan.features.length > 4 && (
-                  <button
-                    onClick={() => setExpandedPlan(isExpanded ? null : plan.id)}
-                    className="flex items-center gap-1 text-xs text-[#CDAD5A] hover:text-amber-400 transition-colors"
-                  >
-                    <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                    {plan.features.length - 4} tính năng khác
-                  </button>
-                )}
+              <div className="mt-6">
+                <span className="text-4xl font-black text-white">{formatPrice(price)}đ</span>
+                <span className="ml-2 text-sm font-bold text-slate-400">{billingOptions.find((item) => item.id === billing)?.suffix}</span>
               </div>
 
-              {/* Expanded Features */}
-              {isExpanded && (
-                <div className="border-t border-gray-700/50 pt-4 space-y-2">
-                  {plan.features.slice(4).map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-xs">
-                      <span>{feature.icon}</span>
-                      <div>
-                        <span className="text-gray-300">{feature.name}</span>
-                        <span className="text-gray-500 ml-1">- {feature.desc}</span>
-                      </div>
-                    </div>
-                  ))}
+              {billing !== "monthly" && (
+                <div className="mt-2 text-sm font-bold text-emerald-300">
+                  Thanh toán {billing === "yearly" ? "12 tháng" : "6 tháng"}: {formatPrice(price * (billing === "yearly" ? 12 : 6))}đ
                 </div>
               )}
 
-              {/* Stats Row */}
-              <div className="mt-auto pt-4 border-t border-gray-700/50 grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-gray-500">AI Coach</span>
-                  <div className={`font-bold ${colors.text}`}>{plan.aiCoach}/ngày</div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Kênh</span>
-                  <div className={`font-bold ${colors.text}`}>{plan.channels} kênh</div>
-                </div>
+              <div className="mt-6 rounded-lg border border-white/10 bg-black/20 p-4 text-sm leading-6 text-slate-300">
+                <span className="font-black text-white">Phù hợp:</span> {plan.bestFor}
               </div>
-            </div>
+
+              <ul className="mt-6 space-y-4">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex gap-3 text-sm leading-6 text-slate-200">
+                    <Check size={17} className="mt-1 shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                onClick={() => setSelectedPlan(plan.id)}
+                className="mt-auto inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white text-sm font-black text-slate-950 hover:bg-cyan-100"
+              >
+                Chọn {plan.publicName}
+                <ArrowRight size={16} />
+              </button>
+            </article>
           );
         })}
       </div>
 
-      {/* ============== FULL COMPARISON TABLE ============== */}
-      <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-3xl p-8 mb-12">
-        <h3 className="text-2xl font-bold text-white text-center mb-8">
-          So Sánh Chi Tiết Tất Cả Gói
-        </h3>
+      <div className="mt-12 rounded-xl border border-white/10 bg-white/[0.04] p-6">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">Workflow coverage</div>
+            <h3 className="mt-2 text-2xl font-black text-white">So sánh theo việc cần làm</h3>
+          </div>
+          <div className="text-sm text-slate-400">Các giới hạn chi tiết được kiểm soát bởi billing và role hiện có.</div>
+        </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-left py-4 px-4 text-gray-400 font-medium">Tính năng</th>
-                {planOrder.map((planKey) => {
-                  const plan = PLANS[planKey as keyof typeof PLANS];
-                  const colors = getColorClasses(plan.color);
-                  return (
-                    <th key={plan.id} className={`text-center py-4 px-4 ${plan.badge ? 'relative' : ''}`}>
-                      <span className={`font-bold ${colors.text} text-base`}>{plan.name}</span>
-                      {plan.badge && (
-                        <span className="block text-[10px] text-red-400 mt-1">{plan.badge}</span>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-              <tr className="border-b border-gray-800">
-                <th className="text-left py-3 px-4 text-gray-500 text-xs">Giá hàng tháng</th>
-                {planOrder.map((planKey) => {
-                  const plan = PLANS[planKey as keyof typeof PLANS];
-                  return (
-                    <th key={plan.id} className="text-center py-3 px-4 font-bold text-white">
-                      {formatPrice(plan.monthly)}đ
-                    </th>
-                  );
-                })}
+              <tr className="border-b border-white/10 text-left text-slate-400">
+                <th className="py-4 pr-4 font-bold">Capability</th>
+                {PUBLIC_PLAN_ORDER.map((planId) => (
+                  <th key={planId} className="px-4 py-4 font-black text-white">{PUBLIC_PLANS[planId].publicName}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {/* Core Tools */}
-              <tr className="bg-gray-800/50">
-                <td colSpan={4} className="py-3 px-4 font-bold text-gray-300 text-xs uppercase tracking-wider">
-                  Công Cụ AI
-                </td>
-              </tr>
-              {[
-                { name: 'Niche Radar', desc: 'Tìm ngách tiềm năng' },
-                { name: 'Script Studio', desc: 'Viết kịch bản viral' },
-                { name: 'Video Pipeline', desc: 'Tạo video tự động' },
-                { name: 'SEO Tool', desc: 'Tối ưu YouTube SEO' },
-                { name: 'Thumbnail AI', desc: 'Tạo ảnh bìa' },
-                { name: 'Rival Scanner', desc: 'Phân tích đối thủ' },
-                { name: 'Intelligence Hub', desc: 'Phân tích xu hướng' },
-                { name: 'Multilingual Studio', desc: 'Đa ngôn ngữ' },
-              ].map((feature, idx) => (
-                <tr key={idx} className="border-b border-gray-800/50">
-                  <td className="py-3 px-4">
-                    <span className="text-gray-300">{feature.name}</span>
-                    <span className="text-gray-500 text-xs block">{feature.desc}</span>
-                  </td>
-                  {planOrder.map((planKey) => {
-                    const plan = PLANS[planKey as keyof typeof PLANS];
-                    const hasFeature = plan.features.some(f => f.name === feature.name);
-                    return (
-                      <td key={plan.id} className="text-center py-3 px-4">
-                        {hasFeature ? (
-                          <CheckCircle2 size={20} className="mx-auto text-green-500" />
-                        ) : (
-                          <X size={20} className="mx-auto text-gray-600" />
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-
-              {/* Desktop Apps */}
-              <tr className="bg-gray-800/50">
-                <td colSpan={4} className="py-3 px-4 font-bold text-gray-300 text-xs uppercase tracking-wider">
-                  Desktop Applications (License Key)
-                </td>
-              </tr>
-              {[
-                { name: 'Koda Studio', desc: 'Tạo video Veo3 Desktop', icon: '🖥️' },
-                { name: 'Koda Novel', desc: 'Chuyển truyện thành phim', icon: '📚' },
-                { name: 'Koda Factory', desc: 'Multi-workers xử lý hàng loạt', icon: '🏭' },
-              ].map((feature, idx) => (
-                <tr key={idx} className="border-b border-gray-800/50">
-                  <td className="py-3 px-4">
-                    <span className="text-gray-300">{feature.icon} {feature.name}</span>
-                    <span className="text-gray-500 text-xs block">{feature.desc}</span>
-                  </td>
-                  {planOrder.map((planKey) => {
-                    const plan = PLANS[planKey as keyof typeof PLANS];
-                    const hasFeature = plan.features.some(f => f.name === feature.name);
-                    return (
-                      <td key={plan.id} className="text-center py-3 px-4">
-                        {hasFeature ? (
-                          <CheckCircle2 size={20} className="mx-auto text-green-500" />
-                        ) : (
-                          <X size={20} className="mx-auto text-gray-600" />
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-
-              {/* Limits */}
-              <tr className="bg-gray-800/50">
-                <td colSpan={4} className="py-3 px-4 font-bold text-gray-300 text-xs uppercase tracking-wider">
-                  Giới Hạn Sử Dụng
-                </td>
-              </tr>
-              {[
-                { name: 'AI Coach Messages', values: [5, 20, 50, 100, 500] },
-                { name: 'Kênh YouTube', values: [1, 2, 2, 5, 10] },
-                { name: 'Team Seats', values: ['-', '-', '-', '5', '15'] },
-              ].map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-800/50">
-                  <td className="py-3 px-4 text-gray-300">{row.name}</td>
-                  {row.values.map((val, i) => (
-                    <td key={i} className="text-center py-3 px-4 text-white font-medium">
-                      {val}
+              {workflowRows.map((row) => {
+                const Icon = row.icon;
+                return (
+                  <tr key={row.label} className="border-b border-white/10 last:border-b-0">
+                    <td className="py-4 pr-4">
+                      <div className="flex items-center gap-3 font-bold text-slate-200">
+                        <Icon size={17} className="text-cyan-300" />
+                        {row.label}
+                      </div>
                     </td>
-                  ))}
-                </tr>
-              ))}
-
-              {/* Support */}
-              <tr className="bg-gray-800/50">
-                <td colSpan={4} className="py-3 px-4 font-bold text-gray-300 text-xs uppercase tracking-wider">
-                  Hỗ Trợ
-                </td>
-              </tr>
-              {[
-                { name: 'Email Support', values: ['✓', '✓', '✓', '✓', '✓'] },
-                { name: 'Priority Support', values: ['-', '✓', '✓', '✓', '✓'] },
-                { name: 'Live Chat 24/7', values: ['-', '-', '✓', '✓', '✓'] },
-                { name: 'Dedicated Manager', values: ['-', '-', '-', '-', '✓'] },
-              ].map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-800/50">
-                  <td className="py-3 px-4 text-gray-300">{row.name}</td>
-                  {row.values.map((val, i) => (
-                    <td key={i} className="text-center py-3 px-4">
-                      {val === '✓' ? (
-                        <CheckCircle2 size={18} className="mx-auto text-green-500" />
-                      ) : val === '-' ? (
-                        <span className="text-gray-600">-</span>
-                      ) : (
-                        <span className="text-amber-400 font-medium">{val}</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-
-              {/* Enterprise Features */}
-              <tr className="bg-gray-800/50">
-                <td colSpan={4} className="py-3 px-4 font-bold text-gray-300 text-xs uppercase tracking-wider">
-                  Tính Năng Doanh Nghiệp
-                </td>
-              </tr>
-              {[
-                { name: 'White-label Domain', values: ['-', '-', '-', '-', '✓'] },
-                { name: 'API Access', values: ['-', '-', '-', '-', '✓'] },
-                { name: 'Custom Workflow', values: ['-', '-', '-', '-', '✓'] },
-                { name: 'Bulk License Management', values: ['-', '-', '-', '✓', '✓'] },
-              ].map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-800/50">
-                  <td className="py-3 px-4 text-gray-300">{row.name}</td>
-                  {row.values.map((val, i) => (
-                    <td key={i} className="text-center py-3 px-4">
-                      {val === '✓' ? (
-                        <CheckCircle2 size={18} className="mx-auto text-green-500" />
-                      ) : (
-                        <span className="text-gray-600">-</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+                    {PUBLIC_PLAN_ORDER.map((planId) => (
+                      <td key={`${row.label}-${planId}`} className="px-4 py-4 text-slate-300">{row.getValue(planId)}</td>
+                    ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* ============== ADD-ONS SECTION ============== */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-white text-center mb-8">
-          Add-ons & Mua Riêng
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {ADDONS.map((addon) => (
-            <div
-              key={addon.id}
-              className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 hover:border-[#CDAD5A]/50 transition-all"
-            >
-              <div className="text-3xl mb-3">{addon.icon}</div>
-              <h4 className="text-white font-bold mb-1">{addon.name}</h4>
-              <p className="text-gray-400 text-xs mb-3">{addon.desc}</p>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-[#CDAD5A]">{formatPrice(addon.price)}</span>
-                {addon.id.includes('MONTH') && <span className="text-gray-500 text-xs">/tháng</span>}
-              </div>
-              {addon.badge && (
-                <span className="inline-block mt-2 text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
-                  {addon.badge}
-                </span>
-              )}
-            </div>
-          ))}
+      <div className="mt-12 grid gap-5 md:grid-cols-3">
+        {[
+          ["Không khóa vào tool lẻ", "Bạn chọn workflow, SeenYT đưa bạn tới đúng bước và đúng công cụ."],
+          ["Dễ nâng cấp", "Khi kênh lớn hơn, nâng từ Starter lên Creator hoặc Workflow Team mà không đổi hệ thống."],
+          ["Giữ route cũ an toàn", "Affiliate, academy và các flow thanh toán cũ vẫn được giữ đến khi review dependency xong."],
+        ].map(([title, body]) => (
+          <div key={title} className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+            <Sparkles size={18} className="text-cyan-300" />
+            <h4 className="mt-4 font-black text-white">{title}</h4>
+            <p className="mt-2 text-sm leading-6 text-slate-400">{body}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 rounded-xl border border-emerald-300/20 bg-emerald-300/[0.06] p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="text-sm font-black uppercase tracking-[0.18em] text-emerald-200">Channel add-on</div>
+            <h3 className="mt-2 text-2xl font-black text-white">Mua thêm kênh khi đã dùng hết slot</h3>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+              Starter có 1 kênh, Creator có 2 kênh, Workflow Team có 5 kênh. Nếu cần thêm, mua add-on {EXTRA_CHANNEL_SLOT.name.toLowerCase()} với giá {formatPrice(EXTRA_CHANNEL_SLOT.monthly)}đ/kênh, thanh toán một lần.
+            </p>
+          </div>
+          <button
+            onClick={() => setSelectedPlan(EXTRA_CHANNEL_SLOT.id)}
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-emerald-300 px-6 text-sm font-black text-slate-950 hover:bg-emerald-200"
+          >
+            Mua thêm 1 kênh
+            <ArrowRight size={16} />
+          </button>
         </div>
       </div>
 
-      {/* ============== FAQ ============== */}
-      <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8">
-        <h3 className="text-2xl font-bold text-white text-center mb-8">
-          Câu Hỏi Thường Gặp
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[
-            {
-              q: 'Làm sao nhận được License Key cho Koda Studio/Novel/Factory?',
-              a: 'Sau khi thanh toán thành công qua PayOS, License Key sẽ được tự động gửi qua email trong vòng 5 phút.',
-            },
-            {
-              q: 'Tôi có thể nâng cấp gói dịch vụ không?',
-              a: 'Có, bạn có thể nâng cấp lên gói cao hơn bất kỳ lúc nào. Phần chênh lệch sẽ được tính theo tỷ lệ.',
-            },
-            {
-              q: ' Gói 6 tháng và 1 năm có khác gì không?',
-              a: 'Cả hai đều có cùng tính năng. Gói 1 năm tiết kiệm được nhiều hơn (lên đến 50%).',
-            },
-            {
-              q: 'Tôi có được hoàn tiền nếu không hài lòng?',
-              a: 'Chúng tôi có chính sách hoàn tiền trong 7 ngày đầu tiên nếu bạn không hài lòng với dịch vụ.',
-            },
-            {
-              q: 'AI Coach là gì?',
-              a: 'AI Coach là trợ lý AI của SeenYT, giúp bạn tư vấn chiến lược YouTube, viết kịch bản, và trả lời mọi câu hỏi về nội dung.',
-            },
-            {
-              q: 'Tôi cần thanh toán bằng cách nào?',
-              a: 'Chúng tôi hỗ trợ thanh toán qua PayOS với QR Code, thẻ ATM, và thẻ tín dụng quốc tế.',
-            },
-          ].map((faq, idx) => (
-            <div key={idx} className="bg-gray-800/50 rounded-xl p-5">
-              <h4 className="text-white font-bold mb-2 flex items-start gap-2">
-                <span className="text-[#CDAD5A]">Q:</span> {faq.q}
-              </h4>
-              <p className="text-gray-400 text-sm pl-5">{faq.a}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ============== CHECKOUT MODAL ============== */}
       {selectedPlan && (
         <CheckoutModal
           isOpen={true}
           onClose={() => setSelectedPlan(null)}
           requiredPlan={selectedPlan}
-          forceYearly={billing === 'yearly'}
-          forceSixMonths={billing === 'sixMonths'}
+          forceYearly={billing === "yearly"}
+          forceSixMonths={billing === "sixMonths"}
         />
       )}
     </div>

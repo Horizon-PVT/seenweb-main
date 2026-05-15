@@ -1,16 +1,20 @@
-// File: pages/_document.tsx (FINAL FIX - ĐÃ BAO GỒM TẤT CẢ KEYFRAME VÀ GLOWS)
-import { Html, Head, Main, NextScript } from 'next/document';
+import { Html, Head, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
     <Html lang="vi">
       <Head>
-        {/* 1. Fonts đã được load qua next/font trong _app.tsx để tối ưu hiệu suất và tránh lỗi cache */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
       </Head>
       <body>
         <Main />
         <NextScript />
       </body>
-    </Html >
+    </Html>
   );
 }

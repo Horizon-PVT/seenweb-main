@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DashboardHome from "@/components/dashboard/DashboardHome";
+import { CREATOR_WORKFLOWS, WorkflowId, getDashboardToolId } from "@/lib/creator-workflows";
 
 // Dynamic imports for performance
 const KodaNicheRadar = dynamic(() => import('@/components/KodaNicheRadar'), { ssr: false });
@@ -13,6 +14,7 @@ const SeoTool = dynamic(() => import('@/components/SeoTool'), { ssr: false });
 const IntelligenceHub = dynamic(() => import('@/components/IntelligenceHub'), { ssr: false });
 const VideoPipeline = dynamic(() => import('@/components/VideoPipeline'), { ssr: false });
 const RivalScanner = dynamic(() => import('@/components/RivalScannerTool'), { ssr: false });
+const VoiceStudio = dynamic(() => import('@/components/VoiceStudioTool'), { ssr: false });
 
 const TOOL_COMPONENTS: Record<string, any> = {
   'niche-radar': KodaNicheRadar,
@@ -21,27 +23,27 @@ const TOOL_COMPONENTS: Record<string, any> = {
   'intelligence-hub': IntelligenceHub,
   'video-pipeline': VideoPipeline,
   'rival-scanner': RivalScanner,
+  'voice-studio': VoiceStudio,
 };
 
-const TOOL_TITLES: Record<string, string> = {
-  'niche-radar': 'Niche Radar',
-  'script-studio': 'Script Studio',
-  'seo-tool': 'SEO Tool',
-  'intelligence-hub': 'Intelligence Hub',
-  'video-pipeline': 'Video Pipeline',
-  'rival-scanner': 'Rival Scanner',
-};
+const DEFAULT_WORKFLOW: WorkflowId = "launch-channel";
+
+function getWorkflowId(value: string | string[] | undefined): WorkflowId {
+  const requested = Array.isArray(value) ? value[0] : value;
+  return CREATOR_WORKFLOWS.some((workflow) => workflow.id === requested) ? (requested as WorkflowId) : DEFAULT_WORKFLOW;
+}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const selectedWorkflow = getWorkflowId(router.query.workflow);
 
   // Authentication guard
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/");
+      router.push(`/login?callbackUrl=${encodeURIComponent(router.asPath || "/dashboard")}`);
     } else if (status === "authenticated") {
       setLoading(false);
     }
@@ -51,7 +53,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!loading && router.isReady) {
       if (router.query.tool) {
-        setActiveTool(router.query.tool as string);
+        const requestedTool = Array.isArray(router.query.tool) ? router.query.tool[0] : router.query.tool;
+        setActiveTool(getDashboardToolId(requestedTool) || requestedTool || null);
       } else {
         setActiveTool(null); // Reset to home if no tool in query
       }
@@ -75,22 +78,28 @@ export default function DashboardPage() {
       activeTool={activeTool}
       onToolSelect={(toolId) => {
         if (toolId) {
-          router.push(`/dashboard?tool=${toolId}`, undefined, { shallow: true });
+          const dashboardToolId = getDashboardToolId(toolId) || toolId;
+          router.push(`/dashboard?tool=${dashboardToolId}`, undefined, { shallow: true });
         } else {
-          router.push('/dashboard', undefined, { shallow: true });
+          router.push(`/dashboard?workflow=${selectedWorkflow}`, undefined, { shallow: true });
         }
       }}
     >
       <div className="min-h-full">
         {ActiveComponent ? (
           <div className="animate-fadeIn">
-            <ActiveComponent onBack={() => router.push('/dashboard', undefined, { shallow: true })} />
+            <ActiveComponent onBack={() => router.push(`/dashboard?workflow=${selectedWorkflow}`, undefined, { shallow: true })} />
           </div>
         ) : (
           <DashboardHome 
             userRole={userRole} 
+            selectedWorkflow={selectedWorkflow}
+            onWorkflowSelect={(workflowId) => {
+              router.push(`/dashboard?workflow=${workflowId}`, undefined, { shallow: true });
+            }}
             onToolSelect={(toolId) => {
-              router.push(`/dashboard?tool=${toolId}`, undefined, { shallow: true });
+              const dashboardToolId = getDashboardToolId(toolId) || toolId;
+              router.push(`/dashboard?tool=${dashboardToolId}`, undefined, { shallow: true });
             }}
             onNavigate={(path) => router.push(path)}
           />

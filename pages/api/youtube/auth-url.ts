@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { google } from 'googleapis';
 import { prisma } from "@/lib/prisma";
+import { CHANNEL_LIMITS } from '@/lib/roles';
 
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -31,20 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { userId: (session.user as any).id }
     });
 
-    const MAX_CHANNELS: Record<string, number> = {
-        'FREE': 0,
-        'USER': 0,
-        'STARTER': 1,
-        'CREATOR': 2,
-        'FACTORY': 2,
-        'AGENCY': 5,
-        'ENTERPRISE': 10,
-        'BASIC': 1,   // Legacy
-        'PRO': 2,      // Legacy
-        'ADMIN': 999
+    const LEGACY_CHANNEL_LIMITS: Record<string, number> = {
+        USER: 0,
+        BASIC: 1,
+        PRO: 2,
     };
 
-    const baseLimit = MAX_CHANNELS[userRole] || 0;
+    const baseLimit = CHANNEL_LIMITS[userRole] ?? LEGACY_CHANNEL_LIMITS[userRole] ?? 0;
 
     // Final Limit logic:
     // If Admin -> Unlimited (999)

@@ -1,4 +1,5 @@
 import { GetServerSideProps } from 'next';
+import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { requireAdminAuth } from '@/lib/admin/auth';
 import { prisma } from '@/lib/prisma';
@@ -39,9 +40,9 @@ export default function AdminAffiliate({ session, affiliates }: any) {
                 </div>
 
                 <div className="mt-6">
-                    <a href="/admin/affiliate-payouts" className="inline-block  bg-gradient-to-r from-[#008080] to-[#CDAD5A] text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
+                    <Link href="/admin/affiliate-payouts" className="inline-block  bg-gradient-to-r from-[#008080] to-[#CDAD5A] text-white px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
                         → Quản lý yêu cầu rút tiền
-                    </a>
+                    </Link>
                 </div>
             </div>
         </AdminLayout>

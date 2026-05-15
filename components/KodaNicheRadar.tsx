@@ -1,75 +1,64 @@
-import React, { useState } from 'react';
-import { Target, Search, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
-import MicroNicheMinerTool from './MicroNicheMinerTool';
-import RivalScannerTool from './RivalScannerTool';
+import React, { useState } from "react";
+import { Search, ShieldCheck, Target } from "lucide-react";
+import MicroNicheMinerTool from "./MicroNicheMinerTool";
+import RivalScannerTool from "./RivalScannerTool";
 
 export default function KodaNicheRadar({ onBack }: { onBack?: () => void }) {
-  const [activeTab, setActiveTab] = useState<'niche' | 'rival'>('niche');
+  const [activeTab, setActiveTab] = useState<"niche" | "rival">("niche");
 
   const dummyTools: any[] = [];
   const dummyOnToolSelect = () => {};
 
   return (
-    <div className="h-full flex flex-col bg-[#050505]">
-      {/* Compact Header & Tabs */}
-      <div className="border-b border-white/5 bg-[#0a0a0c] relative overflow-hidden shrink-0">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-900/10 blur-[100px] rounded-full pointer-events-none" />
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between relative z-10">
-          
-          {/* Logo & Title */}
+    <div className="flex h-full flex-col bg-[#05080d]">
+      <div className="relative shrink-0 overflow-hidden border-b border-white/10 bg-[#071018]">
+        <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-cyan-500/10 blur-[100px]" />
+        <div className="relative z-10 mx-auto flex min-h-16 max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center border border-cyan-500/30">
-              <Target className="w-4 h-4 text-cyan-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-300/25 bg-cyan-300/10">
+              <Target className="h-5 w-5 text-cyan-300" />
             </div>
-            <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 hidden sm:block">
-              Koda Niche Radar
-            </h1>
+            <div>
+              <h1 className="text-lg font-black text-white">Niche Radar</h1>
+              <p className="text-xs font-bold text-slate-500">Launch Channel workflow: niche signal and competitor pattern.</p>
+            </div>
           </div>
 
-          {/* Tabs (Centered) */}
-          <div className="flex items-center gap-6 h-full absolute left-1/2 -translate-x-1/2">
+          <div className="flex min-w-0 gap-2 overflow-x-auto [scrollbar-width:none]">
             <button
-              onClick={() => setActiveTab('niche')}
-              className={`h-full px-2 font-bold text-sm border-b-[3px] transition-colors flex items-center gap-2 ${
-                activeTab === 'niche' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-gray-500 hover:text-gray-300'
+              onClick={() => setActiveTab("niche")}
+              className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-black transition ${
+                activeTab === "niche" ? "bg-cyan-300 text-slate-950" : "border border-white/10 bg-white/[0.04] text-slate-300 hover:text-white"
               }`}
             >
-              <Search className="w-4 h-4" /> 1. Đào Ngách Thắng (Niche Miner)
+              <Search className="h-4 w-4" />
+              Find niche
             </button>
             <button
-              onClick={() => setActiveTab('rival')}
-              className={`h-full px-2 font-bold text-sm border-b-[3px] transition-colors flex items-center gap-2 ${
-                activeTab === 'rival' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-300'
+              onClick={() => setActiveTab("rival")}
+              className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-black transition ${
+                activeTab === "rival" ? "bg-violet-300 text-slate-950" : "border border-white/10 bg-white/[0.04] text-slate-300 hover:text-white"
               }`}
             >
-              <ShieldCheck className="w-4 h-4" /> 2. Soi Đối Thủ (Rival Scanner)
+              <ShieldCheck className="h-4 w-4" />
+              Study rivals
             </button>
           </div>
 
-          {/* Top Right Action */}
           {onBack && (
-            <button onClick={onBack} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-md text-xs font-semibold transition border border-white/10 flex items-center gap-2 z-20">
-              Đóng Radar
+            <button onClick={onBack} className="rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-slate-300 hover:text-white">
+              Back to workflow
             </button>
           )}
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto bg-black/50 scrollbar-thin scrollbar-thumb-white/10">
-        <div className="min-h-full relative">
-          {activeTab === 'niche' && (
-            <div className="animate-fadeIn">
-               {/* We wrap the existing component but pass the required props to avoid TS errors. */}
-               <MicroNicheMinerTool onBack={undefined} tools={dummyTools} onToolSelect={dummyOnToolSelect} />
-            </div>
-          )}
-          {activeTab === 'rival' && (
-            <div className="animate-fadeIn">
-               <RivalScannerTool onBack={undefined} tools={dummyTools} onToolSelect={dummyOnToolSelect} />
-            </div>
-          )}
-        </div>
+      <div className="flex-1 overflow-y-auto bg-black/50">
+        {activeTab === "niche" ? (
+          <MicroNicheMinerTool onBack={undefined} tools={dummyTools} onToolSelect={dummyOnToolSelect} />
+        ) : (
+          <RivalScannerTool onBack={undefined} tools={dummyTools} onToolSelect={dummyOnToolSelect} />
+        )}
       </div>
     </div>
   );

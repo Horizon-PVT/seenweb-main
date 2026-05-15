@@ -116,7 +116,7 @@ export default function ZoomLandingPage() {
             <Head>
                 <title>[FREE ZOOM] Làm chủ YouTube AI 2026 - SeenYT</title>
                 <meta name="description" content="Sự kiện Zoom 5 buổi: 10 suất MIỄN PHÍ hướng dẫn xây kênh YouTube AI." />
-                <meta name="robots" content="index, follow" />
+                <meta name="robots" content="noindex, nofollow" />
             </Head>
 
             {/* FOMO Popup */}

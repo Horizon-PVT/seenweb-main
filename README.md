@@ -1,4 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# SeenYT
+
+SeenYT is being repositioned as a YouTube Content Operating System for creators, channel operators, and teams.
+
+The current repositioning reference lives in:
+
+- [Brand Positioning](docs/brand-positioning.md)
+- [Repositioning Roadmap](docs/repositioning-roadmap.md)
+
+The product direction is to keep the useful YouTube tools, AI coaching, and workflows, while cleaning up pages and navigation that make the product feel scattered.
+
+## Technical Base
+
+This is a [Next.js](https://nextjs.org) project.
 
 ## Getting Started
 

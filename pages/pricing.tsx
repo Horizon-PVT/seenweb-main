@@ -1,55 +1,60 @@
-// pages/pricing.tsx (Bản Đã Sửa)
 import Head from "next/head";
-import React from "react"; 
 import { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import PricingTable from "@/components/PricingTable";
-// Loại bỏ import PaymentModal
 
 const siteUrl = "https://seenweb-main.vercel.app";
 const ogImage = `${siteUrl}/thumbnail.jpg`;
 
 export default function PricingPage() {
-    // Loại bỏ state và handler không cần thiết:
-    // const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-    // const handleSelectPlan = (plan: string) => setSelectedPlan(plan);
+  return (
+    <div className="min-h-screen bg-[#05080d] text-white">
+      <Head>
+        <title>Pricing - SeenYT YouTube Content OS</title>
+        <meta
+          name="description"
+          content="Choose a SeenYT plan for niche research, content workflows, video production, YouTube SEO, and AI Creator Coach."
+        />
+        <link rel="canonical" href={`${siteUrl}/pricing`} />
+        <meta property="og:title" content="SeenYT Pricing" />
+        <meta property="og:description" content="Simple plans for YouTube creators and teams running repeatable content workflows." />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:url" content={`${siteUrl}/pricing`} />
+      </Head>
 
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex flex-col items-center py-12">
-            <Head>
-                <title>Bảng giá — SeenWeb</title>
-                <meta
-                    name="description"
-                    content="Chọn gói ARCHIVE, MAGISTRATE hoặc TOÀN TRI để tăng tốc kênh YouTube của bạn với AI SeenWeb."
-                />
-                <link rel="canonical" href={`${siteUrl}/pricing`} />
-                <meta property="og:title" content="Bảng giá — SeenWeb" />
-                <meta property="og:description" content="Khám phá các gói nâng cấp của SeenWeb cho YouTuber." />
-                <meta property="og:image" content={ogImage} />
-                <meta property="og:url" content={`${siteUrl}/pricing`} />
-            </Head>
+      <Header />
 
-            <h1 className="text-4xl font-bold mb-6 text-[#CDAD5A] text-center uppercase">
-                Bảng Giá Gói SeenWeb
-            </h1>
-
-            <div className="w-11/12 max-w-6xl">
-                {/* Gọi PricingTable mà không cần truyền setSelectedPlan */}
-                <PricingTable /> 
+      <main className="pt-24">
+        <section className="border-b border-white/10 px-4 py-16 sm:px-6">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-4 inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm font-black text-cyan-200">
+              Workflow pricing
             </div>
+            <h1 className="text-4xl font-black leading-tight sm:text-6xl">
+              Trả tiền cho quy trình làm kênh, không phải một đống tool rời rạc
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-400">
+              SeenYT gom nghiên cứu ngách, phân tích đối thủ, viết kịch bản, sản xuất video, SEO và AI Coach vào các gói dễ chọn cho creator YouTube.
+            </p>
+          </div>
+        </section>
 
-            {/* Loại bỏ logic hiển thị PaymentModal:
-            {selectedPlan && (
-                <PaymentModal plan={selectedPlan} onClose={() => setSelectedPlan(null)} />
-            )} */}
-        </div>
-    );
+        <section className="px-4 py-16 sm:px-6">
+          <div className="mx-auto max-w-7xl">
+            <PricingTable />
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
-    return {
-        props: {
-            ...(await serverSideTranslations(locale ?? 'vi', ['common'])),
-        },
-    };
-};
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(locale ?? "vi", ["common"])),
+  },
+});

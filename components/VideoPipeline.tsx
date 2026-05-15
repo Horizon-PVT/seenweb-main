@@ -83,7 +83,7 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
         const { success, error } = router.query;
         
         if (success === 'ChannelConnected') {
-            toast.success('Kết nối kênh thành công!', {
+            toast.success('Channel connected successfully.', {
                 icon: <CheckCircle size={20} className="text-green-400" />,
                 duration: 5000,
             });
@@ -91,7 +91,7 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
         }
         
         if (error === 'AuthFailed' || error === 'AccessDenied') {
-            toast.error('Kết nối kênh bị hủy hoặc thất bại.', {
+            toast.error('Channel connection was canceled or failed.', {
                 icon: <AlertCircle size={20} className="text-red-400" />,
                 duration: 5000,
             });
@@ -128,11 +128,11 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
     };
 
     const tabs = [
-        { id: 'analytics' as const, label: 'Phân tích', icon: BarChart3 },
-        { id: 'videos' as const, label: 'Quản lý Video', icon: Video },
-        { id: 'recommendations' as const, label: 'AI Gợi Ý', icon: Sparkles },
-        { id: 'calendar' as const, label: 'Lịch đăng', icon: Calendar },
-        { id: 'market' as const, label: 'Mở rộng', icon: Globe },
+        { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
+        { id: 'videos' as const, label: 'Video package', icon: Video },
+        { id: 'recommendations' as const, label: 'Recommendations', icon: Sparkles },
+        { id: 'calendar' as const, label: 'Calendar', icon: Calendar },
+        { id: 'market' as const, label: 'Review', icon: Globe },
     ];
 
     return (
@@ -151,7 +151,7 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
                             </div>
                             <div>
                                 <h1 className="text-xl font-black text-white">Video Pipeline</h1>
-                                <p className="text-sm text-gray-500">Kết nối & quản lý kênh YouTube</p>
+                                <p className="text-sm text-gray-500">Package one publish-ready video from script, voice, assets, metadata, and review.</p>
                             </div>
                         </div>
 
@@ -165,7 +165,7 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
                                 }`}
                             >
                                 <Plus size={16} />
-                                Kết nối Kênh
+                                Connect channel
                             </button>
                         </div>
                     </div>
@@ -176,7 +176,7 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
             {isLoadingChannels ? (
                 <div className="px-6 py-4 flex items-center gap-3">
                     <Loader2 size={18} className="animate-spin text-gray-500" />
-                    <span className="text-gray-500 text-sm">Đang tải kênh...</span>
+                    <span className="text-gray-500 text-sm">Loading channels...</span>
                 </div>
             ) : channels.length > 0 && (
                 <div className="bg-[#0a0f14] rounded-2xl border border-white/10 mb-6 p-3">
@@ -214,7 +214,7 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
                             <button
                                 onClick={handleSyncChannel}
                                 className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white transition-colors shrink-0"
-                                title="Đồng bộ dữ liệu"
+                                title="Sync channel data"
                             >
                                 <RefreshCw size={18} className={isLoadingChannels ? 'animate-spin' : ''} />
                             </button>
@@ -230,14 +230,14 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
                         <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center">
                             <Video className="w-10 h-10 text-red-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">Chưa có kênh nào được kết nối</h3>
-                        <p className="text-gray-400 mb-6">Kết nối kênh YouTube để bắt đầu phân tích và quản lý</p>
+                        <h3 className="text-xl font-bold text-white mb-2">No YouTube channel connected yet</h3>
+                        <p className="text-gray-400 mb-6">Connect a channel to review analytics, package videos, and schedule the next publish step.</p>
                         <button
                             onClick={handleConnectChannel}
                             className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors inline-flex items-center gap-2"
                         >
                             <Plus size={18} />
-                            Kết nối kênh YouTube
+                            Connect YouTube channel
                         </button>
                     </div>
                 ) : !isLoadingChannels && channels.length > 0 && (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
@@ -100,9 +101,9 @@ export default function AdminLogin() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <a href="/" className="text-sm text-gray-400 hover:text-[#CDAD5A] transition-colors">
+                        <Link href="/" className="text-sm text-gray-400 hover:text-[#CDAD5A] transition-colors">
                             ← Quay lại trang chủ
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

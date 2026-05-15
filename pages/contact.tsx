@@ -1,30 +1,43 @@
+import Head from "next/head";
 import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-black text-white py-16 px-4">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">Liên Hệ</h1>
+    <div className="min-h-screen bg-[#05080d] text-white">
+      <Head>
+        <title>Contact - SeenYT</title>
+        <meta name="description" content="Contact SeenYT for product support, billing questions, and YouTube workflow help." />
+      </Head>
+      <Header />
+      <main className="px-4 pb-20 pt-32 sm:px-6">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-4 inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm font-black text-cyan-200">
+            Support
+          </div>
+          <h1 className="text-4xl font-black sm:text-6xl">Liên hệ SeenYT</h1>
+          <p className="mt-5 text-base leading-8 text-slate-400">
+            Nếu bạn cần hỗ trợ khi dùng Studio, workflow, AI Coach hoặc thanh toán, liên hệ qua các kênh dưới đây.
+          </p>
 
-        <p className="text-gray-300 mb-4">
-          Nếu bạn cần hỗ trợ trong quá trình sử dụng SeenYT, vui lòng liên hệ
-          qua các kênh sau:
-        </p>
+          <div className="mt-10 grid gap-4">
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Email</div>
+              <div className="mt-2 text-lg font-bold text-white">takeuchi999999999@gmail.com</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+              <div className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Zalo</div>
+              <div className="mt-2 text-lg font-bold text-white">0789 284 078</div>
+            </div>
+          </div>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-2">📧 Email</h2>
-        <p className="text-gray-300 mb-4">takeuchi999999999@gmail.com</p>
-
-        <h2 className="text-2xl font-semibold mt-6 mb-2">📱 Zalo</h2>
-        <p className="text-gray-300 mb-4">0789 284 078</p>
-
-        <p className="text-gray-300 mb-8">
-          Chúng tôi sẽ cố gắng phản hồi trong thời gian sớm nhất có thể.
-        </p>
-
-        <Link href="/" className="text-blue-400 hover:underline text-lg">
-          ← Quay về trang chủ
-        </Link>
-      </div>
+          <Link href="/dashboard" className="mt-10 inline-flex rounded-full bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-200">
+            Mở Studio
+          </Link>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

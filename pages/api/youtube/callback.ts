@@ -112,11 +112,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         console.log('[YouTube Callback] Channel saved successfully:', savedChannel.id);
 
-        // 4. Redirect back to video pipeline with success
-        return res.redirect('/tools/video-pipeline?success=ChannelConnected');
+        // 4. Redirect back to the canonical dashboard tool route.
+        return res.redirect('/dashboard?tool=video-pipeline&success=ChannelConnected');
 
     } catch (error: any) {
         console.error('[YouTube Callback] Error:', error.message, error.stack);
-        return res.redirect('/tools/video-pipeline?error=AuthFailed');
+        return res.redirect('/dashboard?tool=video-pipeline&error=AuthFailed');
     }
 }

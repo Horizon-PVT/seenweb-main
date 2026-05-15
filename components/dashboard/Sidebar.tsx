@@ -1,389 +1,293 @@
-// components/dashboard/Sidebar.tsx - Clean & Modern Sidebar
-
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { signOut, useSession } from 'next-auth/react';
-import { useTranslation } from 'next-i18next';
-import { 
-  Home, MessageSquare, TrendingUp, Settings, CreditCard, 
-  LogOut, ChevronRight, Video, FileText, Search, 
-  Sparkles, Download, Key, ChevronLeft, Star, Zap,
-  BarChart3, Globe, Users, Clock, ShoppingBag, Share2
-} from 'lucide-react';
-import CheckoutModal from './CheckoutModal';
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { signOut, useSession } from "next-auth/react";
+import {
+  BarChart3,
+  Bot,
+  ChevronLeft,
+  Clapperboard,
+  CreditCard,
+  FileText,
+  FolderKanban,
+  Globe2,
+  Home,
+  LogOut,
+  Search,
+  Settings,
+  Sparkles,
+  TrendingUp,
+  User,
+  Workflow,
+} from "lucide-react";
+import { CREATOR_TOOLS, CanonicalToolId } from "@/lib/creator-workflows";
+import { getCreatorCopy } from "@/lib/creator-i18n";
 
 interface SidebarProps {
-    userRole?: string;
-    activeTool?: string | null;
-    onToolSelect?: (toolId: string) => void;
+  userRole?: string;
+  activeTool?: string | null;
+  onToolSelect?: (_toolId: string) => void;
 }
 
-export default function Sidebar({ userRole = 'FREE', activeTool, onToolSelect }: SidebarProps) {
-    const router = useRouter();
-    const { data: session } = useSession();
-    const { t } = useTranslation('common');
-    const [showCheckout, setShowCheckout] = useState(false);
-    const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(true);
+type NavItem =
+  | {
+      id: string;
+      label: string;
+      description?: string;
+      icon: React.ElementType;
+      path: string;
+      exact?: boolean;
+      matchQuery?: string;
+      badge?: string;
+    }
+  | {
+      id: string;
+      label: string;
+      description?: string;
+      icon: React.ElementType;
+      toolId: CanonicalToolId;
+      badge?: string;
+    };
 
-    // Get avatar from session
-    const userAvatar = session?.user?.image;
-    const userName = session?.user?.name || '';
+const primaryNav: NavItem[] = [
+  { id: "home", label: "home", description: "homeDesc", icon: Home, path: "/dashboard", exact: true },
+  { id: "workflows", label: "workflows", description: "workflowsDesc", icon: Workflow, path: "/dashboard?workflow=launch-channel", matchQuery: "workflow=" },
+  { id: "ai-coach", label: "aiCoach", description: "aiCoachDesc", icon: Bot, path: "/dashboard/ai-coach", badge: "Core" },
+  { id: "projects", label: "projects", description: "projectsDesc", icon: FolderKanban, path: "/dashboard/trends" },
+];
 
-    // Get membershipExpiry
-    const membershipExpiry = (session?.user as any)?.membershipExpiry;
-    let daysLeftText = '';
-    if (membershipExpiry && userRole !== 'FREE' && userRole !== 'ADMIN') {
-        const diff = new Date(membershipExpiry).getTime() - new Date().getTime();
-        const days = Math.ceil(diff / (1000 * 3600 * 24));
-        if (days > 0) {
-            daysLeftText = `${days}d`;
-        } else {
-            daysLeftText = 'Hết hạn';
-        }
+const toolIcons: Record<CanonicalToolId, React.ElementType> = {
+  "niche-radar": Search,
+  "rival-scanner": BarChart3,
+  "script-studio": FileText,
+  "voice-studio": Globe2,
+  "video-pipeline": Clapperboard,
+  "seo-tool": TrendingUp,
+  "intelligence-hub": Sparkles,
+  "ai-coach": Bot,
+};
+
+const toolNav: NavItem[] = CREATOR_TOOLS.filter((tool) => tool.visibleInSidebar && tool.dashboardToolId).map((tool) => ({
+  id: tool.id,
+  label: tool.title,
+  description: tool.description,
+  icon: toolIcons[tool.id],
+  toolId: tool.id,
+  badge: tool.status === "review" ? "Review" : undefined,
+}));
+
+const accountNav: NavItem[] = [
+  { id: "account", label: "account", description: "accountDesc", icon: User, path: "/dashboard/settings" },
+  { id: "billing", label: "billing", description: "billingDesc", icon: CreditCard, path: "/dashboard/subscription" },
+];
+
+function getTierColor(role: string) {
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
+    FREE: { bg: "bg-slate-500/15", text: "text-slate-300", border: "border-slate-500/25" },
+    STARTER: { bg: "bg-blue-500/15", text: "text-blue-300", border: "border-blue-500/25" },
+    CREATOR: { bg: "bg-cyan-500/15", text: "text-cyan-300", border: "border-cyan-500/25" },
+    FACTORY: { bg: "bg-amber-500/15", text: "text-amber-300", border: "border-amber-500/25" },
+    AGENCY: { bg: "bg-violet-500/15", text: "text-violet-300", border: "border-violet-500/25" },
+    ENTERPRISE: { bg: "bg-rose-500/15", text: "text-rose-300", border: "border-rose-500/25" },
+    ADMIN: { bg: "bg-red-500/15", text: "text-red-300", border: "border-red-500/25" },
+  };
+
+  return colors[role] || colors.FREE;
+}
+
+export default function Sidebar({ userRole = "FREE", activeTool, onToolSelect }: SidebarProps) {
+  const router = useRouter();
+  const copy = getCreatorCopy(router.locale);
+  const { data: session } = useSession();
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+
+  const userAvatar = session?.user?.image;
+  const userName = session?.user?.name || "Creator";
+  const tierColor = getTierColor(userRole);
+
+  const isActive = (item: NavItem) => {
+    if ("toolId" in item) return activeTool === item.toolId;
+    if (item.matchQuery) return router.asPath.includes(item.matchQuery) && !activeTool;
+    if (item.exact) return router.pathname === item.path && !activeTool && !router.asPath.includes("workflow=");
+    return router.pathname.startsWith(item.path);
+  };
+
+  const handleNavClick = (item: NavItem) => {
+    if ("toolId" in item) {
+      if (onToolSelect) {
+        onToolSelect(item.toolId);
+      } else {
+        router.push(`/dashboard?tool=${item.toolId}`);
+      }
+      return;
     }
 
-    // Get tier color
-    const getTierColor = (role: string) => {
-        const colors: Record<string, { bg: string; text: string; border: string }> = {
-            'FREE': { bg: 'bg-gray-500/20', text: 'text-gray-400', border: 'border-gray-500/30' },
-            'STARTER': { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30' },
-            'CREATOR': { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30' },
-            'FACTORY': { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30' },
-            'AGENCY': { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30' },
-            'ENTERPRISE': { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/30' },
-            'ADMIN': { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' },
-        };
-        return colors[role] || colors.FREE;
-    };
+    router.push(item.path);
+  };
 
-    const tierColor = getTierColor(userRole);
+  const getNavLabel = (key: string) => {
+    const nav = copy.nav as unknown as Record<string, string>;
+    return nav[key] || key;
+  };
 
-    // Navigation items
-    const navItems = [
-        { id: 'home', label: 'Trang chủ', icon: Home, path: '/dashboard', exact: true },
-        { id: 'ai-coach', label: 'AI Coach', icon: MessageSquare, path: '/dashboard/ai-coach', badge: 'Beta', badgeColor: 'bg-purple-500/20 text-purple-400' },
-        { id: 'trends', label: 'Xu hướng', icon: TrendingUp, path: '/dashboard/trends' },
-        { id: 'marketplace', label: 'Chợ Kênh', icon: ShoppingBag, path: '/tools/marketplace' },
-        { id: 'affiliate', label: 'Affiliate', icon: Share2, path: '/tools/affiliate-partner' },
-    ];
+  const renderNavGroup = (label: string, items: NavItem[]) => (
+    <div className="space-y-1">
+      {!isCollapsed && (
+        <div className="px-3 pb-1 pt-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-600">
+          {label}
+        </div>
+      )}
 
-    const toolItems = [
-        { id: 'niche-radar', label: 'Niche Radar', icon: Search, toolId: 'niche-radar' },
-        { id: 'script-studio', label: 'Script Studio', icon: FileText, toolId: 'script-studio' },
-        { id: 'video-pipeline', label: 'Video Pipeline', icon: Video, toolId: 'video-pipeline' },
-        { id: 'intelligence', label: 'Intelligence Hub', icon: Sparkles, toolId: 'intelligence-hub' },
-        { id: 'seo-tool', label: 'SEO Tool', icon: TrendingUp, toolId: 'seo-tool' },
-        { id: 'channels', label: 'Kênh của tôi', icon: BarChart3, path: '/dashboard/trends' },
-    ];
+      {items.map((item) => {
+        const Icon = item.icon;
+        const active = isActive(item);
 
-    const isActive = (item: any) => {
-        if (item.path) {
-            if (item.exact) return router.pathname === item.path;
-            return router.pathname.startsWith(item.path);
-        }
-        if (item.toolId) return activeTool === item.toolId;
-        return false;
-    };
+        return (
+          <button
+            key={item.id}
+            onClick={() => handleNavClick(item)}
+            className={`group relative flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition ${
+              active
+                ? "border-cyan-300/25 bg-cyan-300/10 text-white"
+                : "border-transparent text-slate-500 hover:border-white/10 hover:bg-white/[0.04] hover:text-slate-200"
+            }`}
+            title={isCollapsed ? ("toolId" in item ? copy.tools[item.toolId].title : getNavLabel(item.label)) : undefined}
+          >
+            <Icon size={19} strokeWidth={active ? 2.25 : 1.8} className={active ? "text-cyan-300" : ""} />
 
-    const handleNavClick = (item: any) => {
-        if (item.path) {
-            router.push(item.path);
-        } else if (item.toolId) {
-            if (onToolSelect) {
-                onToolSelect(item.toolId);
-            } else {
-                router.push('/dashboard?tool=' + item.toolId);
-            }
-        }
-    };
-
-    return (
-        <>
-            <div 
-                className={`bg-[#0D0D10] border-r border-gray-800 flex-shrink-0 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 ${
-                    isCollapsed ? 'w-20' : 'w-64'
-                }`}
-                onMouseEnter={() => setIsCollapsed(false)}
-                onMouseLeave={() => setIsCollapsed(true)}
-            >
-
-                {/* Logo */}
-                <div className="p-5 flex items-center justify-between border-b border-gray-800">
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/dashboard')}>
-                        <img
-                            src="/seenyt-logo.jpg"
-                            alt="SeenYT"
-                            className="w-10 h-10 rounded-xl shadow-lg"
-                        />
-                        {!isCollapsed && (
-                            <span className="text-xl font-bold text-white tracking-wide">SeenYT</span>
-                        )}
+            {!isCollapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold">{"toolId" in item ? copy.tools[item.toolId].title : getNavLabel(item.label)}</div>
+                  {item.description && (
+                    <div className="truncate text-[11px] text-slate-600">
+                      {"toolId" in item ? copy.tools[item.toolId].description : getNavLabel(item.description)}
                     </div>
-                    {!isCollapsed && (
-                        <button 
-                            onClick={() => setIsCollapsed(true)}
-                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                            <ChevronLeft size={18} className="text-gray-500" />
-                        </button>
-                    )}
+                  )}
                 </div>
+                {item.badge && (
+                  <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 text-[9px] font-black uppercase text-cyan-200">
+                    {item.badge}
+                  </span>
+                )}
+              </>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
 
-                {/* Navigation */}
-                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                    
-                    {/* Main Nav */}
-                    <div className="space-y-1">
-                        {navItems.map(item => {
-                            const Icon = item.icon;
-                            const active = isActive(item);
-                            
-                            return (
-                                <button
-                                    key={item.id}
-                                    onClick={() => handleNavClick(item)}
-                                    className={`
-                                        w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200
-                                        ${active 
-                                            ? 'bg-[#CDAD5A]/10 text-[#CDAD5A] font-bold border border-[#CDAD5A]/20' 
-                                            : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                        }
-                                    `}
-                                >
-                                    <Icon size={20} strokeWidth={active ? 2 : 1.5} className={active ? 'text-[#CDAD5A]' : ''} />
-                                    {!isCollapsed && (
-                                        <>
-                                            <span className="text-sm font-medium flex-1 text-left">{item.label}</span>
-                                            {item.badge && (
-                                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase ${item.badgeColor}`}>
-                                                    {item.badge}
-                                                </span>
-                                            )}
-                                        </>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
+  return (
+    <>
+      <aside
+        className={`fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-white/10 bg-[#070c12] transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-72"
+        }`}
+        onMouseEnter={() => setIsCollapsed(false)}
+        onMouseLeave={() => setIsCollapsed(true)}
+      >
+        <div className="flex items-center justify-between border-b border-white/10 p-5">
+          <button className="flex min-w-0 items-center gap-3" onClick={() => router.push("/dashboard")}>
+            <Image src="/seenyt-mark.png" alt="SeenYT" width={38} height={38} className="rounded-lg" />
+            {!isCollapsed && (
+              <div className="min-w-0 text-left">
+                <div className="text-lg font-black text-white">SeenYT</div>
+                <div className="truncate text-[11px] font-bold text-slate-500">YouTube Content OS</div>
+              </div>
+            )}
+          </button>
+          {!isCollapsed && (
+            <button onClick={() => setIsCollapsed(true)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white/10 hover:text-white">
+              <ChevronLeft size={18} />
+            </button>
+          )}
+        </div>
 
-                    {/* Divider */}
-                    <div className="h-px bg-gray-800/50 my-4"></div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          {renderNavGroup(copy.nav.main, primaryNav)}
+          <div className="my-4 h-px bg-white/10" />
+          {renderNavGroup(copy.nav.coreTools, toolNav)}
+          <div className="my-4 h-px bg-white/10" />
+          {renderNavGroup(copy.nav.accountGroup, accountNav)}
+        </nav>
 
-                    {/* Quick Tools */}
-                    {!isCollapsed && (
-                        <div className="text-[10px] font-bold text-gray-500 uppercase mb-2 px-3 tracking-wider">
-                            Công cụ nhanh
-                        </div>
-                    )}
-                    
-                    <div className="space-y-1">
-                        {toolItems.map(item => {
-                            const Icon = item.icon;
-                            const active = isActive(item);
-                            
-                            return (
-                                <button
-                                    key={item.id}
-                                    onClick={() => handleNavClick(item)}
-                                    className={`
-                                        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-                                        ${active 
-                                            ? 'bg-white/10 text-white font-bold border border-white/5' 
-                                            : 'text-gray-500 hover:bg-white/5 hover:text-gray-300 border border-transparent'
-                                        }
-                                    `}
-                                >
-                                    <Icon size={18} strokeWidth={1.5} />
-                                    {!isCollapsed && (
-                                        <span className="text-sm font-medium">{item.label}</span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Divider */}
-                    <div className="h-px bg-gray-800/50 my-4"></div>
-
-                    {/* More Links */}
-                    <div className="space-y-1">
-                        <button
-                            onClick={() => setShowCheckout(true)}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-white/5 hover:text-white transition-colors"
-                        >
-                            <CreditCard size={18} strokeWidth={1.5} />
-                            {!isCollapsed && <span className="text-sm font-medium">Mua thêm kênh</span>}
-                        </button>
-
-                        <Link
-                            href="/pricing"
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-white/5 hover:text-white transition-colors"
-                        >
-                            <Star size={18} strokeWidth={1.5} />
-                            {!isCollapsed && <span className="text-sm font-medium">Bảng giá</span>}
-                        </Link>
-
-                        <Link
-                            href="/guides"
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-white/5 hover:text-white transition-colors"
-                        >
-                            <Download size={18} strokeWidth={1.5} />
-                            {!isCollapsed && <span className="text-sm font-medium">Hướng dẫn</span>}
-                        </Link>
-                    </div>
-                </nav>
-
-                {/* User Profile */}
-                <div className="p-4 border-t border-gray-800">
-                    <div className="flex items-center gap-3">
-                        {/* Avatar - click to show popup */}
-                        <button
-                            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                            className="relative"
-                        >
-                            {userAvatar ? (
-                                <img 
-                                    src={userAvatar} 
-                                    alt="Avatar" 
-                                    className="w-10 h-10 rounded-xl object-cover hover:ring-2 hover:ring-white/20 transition-all"
-                                />
-                            ) : (
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm ${tierColor.bg} hover:ring-2 hover:ring-white/20 transition-all`}>
-                                    {userName.charAt(0).toUpperCase() || 'U'}
-                                </div>
-                            )}
-                            {!isCollapsed && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0D0D10]"></div>
-                            )}
-                        </button>
-                        
-                        {!isCollapsed && (
-                            <div className="flex-1 min-w-0">
-                                <div className="text-sm font-bold text-white truncate">
-                                    {userName || 'User'}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-xs ${tierColor.text} font-bold uppercase`}>
-                                        {userRole}
-                                    </span>
-                                    {daysLeftText && (
-                                        <span className="text-xs text-gray-500">
-                                            • {daysLeftText}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Settings Icon */}
-                        <button
-                            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                            <Settings size={16} className="text-gray-500 hover:text-white transition-colors" />
-                        </button>
-                    </div>
+        <div className="border-t border-white/10 p-4">
+          <button
+            onClick={() => setShowAccountMenu(true)}
+            className="flex w-full items-center gap-3 rounded-lg border border-transparent p-2 text-left hover:border-white/10 hover:bg-white/[0.04]"
+          >
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
+              {userAvatar ? (
+                <Image src={userAvatar} alt={userName} fill sizes="40px" className="object-cover" />
+              ) : (
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-black ${tierColor.bg} ${tierColor.text}`}>
+                  {userName.charAt(0).toUpperCase()}
                 </div>
+              )}
             </div>
 
-            {/* Settings Popup - Fixed position, outside sidebar */}
-            {showSettingsMenu && (
-                <>
-                    {/* Backdrop */}
-                    <div 
-                        className="fixed inset-0 z-[100]"
-                        onClick={() => setShowSettingsMenu(false)}
-                    />
-                    
-                    {/* Popup Menu */}
-                    <div 
-                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-[#1a1a20] border border-gray-700 rounded-2xl shadow-2xl p-3 z-[110] animate-fadeIn"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* User Info Header */}
-                        <div className="p-3 border-b border-gray-800 mb-2">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white text-lg ${tierColor.bg}`}>
-                                    {userRole.charAt(0)}
-                                </div>
-                                <div>
-                                    <div className="font-bold text-white">
-                                        {session?.user?.name || 'User'}
-                                    </div>
-                                    <div className={`text-xs ${tierColor.text} font-bold uppercase`}>
-                                        {userRole} Plan
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {/* Menu Items */}
-                        <Link
-                            href="/dashboard/settings"
-                            className="flex items-center gap-3 px-3 py-3 hover:bg-white/5 rounded-xl transition-colors"
-                            onClick={() => setShowSettingsMenu(false)}
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                <Settings size={16} className="text-blue-400" />
-                            </div>
-                            <div>
-                                <div className="text-sm font-medium text-white">Cài đặt tài khoản</div>
-                                <div className="text-xs text-gray-500">Hồ sơ, avatar, thông tin</div>
-                            </div>
-                        </Link>
-                        
-                        <Link
-                            href="/dashboard/subscription"
-                            className="flex items-center gap-3 px-3 py-3 hover:bg-white/5 rounded-xl transition-colors"
-                            onClick={() => setShowSettingsMenu(false)}
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                                <CreditCard size={16} className="text-amber-400" />
-                            </div>
-                            <div>
-                                <div className="text-sm font-medium text-white">Quản lý gói</div>
-                                <div className="text-xs text-gray-500">Nâng cấp, gia hạn, thanh toán</div>
-                            </div>
-                        </Link>
-                        
-                        {daysLeftText && userRole !== 'ADMIN' && (
-                            <div className="px-3 py-2 bg-amber-500/10 rounded-lg mx-1 mb-2">
-                                <div className="text-xs text-amber-400">
-                                    <Clock size={12} className="inline mr-1" />
-                                    Còn lại: <span className="font-bold">{daysLeftText}</span>
-                                </div>
-                            </div>
-                        )}
-                        
-                        <div className="h-px bg-gray-800 my-2"></div>
-                        
-                        <button
-                            onClick={() => {
-                                setShowSettingsMenu(false);
-                                signOut({ callbackUrl: '/' });
-                            }}
-                            className="w-full flex items-center gap-3 px-3 py-3 hover:bg-red-500/10 rounded-xl transition-colors"
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
-                                <LogOut size={16} className="text-red-400" />
-                            </div>
-                            <div>
-                                <div className="text-sm font-medium text-red-400">Đăng xuất</div>
-                            </div>
-                        </button>
-                    </div>
-                </>
+            {!isCollapsed && (
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-black text-white">{userName}</div>
+                <div className={`mt-0.5 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${tierColor.bg} ${tierColor.text} ${tierColor.border}`}>
+                  {userRole}
+                </div>
+              </div>
             )}
 
-            {/* Checkout Modal */}
-            <CheckoutModal
-                isOpen={showCheckout}
-                onClose={() => setShowCheckout(false)}
-                requiredPlan={userRole}
-                userEmail={session?.user?.email || ''}
-            />
+            {!isCollapsed && <Settings size={17} className="text-slate-500" />}
+          </button>
+        </div>
+      </aside>
+
+      {showAccountMenu && (
+        <>
+          <button className="fixed inset-0 z-[100] cursor-default" onClick={() => setShowAccountMenu(false)} aria-label="Close account menu" />
+          <div className="fixed left-1/2 top-1/2 z-[110] w-80 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-white/10 bg-[#111822] p-3 shadow-2xl">
+            <div className="border-b border-white/10 p-3">
+              <div className="text-sm font-black text-white">{userName}</div>
+              <div className={`mt-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${tierColor.bg} ${tierColor.text} ${tierColor.border}`}>
+                {userRole} plan
+              </div>
+            </div>
+
+            <div className="py-2">
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setShowAccountMenu(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold text-slate-300 hover:bg-white/[0.05] hover:text-white"
+              >
+                <Settings size={17} className="text-cyan-300" />
+                {copy.nav.accountSettings}
+              </Link>
+              <Link
+                href="/dashboard/subscription"
+                onClick={() => setShowAccountMenu(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold text-slate-300 hover:bg-white/[0.05] hover:text-white"
+              >
+                <CreditCard size={17} className="text-cyan-300" />
+                {copy.nav.planBilling}
+              </Link>
+            </div>
+
+            <div className="border-t border-white/10 pt-2">
+              <button
+                onClick={() => {
+                  setShowAccountMenu(false);
+                  signOut({ callbackUrl: "/" });
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold text-red-300 hover:bg-red-500/10"
+              >
+                <LogOut size={17} />
+                {copy.nav.signOut}
+              </button>
+            </div>
+          </div>
         </>
-    );
+      )}
+    </>
+  );
 }

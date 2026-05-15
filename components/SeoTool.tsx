@@ -230,14 +230,14 @@ export default function SeoTool({ onBack }: SeoToolProps) {
                     <div className="flex items-center gap-2">
                         <Brain className="text-[#00f3ff] animate-pulse" size={24} />
                         <div>
-                            <h1 className="text-lg font-black tracking-[0.2em] leading-none text-white drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]">ALPHA_STRATEGY</h1>
-                            <p className="text-[9px] text-[#00f3ff] tracking-widest opacity-80">INTELLIGENCE ENGINE V4.0</p>
+                            <h1 className="text-lg font-black tracking-[0.16em] leading-none text-white drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]">SEO TOOL</h1>
+                            <p className="text-[9px] text-[#00f3ff] tracking-widest opacity-80">PUBLISHING OPTIMIZATION</p>
                         </div>
                     </div>
                 </div>
                 <div className="hidden md:flex items-center gap-4 text-[10px] font-bold text-[#00f3ff]/60">
-                    <span className="flex items-center gap-1"><Cpu size={12} /> CORE: ONLINE</span>
-                    <span className="flex items-center gap-1"><Globe size={12} /> NETWORK: SECURE</span>
+                    <span className="flex items-center gap-1"><Cpu size={12} /> Workflow: Produce Video</span>
+                    <span className="flex items-center gap-1"><Globe size={12} /> Metadata ready</span>
                 </div>
             </header>
 
@@ -255,13 +255,13 @@ export default function SeoTool({ onBack }: SeoToolProps) {
 
                         <div className="p-4 bg-[#050b14]/90 rounded h-full flex flex-col">
                             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#00f3ff] mb-4">
-                                <FileText size={14} /> INPUT_DATA_STREAM
+                                <FileText size={14} /> VIDEO IDEA OR SCRIPT
                             </label>
 
                             <textarea
                                 value={coreIdea}
                                 onChange={e => setCoreIdea(e.target.value)}
-                                placeholder="> ENTER VIDEO CONCEPT OR RAW SCRIPT DATA..."
+                                placeholder="Paste a video idea, script, or rough metadata to optimize before upload..."
                                 className="w-full flex-grow min-h-[300px] bg-transparent border-none outline-none text-white placeholder-gray-600 font-mono text-sm resize-none custom-scrollbar"
                                 spellCheck={false}
                             ></textarea>
@@ -271,7 +271,7 @@ export default function SeoTool({ onBack }: SeoToolProps) {
                                     onClick={() => fileInputRef.current?.click()}
                                     className="px-4 py-2 bg-[#00f3ff]/10 hover:bg-[#00f3ff]/20 text-[#00f3ff] text-xs font-bold border border-[#00f3ff]/30 rounded transition-all flex items-center gap-2"
                                 >
-                                    <Layers size={14} /> LOAD_FILE
+                                    <Layers size={14} /> Upload file
                                 </button>
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
 
@@ -280,7 +280,7 @@ export default function SeoTool({ onBack }: SeoToolProps) {
                                     disabled={isLoading}
                                     className="flex-grow px-6 py-2 bg-[#00f3ff] hover:bg-[#fff] text-black text-xs font-bold tracking-widest rounded shadow-[0_0_15px_rgba(0,243,255,0.5)] transition-all disabled:opacity-50 disabled:shadow-none"
                                 >
-                                    {isLoading ? 'PROCESSING...' : 'RUN_ANALYSIS >>'}
+                                    {isLoading ? 'Optimizing...' : 'Optimize SEO'}
                                 </button>
                             </div>
                         </div>
@@ -299,8 +299,8 @@ export default function SeoTool({ onBack }: SeoToolProps) {
                                 <Brain className="absolute inset-0 m-auto text-[#00f3ff] animate-pulse" size={48} />
                             </div>
                             <div className="mt-8 text-center">
-                                <div className="text-[#00f3ff] font-bold text-lg tracking-[0.3em] animate-pulse">ANALYZING GEOMETRY</div>
-                                <div className="text-[#00f3ff]/60 text-xs mt-2">CALCULATING VIRAL VECTORS...</div>
+                                <div className="text-[#00f3ff] font-bold text-lg tracking-[0.2em] animate-pulse">OPTIMIZING METADATA</div>
+                                <div className="text-[#00f3ff]/60 text-xs mt-2">Checking title, hook, tags, and upload package...</div>
                             </div>
                         </div>
                     )}
@@ -309,8 +309,8 @@ export default function SeoTool({ onBack }: SeoToolProps) {
                     {!output && !isLoading && (
                         <div className="flex-grow flex flex-col items-center justify-center opacity-30 border-2 border-dashed border-[#00f3ff]/20 rounded-lg bg-[#00f3ff]/5">
                             <Activity size={80} className="text-[#00f3ff] mb-4" />
-                            <div className="text-2xl font-black tracking-widest text-[#00f3ff]">SYSTEM_READY</div>
-                            <p className="text-sm">AWAITING INPUT TO COMMENCE SIMULATION</p>
+                            <div className="text-2xl font-black tracking-widest text-[#00f3ff]">READY FOR SEO</div>
+                            <p className="text-sm">Paste a concept or script to build the upload package.</p>
                         </div>
                     )}
 

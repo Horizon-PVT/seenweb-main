@@ -4,6 +4,7 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { hasMinRole } from './tab-access';
+import { CHANNEL_LIMITS } from './roles';
 
 export interface ConnectedChannel {
   id: string;
@@ -28,7 +29,7 @@ export interface ChannelAccessState {
 }
 
 export function useChannelAccess() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [state, setState] = useState<ChannelAccessState>({
     channels: [],
     primaryChannel: null,
@@ -41,19 +42,11 @@ export function useChannelAccess() {
   });
 
   const userRole = (session?.user as any)?.role || 'FREE';
-  const userTier = (session?.user as any)?.tier || 'FREE';
   const extraSlots = (session?.user as any)?.extraChannelSlots || 0;
 
   // Calculate max channels based on plan
-  const getMaxChannels = (role: string, tier: string, extra: number): number => {
-    // Base on tier (creator hub v2)
-    const tierLimits: Record<string, number> = {
-      FREE: 1,
-      BASIC: 1,
-      PRO: 2,
-      ENTERPRISE: 10,
-    };
-    return (tierLimits[tier] || 1) + extra;
+  const getMaxChannels = (role: string, extra: number): number => {
+    return (CHANNEL_LIMITS[role] ?? CHANNEL_LIMITS.FREE) + extra;
   };
 
   useEffect(() => {
@@ -68,7 +61,7 @@ export function useChannelAccess() {
         const data = await res.json();
 
         const channels: ConnectedChannel[] = data.channels || [];
-        const maxChannels = getMaxChannels(userRole, userTier, extraSlots);
+        const maxChannels = getMaxChannels(userRole, extraSlots);
 
         setState({
           channels,
@@ -90,7 +83,7 @@ export function useChannelAccess() {
     };
 
     fetchChannels();
-  }, [session]);
+  }, [session, status, userRole, extraSlots]);
 
   return state;
 }

@@ -1,15 +1,69 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: 'https://seenyt.net', // ✅ Đổi thành domain production chính thức
-  generateRobotsTxt: true, // Tự động tạo robots.txt
+  siteUrl: "https://seenyt.net",
+  generateRobotsTxt: true,
   sitemapSize: 7000,
-  changefreq: 'weekly', // Hợp lý cho site content update đều
+  changefreq: "weekly",
   priority: 0.8,
-  exclude: ['/admin/*', '/dashboard/*', '/api/*'], // Không index page private (thêm dashboard cho chắc)
+  exclude: [
+    "/admin",
+    "/admin/*",
+    "/api/*",
+    "/dashboard",
+    "/dashboard/*",
+    "/affiliate",
+    "/affiliate/dashboard",
+    "/academy",
+    "/academy/*",
+    "/community",
+    "/extension-callback",
+    "/login",
+    "/login-test",
+    "/success",
+    "/welcome",
+    "/services",
+    "/coaching",
+    "/tools/*",
+    "/studio/*",
+    "/promotions",
+    "/tuyendung",
+    "/academy/zoom/vip-upgrade",
+  ],
+  additionalPaths: async () => [
+    { loc: "/", changefreq: "weekly", priority: 1.0 },
+    { loc: "/en", changefreq: "weekly", priority: 0.9 },
+    { loc: "/ja", changefreq: "weekly", priority: 0.9 },
+    { loc: "/pricing", changefreq: "weekly", priority: 0.8 },
+    { loc: "/guides", changefreq: "weekly", priority: 0.7 },
+    { loc: "/blog", changefreq: "weekly", priority: 0.7 },
+    { loc: "/legal", changefreq: "monthly", priority: 0.3 },
+    { loc: "/terms", changefreq: "monthly", priority: 0.3 },
+    { loc: "/privacy", changefreq: "monthly", priority: 0.3 },
+    { loc: "/contact", changefreq: "monthly", priority: 0.3 },
+  ],
   robotsTxtOptions: {
     policies: [
-      { userAgent: '*', allow: '/' },
-      { userAgent: '*', disallow: ['/admin', '/dashboard', '/api'] },
+      {
+        userAgent: "*",
+        allow: "/",
+      },
+      {
+        userAgent: "*",
+        disallow: [
+          "/admin",
+          "/api",
+          "/dashboard",
+          "/affiliate",
+          "/affiliate/dashboard",
+          "/academy",
+          "/login",
+          "/success",
+          "/services",
+          "/coaching",
+          "/tools",
+          "/studio",
+        ],
+      },
     ],
   },
 };

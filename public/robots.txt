@@ -5,8 +5,17 @@ Allow: /
 # *
 User-agent: *
 Disallow: /admin
-Disallow: /dashboard
 Disallow: /api
+Disallow: /dashboard
+Disallow: /affiliate
+Disallow: /affiliate/dashboard
+Disallow: /academy
+Disallow: /login
+Disallow: /success
+Disallow: /services
+Disallow: /coaching
+Disallow: /tools
+Disallow: /studio
 
 # Host
 Host: https://seenyt.net

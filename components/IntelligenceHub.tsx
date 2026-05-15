@@ -128,20 +128,20 @@ export default function IntelligenceHub({ onBack }: IntelligenceHubProps) {
     return (
         <div className="min-h-full bg-[#050b14] text-white font-sans overflow-x-hidden p-6">
             <Head>
-                <title>INTELLIGENCE HUB | SEENYT</title>
+                <title>Intelligence Hub - SeenYT</title>
             </Head>
 
             {/* Hero */}
             <div className="text-center mb-12">
                 <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 mb-4">
                     <BarChart3 size={14} className="text-blue-400" />
-                    <span className="text-blue-400 text-xs font-bold tracking-wider uppercase">All-in-One Research</span>
+                    <span className="text-blue-400 text-xs font-bold tracking-wider uppercase">Intelligence Hub</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
-                    Content Intelligence <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Super Hub</span>
+                    Content Signals for the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Next Move</span>
                 </h2>
                 <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                    Micro Niche + Rival Scanner + Hidden Channels + SEO Analysis — unified into one AI-powered research engine.
+                    Unify niche, trend, competitor, and channel insights for Launch Channel and Improve Channel workflows.
                 </p>
             </div>
 
@@ -155,7 +155,7 @@ export default function IntelligenceHub({ onBack }: IntelligenceHubProps) {
                                 type="text"
                                 value={keyword}
                                 onChange={e => setKeyword(e.target.value)}
-                                placeholder="e.g. AI productivity, Cooking..."
+                                placeholder="e.g. AI productivity, cooking, finance..."
                                 className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-all"
                             />
                         </div>
@@ -190,7 +190,7 @@ export default function IntelligenceHub({ onBack }: IntelligenceHubProps) {
                                                 : 'bg-black/40 text-gray-500 border-white/10 hover:border-white/20'
                                         }`}
                                     >
-                                        {m === 'VN' ? '🇻🇳 Vietnam' : '🌎 US/Global'}
+                                        {m === 'VN' ? 'Vietnam' : 'US / Global'}
                                     </button>
                                 ))}
                             </div>

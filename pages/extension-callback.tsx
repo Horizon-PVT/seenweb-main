@@ -1,5 +1,6 @@
 // pages/extension-callback.tsx - Callback page after login to sync with extension
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import Head from 'next/head';
 
@@ -64,12 +65,12 @@ export default function ExtensionCallback() {
                     <p className="text-slate-400 mb-6">
                         Vui lòng đăng nhập trước khi quay lại trang này.
                     </p>
-                    <a
+                    <Link
                         href="/login"
                         className="inline-block px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white font-bold rounded-xl"
                     >
                         Đăng nhập
-                    </a>
+                    </Link>
                 </div>
             </div>
         );

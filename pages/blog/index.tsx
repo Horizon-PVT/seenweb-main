@@ -1,6 +1,9 @@
-import { GetServerSideProps } from 'next';
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { GetServerSideProps } from "next";
+import Head from "next/head";
+import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { prisma } from "@/lib/prisma";
 
 interface Post {
   slug: string;
@@ -13,61 +16,69 @@ interface Post {
 export const getServerSideProps: GetServerSideProps<{ posts: Post[] }> = async () => {
   try {
     const posts = await prisma.blogPost.findMany({
-      where: { status: 'PUBLISHED' },
+      where: { status: "PUBLISHED" },
       include: { category: true },
-      orderBy: { publishedAt: 'desc' },
+      orderBy: { publishedAt: "desc" },
     });
 
     const serializedPosts = posts.map((post) => ({
       slug: post.slug,
       title: post.title,
-      summary: post.summary || '',
+      summary: post.summary || "",
       publishedAt: post.publishedAt?.toISOString() || post.createdAt.toISOString(),
       category: post.category ? { name: post.category.name } : null,
     }));
 
     return { props: { posts: serializedPosts } };
   } catch (error) {
-    console.error('Error loading posts:', error);
+    console.error("Error loading posts:", error);
     return { props: { posts: [] } };
   }
 };
 
-const BlogIndex: React.FC<{ posts: Post[] }> = ({ posts }) => {
+export default function BlogIndex({ posts }: { posts: Post[] }) {
   return (
-    <section className="min-h-screen bg-[#0A1929] py-16 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-[#CDAD5A] hover:text-[#CDAD5A]/80 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Trở về trang chủ
-          </Link>
-        </div>
-        <h1 className="text-6xl font-black text-center text-[#CDAD5A] mb-12 uppercase tracking-wider">BLOG & TÀI NGUYÊN SEENYT</h1>
+    <div className="min-h-screen bg-[#05080d] text-white">
+      <Head>
+        <title>Blog - SeenYT</title>
+        <meta name="description" content="SeenYT blog for YouTube creator workflows, niche research, production, SEO, and AI coaching." />
+      </Head>
+      <Header />
+      <main className="px-4 pb-20 pt-32 sm:px-6">
+        <section className="mx-auto max-w-4xl text-center">
+          <div className="mb-4 inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-4 py-2 text-sm font-black text-cyan-200">
+            Creator resources
+          </div>
+          <h1 className="text-4xl font-black sm:text-6xl">Blog & tài nguyên SeenYT</h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-400">
+            Bài viết về nghiên cứu ngách, sản xuất video, tối ưu SEO và vận hành kênh YouTube bằng workflow.
+          </p>
+        </section>
+
         {posts.length === 0 ? (
-          <p className="text-center text-[#CDAD5A] text-2xl">Chưa có bài viết nào được xuất bản</p>
+          <div className="mx-auto mt-14 max-w-2xl rounded-xl border border-white/10 bg-white/[0.04] p-8 text-center text-slate-400">
+            Chưa có bài viết nào được xuất bản.
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <section className="mx-auto mt-14 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="block bg-gray-900 rounded-xl p-8 hover:border-[#CDAD5A] border-2 border-transparent transition-all shadow-xl hover:shadow-[#CDAD5A]/40">
-                <h2 className="text-2xl font-bold text-white mb-4">{post.title}</h2>
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="rounded-xl border border-white/10 bg-white/[0.04] p-6 transition hover:border-cyan-300/50">
                 {post.category && (
-                  <span className="inline-block px-3 py-1 bg-[#008080] text-white text-xs font-bold rounded-full mb-3">
+                  <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs font-black text-cyan-200">
                     {post.category.name}
                   </span>
                 )}
-                <p className="text-gray-400 mb-4">{post.summary}</p>
-                <span className="text-sm text-gray-500">{new Date(post.publishedAt).toLocaleDateString('vi-VN')}</span>
-                <span className="text-[#008080] ml-4 font-bold">Đọc thêm →</span>
+                <h2 className="mt-4 text-2xl font-black text-white">{post.title}</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-400">{post.summary}</p>
+                <div className="mt-5 text-sm font-bold text-slate-500">
+                  {new Date(post.publishedAt).toLocaleDateString("vi-VN")}
+                </div>
               </Link>
             ))}
-          </div>
+          </section>
         )}
-      </div>
-    </section>
+      </main>
+      <Footer />
+    </div>
   );
-};
-
-export default BlogIndex;
+}

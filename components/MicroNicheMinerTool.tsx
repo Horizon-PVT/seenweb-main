@@ -335,13 +335,13 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
             @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
           `}} />
           <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-black mb-6 uppercase tracking-tight" style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #d97706 50%, #fbbf24 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'shimmer 3s infinite linear' }}>
-            DIGITAL GOLD MINE
+            NICHE RADAR
           </h1>
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light tracking-wide">
             {isVN
-              ? 'Hệ thống khai thác dữ liệu thị trường ngách tầng sâu.'
-              : 'Deep layer niche market data mining system.'} <br />
-            <span className="text-[#00F5FF]/80">{isVN ? 'Tìm kiếm cơ hội CPM cao từ dữ liệu thời gian thực.' : 'Discover high CPM opportunities in real-time.'}</span>
+              ? 'Tìm thị trường YouTube khả thi, góc nội dung và cơ hội phát triển kênh.'
+              : 'Find viable YouTube markets, content angles, and channel opportunities.'} <br />
+            <span className="text-[#00F5FF]/80">{isVN ? 'Bước đầu trong workflow Launch Channel.' : 'First step in the Launch Channel workflow.'}</span>
           </p>
         </div>
 
@@ -357,7 +357,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder={isVN ? "Nhập chủ đề lớn (VD: Tài chính, AI, Sức khỏe...)" : "Enter macro niche (e.g., Finance, AI, Health...)"}
+                placeholder={isVN ? "Nhập chủ đề lớn (VD: tài chính, AI, sức khỏe...)" : "Enter a broad topic (e.g., finance, AI, health...)"}
                 className="flex-grow bg-transparent border-none outline-none text-white focus:ring-0 placeholder:text-slate-600 text-lg font-medium py-4 px-2"
               />
               <button
@@ -365,7 +365,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
                 disabled={isLoading}
                 className="bg-[#CDAD5A] hover:bg-[#B6964A] text-[#0A0A0B] font-black uppercase text-xs tracking-widest px-8 py-4 rounded-lg flex items-center gap-2 transition-all active:scale-95 hover:shadow-[0_0_15px_rgba(205,173,90,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'MINING...' : (isVN ? 'KHAI THÁC' : 'MINE DATA')}
+                {isLoading ? 'Analyzing...' : (isVN ? 'Phân tích ngách' : 'Analyze niche')}
               </button>
             </div>
           </form>

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
-import { Zap, Lock, BarChart2, ExternalLink, Play, Loader2 } from 'lucide-react';
+import { Zap, Lock, BarChart2, Loader2 } from 'lucide-react';
 
 interface DailyIdea {
     title: string;
@@ -22,7 +22,7 @@ interface DailyIdeasCardProps {
     channelTitle: string;
 }
 
-export default function DailyIdeasCard({ role, channelId, channelTitle }: DailyIdeasCardProps) {
+export default function DailyIdeasCard({ role, channelId }: DailyIdeasCardProps) {
     const router = useRouter();
     const [ideas, setIdeas] = useState<DailyIdea[]>([]);
     const [loading, setLoading] = useState(false);
@@ -62,13 +62,6 @@ export default function DailyIdeasCard({ role, channelId, channelTitle }: DailyI
     };
 
     const isVIP = ['PRO', 'ADMIN'].includes(role);
-
-    const handleExecute = (idea: DailyIdea) => {
-        router.push({
-            pathname: '/tools/scriptwriter',
-            query: { idea: idea.title, hook: idea.mainHook }
-        });
-    };
 
     // Initial State: Show Button (Keep showing this while loading to show button spinner)
     if (!hasGenerated && !ideas.length && !error) return (

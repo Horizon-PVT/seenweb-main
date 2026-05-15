@@ -1,5 +1,6 @@
 // pages/login.tsx
 import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import Head from "next/head";
@@ -67,12 +68,12 @@ export default function LoginPage() {
                     </button>
 
                     <div className="mt-6 text-center">
-                        <a
+                        <Link
                             href="/"
                             className="text-gray-400 hover:text-white transition-colors text-sm"
                         >
                             ← Quay lại trang chủ
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

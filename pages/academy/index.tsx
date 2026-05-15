@@ -134,6 +134,7 @@ export default function AcademyHome({ featuredStrategyVideo, articles = [] }: { 
       <Head>
         <title>Học Viện SeenYT - Lộ Trình Xây Kênh Triệu View</title>
         <meta name="description" content="Chuyên đào tạo tư duy chiến lược và kỹ năng thực chiến kiếm tiền YouTube." />
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
 
       <div className="bg-[#050505] min-h-screen font-sans text-gray-200">

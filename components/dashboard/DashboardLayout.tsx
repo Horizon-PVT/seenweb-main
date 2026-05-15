@@ -10,7 +10,7 @@ interface DashboardLayoutProps {
     userRole?: string;
     title?: string;
     activeTool?: string | null;
-    onToolSelect?: (toolId: string | null) => void;
+    onToolSelect?: (_toolId: string | null) => void;
 }
 
 export default function DashboardLayout({

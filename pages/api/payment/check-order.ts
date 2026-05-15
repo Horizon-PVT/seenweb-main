@@ -1,10 +1,8 @@
-// pages/api/payment/check-order.ts
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
+import { processPaidPayment } from '@/lib/payment-processing';
 
-// PayOS API (Get payment link info)
 const PAYOS_API_URL = 'https://api-merchant.payos.vn/v2/payment-requests';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -19,7 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ success: false, message: 'Missing orderCode' });
         }
 
-        // 1. Find request in DB
         const paymentRequest = await prisma.paymentRequest.findUnique({
             where: { orderCode: String(orderCode) }
         });
@@ -28,21 +25,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        // 2. If already PAID, return success immediately
         if (paymentRequest.status === 'PAID') {
-            // Get user to check for license key
-            const user = await prisma.user.findUnique({ where: { email: paymentRequest.email } });
-            
+            const user = await prisma.user.findFirst({
+                where: { email: { equals: paymentRequest.email, mode: 'insensitive' } }
+            });
+
             return res.status(200).json({
                 success: true,
                 status: 'PAID',
                 message: 'Payment already confirmed',
+                amount: paymentRequest.amount,
+                purchasedPlan: paymentRequest.role,
                 licenseKey: user?.kodaLicenseKey || null,
                 kodaTier: user?.kodaTier || null
             });
         }
 
-        // 3. If NOT PAID, verify strictly with PayOS API
         try {
             const payosRes = await axios.get(`${PAYOS_API_URL}/${orderCode}`, {
                 headers: {
@@ -51,63 +49,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             });
 
-            // PayOS returns data: { code: '00', data: { status: 'PAID', ... } }
-            if (payosRes.data && payosRes.data.code === '00' && payosRes.data.data.status === 'PAID') {
-                console.log(`[CHECK-ORDER] Order ${orderCode} found PAID on PayOS but PENDING in DB. Updating...`);
-
-                // --- DUPLICATE LOGIC FROM WEBHOOK (Safe to extract to shared function later) ---
-
-                // Get User
-                let user = await prisma.user.findUnique({ where: { email: paymentRequest.email } });
-
-                // Determine credits
-                let dubbingCreditsToAdd = 0;
-                if (paymentRequest.role === 'BASIC') dubbingCreditsToAdd = 10;
-                else if (paymentRequest.role === 'PRO') dubbingCreditsToAdd = 30;
-
-                // Create or Update User
-                if (!user) {
-                    user = await prisma.user.create({
-                        data: {
-                            email: paymentRequest.email,
-                            role: paymentRequest.role,
-                            membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                            dubbingCredits: dubbingCreditsToAdd,
-                        }
-                    });
-                } else {
-                    const currentExpiry = user.membershipExpiry || new Date();
-                    const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
-
-                    user = await prisma.user.update({
-                        where: { id: user.id },
-                        data: {
-                            role: paymentRequest.role,
-                            membershipExpiry: new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000),
-                            dubbingCredits: { increment: dubbingCreditsToAdd },
-                        }
-                    });
-                }
-
-                // Update Payment Request
-                await prisma.paymentRequest.update({
-                    where: { id: paymentRequest.id },
-                    data: {
-                        status: 'PAID',
-                        paidAt: new Date(),
-                        userId: user.id,
-                        txn: payosRes.data.data.transactions?.[0]?.reference || null,
-                    }
+            if (payosRes.data?.code === '00' && payosRes.data?.data?.status === 'PAID') {
+                const result = await processPaidPayment({
+                    orderCode,
+                    txn: payosRes.data.data.transactions?.[0]?.reference || payosRes.data.data.transactionDateTime || null,
                 });
-
-                // --- END LOGIC ---
 
                 return res.status(200).json({
                     success: true,
                     status: 'PAID',
-                    message: 'Payment confirmed via PayOS API check',
-                    licenseKey: user?.kodaLicenseKey || null,
-                    kodaTier: user?.kodaTier || null
+                    message: result.processed ? 'Payment confirmed via PayOS API check' : 'Payment already processed',
+                    amount: paymentRequest.amount,
+                    purchasedPlan: paymentRequest.role,
+                    licenseKey: result.licenseKey || result.user?.kodaLicenseKey || null,
+                    kodaTier: result.user?.kodaTier || null
                 });
             }
 
@@ -116,13 +71,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 status: 'PENDING',
                 message: 'Payment still pending on PayOS'
             });
-
         } catch (payosError: any) {
             console.error('PayOS API Check Error:', payosError.response?.data || payosError.message);
-            // If PayOS error, assumt not paid or invalid
             return res.status(400).json({ success: false, message: 'Could not verify with PayOS' });
         }
-
     } catch (error: any) {
         console.error('Check Order Error:', error);
         return res.status(500).json({ success: false, error: error.message });

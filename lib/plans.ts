@@ -30,7 +30,7 @@ export const PLAN_PRICES = {
     role: 'FACTORY',
     tools: ['*'], // All tools
     aiCoachLimit: 50,
-    channelLimit: 2,
+    channelLimit: 5,
     licenseIncludes: ['Koda Studio', 'Koda Novel', 'Koda Factory'],
   },
   AGENCY: {
@@ -64,7 +64,7 @@ export const PLAN_LIMITS = {
     USER: 0,
     STARTER: 1,
     CREATOR: 2,
-    FACTORY: 2,
+    FACTORY: 5,
     AGENCY: 5,
     ENTERPRISE: 10,
     ADMIN: 999

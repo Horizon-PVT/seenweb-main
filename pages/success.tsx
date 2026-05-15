@@ -8,7 +8,6 @@ export default function SuccessPage() {
   const [status, setStatus] = useState<'loading' | 'activating' | 'success' | 'error'>('loading');
   const [licenseKey, setLicenseKey] = useState<string | null>(null);
   const [kodaTier, setKodaTier] = useState<string | null>(null);
-  const [purchasedPlan, setPurchasedPlan] = useState<string | null>(null);
 
   const { code, desc, status: payStatus, orderCode } = router.query;
 
@@ -42,37 +41,34 @@ export default function SuccessPage() {
             setLicenseKey(data.licenseKey);
             setKodaTier(data.kodaTier);
           }
-          if (data.purchasedPlan) {
-            setPurchasedPlan(data.purchasedPlan);
-          }
-
           setStatus('activating');
 
           // 2. Force Session Update & Retry Loop
           let attempt = 0;
-          let updatedRole = (session?.user as any)?.role;
+          let activated = false;
 
           // Try up to 3 times to get the updated role
           while (attempt < 3) {
             console.log(`Session update attempt ${attempt + 1}...`);
             const newSession = await update();
-            updatedRole = (newSession?.user as any)?.role;
+            const updatedRole = (newSession?.user as any)?.role;
+            const hasMasterclass = (newSession?.user as any)?.hasMasterclass === true;
 
             console.log("Role after update:", updatedRole);
 
             // If we detect a role upgrade (anything other than FREE, assuming they bought something), break.
             // Adjust logic if user was already VIP extendng - verifying specific role match might be harder without passing it back, 
             // but usually 'FREE' -> 'PRO' is the case.
-            if (updatedRole !== 'FREE') {
+            if (updatedRole !== 'FREE' || hasMasterclass) {
               // Determine redirect URL — Academy access is determined by hasMasterclass flag, NOT role
-              const redirectUrl = (newSession?.user as any)?.hasMasterclass ? '/academy' : '/dashboard';
+              const redirectUrl = hasMasterclass ? '/academy' : '/dashboard';
+              activated = true;
 
               // 3. Final Success
               setStatus('success');
 
               // GTM Event
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const w: any = window;
+              const w = window as Window & { dataLayer?: unknown[] };
               w.dataLayer = w.dataLayer || [];
               w.dataLayer.push({
                 event: 'purchase_success',
@@ -84,11 +80,9 @@ export default function SuccessPage() {
               });
 
               // Redirect after short delay
-              if (!(newSession?.user as any)?.hasMasterclass) {
-                setTimeout(() => {
-                  window.location.href = redirectUrl;
-                }, 3000);
-              }
+              setTimeout(() => {
+                window.location.href = redirectUrl;
+              }, 3000);
 
               break;
             }
@@ -99,11 +93,11 @@ export default function SuccessPage() {
           }
 
           // If loop finishes without success state
-          if (status !== 'success') {
+          if (!activated) {
             setStatus('success');
-            // Fallback redirect
+            const redirectUrl = data.purchasedPlan === 'MASTERCLASS' ? '/academy' : '/dashboard';
             setTimeout(() => {
-              window.location.href = '/dashboard';
+              window.location.href = redirectUrl;
             }, 3000);
           }
 

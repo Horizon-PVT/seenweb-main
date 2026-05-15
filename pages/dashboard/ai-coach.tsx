@@ -4,9 +4,8 @@ import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { MessageSquare, Plus, ChevronDown, ChevronRight, Paperclip, Sparkles, Clock, ArrowRight, Trash2, Home, Settings, ExternalLink, Zap, LayoutTemplate, Mic, Download, X, Crown, Check, ShoppingCart, CreditCard, PlayCircle } from 'lucide-react';
-import { TOOLS } from '@/lib/tool-config';
+import { MessageSquare, Plus, ChevronDown, ChevronRight, Paperclip, Sparkles, Clock, ArrowRight, Trash2, Home, Settings, ExternalLink, Zap, LayoutTemplate, Mic, Download, X, Crown, Check, CreditCard, PlayCircle } from 'lucide-react';
+import { VISIBLE_TOOLS } from '@/lib/tool-config';
 import { PROMPT_TEMPLATES } from '@/lib/ai-coach-templates';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -57,7 +56,6 @@ export default function AICoachPage() {
     const [isRecording, setIsRecording] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
-    const [showEcosystem, setShowEcosystem] = useState(false);
     const [aiSettings, setAISettings] = useState<{
         nickname?: string;
         channelInfo?: string;
@@ -508,69 +506,34 @@ export default function AICoachPage() {
 
                         {/* CÔNG CỤ CỦA TÔI section removed as requested */}
 
-                        {/* HỆ SINH THÁI SEENYT */}
+                        {/* Creator workspace links */}
                         {!sidebarCollapsed && (
                             <>
-                                <div className="flex flex-col mt-4">
-                                    <div
-                                        onClick={() => setShowEcosystem(!showEcosystem)}
-                                        className={`flex items-center justify-between px-3 py-2 cursor-pointer rounded-lg hover:bg-white/5 transition-colors ${showEcosystem ? 'text-blue-400' : 'text-gray-400'}`}
-                                    >
-                                        <span className="text-[12px] font-semibold tracking-wide text-blue-400">HỆ SINH THÁI SEENYT</span>
-                                        <ChevronDown size={14} className={`transition-transform duration-300 ${showEcosystem ? 'rotate-180 text-blue-400' : 'text-gray-500'}`} />
-                                    </div>
+                                <div className="h-px bg-white/5 my-4 mx-3"></div>
 
-                                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showEcosystem ? 'max-h-[400px] opacity-100 mt-1 mb-2' : 'max-h-0 opacity-0'}`}>
-                                        <div className="flex flex-col gap-0.5 border-l border-blue-900/50 ml-4 pl-2">
-                                            <Link href="/academy" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
-                                                <span className="text-sm">🎓</span>
-                                                <span className="text-[13px] font-normal truncate flex-1">Academy</span>
-                                            </Link>
-                                            <Link href="/coaching" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
-                                                <span className="text-sm">🧑‍🏫</span>
-                                                <span className="text-[13px] font-normal truncate flex-1">Huấn luyện 1-1</span>
-                                            </Link>
-                                            <Link href="/services" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-[#CDAD5A] hover:text-yellow-300 hover:bg-yellow-500/10 font-medium">
-                                                <span className="text-sm">🚀</span>
-                                                <span className="text-[13px] font-medium truncate flex-1">Dịch vụ</span>
-                                            </Link>
-                                            <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-400 hover:text-white hover:bg-blue-500/10">
-                                                <span className="text-sm">👤</span>
-                                                <span className="text-[13px] font-normal truncate flex-1">Cá nhân</span>
-                                            </Link>
-                                            <Link href="/affiliate" className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-[#00a3a3] hover:text-[#4ddcdc] hover:bg-teal-500/10">
-                                                <span className="text-sm">🤝</span>
-                                                <span className="text-[13px] font-normal truncate flex-1">Affiliate</span>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Bottom Utility Links */}
-                                <div className="h-px bg-white/5 my-2 mx-3"></div>
-
-                                <div
+                                <button
+                                    onClick={() => router.push('/dashboard?workflow=launch-channel')}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group mb-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
                                 >
-                                    <ShoppingCart size={18} />
-                                    <span className="text-sm font-medium">Mua thêm kênh</span>
-                                </div>
+                                    <LayoutTemplate size={18} />
+                                    <span className="text-sm font-medium">Workflow làm kênh</span>
+                                </button>
 
-                                <Link
-                                    href="/pricing"
+                                <button
+                                    onClick={() => router.push('/dashboard/subscription')}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group mb-1 text-gray-400 hover:text-white hover:bg-white/5"
                                 >
                                     <CreditCard size={18} className="group-hover:text-emerald-400 transition-colors" />
-                                    <span className="text-sm font-medium">Bảng giá</span>
-                                </Link>
+                                    <span className="text-sm font-medium">Gói và thanh toán</span>
+                                </button>
 
-                                <Link
-                                    href="/guides"
+                                <button
+                                    onClick={() => router.push('/guides')}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group mb-1 text-gray-400 hover:text-white hover:bg-white/5"
                                 >
                                     <PlayCircle size={18} className="group-hover:text-red-400 transition-colors" />
-                                    <span className="text-sm font-medium">Hướng dẫn sử dụng tools</span>
-                                </Link>
+                                    <span className="text-sm font-medium">Hướng dẫn sử dụng</span>
+                                </button>
                             </>
                         )}
 
@@ -869,10 +832,10 @@ export default function AICoachPage() {
                                             </button>
                                             {showToolsDropdown && (
                                                 <div className="absolute bottom-full left-0 mb-2 w-56 max-h-64 overflow-y-auto bg-[#0d0d10] border border-white/10 rounded-xl shadow-2xl z-[100] custom-scrollbar">
-                                                    {TOOLS.filter(t => t.status !== 'construction').slice(0, 8).map(t => {
+                                                    {VISIBLE_TOOLS.map(t => {
                                                         const Icon = t.icon;
                                                         return (
-                                                            <button key={t.id} onClick={() => { router.push(`/dashboard?tool=${t.id}`); setShowToolsDropdown(false); }}
+                                                            <button key={t.id} onClick={() => { router.push(t.route || `/dashboard?tool=${t.id}`); setShowToolsDropdown(false); }}
                                                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/5 transition-all">
                                                                 <Icon size={16} className={t.color || ''} /> {t.label}
                                                             </button>

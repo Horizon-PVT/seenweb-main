@@ -146,7 +146,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
 
   return (
     <div className="h-full bg-[#050a05] text-[#00ff41] font-mono overflow-x-hidden selection:bg-[#003b00] selection:text-[#00ff41] overflow-y-auto">
-      {/* <Head> <title>RIVAL SCANNER | MILITARY GRADE INTELLIGENCE</title> </Head> */}
+      {/* Rival Scanner stays focused on competitor patterns inside the Launch Channel workflow. */}
 
       {/* CRT OVERLAY */}
       <div className="absolute inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(0,255,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_2px,3px_100%]"></div>
@@ -157,24 +157,24 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
         <div className="flex items-center gap-4">
           {onBack && (
             <button onClick={onBack} className="flex items-center gap-2 hover:bg-[#003b00] px-3 py-1 rounded transition-colors text-xs font-bold tracking-widest uppercase">
-              <ChevronLeft size={14} /> {t('toolUI.rival.abort')}
+              <ChevronLeft size={14} /> {t('toolUI.rival.abort', 'Back to workflow')}
             </button>
           )}
           <div className="h-6 w-px bg-[#003b00]"></div>
           <div className="flex items-center gap-2 text-[#00ff41] animate-pulse">
             <Radar size={18} />
-            <span className="font-bold tracking-[0.2em]">{t('toolUI.rival.title')}</span>
+            <span className="font-bold tracking-[0.2em]">{t('toolUI.rival.title', 'Rival Scanner')}</span>
           </div>
         </div>
         <div className="flex items-center gap-6 text-[10px] text-[#008f11]">
           <span className="flex items-center gap-2">
-            <Wifi size={12} /> {t('toolUI.rival.status')}
+            <Wifi size={12} /> {t('toolUI.rival.status', 'Competitor research')}
           </span>
           <span className="flex items-center gap-2">
-            <Activity size={12} /> {t('toolUI.rival.sys_load')}: {Math.floor(Math.random() * 30) + 10}%
+            <Activity size={12} /> {t('toolUI.rival.sys_load', 'Signal load')}: {Math.floor(Math.random() * 30) + 10}%
           </span>
           <span className="text-[#00ff41] font-bold border border-[#00ff41] px-2 py-0.5 rounded">
-            {t('toolUI.rival.confidential')}
+            {t('toolUI.rival.confidential', 'Workflow signal')}
           </span>
         </div>
       </header>
@@ -193,7 +193,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t('toolUI.rival.placeholder')}
+              placeholder={t('toolUI.rival.placeholder', 'Paste a competitor channel URL or handle...')}
               className="bg-transparent border-none outline-none flex-1 p-4 text-[#00ff41] placeholder-[#003b00] font-bold tracking-widest uppercase"
               disabled={isLoading}
             />
@@ -202,7 +202,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
               disabled={isLoading}
               className="bg-[#003b00] hover:bg-[#00ff41] hover:text-black text-[#00ff41] px-8 py-3 rounded font-bold tracking-widest uppercase transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? t('toolUI.rival.scanning') : t('toolUI.rival.scan_btn')}
+              {isLoading ? t('toolUI.rival.scanning', 'Scanning...') : t('toolUI.rival.scan_btn', 'Scan rival')}
             </button>
           </form>
         </div>

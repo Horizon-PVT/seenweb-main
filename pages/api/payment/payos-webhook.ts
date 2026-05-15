@@ -1,14 +1,21 @@
-// pages/api/payment/payos-webhook.ts
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import axios from 'axios';
 import crypto from 'crypto';
-import { USAGE_LIMITS } from '@/lib/roles';
-import { sendMasterclassWelcomeEmail } from '@/lib/email';
+import { processPaidPayment } from '@/lib/payment-processing';
+
+function verifyPayOSSignature(data: Record<string, any>, signature: string): boolean {
+    if (!process.env.PAYOS_CHECKSUM_KEY) return false;
+    const sortedKeys = Object.keys(data).sort();
+    const signData = sortedKeys.map(key => `${key}=${data[key]}`).join('&');
+    const calculatedSignature = crypto
+        .createHmac('sha256', process.env.PAYOS_CHECKSUM_KEY)
+        .update(signData)
+        .digest('hex');
+    return calculatedSignature === signature;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    // Allow GET for PayOS verification check
     if (req.method === 'GET') {
         return res.status(200).json({
             success: true,
@@ -23,9 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         const webhookData = req.body;
 
-        // Handle empty request (verification)
         if (!webhookData || Object.keys(webhookData).length === 0) {
-            console.log('PayOS verification request received (empty body)');
             return res.status(200).json({
                 success: true,
                 message: 'Webhook verification successful'
@@ -34,286 +39,79 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const { code, desc, data, signature } = webhookData;
 
-        // Verify PayOS Signature to prevent spoofing
-        if (data && signature) {
-            const sortedKeys = Object.keys(data).sort();
-            const signData = sortedKeys.map(key => `${key}=${data[key]}`).join('&');
-            const calculatedSignature = crypto.createHmac('sha256', process.env.PAYOS_CHECKSUM_KEY!).update(signData).digest('hex');
-            
-            if (calculatedSignature !== signature) {
-                console.error('🚨 CRITICAL: PayOS Webhook invalid signature. Possible spoofing attack!');
-                return res.status(200).json({ success: false, message: 'Invalid signature' });
-            }
-        }
-
-        // Log incoming webhook
-        console.log('PayOS Webhook received:', JSON.stringify(webhookData));
-
-        // Handle if no code provided (verification/test)
         if (code === undefined || code === null) {
-            console.log('PayOS test webhook received (no code)');
             return res.status(200).json({
                 success: true,
                 message: 'Webhook is ready'
             });
         }
 
-        // Check if payment was successful (code 00)
         if (code !== '00') {
-            console.log(`Payment not successful: ${desc}`);
             return res.status(200).json({
                 success: true,
-                message: 'Payment not successful, no action taken'
+                message: `Payment not successful: ${desc || 'unknown'}`
             });
         }
 
-        // Get orderCode from data
-        const orderCode = data?.orderCode;
+        if (!data || !signature || !verifyPayOSSignature(data, signature)) {
+            console.error('[PayOS] Invalid or missing webhook signature.');
+            return res.status(200).json({ success: false, message: 'Invalid signature' });
+        }
+
+        const orderCode = data.orderCode;
         if (!orderCode) {
-            console.log('No orderCode in webhook data - treating as test');
             return res.status(200).json({
                 success: true,
-                message: 'Webhook received (no orderCode - test data)'
+                message: 'Webhook received without orderCode'
             });
         }
 
-        // Find payment request in database
-        const paymentRequest = await prisma.paymentRequest.findUnique({
-            where: { orderCode: String(orderCode) }
+        const result = await processPaidPayment({
+            orderCode,
+            txn: data?.transactionDateTime || null,
         });
 
-        if (!paymentRequest) {
-            console.log(`Payment not found for orderCode: ${orderCode} - possibly test data`);
+        if (result.reason === 'ORDER_NOT_FOUND') {
             return res.status(200).json({
                 success: true,
-                message: 'Webhook received (order not found - test data)'
+                message: 'Webhook received for unknown orderCode'
             });
         }
 
-        // Check if already processed
-        if (paymentRequest.status === 'PAID') {
-            console.log(`Payment ${orderCode} already processed`);
-            return res.status(200).json({
-                success: true,
-                message: 'Payment already processed'
-            });
-        }
-
-        // Parse payment info
-        const paymentInfo = paymentRequest.paymentInfo
-            ? JSON.parse(paymentRequest.paymentInfo)
-            : {};
-
-        // Normalize email to lowercase for case-insensitive matching
-        const normalizedEmail = paymentRequest.email.toLowerCase();
-
-        // Find or create user (case-insensitive email lookup)
-        let user = await prisma.user.findFirst({
-            where: {
-                email: {
-                    equals: normalizedEmail,
-                    mode: 'insensitive'
-                }
-            }
-        });
-
-        // Calculate dubbing credits based on role
-        let dubbingCreditsToAdd = 0;
-        if (['STARTER', 'BASIC'].includes(paymentRequest.role)) dubbingCreditsToAdd = 10;
-        else if (['CREATOR', 'PRO'].includes(paymentRequest.role)) dubbingCreditsToAdd = 30;
-        else if (['FACTORY'].includes(paymentRequest.role)) dubbingCreditsToAdd = 50;
-        else if (['AGENCY', 'ENTERPRISE'].includes(paymentRequest.role)) dubbingCreditsToAdd = 100;
-        // MASTERCLASS does not currently add dubbing credits.
-
-        // ... (User find/create logic above)
-
-        // LOGIC TO DETERMINE UPGRADE TYPE
-        // Read explicit data from paymentInfo instead of parsing text
-        const billingCycle = (paymentInfo.billingCycle || 'MONTHLY').toString().toUpperCase();
-        const isSlotUpgrade = paymentInfo.isSlotUpgrade === true;
-        let extraSlotsToAdd = isSlotUpgrade ? (parseInt(paymentInfo.extraChannelSlots) || 1) : 0;
-
-        // Membership duration based on billing cycle
-        const membershipDays = billingCycle === 'YEARLY' ? 365 : billingCycle === 'SIX_MONTHS' ? 180 : 30;
-
-        // 2. Logic to update User
-        if (!user) {
-            // New User Creation
-            const initialRole = isSlotUpgrade ? 'PRO' : (paymentRequest.role === 'MASTERCLASS' ? 'FREE' : paymentRequest.role);
-            user = await prisma.user.create({
-                data: {
-                    email: normalizedEmail, // Use normalized lowercase email
-                    role: initialRole,
-                    hasMasterclass: paymentRequest.role === 'MASTERCLASS',
-                    extraChannelSlots: isSlotUpgrade ? extraSlotsToAdd : 0,
-                    membershipExpiry: paymentRequest.role === 'MASTERCLASS' ? null : new Date(Date.now() + membershipDays * 24 * 60 * 60 * 1000),
-                    dubbingCredits: 10, // Default starter
-                    maxDailyUsage: USAGE_LIMITS[initialRole as keyof typeof USAGE_LIMITS] || 3,
-                }
-            });
-        } else {
-            const currentExpiry = user.membershipExpiry || new Date();
-            const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
-
-            // Prepare update data — extend by correct number of days based on billing cycle
-            const updateData: any = {
-                membershipExpiry: new Date(baseDate.getTime() + membershipDays * 24 * 60 * 60 * 1000),
-            };
-
-            // If it's a Slot Upgrade, increment slots, DO NOT change role
-            if (isSlotUpgrade) {
-                updateData.extraChannelSlots = { increment: extraSlotsToAdd };
-                // Keep role as is.
-            } else if (paymentRequest.role === 'MASTERCLASS') {
-                // Masterclass course purchase - Lifetime access with no tool tier change
-                updateData.hasMasterclass = true;
-                // DO NOT update membershipExpiry since Masterclass doesn't extend Tool usage
-                delete updateData.membershipExpiry;
-            } else {
-                // Normal Plan Upgrade
-                updateData.role = paymentRequest.role;
-                updateData.dubbingCredits = { increment: dubbingCreditsToAdd };
-                // FIX: Update quota limit based on new role
-                updateData.maxDailyUsage = USAGE_LIMITS[paymentRequest.role as keyof typeof USAGE_LIMITS];
-            }
-
-            user = await prisma.user.update({
-                where: { id: user.id },
-                data: updateData
-            });
-        }
-
-        // Update payment request status
-        await prisma.paymentRequest.update({
-            where: { id: paymentRequest.id },
-            data: {
-                status: 'PAID',
-                paidAt: new Date(),
-                userId: user.id,
-                txn: data?.transactionDateTime || null,
-            }
-        });
-
-        // Handle affiliate commission
-        if (paymentInfo.referralCode) {
+        if (result.processed) {
             try {
-                const referrer = await prisma.user.findUnique({
-                    where: { affiliateCode: paymentInfo.referralCode }
+                const paymentRequest = await prisma.paymentRequest.findUnique({
+                    where: { orderCode: String(orderCode) },
                 });
+                const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+                const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-                if (referrer) {
-                    const commissionRate = parseFloat(process.env.AFF_RATE_NEW || '0.30');
-                    const commissionAmount = paymentRequest.amount * commissionRate;
+                if (paymentRequest && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+                    const licenseInfo = result.licenseKey ? `\nLicense Key: ${result.licenseKey}` : '';
+                    const msg = `THANH TOAN THANH CONG\n------------------------------------\n- Khach: ${paymentRequest.email}\n- So tien: ${paymentRequest.amount.toLocaleString('vi-VN')} d\n- Goi: ${paymentRequest.role}\n- Ma don: ${orderCode}${licenseInfo}\n------------------------------------\nGoi da duoc kich hoat tu dong.`;
 
-                    await prisma.commission.create({
-                        data: {
-                            referrerId: referrer.id,
-                            referredUserId: user.id,
-                            paymentRequestId: paymentRequest.id,
-                            type: 'NEW',
-                            amount: commissionAmount,
-                            status: 'APPROVED',
-                            approvedAt: new Date(),
-                        }
-                    });
-
-                    await prisma.user.update({
-                        where: { id: referrer.id },
-                        data: {
-                            totalCommission: { increment: commissionAmount }
-                        }
+                    await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: msg,
                     });
                 }
             } catch (err) {
-                console.error('Error processing commission:', err);
+                console.error('[PayOS] Error sending Telegram:', err);
             }
         }
 
-        // Send Welcome Email if this is a Masterclass purchase
-        if (paymentRequest.role === 'MASTERCLASS') {
-            try {
-                const userName = user.name || user.email.split('@')[0];
-                await sendMasterclassWelcomeEmail(user.email, userName);
-                console.log(`Sent automated Welcome Email to Masterclass student: ${user.email}`);
-            } catch (emailErr) {
-                console.error('Failed to send Masterclass welcome email:', emailErr);
-            }
-        }
-
-        // =================== AUTO LICENSE KEY GENERATION (VPS KODA) ===================
-        // If the purchased plan includes desktop tools, we auto-call the VPS license server
-        let generatedLicenseKey: string | null = null;
-        const plansWithLicense = ['CREATOR', 'FACTORY', 'AGENCY', 'ENTERPRISE'];
-        const purchasedRole = paymentRequest.role;
-
-        if (plansWithLicense.includes(purchasedRole)) {
-            try {
-                // Map SeenWeb role to VPS tier
-                let vpsTier = 'creator'; // Default for CREATOR
-                if (purchasedRole === 'FACTORY') vpsTier = 'factory';
-                if (purchasedRole === 'AGENCY') vpsTier = 'agency';
-                if (purchasedRole === 'ENTERPRISE') vpsTier = 'enterprise';
-
-                const vpsResponse = await axios.post('http://47.250.174.44/api/admin/create-license', {
-                    adminSecret: 'koda-admin-2026',
-                    tier: vpsTier,
-                    owner: `${paymentRequest.email} (Web Auto)`,
-                    expiresInDays: membershipDays
-                }, { timeout: 10000 }); // 10s timeout
-
-                if (vpsResponse.data?.success && vpsResponse.data?.licenseKey) {
-                    generatedLicenseKey = vpsResponse.data.licenseKey;
-                    
-                    // Save license key to user profile
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: {
-                            kodaLicenseKey: generatedLicenseKey,
-                            kodaTier: vpsTier
-                        }
-                    });
-                    console.log(`[Auto License] ✅ Generated ${generatedLicenseKey} for ${paymentRequest.email} (tier: ${vpsTier}, days: ${membershipDays})`);
-                }
-            } catch (licErr: any) {
-                console.error('[Auto License] ❌ Failed to generate license from VPS:', licErr.message);
-                // Non-blocking: payment still succeeds, admin can manually create key later
-            }
-        }
-
-        // Send Telegram notification directly
-        try {
-            const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-            const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-
-            if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-                const licenseInfo = generatedLicenseKey 
-                    ? `\n🔑 License Key: ${generatedLicenseKey}` 
-                    : '';
-                const msg = `✅ THANH TOÁN THÀNH CÔNG!\n------------------------------------\n- Khách: ${paymentRequest.email}\n- Số tiền: ${paymentRequest.amount.toLocaleString('vi-VN')} đ\n- Gói: ${paymentInfo.plan || 'N/A'} (${paymentRequest.role})\n- Mã đơn: ${orderCode}${licenseInfo}\n------------------------------------\nGói đã được kích hoạt tự động! 🎉`;
-
-                await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: msg,
-                    parse_mode: 'HTML',
-                });
-                console.log('Telegram notification sent successfully');
-            } else {
-                console.log('Telegram not configured - skipping notification');
-            }
-        } catch (err) {
-            console.error('Error sending Telegram:', err);
-        }
-
-        // Return success
         return res.status(200).json({
             success: true,
-            message: 'Payment processed successfully',
-            data: { userId: user.id, email: user.email, role: user.role, licenseKey: generatedLicenseKey }
+            message: result.processed ? 'Payment processed successfully' : 'Payment already processed',
+            data: {
+                userId: result.user?.id,
+                email: result.user?.email,
+                role: result.user?.role,
+                licenseKey: result.licenseKey,
+            }
         });
-
     } catch (error: any) {
-        console.error("Error processing webhook:", error);
-        // Still return 200 to avoid PayOS retries
+        console.error('Error processing webhook:', error);
         return res.status(200).json({
             success: false,
             message: 'Error processing webhook: ' + error.message

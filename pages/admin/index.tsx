@@ -1,4 +1,5 @@
 import { GetServerSideProps } from 'next';
+import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { requireAdminAuth } from '@/lib/admin/auth';
 import { prisma } from '@/lib/prisma';
@@ -122,27 +123,27 @@ export default function AdminDashboard({ session, stats }: Props) {
                 <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                     <h3 className="text-xl font-bold text-white mb-4">Thao tác nhanh</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <a
+                        <Link
                             href="/admin/blog"
                             className="flex items-center space-x-3 p-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                         >
                             <FileText className="text-[#CDAD5A]" size={24} />
                             <span className="text-white font-medium">Tạo bài viết mới</span>
-                        </a>
-                        <a
+                        </Link>
+                        <Link
                             href="/admin/orders"
                             className="flex items-center space-x-3 p-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                         >
                             <ShoppingCart className="text-[#CDAD5A]" size={24} />
                             <span className="text-white font-medium">Xem đơn hàng</span>
-                        </a>
-                        <a
+                        </Link>
+                        <Link
                             href="/admin/affiliate-payouts"
                             className="flex items-center space-x-3 p-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
                         >
                             <DollarSign className="text-[#CDAD5A]" size={24} />
                             <span className="text-white font-medium">Duyệt chi trả</span>
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

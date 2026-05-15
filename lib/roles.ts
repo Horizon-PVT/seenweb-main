@@ -37,7 +37,7 @@ export const CHANNEL_LIMITS: Record<string, number> = {
   FREE: 0,
   STARTER: 1,
   CREATOR: 2,
-  FACTORY: 2,
+  FACTORY: 5,
   AGENCY: 5,
   ENTERPRISE: 10,
   ADMIN: 999,

@@ -15,8 +15,8 @@ interface Voice {
 
 // Vietnamese preset voices (Edge TTS)
 const VN_PRESET_VOICES: Voice[] = [
-    { id: 'vi-VN-HoaiMyNeural', name: 'Hoài My', gender: 'female', accent: 'VN', description: 'Giọng nữ tự nhiên' },
-    { id: 'vi-VN-NamMinhNeural', name: 'Nam Minh', gender: 'male', accent: 'VN', description: 'Giọng nam trầm ấm' },
+    { id: 'vi-VN-HoaiMyNeural', name: 'Hoai My', gender: 'female', accent: 'VN', description: 'Natural Vietnamese female voice' },
+    { id: 'vi-VN-NamMinhNeural', name: 'Nam Minh', gender: 'male', accent: 'VN', description: 'Warm Vietnamese male voice' },
 ];
 
 const VoiceStudioTool = () => {
@@ -299,17 +299,17 @@ const VoiceStudioTool = () => {
     return (
         <div className="flex flex-col h-full bg-[#0a0a0a] text-gray-200 rounded-3xl overflow-hidden border border-white/10 shadow-2xl font-sans">
 
-            {/* Header Audio Station */}
+            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 bg-[#111] border-b border-white/5">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
                         <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-white tracking-tight">Audio Station <span className="text-emerald-500">Pro</span></h2>
+                        <h2 className="text-xl font-bold text-white tracking-tight">Voice <span className="text-emerald-500">Studio</span></h2>
                         <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-widest font-mono">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            System Online
+                            Produce Video workflow
                         </div>
                     </div>
                 </div>
@@ -320,13 +320,13 @@ const VoiceStudioTool = () => {
                         onClick={() => { setLanguage('en'); setSelectedVoice('alba'); }}
                         className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
                     >
-                        🌍 English
+                        English
                     </button>
                     <button
                         onClick={() => { setLanguage('vi'); setSelectedVoice('vi-VN-HoaiMyNeural'); }}
                         className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'vi' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}
                     >
-                        🇻🇳 Tiếng Việt
+                        Vietnamese
                     </button>
                 </div>
 
@@ -336,13 +336,13 @@ const VoiceStudioTool = () => {
                         onClick={() => setActiveTab('tts')}
                         className={`px-6 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'tts' ? 'bg-emerald-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
                     >
-                        TEXT TO SPEECH
+                        Voiceover
                     </button>
                     <button
                         onClick={() => setActiveTab('clone')}
                         className={`px-6 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'clone' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
                     >
-                        VOICE CLONING
+                        Voice clone
                     </button>
                 </div>
             </div>
@@ -371,12 +371,12 @@ const VoiceStudioTool = () => {
                                         </span>
                                         <div className="flex items-center gap-3">
                                             {srtFile ? (
-                                                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl shadow-inner cursor-pointer" onClick={() => setSrtFile(null)} title="Bấm để xoá">
+                                                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl shadow-inner cursor-pointer" onClick={() => setSrtFile(null)} title="Remove file">
                                                     <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400">
                                                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                                                     </span>
                                                     <span className="text-xs font-bold text-emerald-400">{srtFile.name}</span>
-                                                    <span className="text-red-400 font-bold ml-2">✕</span>
+                                                    <span className="text-red-400 font-bold ml-2">x</span>
                                                 </div>
                                             ) : (
                                                 <button
@@ -384,7 +384,7 @@ const VoiceStudioTool = () => {
                                                     className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white transition-all font-bold text-[11px] flex items-center gap-2 shadow-lg shadow-indigo-500/20"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                                    TẢI FILE SRT LÊN
+                                                    Upload SRT
                                                 </button>
                                             )}
                                             <input ref={srtInputRef} type="file" accept=".srt" className="hidden" onChange={(e) => setSrtFile(e.target.files?.[0] || null)} />
@@ -395,7 +395,7 @@ const VoiceStudioTool = () => {
                                         <textarea
                                         value={text}
                                         onChange={(e) => setText(e.target.value)}
-                                        placeholder="// Enter your script here...\n// Supports English and Vietnamese.\n\nHello world, this is SeenYT AI Voice generation."
+                                        placeholder="Paste the script for this video step here.\nSupports English and Vietnamese voiceover."
                                         className="w-full h-full bg-transparent text-gray-300 font-mono text-sm leading-relaxed focus:outline-none resize-none placeholder-gray-700 selection:bg-emerald-500/30"
                                         spellCheck={false}
                                     />
@@ -491,7 +491,7 @@ const VoiceStudioTool = () => {
                         <AudioVisualizer isPlaying={isPlaying} />
                         {!audioUrl && !generating && (
                             <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-600 font-mono tracking-widest">
-                                WAITING FOR SIGNAL...
+                                Waiting for audio
                             </div>
                         )}
                     </div>
@@ -521,7 +521,7 @@ const VoiceStudioTool = () => {
                         {/* Language Badge */}
                         <div className="mt-4 text-center">
                             <span className={`text-xs px-3 py-1 rounded-full ${language === 'vi' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                {language === 'vi' ? '🇻🇳 Vietnamese Engine (Edge TTS)' : '🌍 English Engine (Pocket TTS)'}
+                                {language === 'vi' ? 'Vietnamese Engine (Edge TTS)' : 'English Engine (Pocket TTS)'}
                             </span>
                         </div>
                     </div>
