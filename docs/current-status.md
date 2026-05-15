@@ -8,7 +8,7 @@ SeenYT repositioning work is implemented in the working tree but not committed y
 
 The current repo state shows a large uncommitted change set across homepage, dashboard, navigation, tool surfaces, i18n, sitemap, middleware, and PayOS payment APIs.
 
-Maintenance mode is now prepared for deployment. By default, `NEXT_PUBLIC_MAINTENANCE_MODE !== "false"` means public routes rewrite to `/maintenance`. Set `NEXT_PUBLIC_MAINTENANCE_MODE=false` in Vercel when the upgraded workflow release is ready to reopen.
+Maintenance mode is currently hard-enabled in `middleware.ts` so public routes rewrite to `/maintenance` during the workflow upgrade. Reopen by changing `maintenanceMode` back to a flag-based value or `false` after final workflow QA.
 
 ## Completed Work
 
@@ -152,7 +152,7 @@ Steps:
 - Commit the repositioning, billing hardening, pricing/channel logic, and maintenance mode work.
 - Push/deploy while maintenance mode is active.
 - Smoke test production routes and one PayOS sandbox/manual checkout path if credentials are available.
-- Reopen by setting `NEXT_PUBLIC_MAINTENANCE_MODE=false` after final workflow QA.
+- Reopen by disabling `maintenanceMode` in `middleware.ts` after final workflow QA.
 
 ## Future Product Work
 

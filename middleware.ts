@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const protectedPaths = ["/dashboard", "/admin", "/affiliate/dashboard"];
-const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE !== "false";
+const maintenanceMode = true;
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
