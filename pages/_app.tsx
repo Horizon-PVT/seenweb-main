@@ -10,6 +10,9 @@ import { Toaster } from "react-hot-toast";
 import ErrorBoundary from "../components/ErrorBoundary";
 import AttributionTracker from "@/components/AttributionTracker";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import MaintenancePage from "./maintenance";
+
+const maintenanceMode = true;
 
 function App({
   Component,
@@ -106,10 +109,10 @@ function App({
 
         <ErrorBoundary>
           <main className="font-sans">
-            <Component {...pageProps} />
+            {maintenanceMode ? <MaintenancePage /> : <Component {...pageProps} />}
           </main>
-          <AttributionTracker />
-          <Toaster position="top-right" />
+          {!maintenanceMode && <AttributionTracker />}
+          {!maintenanceMode && <Toaster position="top-right" />}
         </ErrorBoundary>
       </ThemeProvider>
 
