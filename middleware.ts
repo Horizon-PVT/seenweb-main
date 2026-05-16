@@ -22,8 +22,9 @@ export async function middleware(request: NextRequest) {
   const cleanHostname = hostname.split(":")[0];
   const { pathname } = url;
 
-  // Maintenance mode: redirect all except /maintenance, unless user is staff
-  if (maintenanceMode && pathname !== "/maintenance") {
+  // Maintenance mode: redirect all except /maintenance and /login, unless user is staff
+  const maintenanceBypassPaths = ["/maintenance", "/login"];
+  if (maintenanceMode && !maintenanceBypassPaths.includes(pathname)) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
     const isStaff = await isStaffEmail(token?.email);
 
