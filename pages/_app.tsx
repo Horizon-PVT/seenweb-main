@@ -12,7 +12,7 @@ import AttributionTracker from "@/components/AttributionTracker";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import MaintenancePage from "./maintenance";
 
-const maintenanceMode = process.env.NODE_ENV === "production";
+const maintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 
 function App({
   Component,
