@@ -4,11 +4,17 @@ import { getToken } from "next-auth/jwt";
 
 const protectedPaths = ["/dashboard", "/admin", "/affiliate/dashboard"];
 const maintenanceMode = process.env.NODE_ENV === "production";
+const adminEmail = (process.env.ADMIN_EMAIL || "").toLowerCase();
 const staffEmails = (process.env.STAFF_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
 
 async function isStaffEmail(email: string | null | undefined): Promise<boolean> {
-  if (!email || staffEmails.length === 0) return false;
-  return staffEmails.includes(email.toLowerCase());
+  if (!email) return false;
+  const lowerEmail = email.toLowerCase();
+  // Allow admin email as fallback
+  if (adminEmail && lowerEmail === adminEmail) return true;
+  // Check STAFF_EMAILS list
+  if (staffEmails.length > 0) return staffEmails.includes(lowerEmail);
+  return false;
 }
 
 export async function middleware(request: NextRequest) {
