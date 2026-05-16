@@ -1,5 +1,4 @@
 import Head from "next/head";
-import Link from "next/link";
 import { CalendarClock, Clapperboard, Layers, Sparkles, Wand2 } from "lucide-react";
 
 const reopenDate = "Chủ nhật, 17/05/2026";
@@ -45,12 +44,12 @@ export default function MaintenancePage() {
             </div>
 
             <div className="mt-6">
-              <Link
-                href="/login?callbackUrl=/dashboard"
+              <a
+                href="/login"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
               >
                  Staff access
-              </Link>
+              </a>
             </div>
           </div>
 
