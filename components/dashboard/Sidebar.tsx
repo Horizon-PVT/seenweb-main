@@ -53,7 +53,7 @@ type NavItem =
 const primaryNav: NavItem[] = [
   { id: "home", label: "home", description: "homeDesc", icon: Home, path: "/dashboard", exact: true },
   { id: "workflows", label: "workflows", description: "workflowsDesc", icon: Workflow, path: "/dashboard?workflow=launch-channel", matchQuery: "workflow=" },
-  { id: "ai-coach", label: "aiCoach", description: "aiCoachDesc", icon: Bot, path: "/dashboard/ai-coach", badge: "Core" },
+  { id: "ai-coach", label: "aiCoach", description: "aiCoachDesc", icon: Bot, toolId: "ai-coach", badge: "Core" },
   { id: "projects", label: "projects", description: "projectsDesc", icon: FolderKanban, path: "/dashboard/trends" },
 ];
 

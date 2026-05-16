@@ -50,7 +50,7 @@ export async function generateLocalSEO(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const localesToTranslate = SUPPORTED_LOCALES.filter(
     l => targetLocales.includes(l.locale)
@@ -126,7 +126,7 @@ export async function getSEOScore(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `
 Analyze this YouTube video SEO and provide scores (0-100) with suggestions:

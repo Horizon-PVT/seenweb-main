@@ -36,7 +36,7 @@ export default async function handler(
         const maxChars = 50000;
         const cleanTranscript = transcript.substring(0, maxChars);
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const prompt = `Bạn là một AI chuyên phân tích video YouTube. Hãy tạo một bản tóm tắt CHI TIẾT và CÓ GIÁ TRỊ từ kịch bản video sau.
 
@@ -66,7 +66,7 @@ TÓM TẮT:`;
             success: true,
             summary: summary.trim(),
             transcriptLength: transcript.length,
-            model: 'gemini-1.5-flash'
+            model: 'gemini-2.5-flash'
         });
 
     } catch (error: any) {

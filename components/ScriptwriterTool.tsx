@@ -56,7 +56,7 @@ interface ScriptwriterToolProps {
 export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
     const { data: session } = useSession();
     const { t } = useTranslation('common');
-    // const router = useRouter(); // Might cause issues in dashboard if not wrapped, but usually fine.
+    const router = useRouter();
     const userRole = (session?.user as any)?.role || 'FREE';
 
     // --- STATE ---
@@ -127,6 +127,8 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
 
         setIsLoading(true);
         try {
+            const workflowId = Array.isArray(router.query.workflow) ? router.query.workflow[0] : router.query.workflow;
+            const channelId = Array.isArray(router.query.channel) ? router.query.channel[0] : router.query.channel;
             const res = await fetch('/api/projects', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -134,6 +136,9 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
                     toolId: 'scriptwriter',
                     name,
                     id: currentProjectId, // Update if exists
+                    workflowId,
+                    stepId: workflowId === 'produce-video' ? 'write-script' : undefined,
+                    channelId,
                     data: { idea, goal, level, tone, style, format, length, outputScript }
                 })
             });
@@ -304,7 +309,7 @@ export default function ScriptwriterTool({ onBack }: ScriptwriterToolProps) {
 
     return (
         // Changed min-h-screen to h-full for dashboard embedding
-        <div className={`h-full bg-[#09090b] text-[#e4e4e7] font-sans selection:bg-[#fbbf24] selection:text-black flex flex-col ${isFullScreen ? 'fixed inset-0 z-50 overflow-hidden h-screen' : ''}`}>
+        <div className={`flex h-full min-h-0 flex-col overflow-hidden bg-[#09090b] font-sans text-[#e4e4e7] selection:bg-[#fbbf24] selection:text-black ${isFullScreen ? 'fixed inset-0 z-50 h-screen' : ''}`}>
             {/* <Head> <title>CINEMATIC WRITER | SCRIPT STUDIO</title> </Head> */}
 
             {/* HEADER */}

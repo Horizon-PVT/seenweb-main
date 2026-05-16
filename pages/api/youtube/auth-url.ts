@@ -32,13 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         where: { userId: (session.user as any).id }
     });
 
-    const LEGACY_CHANNEL_LIMITS: Record<string, number> = {
-        USER: 0,
-        BASIC: 1,
-        PRO: 2,
-    };
-
-    const baseLimit = CHANNEL_LIMITS[userRole] ?? LEGACY_CHANNEL_LIMITS[userRole] ?? 0;
+    const baseLimit = CHANNEL_LIMITS[userRole] ?? 0;
 
     // Final Limit logic:
     // If Admin -> Unlimited (999)

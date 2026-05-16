@@ -7,7 +7,7 @@ export default function SuccessPage() {
   const { data: session, update } = useSession();
   const [status, setStatus] = useState<'loading' | 'activating' | 'success' | 'error'>('loading');
   const [licenseKey, setLicenseKey] = useState<string | null>(null);
-  const [kodaTier, setKodaTier] = useState<string | null>(null);
+  const [seenytTier, setSeenytTier] = useState<string | null>(null);
 
   const { code, desc, status: payStatus, orderCode } = router.query;
 
@@ -39,7 +39,7 @@ export default function SuccessPage() {
           // Capture license key if present
           if (data.licenseKey) {
             setLicenseKey(data.licenseKey);
-            setKodaTier(data.kodaTier);
+            setSeenytTier(data.kodaTier);
           }
           setStatus('activating');
 
@@ -170,7 +170,7 @@ export default function SuccessPage() {
                   {licenseKey}
                 </div>
                 <p className="text-gray-400 text-xs mt-2">
-                  Lưu lại license key này để kích hoạt Koda {kodaTier === 'factory' ? 'Factory' : kodaTier === 'agency' ? 'Agency' : 'Studio'}
+                  Lưu lại license key này để kích hoạt SeenYT {seenytTier === 'factory' ? 'Factory' : seenytTier === 'agency' ? 'Agency' : 'Studio'}
                 </p>
                 <button
                   onClick={() => {

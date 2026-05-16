@@ -1,5 +1,5 @@
 // pages/tools/desktop-apps.tsx
-// Desktop Apps - Koda Studio, Novel, Factory - Download & Activation Guide
+// Desktop Apps - SeenYT Studio, Novel, Factory - Download & Activation Guide
 
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
@@ -38,7 +38,7 @@ const DESKTOP_DOWNLOAD_URL = 'https://drive.google.com/file/d/19ApQJY52zieN1sSGX
 const APPS = [
     {
         id: 'studio',
-        name: 'Koda Studio',
+        name: 'SeenYT Studio',
         icon: Play,
         color: 'cyan',
         colorBg: 'bg-cyan-500/20',
@@ -62,7 +62,7 @@ const APPS = [
     },
     {
         id: 'novel',
-        name: 'Koda Novel',
+        name: 'SeenYT Novel',
         icon: FileText,
         color: 'purple',
         colorBg: 'bg-purple-500/20',
@@ -86,7 +86,7 @@ const APPS = [
     },
     {
         id: 'factory',
-        name: 'Koda Factory',
+        name: 'SeenYT Factory',
         icon: Users,
         color: 'amber',
         colorBg: 'bg-amber-500/20',
@@ -114,7 +114,7 @@ export default function DesktopAppsPage() {
     const router = useRouter();
     const { data: session, status } = useSession();
     const [licenseKey, setLicenseKey] = useState<string | null>(null);
-    const [kodaTier, setKodaTier] = useState<string | null>(null);
+    const [seenytTier, setSeenytTier] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [activeApp, setActiveApp] = useState(0);
     const [isReady, setIsReady] = useState(false);
@@ -139,7 +139,7 @@ export default function DesktopAppsPage() {
             const data = await res.json();
             if (data.licenseKey) {
                 setLicenseKey(data.licenseKey);
-                setKodaTier(data.tier);
+                setSeenytTier(data.tier);
             }
         } catch (err) {
             console.error('Failed to fetch license:', err);
@@ -181,7 +181,7 @@ export default function DesktopAppsPage() {
     return (
         <div className="min-h-screen bg-gray-950 text-white">
             <Head>
-                <title>Desktop Apps - Koda Studio | SeenWeb</title>
+                <title>Desktop Apps - SeenYT Studio</title>
             </Head>
 
             {/* Header */}
@@ -222,7 +222,7 @@ export default function DesktopAppsPage() {
                                 {licenseKey ? (
                                     <div className="space-y-3">
                                         <div className="bg-black/50 rounded-xl p-4 border border-gray-700">
-                                            <p className="text-xs text-gray-500 mb-2">Koda {kodaTier ? kodaTier.charAt(0).toUpperCase() + kodaTier.slice(1) : ''} License</p>
+                                            <p className="text-xs text-gray-500 mb-2">SeenYT {seenytTier ? seenytTier.charAt(0).toUpperCase() + seenytTier.slice(1) : ''} License</p>
                                             <p className="font-mono text-green-400 text-lg break-all select-all">
                                                 {licenseKey}
                                             </p>
@@ -270,7 +270,7 @@ export default function DesktopAppsPage() {
                                         className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 text-lg shadow-lg shadow-cyan-500/25"
                                     >
                                         <Download size={22} />
-                                        Tải Koda Desktop Suite
+                                        Tải SeenYT Desktop Suite
                                         <ExternalLink size={18} />
                                     </a>
                                     <p className="text-xs text-gray-500 text-center mt-3">

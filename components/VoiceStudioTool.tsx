@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import UpgradeModal from '@/components/UpgradeModal';
@@ -20,6 +21,7 @@ const VN_PRESET_VOICES: Voice[] = [
 ];
 
 const VoiceStudioTool = () => {
+    const router = useRouter();
     const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<'tts' | 'clone'>('tts');
     const [language, setLanguage] = useState<'en' | 'vi'>('en');
@@ -59,6 +61,38 @@ const VoiceStudioTool = () => {
     const [generatingSrt, setGeneratingSrt] = useState(false);
 
     const audioRef = useRef<HTMLAudioElement>(null);
+
+    const saveWorkflowOutput = async (url: string, source: 'text' | 'srt') => {
+        const workflowId = Array.isArray(router.query.workflow) ? router.query.workflow[0] : router.query.workflow;
+        const channelId = Array.isArray(router.query.channel) ? router.query.channel[0] : router.query.channel;
+
+        if (!session || workflowId !== 'produce-video') return;
+
+        try {
+            await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    toolId: 'voice-studio',
+                    name: `Voiceover: ${(text || srtFile?.name || 'Generated audio').slice(0, 60)}`,
+                    workflowId,
+                    stepId: 'create-voice',
+                    channelId,
+                    data: {
+                        audioUrl: url,
+                        source,
+                        text,
+                        srtFileName: srtFile?.name || null,
+                        language,
+                        selectedVoice,
+                        generatedAt: new Date().toISOString(),
+                    },
+                }),
+            });
+        } catch (error) {
+            console.error('Failed to save Voice Studio workflow output:', error);
+        }
+    };
 
     const pollJobStatus = async (jobId: string) => {
         return new Promise<string>((resolve, reject) => {
@@ -165,6 +199,7 @@ const VoiceStudioTool = () => {
                     const downloadUrl = await pollJobStatus(data.jobId);
                     // Pass the Direct Cloudflare Tunnel URL directly to <audio> tag
                     setAudioUrl(downloadUrl);
+                    await saveWorkflowOutput(downloadUrl, 'text');
                 } else {
                     throw new Error("Invalid async response");
                 }
@@ -172,6 +207,7 @@ const VoiceStudioTool = () => {
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
                 setAudioUrl(url);
+                await saveWorkflowOutput(url, 'text');
             }
 
             // Auto play is handled by <audio autoPlay> but we reset visualizer
@@ -229,6 +265,7 @@ const VoiceStudioTool = () => {
                 const downloadUrl = await pollJobStatus(data.jobId);
                 // Assign direct tunnel link to prevent Next.js 4.5MB crash
                 setAudioUrl(downloadUrl);
+                await saveWorkflowOutput(downloadUrl, 'srt');
             } else {
                  throw new Error("Invalid async response");
             }
@@ -297,12 +334,12 @@ const VoiceStudioTool = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0a] text-gray-200 rounded-3xl overflow-hidden border border-white/10 shadow-2xl font-sans">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#05080d] text-gray-200 font-sans">
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-[#111] border-b border-white/5">
+            <div className="grid gap-3 border-b border-white/10 bg-[#071018] px-6 py-3 lg:grid-cols-[1fr_auto_auto] lg:items-center">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-300/10 text-cyan-300">
                         <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
                     </div>
                     <div>
@@ -315,32 +352,32 @@ const VoiceStudioTool = () => {
                 </div>
 
                 {/* Language Toggle */}
-                <div className="flex p-1 bg-black/40 rounded-full border border-white/10">
+                <div className="flex justify-self-start rounded-lg border border-white/10 bg-black/30 p-1 lg:justify-self-center">
                     <button
                         onClick={() => { setLanguage('en'); setSelectedVoice('alba'); }}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                        className={`rounded-md px-4 py-1.5 text-xs font-bold transition-all ${language === 'en' ? 'bg-cyan-300 text-slate-950' : 'text-gray-400 hover:text-white'}`}
                     >
                         English
                     </button>
                     <button
                         onClick={() => { setLanguage('vi'); setSelectedVoice('vi-VN-HoaiMyNeural'); }}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'vi' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                        className={`rounded-md px-4 py-1.5 text-xs font-bold transition-all ${language === 'vi' ? 'bg-cyan-300 text-slate-950' : 'text-gray-400 hover:text-white'}`}
                     >
                         Vietnamese
                     </button>
                 </div>
 
                 {/* Tabs Pills */}
-                <div className="flex p-1 bg-black/40 rounded-full border border-white/10 backdrop-blur-md">
+                <div className="flex justify-self-start rounded-lg border border-white/10 bg-black/30 p-1 lg:justify-self-end">
                     <button
                         onClick={() => setActiveTab('tts')}
-                        className={`px-6 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'tts' ? 'bg-emerald-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                        className={`rounded-md px-6 py-2 text-xs font-bold transition-all duration-300 ${activeTab === 'tts' ? 'bg-emerald-400 text-slate-950' : 'text-gray-400 hover:text-white'}`}
                     >
                         Voiceover
                     </button>
                     <button
                         onClick={() => setActiveTab('clone')}
-                        className={`px-6 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'clone' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                        className={`rounded-md px-6 py-2 text-xs font-bold transition-all duration-300 ${activeTab === 'clone' ? 'bg-emerald-400 text-slate-950' : 'text-gray-400 hover:text-white'}`}
                     >
                         Voice clone
                     </button>
@@ -348,10 +385,10 @@ const VoiceStudioTool = () => {
             </div>
 
             {/* Main Layout */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex min-h-0 flex-1 overflow-hidden">
 
                 {/* LEFT PANEL: INPUT & CONTROLS */}
-                <div className="w-full md:w-[60%] lg:w-[65%] flex flex-col border-r border-white/5 bg-[#0f0f0f]">
+                <div className="flex w-full flex-col border-r border-white/10 bg-[#0b1118] md:w-[62%] lg:w-[68%]">
                     <AnimatePresence mode="wait">
                         {activeTab === 'tts' ? (
                             <motion.div
@@ -407,7 +444,7 @@ const VoiceStudioTool = () => {
                                 </div>
 
                                 {/* Bottom Controls Bar */}
-                                <div className="p-4 bg-[#111] border-t border-white/5 flex items-center justify-between">
+                                <div className="flex items-center justify-between border-t border-white/10 bg-[#071018] p-4">
                                     {generating ? (
                                         <div className="flex-1 mr-6">
                                             <div className="flex justify-between text-[11px] text-gray-400 font-mono mb-2 uppercase tracking-wide">
@@ -484,7 +521,7 @@ const VoiceStudioTool = () => {
                 </div>
 
                 {/* RIGHT PANEL: VISUALIZER & SETTINGS */}
-                <div className="w-full md:w-[40%] lg:w-[35%] bg-[#111] border-l border-white/5 flex flex-col">
+                <div className="flex w-full flex-col border-l border-white/10 bg-[#0b1118] md:w-[38%] lg:w-[32%]">
 
                     {/* Visualizer Area */}
                     <div className="h-40 bg-[#050505] relative flex items-center justify-center border-b border-white/5">

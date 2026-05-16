@@ -24,7 +24,7 @@ export default function DashboardLayout({
     // The main layout leaves a 20px gap (w-20) for the collapsed sidebar.
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans flex">
+        <div className={`${activeTool ? "h-screen overflow-hidden" : "min-h-screen"} flex bg-black font-sans text-white`}>
             <Head>
                 <title>{title}</title>
                 <meta name="robots" content="noindex" />
@@ -40,9 +40,9 @@ export default function DashboardLayout({
             </div>
 
             {/* Main Content */}
-            <main className={`flex-1 min-w-0 bg-black min-h-screen pb-20 md:pb-0 ${activeTool ? '' : 'pb-32'}`}>
+            <main className={`${activeTool ? "h-screen overflow-hidden" : "min-h-screen overflow-visible"} flex-1 min-w-0 bg-black pb-20 md:pb-0 ${activeTool ? '' : 'pb-32'}`}>
                 {/* Content Container */}
-                <div className={activeTool ? 'min-h-full w-full relative' : 'p-4 md:p-8 max-w-7xl mx-auto'}>
+                <div className={activeTool ? 'h-full w-full relative overflow-hidden' : 'p-4 md:p-8 max-w-7xl mx-auto'}>
                     {children}
                 </div>
             </main>

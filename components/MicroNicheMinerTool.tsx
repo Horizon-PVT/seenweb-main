@@ -237,6 +237,37 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
   }, [input]);
   const isVN = market === 'VN';
 
+  const saveWorkflowOutput = async (data: OutputData) => {
+    if (!session) return;
+
+    const workflowId = Array.isArray(router.query.workflow) ? router.query.workflow[0] : router.query.workflow;
+    if (workflowId !== 'launch-channel') return;
+
+    const channelId = Array.isArray(router.query.channel) ? router.query.channel[0] : router.query.channel;
+    const topName = data.topNiches?.[0]?.nicheName || input.trim() || 'Niche Radar';
+
+    try {
+      await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'niche-radar',
+          name: `Niche Radar: ${topName}`,
+          workflowId,
+          stepId: 'find-niche',
+          channelId,
+          data: {
+            input: input.trim(),
+            market,
+            topNiches: data.topNiches,
+          },
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save niche workflow output:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -264,6 +295,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
 
       if (response.ok && data.topNiches && Array.isArray(data.topNiches)) {
         setOutput(data as OutputData);
+        saveWorkflowOutput(data as OutputData);
       } else {
         const errRaw = data?.error || '';
         const errStr = String(errRaw).toUpperCase();
@@ -292,7 +324,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
   };
 
   return (
-    <div className="min-h-full bg-[#0A0A0B] text-slate-200 font-sans selection:bg-[#CDAD5A]/30 flex flex-col relative">
+    <div className="relative flex h-full min-h-0 flex-col overflow-y-auto bg-[#0A0A0B] text-slate-200 font-sans selection:bg-[#CDAD5A]/30">
 
       {/* HEADER */}
       <header className="sticky top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-md h-16 flex items-center justify-between px-6">
@@ -329,15 +361,15 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
       </header>
 
       {/* MAIN */}
-      <main className="pt-10 px-6 pb-20 max-w-7xl mx-auto w-full relative z-10 flex flex-col items-center">
-        <div className="text-center mb-12 w-full">
+      <main className="relative z-10 flex w-full flex-1 flex-col px-6 py-10">
+        <div className="mb-10 w-full">
           <style dangerouslySetInnerHTML={{ __html: `
             @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
           `}} />
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-black mb-6 uppercase tracking-tight" style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #d97706 50%, #fbbf24 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'shimmer 3s infinite linear' }}>
+          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-black mb-4 uppercase tracking-tight" style={{ background: 'linear-gradient(90deg, #fbbf24 0%, #d97706 50%, #fbbf24 100%)', backgroundSize: '200% auto', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'shimmer 3s infinite linear' }}>
             NICHE RADAR
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light tracking-wide">
+          <p className="text-slate-400 text-base md:text-lg max-w-4xl font-light tracking-wide">
             {isVN
               ? 'Tìm thị trường YouTube khả thi, góc nội dung và cơ hội phát triển kênh.'
               : 'Find viable YouTube markets, content angles, and channel opportunities.'} <br />
@@ -346,7 +378,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
         </div>
 
         {/* SEARCH INPUT */}
-        <div className="w-full max-w-3xl relative mb-20 group z-20">
+        <div className="w-full relative mb-12 group z-20">
           <form onSubmit={handleSubmit} className="relative group">
             <div className="absolute -inset-1 bg-[#CDAD5A]/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
             <div className="relative bg-[#121214] border border-white/10 rounded-xl p-2 flex items-center gap-2 shadow-2xl" style={{ background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(12px)' }}>
@@ -379,7 +411,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
         )}
 
         {!isLoading && output && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
             {output.topNiches.map((niche, i) => (
               <GoldNicheCard key={i} niche={niche} delay={i} market={market} />
             ))}
@@ -388,7 +420,7 @@ export default function MicroNicheMinerTool({ onBack }: MicroNicheMinerToolProps
 
         {/* Empty State Decor - Skeletons */}
         {!isLoading && !output && (
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative max-w-5xl mx-auto mt-10">
+          <div className="w-full grid flex-1 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative mt-10">
             <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
               <div className="text-center">
                 <div className="text-[10px] tracking-[0.5em] text-[#CDAD5A]/40 mb-2">SYSTEM STATUS</div>

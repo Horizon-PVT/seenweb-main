@@ -4,7 +4,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from '@/lib/prisma';
 import { AI_COACH_LIMITS, AI_COACH_SYSTEM_PROMPT } from '@/lib/ai-coach-config';
-import { searchKnowledge } from '@/lib/pinecone';
 import { localSearch } from '@/lib/youtube-knowledge';
 import { searchVidIQDocuments } from '@/lib/vidiq-knowledge';
 
@@ -86,22 +85,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        // Get knowledge context
+        // Get knowledge context from local + VidIQ sources
         const latestUserMessage = messages.filter((m: Message) => m.role === 'user').pop()?.content || '';
         let knowledgeContext = '';
 
         try {
-            const relevantDocs = await searchKnowledge(latestUserMessage, 3);
-            if (relevantDocs.length > 0) {
-                knowledgeContext = `\n[KIẾN THỨC THAM KHẢO]\n${relevantDocs.map((doc, i) => `${i + 1}. ${doc}`).join('\n\n')}\n`;
-            }
-        } catch {
             const localDocs = localSearch(latestUserMessage, 2);
             const vidiqDocs = searchVidIQDocuments(latestUserMessage, 2);
             const combined = [...localDocs, ...vidiqDocs];
             if (combined.length > 0) {
-                knowledgeContext = `\n[KIẾN THỨC THAM KHẢO]\n${combined.map((doc, i) => `${i + 1}. ${doc}`).join('\n\n')}\n`;
+                knowledgeContext = `\n[KIẾN THỨC THAM KHẢO]\n${combined.map((doc: string, i: number) => `${i + 1}. ${doc}`).join('\n\n')}\n`;
             }
+        } catch {
+            // Knowledge search failed, continue without context
         }
 
         // Build personalization context from user settings

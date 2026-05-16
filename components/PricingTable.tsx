@@ -7,6 +7,7 @@ import {
   PUBLIC_PLANS,
   PublicPlanId,
   PricingBillingKey,
+  getPlanCheckoutAmount,
   getPlanMonthlyPrice,
 } from "@/lib/public-plans";
 
@@ -114,7 +115,7 @@ export default function PricingTable() {
 
               {billing !== "monthly" && (
                 <div className="mt-2 text-sm font-bold text-emerald-300">
-                  Thanh toán {billing === "yearly" ? "12 tháng" : "6 tháng"}: {formatPrice(price * (billing === "yearly" ? 12 : 6))}đ
+                  Thanh toán {billing === "yearly" ? "12 tháng" : "6 tháng"}: {formatPrice(getPlanCheckoutAmount(plan, billing === "yearly" ? "YEARLY" : "SIX_MONTHS"))}đ
                 </div>
               )}
 

@@ -105,8 +105,8 @@ export const TOOLS = [
   // FREE tier tools
   { id: 'scriptwriter', name: 'Viết kịch bản YouTube', roleMin: ROLES.FREE },
   { id: 'seo', name: 'SEO YouTube tối ưu', roleMin: ROLES.FREE },
-  { id: 'micro-niche-miner', name: 'Tìm Micro Niches', roleMin: ROLES.FREE },
-  { id: 'rival-scanner', name: 'Phân tích đối thủ', roleMin: ROLES.FREE },
+  { id: 'micro-niche-miner', name: 'Tìm Micro Niches', roleMin: ROLES.STARTER },
+  { id: 'rival-scanner', name: 'Phân tích đối thủ', roleMin: ROLES.STARTER },
   { id: 'image-forge', name: 'Tạo Thumbnail AI', roleMin: ROLES.FREE },
   { id: 'video-pipeline', name: 'Video Automation Pipeline', roleMin: ROLES.STARTER },
   { id: 'intelligence-hub', name: 'Content Intelligence Hub', roleMin: ROLES.STARTER },

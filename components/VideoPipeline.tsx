@@ -136,7 +136,7 @@ export default function VideoPipeline({ onBack }: VideoPipelineProps) {
     ];
 
     return (
-        <div className="min-h-full bg-black text-white p-6">
+        <div className="h-full min-h-0 overflow-y-auto bg-black p-6 text-white">
             <Head>
                 <title>Video Pipeline - SeenYT</title>
             </Head>

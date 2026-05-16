@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const prompt = `
 Bạn là chuyên gia YouTube Growth. Phân tích ngách "${niche}" và tìm những content gaps - những chủ đề có tiềm năng cao nhưng ít người làm.

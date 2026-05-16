@@ -35,7 +35,7 @@ const QUICK_PROMPTS = [
     { icon: '💡', label: 'Video ideas' },
 ];
 
-export default function AICoachPage() {
+export default function AICoachPage({ embedded = false }: { embedded?: boolean }) {
     const router = useRouter();
     const { data: session, status } = useSession();
     const [messages, setMessages] = useState<Message[]>([]);
@@ -436,6 +436,17 @@ export default function AICoachPage() {
         return <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center text-white">Loading...</div>;
     }
 
+    const rootClassName = embedded
+        ? "h-full min-h-[calc(100vh-136px)] bg-[#05080d] text-white flex"
+        : "min-h-screen bg-[#0a0a0c] text-white flex";
+    const chatScrollClassName = embedded
+        ? "flex-1 overflow-y-auto px-4 md:px-8 lg:px-12 pb-36 custom-scrollbar"
+        : "flex-1 overflow-y-auto px-4 md:px-8 lg:px-16 pb-40 custom-scrollbar";
+    const chatScrollStyle = embedded ? { maxHeight: 'calc(100vh - 330px)' } : { maxHeight: 'calc(100vh - 200px)' };
+    const inputBarClassName = embedded
+        ? "absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#05080d] via-[#05080d] to-transparent z-30"
+        : "fixed bottom-0 left-64 right-0 p-6 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c] to-transparent z-50";
+
     return (
         <>
             <Head>
@@ -445,9 +456,9 @@ export default function AICoachPage() {
 
             <input ref={fileInputRef} type="file" accept="image/*,video/*,.pdf" onChange={handleFileChange} className="hidden" />
 
-            <div className="min-h-screen bg-[#0a0a0c] text-white flex">
+            <div className={rootClassName}>
                 {/* LEFT SIDEBAR */}
-                <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-[#0d0d10] border-r border-white/5 flex flex-col transition-all duration-300 flex-shrink-0`}>
+                {!embedded && <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-[#0d0d10] border-r border-white/5 flex flex-col transition-all duration-300 flex-shrink-0`}>
                     {/* Logo */}
                     <div className="p-4 flex items-center gap-3 border-b border-white/5">
                         <img src="/seenyt-logo.jpg" alt="SeenYT" className="w-8 h-8 rounded-lg" />
@@ -577,10 +588,10 @@ export default function AICoachPage() {
                             )}
                         </div>
                     </div>
-                </aside>
+                </aside>}
 
                 {/* MAIN CHAT AREA */}
-                <main className="flex-1 flex flex-col min-w-0">
+                <main className="relative flex min-w-0 flex-1 flex-col">
                     {/* Top bar */}
                     <div className="p-4 flex justify-end">
                         {messages.length > 0 && messages[messages.length - 1]?.role === 'user' && (
@@ -591,8 +602,8 @@ export default function AICoachPage() {
                     </div>
 
                     {/* Chat Messages */}
-                    <div className="flex-1 overflow-y-auto px-4 md:px-8 lg:px-16 pb-40 custom-scrollbar" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-                        <div className="max-w-3xl mx-auto">
+                    <div className={chatScrollClassName} style={chatScrollStyle}>
+                        <div className="mx-auto max-w-5xl">
                             {/* Empty State */}
                             {messages.length === 0 && !isLoading && (
                                 <div className="pt-20 text-center">
@@ -791,8 +802,8 @@ export default function AICoachPage() {
                     </div>
 
                     {/* INPUT BAR */}
-                    <div className="fixed bottom-0 left-64 right-0 p-6 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c] to-transparent z-50">
-                        <div className="max-w-3xl mx-auto">
+                    <div className={inputBarClassName}>
+                        <div className="mx-auto max-w-5xl">
                             {attachment && (
                                 <div className="mb-3 p-3 rounded-xl bg-[#1a1a20] border border-white/10 flex items-center gap-3">
                                     {attachment.type === 'Hình ảnh' ? (

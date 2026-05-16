@@ -3,6 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { AnimatePresence } from 'framer-motion';
 import UpgradeModal from '@/components/UpgradeModal';
 import {
@@ -98,6 +99,7 @@ const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
 
 export default function SeoTool({ onBack }: SeoToolProps) {
     const router = useRouter();
+    const { data: session } = useSession();
     const isEN = router.locale === 'en';
 
     const [isLoading, setIsLoading] = useState(false);
@@ -129,6 +131,46 @@ export default function SeoTool({ onBack }: SeoToolProps) {
         }, 50);
         return () => clearInterval(interval);
     }, []);
+
+    const saveWorkflowOutput = async (data: OutputData, inputIdea: string) => {
+        if (!session) return;
+
+        const workflowId = Array.isArray(router.query.workflow) ? router.query.workflow[0] : router.query.workflow;
+        const stepId =
+            workflowId === 'improve-channel'
+                ? 'optimize-video'
+                : workflowId === 'produce-video'
+                ? 'build-video-package'
+                : undefined;
+
+        if (!workflowId || !stepId) return;
+
+        const channelId = Array.isArray(router.query.channel) ? router.query.channel[0] : router.query.channel;
+        const firstTitle = data.content?.titles?.[0]?.text || inputIdea.slice(0, 60) || 'SEO package';
+
+        try {
+            await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    toolId: 'seo-tool',
+                    name: `SEO Package: ${firstTitle}`,
+                    workflowId,
+                    stepId,
+                    channelId,
+                    data: {
+                        coreIdea: inputIdea,
+                        strategy: data.strategy,
+                        audit: data.audit,
+                        checklist: data.checklist,
+                        content: data.content,
+                    },
+                }),
+            });
+        } catch (error) {
+            console.error('Failed to save SEO workflow output:', error);
+        }
+    };
 
     // LOGIC: File Upload
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,6 +222,7 @@ export default function SeoTool({ onBack }: SeoToolProps) {
             }
 
             // Artificial delay for effect
+            saveWorkflowOutput(result as OutputData, inputIdea);
             setTimeout(() => {
                 setOutput(result as OutputData);
                 setIsLoading(false);
@@ -206,7 +249,7 @@ export default function SeoTool({ onBack }: SeoToolProps) {
     };
 
     return (
-        <div className="min-h-full bg-[#050b14] text-[#00f3ff] font-mono overflow-x-hidden selection:bg-[#00f3ff] selection:text-black">
+        <div className="h-full min-h-0 bg-[#050b14] text-[#00f3ff] font-mono overflow-hidden selection:bg-[#00f3ff] selection:text-black">
             {/* BACKGROUND EFFECTS */}
             <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#003c42] via-[#050b14] to-[#000000]"></div>
             <div
@@ -219,14 +262,13 @@ export default function SeoTool({ onBack }: SeoToolProps) {
             ></div>
 
             {/* HEADER */}
-            <header className="sticky top-0 left-0 right-0 h-16 bg-[#050b14]/80 backdrop-blur-md border-b border-[#00f3ff]/30 flex items-center justify-between px-6 z-50 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
+            <header className="h-14 bg-[#071018] border-b border-white/10 flex items-center justify-between px-6 z-30">
                 <div className="flex items-center gap-4">
                     {onBack && (
-                        <button onClick={onBack} className="flex items-center gap-2 text-[#00f3ff]/70 hover:text-[#00f3ff] transition-colors">
-                            <ChevronLeft size={18} /> <span className="text-xs font-bold tracking-widest">EXIT_MODULE</span>
+                        <button onClick={onBack} className="hidden items-center gap-2 text-[#00f3ff]/70 hover:text-[#00f3ff] transition-colors">
+                            <ChevronLeft size={18} /> <span className="text-xs font-bold tracking-widest">Back</span>
                         </button>
                     )}
-                    <div className="h-8 w-px bg-[#00f3ff]/20"></div>
                     <div className="flex items-center gap-2">
                         <Brain className="text-[#00f3ff] animate-pulse" size={24} />
                         <div>
@@ -242,10 +284,10 @@ export default function SeoTool({ onBack }: SeoToolProps) {
             </header>
 
             {/* MAIN CONTENT */}
-            <main className="pt-8 px-4 pb-12 max-w-7xl mx-auto min-h-[calc(100vh-4rem)] relative z-10 flex flex-col lg:flex-row gap-8">
+            <main className="relative z-10 flex h-[calc(100%-3.5rem)] min-h-0 flex-col gap-6 overflow-y-auto p-6 lg:flex-row">
 
                 {/* LEFT: INPUT CONSOLE */}
-                <div className="w-full lg:w-1/3 flex flex-col gap-4">
+                <div className="flex w-full flex-col gap-4 lg:w-[34%] xl:w-[30%]">
                     <div className="bg-[#0a1520]/80 border border-[#00f3ff]/30 p-1 relative group rounded-lg backdrop-blur-sm">
                         {/* Holo Corners */}
                         <div className="absolute -top-px -left-px w-3 h-3 border-t-2 border-l-2 border-[#00f3ff]"></div>
@@ -262,7 +304,7 @@ export default function SeoTool({ onBack }: SeoToolProps) {
                                 value={coreIdea}
                                 onChange={e => setCoreIdea(e.target.value)}
                                 placeholder="Paste a video idea, script, or rough metadata to optimize before upload..."
-                                className="w-full flex-grow min-h-[300px] bg-transparent border-none outline-none text-white placeholder-gray-600 font-mono text-sm resize-none custom-scrollbar"
+                                className="min-h-[420px] w-full flex-grow resize-none bg-transparent text-sm text-white outline-none placeholder-gray-600 lg:min-h-0"
                                 spellCheck={false}
                             ></textarea>
 
@@ -288,7 +330,7 @@ export default function SeoTool({ onBack }: SeoToolProps) {
                 </div>
 
                 {/* RIGHT: OUTPUT HOLOGRAPHIC DISPLAY */}
-                <div className="w-full lg:w-2/3 min-h-[500px] flex flex-col relative">
+                <div className="relative flex min-h-[520px] w-full flex-col lg:w-[66%] xl:w-[70%]">
 
                     {/* LOADING STATE */}
                     {isLoading && (

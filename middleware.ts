@@ -4,6 +4,12 @@ import { getToken } from "next-auth/jwt";
 
 const protectedPaths = ["/dashboard", "/admin", "/affiliate/dashboard"];
 const maintenanceMode = process.env.NODE_ENV === "production";
+const staffEmails = (process.env.STAFF_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+
+async function isStaffEmail(email: string | null | undefined): Promise<boolean> {
+  if (!email || staffEmails.length === 0) return false;
+  return staffEmails.includes(email.toLowerCase());
+}
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
@@ -16,8 +22,15 @@ export async function middleware(request: NextRequest) {
   const cleanHostname = hostname.split(":")[0];
   const { pathname } = url;
 
+  // Maintenance mode: redirect all except /maintenance, unless user is staff
   if (maintenanceMode && pathname !== "/maintenance") {
-    return NextResponse.rewrite(new URL("/maintenance", request.url));
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const isStaff = await isStaffEmail(token?.email);
+
+    if (!isStaff) {
+      return NextResponse.rewrite(new URL("/maintenance", request.url));
+    }
+    // Staff bypass: continue to requested page
   }
 
   const isAppDomain = cleanHostname === "app.seenyt.net" || cleanHostname === "app.localhost";

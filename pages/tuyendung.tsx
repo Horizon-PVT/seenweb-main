@@ -86,12 +86,12 @@ export default function RecruitmentPage() {
     return (
         <>
             <Head>
-                <title>Tuyển dụng Kodaflow | Xây hệ thống cùng SeenYT</title>
+                <title>Tuyển dụng SeenYT | Xây hệ thống cùng SeenYT</title>
                 <meta
                     name="description"
-                    content="Kodaflow tuyển người xây hệ thống Media & AI. Không hành chính, không KPI hình thức. Thu nhập tăng theo giá trị. Ứng tuyển ngay!"
+                    content="SeenYT tuyển người xây hệ thống Media & AI. Không hành chính, không KPI hình thức. Thu nhập tăng theo giá trị. Ứng tuyển ngay!"
                 />
-                <meta property="og:title" content="Tuyển dụng Kodaflow | Build Systems, Not Tasks" />
+                <meta property="og:title" content="Tuyển dụng SeenYT | Build Systems, Not Tasks" />
                 <meta property="og:description" content="Môi trường làm việc AI-first, remote friendly, tập trung vào hiệu quả và tăng trưởng dài hạn." />
                 <meta property="og:image" content="https://www.seenyt.net/thumbnail.jpg" />
             </Head>
@@ -114,7 +114,7 @@ export default function RecruitmentPage() {
                                 <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight text-slate-900">
                                     Không tuyển nhân viên. <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">
-                                        Kodaflow tuyển người xây hệ thống.
+                                        SeenYT tuyển người xây hệ thống.
                                     </span>
                                 </h1>
                                 <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-lg">
@@ -140,7 +140,7 @@ export default function RecruitmentPage() {
                                         href="#about"
                                         className="px-8 py-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-slate-700 font-medium"
                                     >
-                                        Xem văn hóa Kodaflow
+                                        Xem văn hóa SeenYT
                                     </a>
                                 </div>
                             </div>
@@ -172,13 +172,13 @@ export default function RecruitmentPage() {
                         </div>
                     </section>
 
-                    {/* SECTION 2: KODAFLOW LÀ GÌ (Features) */}
+                    {/* SECTION 2: SEENYT LÀ GÌ (Features) */}
                     <section id="about" className="px-6 py-20 bg-white border-y border-slate-100">
                         <div className="max-w-6xl mx-auto">
                             <div className="text-center mb-16">
-                                <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900">Kodaflow là gì?</h2>
+                                <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900">SeenYT là gì?</h2>
                                 <p className="text-xl text-slate-500 max-w-3xl mx-auto">
-                                    Kodaflow xây dựng hệ thống Media (YouTube) và sản phẩm số. <br />
+                                    SeenYT xây dựng hệ thống Media (YouTube) và sản phẩm số. <br />
                                     <span className="font-mono text-sm bg-slate-100 px-2 py-1 rounded text-slate-600 mt-2 inline-block">YouTube → Website → Tools → Revenue</span>
                                 </p>
                             </div>
@@ -355,7 +355,7 @@ export default function RecruitmentPage() {
                                 <div className="absolute top-10 left-10 text-6xl text-slate-200 font-serif leading-none">“</div>
 
                                 <div className="relative z-10 space-y-6 text-lg md:text-xl leading-relaxed text-slate-700 font-light">
-                                    <p>Tôi không xây Kodaflow như một công ty truyền thống. Tôi xây một hệ thống nơi con người được tôn trọng, được trao quyền, và thu nhập tăng theo giá trị thật sự tạo ra.</p>
+                                    <p>Tôi không xây SeenYT như một công ty truyền thống. Tôi xây một hệ thống nơi con người được tôn trọng, được trao quyền, và thu nhập tăng theo giá trị thật sự tạo ra.</p>
                                     <p>Tôi không tin vào kiểm soát con người. Tôi tin vào hệ thống rõ ràng, nguyên tắc rõ ràng và phần thưởng rõ ràng.</p>
                                 </div>
 
@@ -366,7 +366,7 @@ export default function RecruitmentPage() {
                                     </div>
                                     <div>
                                         <div className="font-bold text-slate-900">Phạm Anh Tùng</div>
-                                        <div className="text-sm text-slate-500 uppercase tracking-wide">Founder, Kodaflow</div>
+                                        <div className="text-sm text-slate-500 uppercase tracking-wide">Founder, SeenYT</div>
                                     </div>
                                 </div>
                             </div>
@@ -385,7 +385,7 @@ export default function RecruitmentPage() {
                                         <Check className="w-10 h-10" />
                                     </div>
                                     <h3 className="text-2xl font-bold mb-2 text-slate-900">Đã gửi thành công!</h3>
-                                    <p className="text-slate-500 mb-8 max-w-sm mx-auto">Cảm ơn bạn. Nếu phù hợp định hướng Kodaflow, chúng tôi sẽ liên hệ lại sớm nhất.</p>
+                                    <p className="text-slate-500 mb-8 max-w-sm mx-auto">Cảm ơn bạn. Nếu phù hợp định hướng SeenYT, chúng tôi sẽ liên hệ lại sớm nhất.</p>
                                     <button onClick={resetForm} className="text-cyan-600 font-bold hover:underline">Gửi thêm một hồ sơ khác</button>
                                 </div>
                             ) : (
@@ -469,7 +469,7 @@ export default function RecruitmentPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Vì sao bạn muốn làm cùng Kodaflow? *</label>
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Vì sao bạn muốn làm cùng SeenYT? *</label>
                                         <textarea required name="reason" value={formData.reason} onChange={handleChange} rows={4} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all" placeholder="Chia sẻ ngắn gọn động lực của bạn..." />
                                     </div>
 
@@ -522,11 +522,11 @@ export default function RecruitmentPage() {
                     <section className="px-6 py-20 bg-white">
                         <div className="max-w-3xl mx-auto">
                             <h2 className="text-3xl md:text-4xl font-bold mb-2 text-center text-slate-900">FAQ</h2>
-                            <p className="text-center text-slate-500 mb-12">Bạn hỏi – Kodaflow trả lời thẳng.</p>
+                            <p className="text-center text-slate-500 mb-12">Bạn hỏi – SeenYT trả lời thẳng.</p>
 
                             <div className="space-y-4">
                                 {[
-                                    { q: "Kodaflow có chấm công không?", a: "Không. Chúng tôi quản lý theo kết quả và deadline cam kết. Bạn tự chủ thời gian." },
+                                    { q: "SeenYT có chấm công không?", a: "Không. Chúng tôi quản lý theo kết quả và deadline cam kết. Bạn tự chủ thời gian." },
                                     { q: "Thu nhập tính thế nào?", a: "Kết hợp giữa lương cứng (đảm bảo đời sống) và thưởng hiệu quả (không giới hạn). Chúng tôi minh bạch về doanh thu kênh bạn quản lý để chia sẻ lợi nhuận." },
                                     { q: "Có cần kinh nghiệm không?", a: "Kinh nghiệm là lợi thế, nhưng tư duy học hỏi quan trọng hơn. Nếu bạn chưa biết, chúng tôi sẽ đào tạo, miễn là bạn 'đói' kiến thức." },
                                     { q: "Làm remote được không?", a: "100% Remote-first. Chúng tôi làm việc qua ClickUp, Discord và Notion." },

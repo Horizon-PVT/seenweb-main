@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PricingTable from "@/components/PricingTable";
 
-const siteUrl = "https://seenweb-main.vercel.app";
+const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://seenyt.net").replace(/\/$/, "");
 const ogImage = `${siteUrl}/thumbnail.jpg`;
 
 export default function PricingPage() {

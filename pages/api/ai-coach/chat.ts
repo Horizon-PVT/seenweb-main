@@ -4,7 +4,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from '@/lib/prisma';
 import { AI_COACH_LIMITS, AI_COACH_SYSTEM_PROMPT, canAccessTool, getUpgradeMessage } from '@/lib/ai-coach-config';
-import { searchKnowledge } from '@/lib/pinecone';
 import { localSearch } from '@/lib/youtube-knowledge';
 import { searchVidIQDocuments } from '@/lib/vidiq-knowledge';
 
@@ -105,22 +104,9 @@ export default async function handler(
         // Get the latest user message for RAG search
         const latestUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
 
-        // Search knowledge base (try Pinecone first, fallback to local)
+        // Search knowledge base (local + VidIQ)
         let knowledgeContext = '';
         try {
-            const relevantDocs = await searchKnowledge(latestUserMessage, 3);
-            if (relevantDocs.length > 0) {
-                knowledgeContext = `
-[KIẾN THỨC THAM KHẢO]
-Dựa trên dữ liệu SeenYT, đây là thông tin liên quan:
-${relevantDocs.map((doc, i) => `${i + 1}. ${doc}`).join('\n\n')}
-
-Hãy sử dụng thông tin trên để trả lời chính xác hơn. Nếu thông tin không liên quan, bỏ qua.
-`;
-            }
-        } catch (ragError) {
-            // Fallback to local search + VidIQ knowledge
-            console.log('Pinecone not available, using local + VidIQ search');
             const localDocs = localSearch(latestUserMessage, 2);
             const vidiqDocs = searchVidIQDocuments(latestUserMessage, 2);
             const combinedDocs = [...localDocs, ...vidiqDocs];
@@ -128,9 +114,11 @@ Hãy sử dụng thông tin trên để trả lời chính xác hơn. Nếu thô
             if (combinedDocs.length > 0) {
                 knowledgeContext = `
 [KIẾN THỨC THAM KHẢO - SeenYT + VidIQ]
-${combinedDocs.map((doc, i) => `${i + 1}. ${doc}`).join('\n\n')}
+${combinedDocs.map((doc: string, i: number) => `${i + 1}. ${doc}`).join('\n\n')}
 `;
             }
+        } catch (searchError) {
+            console.log('Knowledge search error:', searchError);
         }
 
         // Build context about user's access level

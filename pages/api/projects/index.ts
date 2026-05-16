@@ -3,6 +3,100 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { prisma } from '@/lib/prisma';
+import {
+    WORKFLOW_DRAFT_TOOL_ID,
+    createDefaultWorkflowDraft,
+    getWorkflowDraftName,
+    isWorkflowId,
+    normalizeWorkflowDraft,
+} from '@/lib/workflow-drafts';
+
+async function attachProjectToWorkflowStep(params: {
+    userId: string;
+    workflowId?: unknown;
+    stepId?: unknown;
+    channelId?: unknown;
+    projectId: string;
+}) {
+    const workflowId = typeof params.workflowId === 'string' ? params.workflowId : '';
+    const stepId = typeof params.stepId === 'string' ? params.stepId : '';
+    const channelId = typeof params.channelId === 'string' && params.channelId.trim() ? params.channelId.trim() : null;
+
+    if (!isWorkflowId(workflowId) || !stepId) {
+        return;
+    }
+
+    if (channelId) {
+        const channel = await prisma.youTubeChannel.findFirst({
+            where: { id: channelId, userId: params.userId },
+            select: { id: true },
+        });
+
+        if (!channel) {
+            return;
+        }
+    }
+
+    const draftName = getWorkflowDraftName(workflowId, channelId);
+    const existing = await prisma.userProject.findFirst({
+        where: {
+            userId: params.userId,
+            toolId: WORKFLOW_DRAFT_TOOL_ID,
+            name: draftName,
+        },
+        orderBy: { updatedAt: 'desc' },
+    });
+
+    const draft = normalizeWorkflowDraft(
+        workflowId,
+        existing?.data || createDefaultWorkflowDraft(workflowId, channelId),
+        channelId
+    );
+    const now = new Date().toISOString();
+    let changed = false;
+
+    const nextDraft = {
+        ...draft,
+        updatedAt: now,
+        status: draft.status === 'completed' ? 'completed' : 'in_progress',
+        steps: draft.steps.map((step) => {
+            if (step.stepId !== stepId || step.toolOutputProjectIds.includes(params.projectId)) {
+                return step;
+            }
+
+            changed = true;
+            return {
+                ...step,
+                toolOutputProjectIds: [...step.toolOutputProjectIds, params.projectId],
+                updatedAt: now,
+            };
+        }),
+    };
+
+    if (!changed) {
+        return;
+    }
+
+    if (existing) {
+        await prisma.userProject.update({
+            where: { id: existing.id },
+            data: {
+                data: nextDraft,
+                updatedAt: new Date(),
+            },
+        });
+        return;
+    }
+
+    await prisma.userProject.create({
+        data: {
+            userId: params.userId,
+            toolId: WORKFLOW_DRAFT_TOOL_ID,
+            name: draftName,
+            data: nextDraft,
+        },
+    });
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions);
@@ -49,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // POST: Save Project
     if (req.method === 'POST') {
-        const { toolId, name, data, id } = req.body;
+        const { toolId, name, data, id, workflowId, stepId, channelId } = req.body;
 
         if (!toolId || !data) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -84,6 +178,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                 });
             }
+
+            await attachProjectToWorkflowStep({
+                userId,
+                workflowId,
+                stepId,
+                channelId,
+                projectId: project.id,
+            });
 
             return res.status(200).json({ project });
         } catch (error: any) {

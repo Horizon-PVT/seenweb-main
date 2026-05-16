@@ -5,7 +5,10 @@ import { prisma } from '@/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions);
-    const user = await prisma.user.findUnique({ where: { email: session?.user?.email! } });
+    if (!session?.user?.email) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
 
     if (!user || (user.role !== 'ADMIN' && user.role !== 'MOD')) {
         return res.status(403).json({ message: 'Unauthorized' });

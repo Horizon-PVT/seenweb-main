@@ -244,3 +244,11 @@ html {
 :root.light .group:hover .seenyt-logo-icon {
   filter: drop-shadow(0 0 10px rgba(193, 18, 31, 0.5));
 }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

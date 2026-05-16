@@ -88,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Generate AI weekly report
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const prompt = `
 Tạo báo cáo tuần CHO USER: ${user?.name || 'Unknown'}

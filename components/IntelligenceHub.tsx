@@ -67,6 +67,36 @@ export default function IntelligenceHub({ onBack }: IntelligenceHubProps) {
     const [error, setError] = useState('');
     const [showUpgrade, setShowUpgrade] = useState(false);
 
+    const saveWorkflowOutput = async (result: IntelResult) => {
+        const workflowId = Array.isArray(router.query.workflow) ? router.query.workflow[0] : router.query.workflow;
+        const channelId = Array.isArray(router.query.channel) ? router.query.channel[0] : router.query.channel;
+
+        if (!session || workflowId !== 'improve-channel') return;
+
+        try {
+            await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    toolId: 'intelligence-hub',
+                    name: `Intelligence: ${(keyword || competitorChannel || 'Channel review').slice(0, 60)}`,
+                    workflowId,
+                    stepId: 'review-insights',
+                    channelId,
+                    data: {
+                        keyword,
+                        competitorChannel,
+                        market,
+                        intelligence: result.intelligence,
+                        generatedAt: new Date().toISOString(),
+                    },
+                }),
+            });
+        } catch (error) {
+            console.error('Failed to save Intelligence Hub workflow output:', error);
+        }
+    };
+
     // Persistence Logic
     useEffect(() => {
         const savedKeyword = localStorage.getItem('seenyt_intel_keyword');
@@ -111,6 +141,7 @@ export default function IntelligenceHub({ onBack }: IntelligenceHubProps) {
             }
 
             setOutput(data as IntelResult);
+            await saveWorkflowOutput(data as IntelResult);
         } catch (err: any) {
             setError(err.message || 'Failed to generate intelligence report');
         } finally {
@@ -126,7 +157,7 @@ export default function IntelligenceHub({ onBack }: IntelligenceHubProps) {
     ];
 
     return (
-        <div className="min-h-full bg-[#050b14] text-white font-sans overflow-x-hidden p-6">
+        <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#050b14] p-6 font-sans text-white">
             <Head>
                 <title>Intelligence Hub - SeenYT</title>
             </Head>

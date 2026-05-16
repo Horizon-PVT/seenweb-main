@@ -80,13 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const userRole = user?.role || 'FREE';
             const extraSlots = user?.extraChannelSlots || 0;
 
-            const LEGACY_CHANNEL_LIMITS: Record<string, number> = {
-                USER: 0,
-                BASIC: 1,
-                PRO: 2,
-            };
-
-            const baseLimit = CHANNEL_LIMITS[userRole] ?? LEGACY_CHANNEL_LIMITS[userRole] ?? 0;
+            const baseLimit = CHANNEL_LIMITS[userRole] ?? 0;
             const totalLimit = (userRole === 'ADMIN') ? 999 : (baseLimit + extraSlots);
 
             return res.status(200).json({

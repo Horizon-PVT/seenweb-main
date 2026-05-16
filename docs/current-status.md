@@ -21,6 +21,11 @@ Maintenance mode is currently enabled for production via `process.env.NODE_ENV =
 - Hardened PayOS payment handling with shared server-side plan/order activation logic.
 - Regenerated sitemap/robots output.
 - Added a public maintenance page announcing the workflow upgrade and expected reopening on Sunday, 17/05/2026.
+- Added a shared dashboard tool workspace shell so every active tool opens with consistent workflow, channel, draft status, output count, and back navigation context.
+- Converted AI Coach navigation to open inside the dashboard tool workspace instead of jumping to a separate dashboard page; `/dashboard/ai-coach` remains available as a compatible standalone page.
+- Added a dashboard-native AI Coach workspace with context panel, quick prompts, streaming chat, and workflow output attachment.
+- Locked the dashboard to a fixed-height app shell so active tools scroll inside their own workspace instead of pulling the browser page downward.
+- Tuned ChatGPT/Gemini-style AI Coach output with slower typewriter speed, tighter readable line spacing, aligned output/input width, hidden intrusive internal scrollbars, clickable suggested follow-up prompts, and a less intrusive composer area; Script Studio already renders generated scripts with a typewriter effect.
 
 ## QA Already Recorded
 
@@ -53,7 +58,7 @@ Recorded checks:
    - General workspace draft saves and reloads.
    - Selecting a connected channel creates a separate draft for that channel.
    - Switching channels does not mix workflow progress.
-3. Continue attaching real tool output IDs to each workflow step.
+3. Continue attaching real tool output IDs to each workflow step beyond Niche Radar, Rival Scanner, Script Studio, and SEO Tool.
 
 ## Completion Plan
 
@@ -156,7 +161,8 @@ Steps:
 ## Future Product Work
 
 - Persist workflow drafts and project state. Initial draft persistence is now implemented on top of `UserProject` with `toolId="workflow-draft"`.
-- Connect workflows to channel IDs and real tool output project IDs. Channel-linked draft storage is now implemented; tool output linking remains next.
+- Connect workflows to channel IDs and real tool output project IDs. Channel-linked draft storage is implemented; Niche Radar, Rival Scanner, Script Studio, and SEO Tool outputs now attach to their matching workflow steps.
+- Continue inner UI/UX unification tool by tool. The shared shell is implemented first; Niche Radar and Script Studio wrappers have been simplified to avoid duplicate headers.
 - Review quota and role access in `lib/roles.ts`.
 - Deep-review API/loading/error states tool by tool.
 - Delete hidden legacy routes only after route, API, billing, and admin dependency review.
@@ -172,8 +178,25 @@ Implemented:
 - `pages/dashboard.tsx` loads connected channels, keeps the selected `channel` in the dashboard query string, saves step state per channel, marks steps active/done, and routes the selected step to the right tool.
 - `components/dashboard/DashboardHome.tsx` displays a channel workspace selector, saved progress, current step, step status, and a `Mark done` action.
 - `components/dashboard/MyChannels.tsx` is reachable from the dashboard as `tool=channel-manager` for connecting the first channel.
+- `pages/api/projects/index.ts` can attach a saved project to a workflow step when `workflowId`, `stepId`, and optional `channelId` are provided.
+- `components/ScriptwriterTool.tsx` sends workflow context when saving a script from the `produce-video` workflow, so saved scripts attach to the `write-script` step.
+- `components/MicroNicheMinerTool.tsx` auto-saves successful Niche Radar results to the `find-niche` step in the `launch-channel` workflow.
+- `components/RivalScannerTool.tsx` auto-saves successful Rival Scanner results to the `study-rivals` step in the `launch-channel` workflow.
+- `components/SeoTool.tsx` auto-saves successful SEO packages to `optimize-video` in `improve-channel`, or to `build-video-package` when used inside `produce-video`.
+- `components/VoiceStudioTool.tsx` auto-saves generated voiceover/audio output to `create-voice` in `produce-video`.
+- `components/IntelligenceHub.tsx` auto-saves generated intelligence reports to `review-insights` in `improve-channel`.
+- `pages/dashboard.tsx` refetches workflow draft state when returning from a tool to the workflow screen.
+- `components/dashboard/ToolWorkspaceShell.tsx` provides the shared dashboard shell for all active tools.
+- `components/KodaNicheRadar.tsx` and `components/KodaScriptStudio.tsx` were simplified so the shared shell owns the main tool header.
+- `components/MicroNicheMinerTool.tsx` and `components/RivalScannerTool.tsx` were widened to use the full dashboard workspace instead of centered/max-width layouts.
+- `components/dashboard/AICoachWorkspace.tsx` is the dashboard-native AI Coach experience used by `tool=ai-coach`.
+- `pages/dashboard.tsx` keeps active tools clipped to the tool workspace, while the normal workflow dashboard is allowed to scroll inside the dashboard shell.
+- `components/dashboard/DashboardLayout.tsx` lets the normal workflow dashboard use natural page scroll, while active tools stay inside a fixed-height workspace.
+- `pages/dashboard/ai-coach.tsx` still supports the old standalone page path for compatibility.
+- `components/ui/TypewriterMarkdown.tsx` renders markdown output progressively for chat-style AI responses.
+- `components/VideoPipeline.tsx`, `components/IntelligenceHub.tsx`, `components/ScriptwriterTool.tsx`, and the workflow-native tool wrappers use internal fixed-height scrolling instead of page-level scrolling.
 
 Current limits:
 
-- Tool outputs are not automatically attached to draft steps yet.
+- Video Pipeline still needs a clearer final "save package" action before it can attach a useful output object to `build-video-package`.
 - Production maintenance remains active, so test this in local dev until the release is ready.

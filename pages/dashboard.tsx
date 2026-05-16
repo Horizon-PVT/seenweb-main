@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DashboardHome from "@/components/dashboard/DashboardHome";
+import ToolWorkspaceShell from "@/components/dashboard/ToolWorkspaceShell";
+import AICoachWorkspace from "@/components/dashboard/AICoachWorkspace";
 import { CREATOR_WORKFLOWS, WorkflowAction, WorkflowId, getDashboardToolId } from "@/lib/creator-workflows";
 import { WorkflowDraftData, createDefaultWorkflowDraft, normalizeWorkflowDraft } from "@/lib/workflow-drafts";
 
@@ -151,7 +153,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [loading, router.isReady, selectedChannelId, selectedWorkflow, status]);
+  }, [activeTool, loading, router.isReady, selectedChannelId, selectedWorkflow, status]);
 
   const saveWorkflowDraft = async (nextDraft: WorkflowDraftData) => {
     const normalized = normalizeWorkflowDraft(selectedWorkflow, { ...nextDraft, channelId: selectedChannelId }, selectedChannelId);
@@ -230,7 +232,9 @@ export default function DashboardPage() {
   }
 
   const userRole = (session?.user as any)?.role || 'FREE';
-  const ActiveComponent = activeTool ? TOOL_COMPONENTS[activeTool] : null;
+  const ActiveComponent = activeTool && activeTool !== "ai-coach" ? TOOL_COMPONENTS[activeTool] : null;
+  const selectedChannel = channels.find((channel) => channel.id === selectedChannelId);
+  const currentWorkflowDraft = workflowDraft || createDefaultWorkflowDraft(selectedWorkflow, selectedChannelId);
 
   return (
     <DashboardLayout 
@@ -245,11 +249,23 @@ export default function DashboardPage() {
         }
       }}
     >
-      <div className="min-h-full">
-        {ActiveComponent ? (
-          <div className="animate-fadeIn">
-            <ActiveComponent onBack={() => router.push(getDashboardPath({ tool: null }), undefined, { shallow: true })} />
-          </div>
+      <div className={activeTool ? "h-full min-h-0 overflow-hidden" : "min-h-full"}>
+        {activeTool ? (
+          <ToolWorkspaceShell
+            activeTool={activeTool || ""}
+            selectedWorkflow={selectedWorkflow}
+            selectedChannelTitle={selectedChannel?.title}
+            workflowDraft={currentWorkflowDraft}
+            onBack={() => router.push(getDashboardPath({ tool: null }), undefined, { shallow: true })}
+          >
+            <div className="animate-fadeIn h-full">
+              {activeTool === "ai-coach" ? (
+                <AICoachWorkspace />
+              ) : ActiveComponent ? (
+                <ActiveComponent onBack={() => router.push(getDashboardPath({ tool: null }), undefined, { shallow: true })} />
+              ) : null}
+            </div>
+          </ToolWorkspaceShell>
         ) : (
           <DashboardHome 
             userRole={userRole} 
@@ -258,7 +274,7 @@ export default function DashboardPage() {
             selectedChannelId={selectedChannelId}
             channelLimit={channelLimit}
             channelsLoading={channelsLoading}
-            workflowDraft={workflowDraft || createDefaultWorkflowDraft(selectedWorkflow, selectedChannelId)}
+            workflowDraft={currentWorkflowDraft}
             draftSaving={draftSaving}
             onChannelSelect={(channelId) => {
               router.push(getDashboardPath({ channelId, tool: null }), undefined, { shallow: true });

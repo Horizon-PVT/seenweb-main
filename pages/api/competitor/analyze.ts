@@ -98,7 +98,7 @@ async function analyzeChannel(
   apiKey: string
 ): Promise<CompetitorReport> {
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   // Generate mock data (in production, this would fetch from YouTube API)
   const mockReport = generateMockReport(channelId);

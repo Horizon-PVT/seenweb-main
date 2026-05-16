@@ -170,7 +170,7 @@ export default function DashboardHome({
                 {copy.dashboard.startWorkflow} <ArrowRight size={17} />
               </button>
               <button
-                onClick={() => router.push("/dashboard/ai-coach")}
+                onClick={() => onToolSelect("ai-coach")}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 text-sm font-bold text-white transition hover:border-cyan-300/50 hover:bg-white/10"
               >
                 <Bot size={17} className="text-cyan-300" />
@@ -379,6 +379,11 @@ export default function DashboardHome({
                         </span>
                       </div>
                       <p className="mt-1 text-sm leading-6 text-slate-400">{step.description}</p>
+                      {draftStep?.toolOutputProjectIds?.length ? (
+                        <div className="mt-2 text-xs font-bold text-cyan-200">
+                          {draftStep.toolOutputProjectIds.length} saved output{draftStep.toolOutputProjectIds.length > 1 ? "s" : ""} attached
+                        </div>
+                      ) : null}
                     </div>
                     <ChevronRight className="mt-2 shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-cyan-300" />
                   </button>

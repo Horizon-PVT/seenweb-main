@@ -31,7 +31,7 @@ export default function LoginPage() {
     return (
         <>
             <Head>
-                <title>Đăng nhập — SeenWeb</title>
+                <title>Đăng nhập — SeenYT</title>
             </Head>
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-white/20">

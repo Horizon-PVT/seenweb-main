@@ -4,6 +4,7 @@ import { useTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { AnimatePresence } from 'framer-motion';
 import UpgradeModal from '@/components/UpgradeModal';
 import {
@@ -56,6 +57,7 @@ interface RivalScannerToolProps {
 export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
   const { t } = useTranslation('common');
   const router = useRouter();
+  const { data: session } = useSession();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [output, setOutput] = useState<OutputData | null>(null);
@@ -72,6 +74,48 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
   useEffect(() => {
     localStorage.setItem('seenyt_rival_input', input);
   }, [input]);
+
+  const saveWorkflowOutput = async (data: OutputData) => {
+    if (!session) return;
+
+    const workflowId = Array.isArray(router.query.workflow) ? router.query.workflow[0] : router.query.workflow;
+    if (workflowId !== 'launch-channel') return;
+
+    const channelId = Array.isArray(router.query.channel) ? router.query.channel[0] : router.query.channel;
+    const competitorName = data.competitorProfile?.name || input.trim() || 'Rival Scanner';
+
+    try {
+      await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'rival-scanner',
+          name: `Rival Scanner: ${competitorName}`,
+          workflowId,
+          stepId: 'study-rivals',
+          channelId,
+          data: {
+            input: input.trim(),
+            competitorProfile: data.competitorProfile,
+            strategicWeaknesses: data.strategicWeaknesses,
+            successSignals: data.successSignals,
+            contentStructure: data.contentStructure,
+            untappedNiches: data.untappedNiches,
+            titleAnalysis: data.titleAnalysis,
+            descriptionAnalysis: data.descriptionAnalysis,
+            tagsHashtags: data.tagsHashtags,
+            thumbnailAnalysis: data.thumbnailAnalysis,
+            contentStrategy: data.contentStrategy,
+            counterAttackPlan: data.counterAttackPlan,
+            audienceGapAnalysis: data.audienceGapAnalysis,
+            videoPersonaScore: data.videoPersonaScore,
+          },
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save rival workflow output:', error);
+    }
+  };
 
   // Radar Animation Effect
   useEffect(() => {
@@ -114,6 +158,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
       if (response.ok) {
         if (data && data.competitorProfile) {
           setScanProgress(100);
+          saveWorkflowOutput(data as OutputData);
           setTimeout(() => {
             setOutput(data as OutputData);
             setIsLoading(false);
@@ -145,7 +190,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
   };
 
   return (
-    <div className="h-full bg-[#050a05] text-[#00ff41] font-mono overflow-x-hidden selection:bg-[#003b00] selection:text-[#00ff41] overflow-y-auto">
+    <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[#050a05] text-[#00ff41] font-mono selection:bg-[#003b00] selection:text-[#00ff41]">
       {/* Rival Scanner stays focused on competitor patterns inside the Launch Channel workflow. */}
 
       {/* CRT OVERLAY */}
@@ -180,10 +225,10 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
       </header>
 
       {/* MAIN CONTENT */}
-      <main className="pt-20 px-6 pb-12 max-w-7xl mx-auto min-h-full flex flex-col">
+      <main className="flex min-h-full flex-col px-6 py-10">
 
         {/* SEARCH SECTION */}
-        <div className="mb-12 relative group">
+        <div className="relative group mb-12 w-full">
           <div className="absolute -inset-1 bg-gradient-to-r from-[#00ff41]/20 to-[#003b00]/20 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
           <form onSubmit={handleSubmit} className="relative flex items-center bg-[#0a140a] border border-[#003b00] rounded-lg overflow-hidden p-2 shadow-[0_0_20px_rgba(0,255,65,0.1)]">
             <div className="pl-4 pr-2 text-[#008f11]">
@@ -357,7 +402,7 @@ export default function RivalScannerTool({ onBack }: RivalScannerToolProps) {
 
         {/* EMPTY STATE */}
         {!isLoading && !output && (
-          <div className="flex-1 flex flex-col items-center justify-center opacity-30 pointer-events-none select-none">
+          <div className="flex-1 flex min-h-[520px] flex-col items-center justify-center opacity-30 pointer-events-none select-none">
             <Radio size={120} className="text-[#003b00] mb-8" />
             <div className="text-[#003b00] font-black text-6xl tracking-[0.2em]">{t('toolUI.rival.idle')}</div>
             <p className="text-[#008f11] tracking-widest mt-4">{t('toolUI.rival.placeholder')}</p>

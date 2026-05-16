@@ -51,7 +51,6 @@ export const TAB3_TOOLS = {
     'text-to-speech': { minRole: 'PRO' as UserRole, label: 'Text-to-Speech' },
     'ai-dubbing-studio': { minRole: 'BASIC' as UserRole, label: 'AI Dubbing Studio' },
     'velocity': { minRole: 'PRO' as UserRole, label: 'Tạo Video AI' },
-    'virtual-mc': { minRole: 'PRO' as UserRole, label: 'MC Ảo' },
 };
 
 // Tab 2 tools (all PRO+)
