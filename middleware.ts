@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const protectedPaths = ["/dashboard", "/admin", "/affiliate/dashboard"];
-const maintenanceMode = process.env.NODE_ENV === "production";
+const maintenanceMode = process.env.MAINTENANCE_MODE === "true";
 const adminEmail = (process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL || "").toLowerCase();
 const staffEmails = (process.env.STAFF_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
 
